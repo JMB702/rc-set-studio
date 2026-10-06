@@ -95,3 +95,5 @@ nav{flex-shrink:0}.price-scopes,.price-floor-switch{display:flex;gap:5px;margin:
 #comment-count:empty{display:none}
 .picking-comment #comment-toggle:after{content:none}
 @media(max-width:850px){.viewport #comment-toggle{right:12px;bottom:40px}}
+
+#guide-settings{margin:0 0 18px;border-top:0;border-bottom:1px solid var(--line)}#guide-settings>summary{min-height:44px;padding:0 0 6px}#guide-config-label{font-size:14px;font-weight:600}#guide-config-action{font-size:13px;text-decoration:underline;text-underline-offset:3px}#guide-settings[open] #guide-setup{padding-bottom:12px}

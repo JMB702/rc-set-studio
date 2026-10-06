@@ -21,7 +21,7 @@ export function priceRows(data,{scope,height,angle,floor,supports=true,ballast=t
  const key=height===120?'10x4':'8x4',n=scope==='panel'?1:8;let rows=scope==='floor'?[]:calculate(data,key,n,supports,ballast);
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
  rows.push(extra('wallPrimer','Wood-compatible wall primer · gallon',Math.ceil(area/250),null,'https://www.homedepot.com/s/wood%20primer','Planning allowance at 250 sq ft/gallon; product and local price pending','finish'));
- rows.push(extra('wallPaint','Charcoal interior wall paint · gallon',Math.ceil(area*2/350),null,'https://www.homedepot.com/s/charcoal%20interior%20paint','Two-coat planning allowance at 350 sq ft/gallon; color and price pending','finish'));
+ const paint=data.wallPaint;rows.push(extra('wallPaint',paint.name,Math.ceil(area*2/paint.coverageSqFtPerGallon),paint.unitPriceCents,paint.productUrl,paint.availability,'finish'));
  rows.push(extra('wallSeams','Scenic wall seam fabric and filler',null,null,'https://www.homedepot.com/s/paintable%20seam%20tape','Finish system / quantity pending; do not bridge moving corners rigidly','finish'));}
  if(scope==='set'){
  const p=data.products.find(p=>p.id==='lapScrews'),existing=rows.find(r=>r.id==='lapScrews'),needed=6*(height===120?5:4);

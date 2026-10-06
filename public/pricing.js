@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
-import {panel,floorMesh,dispose,inch} from './model.js';
+import {panel,floorMesh,dispose,inch,mats} from './model.js';
 import {money,priceRows,summary,floorArea,exportList} from './pricing-calc.js';
 const $=s=>document.querySelector(s);
 function ids(name,height){
@@ -47,7 +47,7 @@ export function installPricing(api){
  }
  function apply(){if(!model)return;const available=new Set(rows.map(r=>r.id));model.traverse(o=>{if(!o.isMesh)return;
   const tags=o.userData.pricingIds||[],inScope=(tags[0]==='laminate'?tags.some(id=>available.has(id)):available.has(tags[0]))&&(!o.userData.support||q('#price-supports').checked),hit=selected?tags.includes(selected)&&inScope:inScope;
-  const m=o.material;if(m.transparent!==!hit)m.needsUpdate=true;m.transparent=!hit;m.opacity=hit?1:.075;m.depthWrite=hit;m.color.copy(o.userData.baseColor);o.renderOrder=hit?2:0;o.castShadow=hit;o.receiveShadow=hit;
+  const m=o.material;const wall=tags.includes('wallPaint'),painted=wall&&q('#price-finishes').checked&&selected!=='skin';const map=painted?null:(wall?mats.ply.map:m.map);if(m.map!==map){m.map=map;m.needsUpdate=true;}if(m.transparent!==!hit)m.needsUpdate=true;m.transparent=!hit;m.opacity=hit?1:.075;m.depthWrite=hit;m.color.copy(painted?(selected==='wallPrimer'?new T.Color(0xe3e0d8):mats.charcoal.color):o.userData.baseColor);o.renderOrder=hit?2:0;o.castShadow=hit;o.receiveShadow=hit;
  });q('#price-clear').hidden=!selected;
  const row=rows.find(r=>r.id===selected);q('#price-selection').textContent=row?`${row.name} · ${row.purchaseQuantity??'TBD'} to buy · ${money(row.subtotalCents)}`:'All materials visible';
  host.querySelectorAll('[data-price-item]').forEach(b=>{const on=b.dataset.priceItem===selected;b.setAttribute('aria-pressed',on);b.closest('.price-item').classList.toggle('selected',on)});

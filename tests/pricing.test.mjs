@@ -30,3 +30,13 @@ test('All scopes and variants use integer packs and Home Depot links',()=>{
   for(const r of rows){assert.ok(r.purchaseQuantity===null||Number.isInteger(r.purchaseQuantity));assert.ok(r.subtotalCents===null||Number.isInteger(r.subtotalCents));assert.ok(r.productUrl.startsWith('https://www.homedepot.com/'));}
  }
 });
+test('Wall paint is included once, rounded by coated face area, and removable',()=>{
+ for(const height of [96,120]){
+  const config={scope:'set',height,angle:45,floor:'wood'};
+  const rows=priceRows(data,config),paint=rows.filter(r=>r.id==='wallPaint');
+  assert.equal(paint.length,1);assert.equal(paint[0].purchaseQuantity,2);assert.equal(paint[0].subtotalCents,6996);
+  assert.ok(!priceRows(data,{...config,finishes:false}).some(r=>r.id==='wallPaint'));
+  assert.equal(priceRows(data,{...config,scope:'panel'}).find(r=>r.id==='wallPaint').purchaseQuantity,1);
+  assert.ok(!priceRows(data,{...config,scope:'floor'}).some(r=>r.id==='wallPaint'));
+ }
+});

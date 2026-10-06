@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
-import {dollarsToCents,normalizeCustom,normalizeConfiguration,customizeRows,removedPart} from '../public/pricing-config.js';
+import {dollarsToCents,normalizeCustom,normalizeConfiguration,customizeRows,removedPart,normalizeDesign} from '../public/pricing-config.js';
 const uuid='eb4c42ce-88b2-46cb-b267-a040db03db22';
 const base=()=>({version:1,scope:'floor',height:120,angle:89,floor:'charcoal',supports:true,ballast:false,finishes:true,excluded:['floorPly'],customItems:[{id:'custom-'+uuid,title:'Labor',unitPriceCents:12345,quantity:2}]});
 test('Only custom title is required; links cannot execute code',()=>{const c=normalizeCustom({id:'custom-'+uuid,title:' Fee '});assert.equal(c.title,'Fee');assert.equal(c.unitPriceCents,0);assert.equal(c.quantity,1);assert.equal(c.link,'');assert.throws(()=>normalizeCustom({...c,link:'javascript:alert(1)'}));assert.equal(normalizeCustom({...c,link:'example.com/item'}).link,'https://example.com/item');});
@@ -18,3 +18,25 @@ test('Floor color is also retained by saved configurations',()=>{assert.equal(no
 test('Saved configurations keep the platform, its gaps, angle and color separately from the floor',()=>{const c=normalizeConfiguration({...base(),floor:'wood',platformShape:'square',platformBack:0,platformSide:48,platformColor:'#ABCDEF'});assert.equal(c.floor,'wood');assert.equal(c.platformShape,'square');assert.equal(c.platformAngle,90);assert.equal(c.platformBack,0);assert.equal(c.platformSide,48);assert.equal(c.platformColor,'#abcdef');const old=normalizeConfiguration(base());assert.equal(old.platformShape,'none');assert.equal(old.platformBack,12);assert.equal(old.platformColor,'#34383b');assert.throws(()=>normalizeConfiguration({...base(),platformShape:'round'}));assert.throws(()=>normalizeConfiguration({...base(),platformBack:49}));assert.throws(()=>normalizeConfiguration({...base(),platformColor:'blue'}));});
 test('Earlier saves with floor "platform" load as a platform with no floor under it',()=>{const c=normalizeConfiguration({...base(),angle:45,floor:'platform',platformAngle:60});assert.equal(c.floor,'none');assert.equal(c.platformShape,'angled');assert.equal(c.platformAngle,60);assert.equal(normalizeConfiguration({...base(),angle:45,floor:'platform',platformAngle:90}).platformShape,'square');});
 test('Angled platform angle defaults to the walls and is never wider than them',()=>{const c=b=>normalizeConfiguration({...base(),angle:45,platformShape:'angled',...b});assert.equal(c({platformAngle:70}).platformAngle,70);assert.equal(c({}).platformAngle,45);assert.equal(c({platformAngle:20}).platformAngle,45);assert.throws(()=>c({platformAngle:91}));assert.throws(()=>c({platformAngle:60.5}));});
+
+const approvedDesign={height:120,angle:45,wallColor:'#34383B',platformShape:'square',platformAngle:45,platformBack:12,platformSide:12,platformColor:'#26364d',floor:'charcoal',floorColor:'#34383b',figures:'rap'};
+test('An approved design keeps every design setting, normalized the same way everywhere',()=>{
+ const d=normalizeDesign(approvedDesign);assert.equal(d.wallColor,'#34383b');assert.equal(d.platformAngle,90,'square holds 90°');assert.equal(d.platformColor,'#26364d');
+ assert.deepEqual(Object.keys(d),['height','angle','wallColor','platformShape','platformAngle','platformBack','platformSide','platformColor','floor','floorColor','figures']);
+ assert.equal(normalizeDesign({...approvedDesign,platformShape:'angled',platformAngle:20}).platformAngle,45,'never wider than the walls');
+ assert.deepEqual(normalizeDesign({...approvedDesign,floor:'platform',platformShape:undefined}),{...d,floor:'none',platformShape:'angled',platformAngle:45});
+ for(const bad of [{height:100},{angle:91},{floor:'carpet'},{platformShape:'round'},{platformBack:49},{wallColor:'red'},{figures:'band'}])assert.throws(()=>normalizeDesign({...approvedDesign,...bad}),JSON.stringify(bad));
+ assert.ok(!('mode' in normalizeDesign({...approvedDesign,mode:'build',step:4})),'only design settings are stored');
+});
+test('Approvals save under a name, list newest first, are retry-safe and remember the name',async()=>{
+ const rows=new Map();let clock=0;const db={prepare(sql){let args;return {bind(...a){args=a;return this},async run(){if(!rows.has(args[0]))rows.set(args[0],{id:args[0],name:args[1],design:args[2],created_at:args[3]+(++clock)})},async first(){return rows.get(args[0])||null},async all(){return {results:[...rows.values()].sort((a,b)=>b.created_at-a.created_at)}}}}};
+ const post=(id,name,design=approvedDesign,origin='https://example.com')=>api.fetch(new Request('https://example.com/api/approvals',{method:'POST',headers:{'Content-Type':'application/json',Origin:origin},body:JSON.stringify({id,name,design})}),{DB:db});
+ const first=await post(uuid,' Jeff ');assert.equal(first.status,201);assert.match(first.headers.get('Set-Cookie'),/rc_comment_name=Jeff/);
+ assert.equal((await post(uuid,'Jeff')).status,201);assert.equal(rows.size,1,'same id twice stores once');
+ const second='0b5e9c62-3f1d-4f4e-9a55-2d3b8a2c9f10';await post(second,'Sam',{...approvedDesign,angle:60,platformShape:'angled'});
+ const list=await(await api.fetch(new Request('https://example.com/api/approvals'),{DB:db})).json();
+ assert.deepEqual(list.approvals.map(a=>a.name),['Sam','Jeff']);assert.equal(list.approvals[0].design.angle,60);assert.equal(list.approvals[1].design.platformAngle,90);
+ assert.equal((await post('5c3f6d1e-2b4a-4c8d-9e7f-1a2b3c4d5e6f','')).status,400,'name required');
+ assert.equal((await post('5c3f6d1e-2b4a-4c8d-9e7f-1a2b3c4d5e6f','Al',{...approvedDesign,height:99})).status,400,'design validated');
+ assert.equal((await post('5c3f6d1e-2b4a-4c8d-9e7f-1a2b3c4d5e6f','Al',approvedDesign,'https://other.example')).status,403);
+});

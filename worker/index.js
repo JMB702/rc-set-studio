@@ -44,6 +44,27 @@ export default {async fetch(request,env) {
       return json({error:'Method not allowed.'},405,{'Allow':collection?'GET, POST':'GET'});
     }catch(e){console.error('Pricing configuration request failed',e);return json({error:'Saved configurations are temporarily unavailable. Please try again.'},503);}
   }
+  // Design approvals: anyone can approve the current design under their name. The newest approval is the site default.
+  if(url.pathname==='/api/approvals') {
+    try {
+      const db=database(env);
+      if(request.method==='GET'){
+        const rows=await db.prepare('SELECT * FROM design_approvals ORDER BY created_at DESC, id DESC LIMIT 50').all();
+        return json({approvals:rows.results.map(r=>({id:r.id,name:r.name,design:JSON.parse(r.design),createdAt:r.created_at}))});
+      }
+      if(request.method==='POST'){
+        if(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)return json({error:'Please approve from this site.'},403);
+        if(!request.headers.get('Content-Type')?.includes('application/json'))return json({error:'Expected JSON.'},415);
+        const raw=await request.text();if(raw.length>4000)return json({error:'Approval is too large.'},413);
+        let input,name,design;try{input=JSON.parse(raw);name=typeof input.name==='string'?input.name.trim():'';if(!name||name.length>80)throw Error('Enter your name (up to 80 characters).');if(typeof input.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid approval ID.');design=normalizeDesign(input.design);}catch(e){return json({error:e.message},400);}
+        // Reusing the draft ID makes retries safe if a response is lost.
+        await db.prepare('INSERT INTO design_approvals (id,name,design,created_at) VALUES (?,?,?,?) ON CONFLICT(id) DO NOTHING').bind(input.id,name,JSON.stringify(design),Date.now()).run();
+        const r=await db.prepare('SELECT * FROM design_approvals WHERE id = ?').bind(input.id).first();
+        return json({approval:{id:r.id,name:r.name,design:JSON.parse(r.design),createdAt:r.created_at}},201,{'Set-Cookie':`rc_comment_name=${encodeURIComponent(name)}; Path=/; Max-Age=31536000; SameSite=Lax${url.protocol==='https:'?'; Secure':''}`});
+      }
+      return json({error:'Method not allowed.'},405,{'Allow':'GET, POST'});
+    }catch(e){console.error('Approval request failed',e);return json({error:'Approvals are temporarily unavailable. Please try again.'},503);}
+  }
   if(url.pathname==='/api/comments') {
     try {
       const db=database(env);

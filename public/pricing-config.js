@@ -26,3 +26,15 @@ export function normalizeConfiguration(input){
 }
 export function customizeRows(rows,configuration){const excluded=new Set(configuration.excluded);return [...rows.filter(r=>!excluded.has(r.id)),...configuration.customItems.map(i=>({id:i.id,custom:true,name:i.title,description:i.description,availability:i.description,productUrl:i.link,purchaseQuantity:i.quantity,packSize:1,needed:i.quantity,unitPriceCents:i.unitPriceCents,subtotalCents:i.quantity*i.unitPriceCents,group:'custom'}))];}
 export function removedPart(tags,floor,excluded){const physical=tags.includes('laminate')?(floor==='wood'?'laminate':'floorPly'):tags[0];return excluded.includes(physical);}
+// An approved design: every setting the design panel controls, validated the same way in the browser and the Worker.
+export function normalizeDesign(input){
+ if(!input||typeof input!=='object')throw Error('Invalid design.');
+ const hex=(v,name)=>{if(typeof v!=='string'||!/^#[0-9a-f]{6}$/i.test(v))throw Error('Invalid '+name+' color.');return v.toLowerCase();};
+ const angle=Number(input.angle);if(![96,120].includes(input.height)||!Number.isFinite(angle)||angle<0||angle>90)throw Error('Invalid wall height or angle.');
+ const legacy=input.floor==='platform',floor=legacy?'none':input.floor,platformShape=input.platformShape??(legacy?'angled':'none');
+ if(!['none','wood','charcoal'].includes(floor)||!['none','angled','square'].includes(platformShape))throw Error('Invalid floor or platform.');
+ const platformBack=input.platformBack??12,platformSide=input.platformSide??12;if(![platformBack,platformSide].every(v=>Number.isInteger(v)&&v>=0&&v<=48))throw Error('Invalid platform gap.');
+ const a=Math.round(angle),pa=platformShape==='square'?90:Math.round(Math.max(a,Number(input.platformAngle??a)));if(!Number.isFinite(pa)||pa>90)throw Error('Invalid platform angle.');
+ const figures=input.figures??'rap';if(!['podcast','rap'].includes(figures))throw Error('Invalid figures.');
+ return {height:input.height,angle:a,wallColor:hex(input.wallColor,'wall'),platformShape,platformAngle:pa,platformBack,platformSide,platformColor:hex(input.platformColor??'#34383b','platform'),floor,floorColor:hex(input.floorColor??'#34383b','floor'),figures};
+}

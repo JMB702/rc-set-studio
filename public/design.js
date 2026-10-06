@@ -16,6 +16,8 @@ function rgb(h,s,v){let f=n=>{let k=(n+h*6)%6;return Math.round(255*v*(1-s*Math.
 function hsv(hex){let [r,g,b]=hex.slice(1).match(/../g).map(x=>parseInt(x,16)/255),mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn,h=0;if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h=(h/6+1)%1;}return[h,mx?d/mx:0,mx];}
 const hex=c=>'#'+c.map(n=>n.toString(16).padStart(2,'0')).join('');
 
+// One line naming a design, used by the guides' summary and the approvals list.
+export const designLine=d=>[`${d.height/12}′ walls at ${d.angle}°`,d.platformShape!=='none'?`${d.platformShape} platform`:'no platform',d.floor==='none'?'no floor':d.floor==='wood'?'oak floor':'painted floor'].join(' · ');
 export function installDesign(api){
  const S=api.state,host=document.querySelector('#design');if(!host)return;
  host.innerHTML=`<div class="design-head"><div><span class="eyebrow">YOUR SET</span><h2 id="design-title">Design</h2></div><span id="panel-count" class="design-meta">8 panels</span><button type="button" id="design-toggle" class="edit-button" aria-expanded="false" aria-controls="design-editor">Edit</button></div>
@@ -44,7 +46,7 @@ ${colorField('platform')}</div></section>
   const plan=S.platformShape!=='none'?platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle):null,gaps=S.platformBack===S.platformSide?`${gapText(S.platformBack).toLowerCase()} from walls`:`${gapText(S.platformBack).toLowerCase()} back · ${gapText(S.platformSide).toLowerCase()} sides`;
   const rows=[['Walls',`${S.height/12}′ tall · ${S.angle}° wings`,S.wallColor],['Platform',plan?`${angleText()} · ${gaps} · ${plan.deckArea.toFixed(0)} sq ft`:'None',plan&&S.platformColor],['Floor',S.floor==='none'?'None':`${S.floor==='wood'?'Oak laminate':'Painted plywood'}${plan?' · under the platform':''}`,S.floor==='charcoal'?S.floorColor:S.floor==='wood'?'oak':null]];
   q('#design-summary').replaceChildren(...rows.map(([k,v,c])=>{const li=document.createElement('li'),dot=document.createElement('span'),t=document.createElement('strong'),d=document.createElement('span');dot.className='dot'+(c==='oak'?' oak':'')+(c?'':' empty');if(c&&c!=='oak')dot.style.background=c;t.textContent=k;d.textContent=v+(c&&c!=='oak'?` · ${colorName(c)}`:'');li.append(dot,t,d);return li;}));
-  q('#design-line').textContent=[`${S.height/12}′ walls at ${S.angle}°`,plan?`${S.platformShape} platform`:'no platform',S.floor==='none'?'no floor':S.floor==='wood'?'oak floor':'painted floor'].join(' · ');
+  q('#design-line').textContent=designLine(S);
   q('#walls-meta').textContent=`${S.height/12}′ × 4′ panels · 16′ back wall`;
   q('#platform-meta').textContent=plan?`10″ tall · ${plan.counts.modules} modules`:'Not included';
   q('#floor-meta').textContent=S.floor==='none'?'Not included':S.floor==='wood'?'Click-lock oak laminate':'Painted plywood overlay';

@@ -244,3 +244,163 @@ nav{flex-shrink:0}.price-scopes{display:flex;gap:5px;margin:16px 0}.price-scopes
 #cam-toggle{position:absolute;left:16px;bottom:52px;z-index:3;width:44px;height:44px;min-height:44px;padding:0;display:grid;place-items:center;border-radius:50%;background:var(--ink);color:var(--accent);box-shadow:0 5px 22px #17202433}#cam-toggle[hidden]{display:none}#cam-toggle[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
 #camera-controls[hidden]{display:none}
 @media(max-width:850px){.cam-live .controls{display:flex;flex-direction:column}.cam-live #explore-controls{display:contents}.cam-live #camera-controls{order:-1;display:flex;flex-direction:column;margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--line)}.cam-live #camera-controls .group-head{order:0;margin-bottom:12px}.cam-live #camera-controls .group-head h3{font-size:16px}#camera-controls #cam-focal-field{order:1;margin-bottom:16px}#camera-controls #cam-frame-field{order:2;margin-bottom:0}#camera-controls .hint{display:none}#camera-controls .field-label output{font-size:22px;font-weight:700}#camera-controls input[type=range]{height:44px}#camera-controls .presets{gap:6px;margin-top:6px}#camera-controls .presets button{min-height:50px;font-size:16px;font-weight:600;padding:0}#camera-controls .presets button.active{background:var(--ink);border-color:var(--ink);color:var(--accent)}#camera-controls .choice button{min-height:46px;flex-direction:row;align-items:center;gap:8px}#camera-controls .choice button span{margin:0}}
+
+/* Approvals: the Approve button, the approved-designs list and the name dialog */
+.design-approve{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+.approve-button{width:100%;min-height:50px;border-radius:9px;background:var(--ink);color:#fff;font-size:15px;font-weight:650}
+.approve-button:disabled{opacity:1;background:#e1e9db;color:#3b4a47;cursor:default}
+.design-approve #approve-status{margin-top:10px}
+#approvals{margin-top:14px}
+#approvals>summary{font-size:14px;font-weight:600;min-height:40px}
+#approvals-list{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px}
+.approval{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;row-gap:3px;align-items:center;text-align:left;padding:10px 12px;border:1px solid #dbe1da;border-radius:8px;background:#fff;color:var(--ink);font-size:14px}
+.approval small{grid-column:2;font-size:12px;line-height:1.4;color:var(--muted)}
+.approval[aria-current=true]{border-color:#263b2b;background:#eaf3df;box-shadow:0 0 0 1px #263b2b}
+.approval-dots{display:flex;gap:3px;grid-row:span 2}
+.approval-dots .dot{width:12px;height:12px}
+.badge{font-style:normal;font-size:11px;font-weight:650;letter-spacing:.3px;padding:2px 7px;border-radius:99px;background:var(--ink);color:var(--accent)}
+#approve-dialog{width:min(460px,calc(100vw - 32px));border:0;border-radius:12px;padding:22px;color:var(--ink);box-shadow:0 20px 60px #17202440}
+#approve-dialog::backdrop{background:#1720248c}
+#approve-dialog h2{font-size:22px;letter-spacing:-.5px;margin:0 0 8px}
+#approve-dialog p{font-size:14px;line-height:1.5;color:#51605b;margin:0 0 14px}
+#approve-dialog .design-summary{margin:0 0 16px}
+#approve-dialog .design-summary li{grid-template-columns:0 70px minmax(0,1fr)}
+#approve-name-field{display:grid;gap:6px;font-size:14px;font-weight:600;margin-bottom:6px}
+#approve-name-field[hidden]{display:none}
+#approve-name{font:inherit;font-size:16px;padding:10px 12px;border:1px solid #c4d1bb;border-radius:7px}
+#approve-error{min-height:20px;color:#9b2c2c!important}
+.link-button{min-height:0;padding:0;background:none;color:inherit;text-decoration:underline;font-size:14px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px}
+.dialog-actions button{padding:0 20px;border-radius:7px;border:1px solid var(--line);background:#fff}
+.dialog-actions .primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+@media(max-width:850px){.building .design-approve{display:none}.dialog-actions button{flex:1}}
+#approvals-count{font-size:13px;font-weight:500;color:var(--muted);margin:0 auto 0 -6px}
+
+/* Labor: crew, hours and rate, in the Pricing guide and the approval gate (public/labor.js) */
+#labor-estimate{margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:9px;background:#fff}
+#labor-estimate .group-head{margin-bottom:10px}
+.labor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.labor-grid label{display:grid;gap:6px;font-size:12px;font-weight:600;color:#3b4a47}
+.labor-stepper,.labor-input{display:flex;align-items:center;border:1px solid #c4d1bb;border-radius:7px;background:#fff;overflow:hidden;min-height:42px}
+.labor-stepper button{min-height:40px;width:34px;padding:0;border:0;background:#f1f4ef;font-size:18px;color:var(--ink)}
+.labor-stepper input,.labor-input input{flex:1;min-width:0;width:100%;border:0;font:inherit;font-size:16px;font-weight:600;padding:8px 6px;text-align:center;background:transparent;color:var(--ink);-moz-appearance:textfield}
+.labor input::-webkit-inner-spin-button,.labor input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.labor-input>span{padding:0 7px;font-size:13px;color:var(--muted);font-weight:500}
+.labor.adjusted .labor-grid label:nth-child(2)>.labor-input{border-color:#263b2b;box-shadow:0 0 0 1px #263b2b;background:#eaf3df}
+.labor-default{font-size:12px;line-height:1.45;color:var(--muted);margin:9px 0 0}
+.labor-default .link-button{font-size:12px;color:var(--ink);font-weight:600;margin-left:4px}
+.labor-cost{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:14px}
+.labor-cost strong{font-size:15px;text-align:right}
+.labor-tasks{margin-top:10px}
+.labor-tasks>summary{font-size:13px;font-weight:600;min-height:36px}
+.labor-tasks ol{list-style:none;margin:4px 0 8px;padding:0;display:grid;gap:7px}
+.labor-tasks li{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;font-size:13px}
+.labor-tasks li small{grid-column:1/-1;font-size:11px;color:var(--muted)}
+.labor-tasks .hint{font-size:11px}
+#approve-dialog{max-height:calc(100dvh - 32px);overflow:auto}
+#approve-cost{margin:0 0 16px;padding:14px;border-radius:9px;background:#f4f7f1}
+#approve-cost h3{font-size:14px;margin:0 0 8px}
+#approve-cost dl{margin:0 0 12px;display:grid;gap:6px}
+#approve-cost dl div{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#approve-cost dt{font-size:14px;font-weight:600}
+#approve-cost dt small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+#approve-cost dd{margin:0;font-size:15px;font-weight:600;text-align:right;white-space:nowrap}
+#approve-cost .approve-total{padding-top:8px;margin-top:2px;border-top:1px solid #d3dccd}
+#approve-cost .approve-total dd{font-size:22px;letter-spacing:-.4px}
+#approve-labor .labor-cost{display:none}
+.labor-rates{border:0;margin:12px 0 0;padding:0;min-width:0}
+.labor-rates legend{padding:0;font-size:12px;font-weight:600;color:#3b4a47;margin-bottom:6px}
+.labor-rates legend small{font-weight:500;color:var(--muted);margin-left:4px}
+.labor-rates ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.labor-rates li{display:grid;grid-template-columns:72px minmax(0,1fr) 76px;align-items:center;gap:8px}
+.labor-rates li label{font-size:13px;font-weight:600}
+.labor-rates li small{font-size:12px;color:var(--muted);text-align:right}
+.labor-rates .labor-input{min-height:38px}
+.labor-rates .link-button{font-size:12px;margin-top:8px;font-weight:600}
+#price-estimate{margin:14px 0 0;padding:12px 14px;border-radius:8px;background:#f4f7f1;display:grid;gap:6px}
+#price-estimate:empty{display:none}
+#price-estimate .hint{margin:0}
+#price-estimate div,#approve-cost dl div{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#price-estimate dt{font-size:14px;font-weight:600}
+#price-estimate dt small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+#price-estimate dd{margin:0;font-size:15px;font-weight:600;white-space:nowrap}
+#price-estimate .estimate-total{padding-top:8px;border-top:1px solid #d3dccd}
+#price-estimate .estimate-total dd{font-size:22px;letter-spacing:-.4px}
+#labor-estimate.has-estimate .labor-cost{display:none}
+.rate-reminder{position:relative;display:flex;align-items:flex-start;gap:8px;margin:2px 0 10px;padding:9px 10px 9px 12px;border-radius:8px;background:var(--ink);color:#fff;box-shadow:0 6px 18px #17202430;animation:rate-reminder .25s ease-out}
+.rate-reminder[hidden]{display:none}
+.rate-reminder::after{content:"";position:absolute;left:calc(50% - 12px);bottom:-6px;width:12px;height:12px;background:var(--ink);transform:rotate(45deg)}
+#approve-dialog .rate-reminder p{margin:0;font-size:12.5px;line-height:1.4;color:#fff}
+.rate-reminder button{flex:none;min-height:0;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#ffffff1f;color:var(--accent);font-size:15px;line-height:1}
+@keyframes rate-reminder{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.rate-reminder{animation:none}}
+/* Phones: the whole approval gate fits on one screen (summary line, costs, crew, rates, Approve) */
+#approve-line{display:none}
+@media(max-width:600px){
+ #approve-dialog{width:calc(100vw - 16px);max-width:none;max-height:calc(100dvh - 16px);padding:16px 16px 0;border-radius:14px}
+ #approve-dialog h2{font-size:19px;margin:0 0 4px}
+ #approve-dialog form>p:first-of-type,#approve-summary,#approve-cost h3,#approve-labor .labor-tasks,#approve-labor [data-default]{display:none}
+ #approve-dialog #approve-line{display:block;font-size:13px;line-height:1.35;margin:0 0 10px;color:var(--muted)}
+ #approve-cost{padding:10px 12px;margin:0 0 10px}
+ #approve-cost dl{grid-template-columns:1fr 1fr;column-gap:14px;row-gap:6px;margin:0 0 10px}
+ #approve-cost dl div:not(.approve-total){display:block}
+ #approve-cost dl div:not(.approve-total) dd{text-align:left;font-size:16px}
+ #approve-cost dt{font-size:12px;color:var(--muted)}
+ #approve-cost dt small{font-size:11px}
+ #approve-cost .approve-total{grid-column:1/-1;flex-wrap:wrap;row-gap:0;padding-top:6px}
+ #approve-cost .approve-total dt{color:var(--ink);font-size:14px}
+ #approve-cost .approve-total dt small{display:none}
+ #approve-cost .approve-total dd{font-size:21px}
+ #approve-cost .approve-total::after{content:attr(data-note);flex-basis:100%;font-size:11px;line-height:1.3;color:var(--muted)}
+ #approve-labor .labor-grid{gap:8px}
+ #approve-labor .labor-grid label{gap:4px;font-size:11px}
+ #approve-labor .labor-stepper,#approve-labor .labor-input{min-height:38px}
+ #approve-labor .labor-stepper button{min-height:36px}
+ #approve-labor .labor-default{margin:4px 0 0}
+ #approve-labor .labor-default:has([data-reset][hidden]){display:none}
+ #approve-labor .labor-rates{margin-top:8px}
+ #approve-labor .labor-rates legend{margin-bottom:4px;font-size:11px}
+ #approve-labor .labor-rates ol{gap:5px}
+ #approve-labor .labor-rates li{grid-template-columns:64px minmax(0,1fr) 70px}
+ #approve-labor .labor-rates .labor-input{min-height:36px}
+ #approve-labor .labor-rates .link-button{margin-top:5px}
+ .rate-reminder{margin:0 0 9px;padding:7px 8px 7px 10px}
+ #approve-dialog .rate-reminder p{font-size:12px;line-height:1.3}
+ #approve-as{margin:0 0 6px!important;font-size:13px!important}
+ #approve-name-field{margin-bottom:4px}
+ #approve-error{min-height:0;margin:0!important}
+ #approve-error:not(:empty){margin:0 0 6px!important}
+ #approve-dialog .dialog-actions{position:sticky;bottom:0;margin:0 -16px;padding:10px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
+ #approve-dialog .dialog-actions button{min-height:46px}
+}
+@media(max-width:600px){
+ #approve-labor .labor-rates ol:has(li:nth-child(3)){grid-template-columns:1fr 1fr;column-gap:8px}
+ #approve-labor .labor-rates ol:has(li:nth-child(3)) li{grid-template-columns:minmax(0,1fr);gap:2px}
+ #approve-labor .labor-rates ol:has(li:nth-child(3)) li label{font-size:11px;font-weight:600;color:#3b4a47}
+ #approve-labor .labor-rates ol:has(li:nth-child(3)) li small{display:none}
+}
+@media(max-width:600px){#approve-labor .rate-reminder::after{left:calc(50% - 13px)}#approve-labor .labor-rates:has(ol li:nth-child(3)) .rate-reminder::after{left:calc(25% - 12px)}}
+@media(max-width:360px){#approve-labor .labor-rates li{grid-template-columns:58px minmax(0,1fr) 62px;gap:6px}#approve-labor .labor-rates .labor-input>span{padding:0 5px}}
+/* Scale-figure clothing: one collapsible card per person; the summary shows a tinted silhouette and the outfit. */
+.wear{margin-top:18px}
+.wear>.field-label{margin-bottom:0;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.wear-card{border-top:0;border-bottom:1px solid var(--line)}
+.wear-card summary{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:14px;min-height:64px;padding:8px 0}
+.wear-card summary .wear-figure{width:28px;height:48px}
+.wear-figure .wear-shirt,.wear-figure .wear-arm,.wear-figure .wear-pants{stroke:#0000002e;stroke-width:.6;transition:fill .15s}
+.wear-title strong{display:block;font-size:15px;font-weight:650}
+.wear-title small{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:2px}
+.wear-title .wear-outfit{color:#3d4b47;font-weight:550}
+.wear-card summary .wear-toggle{font-size:21px;font-weight:400;transition:transform .15s}
+.wear-card[open] summary .wear-toggle{transform:rotate(45deg)}
+.wear-body{padding:2px 0 16px 42px}
+.wear-row+.wear-row{margin-top:12px}
+.wear-row .field-label{margin-bottom:7px;font-size:13px}
+.wear-row .field-label output{font-size:13px;font-weight:600;color:var(--muted)}
+.wear-reset{margin-top:14px;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;color:var(--ink)}
+.wear-swatches{grid-template-columns:repeat(auto-fill,minmax(28px,1fr));gap:9px;max-width:none}
+label.swatch.custom{display:block;position:relative;cursor:pointer;overflow:hidden}
+label.swatch.custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+label.swatch.custom:focus-within{outline:3px solid #648d2d;outline-offset:3px}
+.wear-swatches .swatch{width:100%;height:auto;min-height:0;aspect-ratio:1;align-self:start}
+@media(max-width:850px){.wear-swatches{grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:10px}.wear-body{padding-left:0}}

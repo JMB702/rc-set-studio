@@ -15,3 +15,11 @@ export const pricingConfigurations = sqliteTable('pricing_configurations', {
   configuration: text('configuration').notNull(),
   createdAt: integer('created_at').notNull(),
 }, table => [index('pricing_configurations_created_at_idx').on(table.createdAt)]);
+
+// An approved design: the full design state someone signed off on. The newest approval is the site default.
+export const designApprovals = sqliteTable('design_approvals', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  design: text('design').notNull(),
+  createdAt: integer('created_at').notNull(),
+}, table => [index('design_approvals_created_at_idx').on(table.createdAt)]);

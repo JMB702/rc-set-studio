@@ -381,3 +381,26 @@ nav{flex-shrink:0}.price-scopes{display:flex;gap:5px;margin:16px 0}.price-scopes
 }
 @media(max-width:600px){#approve-labor .rate-reminder::after{left:calc(50% - 13px)}#approve-labor .labor-rates:has(ol li:nth-child(3)) .rate-reminder::after{left:calc(25% - 12px)}}
 @media(max-width:360px){#approve-labor .labor-rates li{grid-template-columns:58px minmax(0,1fr) 62px;gap:6px}#approve-labor .labor-rates .labor-input>span{padding:0 5px}}
+/* Scale-figure clothing: one collapsible card per person; the summary shows a tinted silhouette and the outfit. */
+.wear{margin-top:18px}
+.wear>.field-label{margin-bottom:0;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.wear-card{border-top:0;border-bottom:1px solid var(--line)}
+.wear-card summary{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:14px;min-height:64px;padding:8px 0}
+.wear-card summary .wear-figure{width:28px;height:48px}
+.wear-figure .wear-shirt,.wear-figure .wear-arm,.wear-figure .wear-pants{stroke:#0000002e;stroke-width:.6;transition:fill .15s}
+.wear-title strong{display:block;font-size:15px;font-weight:650}
+.wear-title small{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:2px}
+.wear-title .wear-outfit{color:#3d4b47;font-weight:550}
+.wear-card summary .wear-toggle{font-size:21px;font-weight:400;transition:transform .15s}
+.wear-card[open] summary .wear-toggle{transform:rotate(45deg)}
+.wear-body{padding:2px 0 16px 42px}
+.wear-row+.wear-row{margin-top:12px}
+.wear-row .field-label{margin-bottom:7px;font-size:13px}
+.wear-row .field-label output{font-size:13px;font-weight:600;color:var(--muted)}
+.wear-reset{margin-top:14px;min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12px;color:var(--ink)}
+.wear-swatches{grid-template-columns:repeat(auto-fill,minmax(28px,1fr));gap:9px;max-width:none}
+label.swatch.custom{display:block;position:relative;cursor:pointer;overflow:hidden}
+label.swatch.custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:0;padding:0}
+label.swatch.custom:focus-within{outline:3px solid #648d2d;outline-offset:3px}
+.wear-swatches .swatch{width:100%;height:auto;min-height:0;aspect-ratio:1;align-self:start}
+@media(max-width:850px){.wear-swatches{grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:10px}.wear-body{padding-left:0}}

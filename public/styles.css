@@ -106,14 +106,11 @@ nav{flex-shrink:0}.price-scopes,.price-floor-switch{display:flex;gap:5px;margin:
 #price-preview-toggle{display:none}
 @media(max-width:850px){.pricing #price-preview-toggle{display:block;position:absolute;left:12px;top:10px;z-index:5;min-height:34px;padding:7px 11px;font-size:12px;border:1px solid #c1cdbb;border-radius:6px;color:#253b26;background:#fafbf8ed}.pricing.price-preview-hidden .viewport{height:54px;min-height:54px;max-height:54px}.pricing.price-preview-hidden .viewport #canvas-wrap,.pricing.price-preview-hidden .viewport .scene-footer,.pricing.price-preview-hidden .viewport #comment-toggle{visibility:hidden}.pricing .price-summary,.pricing .price-item,.pricing #price-add{scroll-margin-top:calc(30dvh + 16px)}.pricing.price-preview-hidden .price-summary,.pricing.price-preview-hidden .price-item,.pricing.price-preview-hidden #price-add{scroll-margin-top:70px}#price-dock-note{font-size:11px}}
 
-.agent-copy{display:inline-flex;align-items:center;gap:8px;margin-left:auto;padding:0 14px;min-height:39px;border:1px solid #cfd8ca;border-radius:8px;background:transparent;color:var(--ink);font-size:13px;font-weight:600;white-space:nowrap}
-.agent-copy:hover{background:#eef3ea}.agent-copy.copied{background:var(--accent);border-color:#8fb862}
-header .agent-copy+nav{margin-left:0}
 #agent-prompt-dialog{width:min(560px,calc(100vw - 32px));border:0;border-radius:12px;padding:22px;color:var(--ink);box-shadow:0 20px 60px #17202440}
 #agent-prompt-dialog::backdrop{background:#1720248c}
 #agent-prompt-dialog h2{font-size:22px;letter-spacing:-.5px;margin:0 0 8px}
 #agent-prompt-dialog p{font-size:14px;line-height:1.5;color:#51605b;margin:0 0 12px}
 #agent-prompt-dialog textarea{width:100%;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;padding:12px;border:1px solid var(--line);border-radius:8px;resize:vertical}
 #agent-prompt-dialog .primary{margin-top:12px;padding:0 20px;border-radius:7px;background:var(--ink);color:#fff}
-@media(max-width:850px){header .agent-copy{margin-left:auto}header .agent-copy+nav{margin-left:0}}
-@media(max-width:520px){.agent-word{display:none}.agent-copy{padding:0 11px}header .agent-copy+nav{margin-left:0}}
+.agent-copy{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:4px 0 8px;padding:0 16px;min-height:46px;border-radius:8px;background:var(--ink);color:#fff;font-size:14px;font-weight:600}
+.agent-copy:hover{background:#2a383d}.agent-copy.copied{background:var(--accent);color:var(--ink)}

@@ -6,7 +6,7 @@ Live site: https://rc-set-studio.thereallifeatheist.chatgpt.site
 
 ## Change it with an AI agent (easiest)
 
-1. Open the site and click **Copy agent prompt** in the header.
+1. On the site, open **Make changes to this project** at the bottom of the side panel and click **Copy prompt for agent**.
 2. Paste it into Claude Code, Codex, Cursor or any coding agent, then describe the change you want at the end.
 3. The agent forks this repo, runs it locally, makes the change and opens a pull request.
 

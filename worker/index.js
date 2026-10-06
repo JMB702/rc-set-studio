@@ -16,6 +16,26 @@ function normalize(input) {
 function commentRow(r){return {id:r.id,name:r.name,body:r.body,elementId:r.element_id,elementLabel:r.element_label,context:JSON.parse(r.context),createdAt:r.created_at};}
 export default {async fetch(request,env) {
   const url=new URL(request.url);
+  if(url.pathname==='/api/pricing-configurations'||url.pathname.startsWith('/api/pricing-configurations/')) {
+    try {
+      const db=database(env),collection=url.pathname==='/api/pricing-configurations',id=collection?null:url.pathname.slice('/api/pricing-configurations/'.length);
+      if(id&&!/^[0-9a-f-]{36}$/i.test(id))return json({error:'Invalid configuration ID.'},400);
+      if(request.method==='GET'){
+        if(collection){const result=await db.prepare('SELECT id,name,created_at FROM pricing_configurations ORDER BY created_at DESC,id DESC LIMIT 100').all();return json({configurations:result.results.map(c=>({id:c.id,name:c.name,createdAt:c.created_at}))});}
+        const c=await db.prepare('SELECT * FROM pricing_configurations WHERE id = ?').bind(id).first();if(!c)return json({error:'Configuration not found.'},404);
+        return json({configuration:{id:c.id,name:c.name,createdAt:c.created_at,configuration:JSON.parse(c.configuration)}});
+      }
+      if(request.method==='POST'&&collection){
+        if(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)return json({error:'Please save from this site.'},403);
+        if(!request.headers.get('Content-Type')?.includes('application/json'))return json({error:'Expected JSON.'},415);
+        const raw=await request.text();if(raw.length>300000)return json({error:'Configuration is too large.'},413);
+        let input,configuration,name;try{input=JSON.parse(raw);name=typeof input.name==='string'?input.name.trim():'';if(!name||name.length>100)throw Error('Enter a configuration name (up to 100 characters).');if(typeof input.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid configuration ID.');configuration=normalizeConfiguration(input.configuration);}catch(e){return json({error:e.message},400);}
+        await db.prepare('INSERT INTO pricing_configurations (id,name,configuration,created_at) VALUES (?,?,?,?) ON CONFLICT(id) DO NOTHING').bind(input.id,name,JSON.stringify(configuration),Date.now()).run();
+        const c=await db.prepare('SELECT id,name,created_at FROM pricing_configurations WHERE id = ?').bind(input.id).first();return json({configuration:{id:c.id,name:c.name,createdAt:c.created_at}},201);
+      }
+      return json({error:'Method not allowed.'},405,{'Allow':collection?'GET, POST':'GET'});
+    }catch(e){console.error('Pricing configuration request failed',e);return json({error:'Saved configurations are temporarily unavailable. Please try again.'},503);}
+  }
   if(url.pathname==='/api/comments') {
     try {
       const db=database(env);

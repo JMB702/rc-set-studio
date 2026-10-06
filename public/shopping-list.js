@@ -1,14 +1,8 @@
 const host=document.querySelector('#shopping-body');
 const money=c=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
-export function calculate(data,key,count,withSupports,withBallast){
- const v=data.variants[key],requirements={};
- const add=r=>Object.entries(r||{}).forEach(([id,n])=>requirements[id]=(requirements[id]||0)+n*count);
- add(v.panelRequirements);requirements.glue=Math.ceil(count/4);
- if(key==='10x4')requirements.skin=count+Math.ceil(count/3);
- if(withSupports)add(v.supportRequirements);
- if(withSupports&&withBallast&&v.ballastRequirements)add(v.ballastRequirements);
- return data.products.filter(p=>requirements[p.id]).map(p=>({...p,needed:requirements[p.id],purchaseQuantity:Math.ceil(requirements[p.id]/p.packSize),subtotalCents:Math.ceil(requirements[p.id]/p.packSize)*p.unitPriceCents}));
-}
+import {calculate} from './shopping-calc.js';
+export {calculate} from './shopping-calc.js';
+
 if(host){
  fetch('./data/flat-shopping-list.json').then(r=>{if(!r.ok)throw Error('Materials data unavailable');return r.json()}).then(data=>{
  host.innerHTML=`<p><strong>Home Depot · E Bradenton #6319</strong><br>5475 University Pkwy · prices checked Oct 5, 2026</p><div class="shopping-options"><label>Panels <input id="shop-count" type="number" min="1" max="100" value="1"></label><label><input id="shop-supports" type="checkbox" checked> Include two jacks and shelf per panel</label><label><input id="shop-ballast" type="checkbox" checked> Include provisional 8′ ballast supplies</label></div><p id="shop-status" role="status"></p><div class="shopping-table-wrap"><table><thead><tr><th>Buy</th><th>Material / unit price</th><th>Cost</th></tr></thead><tbody id="shop-rows"></tbody></table></div><p id="shop-total" class="price"></p><p class="hint">Before tax and delivery. Excludes paint, primer, tools, flooring and connections between panels. Some items require delivery or nearby pickup.</p><details><summary>Panel &amp; support cuts <span>+</span></summary><ul id="shop-cuts"></ul></details><p class="hint">Whole packs are combined before rounding. Glue allowance: one 16 oz bottle per four panels. Lumber must be straight, sound and measured before cutting. Verify proposed fasteners in the prototype.</p><p class="hint">8′ ballast: provisional 75 lb per panel, split into three 25 lb bags. The model's bag shapes are schematic. Match thickness of all floor pads; test grip and stability.</p><a href="data/home-depot-shopping-list.txt" download>Download printable shopping list</a><br><a href="data/flat-shopping-list.json" download>Download quantities, prices &amp; sources (JSON)</a>`;

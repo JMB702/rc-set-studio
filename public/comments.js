@@ -2,18 +2,22 @@ import * as T from 'three';
 const $=s=>document.querySelector(s);
 export function installComments(api) {
   const panel=$('#comment-panel'),toggle=$('#comment-toggle'),form=$('#comment-form'),name=$('#comment-name'),body=$('#comment-body'),status=$('#comment-status'),list=$('#comment-list');
-  let attachment=null,picking=false,outline=null,comments=[],nextBefore=null,loading=false,posting=false,draftId=crypto.randomUUID();
+  let attachment=null,candidate=null,picking=false,outline=null,comments=[],nextBefore=null,loading=false,posting=false,draftId=crypto.randomUUID();
   try{name.value=decodeURIComponent(document.cookie.split('; ').find(c=>c.startsWith('rc_comment_name='))?.split('=').slice(1).join('=')||'');}catch{}
   const message=(text,error=false)=>{status.textContent=text;status.dataset.error=error;};
   function clearOutline(){if(outline){api.scene.remove(outline);outline.geometry.dispose();outline.material.dispose();outline=null;api.invalidate();}}
-  function pickMode(on){picking=on;document.body.classList.toggle('picking-comment',on);$('#comment-pick').textContent=on?'Cancel picking':'Pick an element';$('#comment-pick-hint').hidden=!on;toggle.setAttribute('aria-label',on?'Cancel picking an element':'Comments');}
+  function pickMode(on){picking=on;$('#comment-picker').hidden=!on;if(on){candidate=null;clearOutline();updateCandidate();}document.body.classList.toggle('picking-comment',on);$('#comment-pick').textContent=on?'Cancel picking':'Pick an element';$('#comment-pick-hint').hidden=!on;toggle.setAttribute('aria-label',on?'Cancel picking an element':'Comments');}
   function open(on){panel.hidden=!on;toggle.setAttribute('aria-expanded',String(on));if(on){load();name.value?body.focus():name.focus();}else{pickMode(false);toggle.focus();}}
-  toggle.onclick=()=>picking?pickMode(false):open(panel.hidden);
+  function updateCandidate(){ $('#comment-picker-label').textContent=candidate?candidate.label:'Click or tap a 3D element';$('#comment-picker-use').disabled=!candidate;}
+  function cancelPicking(){pickMode(false);candidate=null;clearOutline();body.focus();}
+  $('#comment-picker-cancel').onclick=cancelPicking;
+  $('#comment-picker-use').onclick=()=>{if(!candidate)return;setAttachment(candidate);pickMode(false);candidate=null;message('Element attached. You can also remove it for a general comment.');body.focus();};
+  toggle.onclick=()=>picking?cancelPicking():open(panel.hidden);
   $('#comment-close').onclick=()=>open(false);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(picking)pickMode(false);else if(!panel.hidden)open(false);}});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(picking)cancelPicking();else if(!panel.hidden)open(false);}});
   function setAttachment(a){draftId=crypto.randomUUID();attachment=a;$('#comment-target').textContent=a?a.label:'General comment';$('#comment-clear').hidden=!a;}
   $('#comment-clear').onclick=()=>{setAttachment(null);clearOutline();};
-  $('#comment-pick').onclick=()=>{pickMode(!picking);message('');};
+  $('#comment-pick').onclick=()=>{if(picking)cancelPicking();else pickMode(true);message('');};
   function visible(o){for(let p=o;p;p=p.parent)if(!p.visible)return false;return true;}
   function prefix(o){for(let p=o;p;p=p.parent)if(p.userData.commentPrefix)return p.userData.commentPrefix;return '';}
   function descriptor(o,part=null){if(o.parent?.name==='Podcast scale reference')return {id:'podcast-reference',label:'Podcast table and seated figures',object:o.parent,part:null};const pre=prefix(o),key=part?.key||o.userData.commentKey,label=part?.label||o.name;if(!key)return null;return {id:(pre?pre+'/':'')+key,label:(pre?pre+' · ':'')+label,object:o,part};}
@@ -29,12 +33,13 @@ export function installComments(api) {
     const r=canvas.getBoundingClientRect(),ray=new T.Raycaster();api.scene.updateMatrixWorld(true);ray.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),api.camera);
     const hits=ray.intersectObjects(api.scene.children,true);let d;
     for(const hit of hits){if(!visible(hit.object))continue;let part=hit.object.userData.commentParts?.find(p=>hit.faceIndex>=p.start&&hit.faceIndex<p.start+p.count);d=descriptor(hit.object,part);if(d)break;}
-    if(!d){message('No element selected. Try tapping a wall, floor, or visible part.');return;}
-    setAttachment({id:d.id,label:d.label,context:{...api.state}});outlineElement(d);pickMode(false);message('Element attached. You can also remove it for a general comment.');body.focus();
+    if(!d){$('#comment-picker-label').textContent=candidate?candidate.label+' · No element at that spot':'No element at that spot. Try another part.';return;}
+    candidate={id:d.id,label:d.label,context:{...api.state}};outlineElement(d);updateCandidate();
   });
   canvas.addEventListener('pointercancel',()=>{down=null;});
-  window.addEventListener('comment-scene-reset',clearOutline);
-  window.addEventListener('set-configured',clearOutline);
+  function resetSelection(){clearOutline();if(picking){candidate=null;updateCandidate();}}
+  window.addEventListener('comment-scene-reset',resetSelection);
+  window.addEventListener('set-configured',resetSelection);
   document.querySelectorAll('#comment-name,#comment-body').forEach(el=>el.addEventListener('input',()=>{draftId=crypto.randomUUID();}));
   async function request(url,options){let r;try{r=await fetch(url,options);}catch{throw Error('Unable to connect. Please try again.');}let data;try{data=await r.json();}catch{throw Error('Comments are temporarily unavailable. Please try again.');}if(!r.ok)throw Error(data.error||'Unable to save comments. Please try again.');return data;}
   function locate(c){pickMode(false);const config=c.context;api.configure({height:config.height,angle:config.angle,floor:config.floor});if(config.mode==='build')api.setStep(config.step);else api.setMode('finished');clearOutline();let found;

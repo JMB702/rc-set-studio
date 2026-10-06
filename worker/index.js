@@ -10,11 +10,13 @@ function normalize(input) {
   const elementId=input.elementId??null,elementLabel=input.elementLabel??null;
   if((elementId===null)!==(elementLabel===null)||elementId!==null&&(typeof elementId!=='string'||elementId.length>240||!elementId||typeof elementLabel!=='string'||!elementLabel.trim()||elementLabel.length>240)) throw Error('Invalid element attachment.');
   const c=input.context;
-  if(!c||![96,120].includes(c.height)||!Number.isFinite(c.angle)||c.angle<0||c.angle>90||!['wood','charcoal'].includes(c.floor)||!['finished','build'].includes(c.mode)||!Number.isInteger(c.step)||c.step<0||c.step>40) throw Error('Invalid set configuration.');
+  if(!c||![96,120].includes(c.height)||!Number.isFinite(c.angle)||c.angle<0||c.angle>90||!['wood','charcoal','platform'].includes(c.floor)||!['finished','build'].includes(c.mode)||!Number.isInteger(c.step)||c.step<0||c.step>40) throw Error('Invalid set configuration.');
   if(c.floorColor!==undefined&&(typeof c.floorColor!=='string'||!/^#[0-9a-f]{6}$/i.test(c.floorColor)))throw Error('Invalid floor color.');
   if(c.wallColor!==undefined&&(typeof c.wallColor!=='string'||!/^#[0-9a-f]{6}$/i.test(c.wallColor)))throw Error('Invalid wall color.');
   if(c.figures!==undefined&&!['podcast','rap'].includes(c.figures)||c.figureScale!==undefined&&(!Number.isFinite(c.figureScale)||c.figureScale<.8||c.figureScale>1.25))throw Error('Invalid scale figures.');
-  return {id:input.id,name,body,elementId,elementLabel,context:JSON.stringify({height:c.height,angle:c.angle,floor:c.floor,mode:c.mode,step:c.step,wallColor:c.wallColor||'#34383b',floorColor:c.floorColor||'#3c4041',figures:c.figures||'podcast',figureScale:c.figureScale||1}),createdAt:Date.now()};
+  for(const k of ['platformBack','platformSide'])if(c[k]!==undefined&&(!Number.isInteger(c[k])||c[k]<0||c[k]>48))throw Error('Invalid platform gap.');
+  if(c.platformAngle!==undefined&&(!Number.isFinite(c.platformAngle)||c.platformAngle<0||c.platformAngle>90))throw Error('Invalid platform angle.');
+  return {id:input.id,name,body,elementId,elementLabel,context:JSON.stringify({height:c.height,angle:c.angle,floor:c.floor,...(c.floor==='platform'?{platformBack:c.platformBack??12,platformSide:c.platformSide??12,platformAngle:Math.max(c.angle,c.platformAngle??c.angle)}:{}),mode:c.mode,step:c.step,wallColor:c.wallColor||'#34383b',floorColor:c.floorColor||'#3c4041',figures:c.figures||'podcast',figureScale:c.figureScale||1}),createdAt:Date.now()};
 }
 function commentRow(r){return {id:r.id,name:r.name,body:r.body,elementId:r.element_id,elementLabel:r.element_label,context:JSON.parse(r.context),createdAt:r.created_at};}
 export default {async fetch(request,env) {

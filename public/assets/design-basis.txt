@@ -73,3 +73,31 @@ repair, wood primer, then floor paint. Seamless coating across moving
 plywood is not guaranteed; the seam system remains a test/compatibility
 item. Do not use underlayment patch as an assumed exposed wear finish.
 The visualization is dimensionally derived, not a structural certification.
+
+10-INCH PLATFORM FLOOR OPTION (ADDED OCTOBER 6, 2026)
+Replaces the floor covering. Finished top 10 above the existing floor.
+Outline: the 8ft floor footprint, kept a set gap from the back wall line and
+from both wing lines (each 0 to 48, default 12), out to the 96 front line.
+Wing gaps are measured from the full wing line. The platform's sides have
+their own angle, never wider than the walls: walls coming in push it in,
+while it can turn further in on its own (walls 45, platform 90 = square).
+Its sides keep the gap from both the real wings and their own angle line. An edge set flush (0 gap) against a wall gets no fascia.
+Modules: each row of equal depth, no deeper than 48; each row divided into
+equal columns no wider than 48. Small end pieces merge into a neighbor.
+All lumber actual 1.5x3.5 (2x4). Rims stand on edge around each module,
+butted pinwheel style; joists front-to-back at 16 centers. Legs: one in
+every corner plus intermediates so no rim spans more than 48. Leg 9.422
+(9 7/16) to the deck underside; 7.922 (7 15/16) where it stands on a sill.
+Sills: 2x4 laid flat under every fascia edge. Deck: Plytanium 19/32 BC
+sanded plywood, actual 0.578 x 47.938 x 95.938; a 48 module's deck lands
+up to 3/32 short, filled by the skim coat. Decks screwed (#8x2.5 at 6 on
+rims, 12 on joists), not glued, so the platform can come apart. Module
+seams: #9x3 screws through adjoining rims, about every 12, both sides.
+Fascia: 0.106 lauan, 10 tall, glued and stapled to rims, legs and sills.
+Finish: vinyl corner bead on top edges and outside corners, mesh tape on
+deck seams and fascia joints, setting-type compound skim, sand, KILZ 2
+primer, two coats BEHR Porch & Patio floor paint in the floor color.
+19/32 chosen over 3/4 for weight; framing at 16 centers carries the deck.
+The top is walked on, but this is a scenic prototype, not a rated stage
+deck: no load rating is claimed. Test the finish on a mockup; seams can
+crack if modules move. Quantities in public/platform.js and pricing-calc.js.

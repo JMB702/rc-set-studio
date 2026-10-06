@@ -1,6 +1,6 @@
 # RC Set Studio
 
-An interactive 3D viewer, step-by-step **Build guide** and **Pricing guide** for a modular scenic set: a 16′ back wall and two 8′ wings built from 4′-wide panels (8′ or 10′ tall), with jacks, ballast and two floor finishes. Runs on a phone, with shared comments and saved estimates.
+An interactive 3D viewer, step-by-step **Build guide** and **Pricing guide** for a modular scenic set: a 16′ back wall and two 8′ wings built from 4′-wide panels (8′ or 10′ tall), with jacks, ballast and three floor options: oak laminate, a painted floor, or a 10″ plastered platform that follows the wall angle. Runs on a phone, with shared comments and saved estimates.
 
 Live site: https://rc-set-studio.thereallifeatheist.chatgpt.site
 

@@ -346,5 +346,91 @@
     "productUrl": "https://www.homedepot.com/p/205281370",
     "checkedDate": "2026-10-05",
     "availability": "$34.98 online listing checked Oct 5 \u00b7 #6319 price and stock unverified. Two coats on front wall faces at 350 sq ft/gallon; primer priced separately."
+  },
+  "platform": {
+    "note": "10-inch platform floor option. Products below were observed Oct 6, 2026 with E Bradenton #6319 selected. The platform also reuses the 2\u00d74 stud, lauan skin, SPAX #8 \u00d7 2\u00bd in screws, staples, Titebond III and neoprene sheet listed in products (Oct 5 prices).",
+    "products": [
+      {
+        "id": "platformDeck",
+        "name": "Plytanium 19/32 in. \u00d7 4\u00d78 ft BC sanded pine plywood \u00b7 actual 0.578 \u00d7 47.938 \u00d7 95.938 in",
+        "unitPriceCents": 4492,
+        "packSize": 1,
+        "productUrl": "https://www.homedepot.com/p/100007300",
+        "availability": "50 in stock \u00b7 aisle 18 / bay 003",
+        "priceStatus": "observed-with-store-6319-selected",
+        "checkedDate": "2026-10-06",
+        "observedStock": 50
+      },
+      {
+        "id": "platformFrameScrews",
+        "name": "DECKMATE #9 \u00d7 3 in. star flat-head wood screws \u00b7 5 lb box, 365 pieces",
+        "unitPriceCents": 2997,
+        "packSize": 365,
+        "productUrl": "https://www.homedepot.com/p/306587120",
+        "availability": "70 boxes in stock \u00b7 aisle 25 / bay SC1",
+        "priceStatus": "observed-with-store-6319-selected",
+        "checkedDate": "2026-10-06",
+        "observedStock": 70
+      },
+      {
+        "id": "platformCompound",
+        "name": "ProForm Quick-Set Lite 45-minute setting-type joint compound \u00b7 18 lb bag",
+        "unitPriceCents": 1325,
+        "packSize": 1,
+        "productUrl": "https://www.homedepot.com/p/202564422",
+        "availability": "155 in stock \u00b7 aisle 20 / bay 009 \u00b7 listed coverage 325 sq ft is for taping drywall, not a skim coat",
+        "priceStatus": "observed-with-store-6319-selected",
+        "checkedDate": "2026-10-06",
+        "observedStock": 155
+      },
+      {
+        "id": "platformTape",
+        "name": "FibaTape self-adhesive mesh joint tape \u00b7 1-7/8 in. \u00d7 300 ft roll",
+        "unitPriceCents": 1175,
+        "packSize": 1,
+        "productUrl": "https://www.homedepot.com/p/100429159",
+        "availability": "81 in stock",
+        "priceStatus": "observed-with-store-6319-selected",
+        "checkedDate": "2026-10-06",
+        "observedStock": 81,
+        "lengthInches": 3600
+      },
+      {
+        "id": "platformBead",
+        "name": "ClarkDietrich 1-1/4 in. \u00d7 8 ft vinyl corner bead",
+        "unitPriceCents": 288,
+        "packSize": 1,
+        "productUrl": "https://www.homedepot.com/p/311364895",
+        "availability": "161 in stock",
+        "priceStatus": "observed-with-store-6319-selected",
+        "checkedDate": "2026-10-06",
+        "observedStock": 161,
+        "lengthInches": 96
+      },
+      {
+        "id": "platformPrimer",
+        "name": "KILZ 2 All Purpose interior/exterior primer \u00b7 1 gal",
+        "unitPriceCents": 2398,
+        "packSize": 1,
+        "productUrl": "https://www.homedepot.com/p/100096395",
+        "availability": "144 in stock \u00b7 aisle 07 / bay 002 \u00b7 listed 400 sq ft per gallon",
+        "priceStatus": "observed-with-store-6319-selected",
+        "checkedDate": "2026-10-06",
+        "observedStock": 144,
+        "coverageSqFtPerGallon": 400
+      },
+      {
+        "id": "platformPaint",
+        "name": "BEHR PREMIUM Porch & Patio floor paint, low-lustre \u00b7 1 gal tint base",
+        "unitPriceCents": 3998,
+        "packSize": 1,
+        "productUrl": "https://www.homedepot.com/p/206454767",
+        "availability": "28 in stock \u00b7 aisle 07 / bay 020 \u00b7 tinted to the selected floor color \u00b7 listed 400 sq ft per gallon",
+        "priceStatus": "observed-with-store-6319-selected",
+        "checkedDate": "2026-10-06",
+        "observedStock": 28,
+        "coverageSqFtPerGallon": 400
+      }
+    ]
   }
 }

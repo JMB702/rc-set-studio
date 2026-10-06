@@ -4,6 +4,8 @@ Local Chromium at 390 x 844 and 1200 x 900.
 Four guide paths traversed end to end: 27 steps for 8ft, 29 for 10ft.
 2026-10-06: guide split into sections (Flat build, Floor build, Platform build,
 Full assembly) with jump buttons; all four paths re-traversed in section order.
+2026-10-06: 10-inch platform floor option. Platform build (8 steps) traversed at 45 degrees;
+explore, guide and pricing checked at 0/45/90 degrees and 0/12/30/48-inch gaps, desktop and 375 px.
 Guide invalid-step input rejected; viewport widths fit without horizontal overflow.
 Finished scene with podcast scale references uses at most 115 draw calls including
 shadows and fewer than 66k rendered triangles in the checked views.

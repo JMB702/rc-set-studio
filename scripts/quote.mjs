@@ -8,14 +8,16 @@ import {priceRows, summary, money} from '../public/pricing-calc.js';
 const data = JSON.parse(await readFile('public/data/flat-shopping-list.json', 'utf8'));
 const angleArg = process.argv.indexOf('--angle');
 const angle = angleArg > -1 ? Number(process.argv[angleArg + 1]) : 45;
+const platformArg = process.argv.indexOf('--platform-angle');
+const platformAngle = platformArg > -1 ? Math.max(angle, Number(process.argv[platformArg + 1])) : angle;
 
-const lines = [`Pricing guide subtotals at ${angle}° wings, prices checked ${data.checkedDate} (before tax and delivery)`, ''];
+const lines = [`Pricing guide subtotals at ${angle}° wings, prices checked ${data.checkedDate} (platform items ${data.platform.products[0].checkedDate}), platform gaps 12″, platform angle ${platformAngle}° (before tax and delivery)`, ''];
 for (const height of [96, 120]) {
   for (const scope of ['panel', 'set', 'floor']) {
-    for (const floor of scope === 'panel' ? ['wood'] : ['wood', 'charcoal']) {
-      const rows = priceRows(data, {scope, height, angle, floor});
+    for (const floor of scope === 'panel' ? ['wood'] : ['wood', 'charcoal', 'platform']) {
+      const rows = priceRows(data, {scope, height, angle, floor, platformAngle});
       const {subtotal, pending} = summary(rows);
-      const label = `${height / 12}x4  ${scope.padEnd(5)} ${scope === 'panel' ? '       ' : floor.padEnd(7)}`;
+      const label = `${height / 12}x4  ${scope.padEnd(5)} ${scope === 'panel' ? '        ' : floor.padEnd(8)}`;
       lines.push(`${label} ${money(subtotal).padStart(11)}  ${String(rows.length).padStart(2)} lines, ${pending} priced pending`);
     }
   }

@@ -1,5 +1,6 @@
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
+import {footprint,platformPlan,PLATFORM,legLength,rimBottom} from './platform.js';
 export const inch=.0254;
 export const design=h=>({h,w:48,railDepth:h===120?2.5:1.5,jackH:h===120?96:72,foot:h===120?48:36,stileDepth:h===120?5.5:3.5,jackStart:h===120?3.75:1.75,boltDepth:h===120?4.625:2.625,boltHeights:h===120?[12,36,60,84]:[12,30,48,60]});
 const loader=new T.TextureLoader(),pine=loader.load('assets/pine-framing.webp'),oak=loader.load('assets/oak-floor.webp');for(let m of [pine,oak]){m.colorSpace=T.SRGBColorSpace;m.wrapS=m.wrapT=T.RepeatWrapping;m.anisotropy=4;}
@@ -31,9 +32,25 @@ function finishedSkin(group,name,x,w,h){
  const front=mesh(group,name,faces.front,'charcoal',0);front.userData.paintedSide='front';rear.userData.paintedSide='none';
 }
 export function finishedSet(h,angle){let root=new T.Group(),back=new T.Group(),left=new T.Group(),right=new T.Group();root.add(back,left,right);back.position.x=left.position.x=-96*inch;right.position.x=96*inch;left.rotation.y=angle*Math.PI/180;right.rotation.y=-angle*Math.PI/180;for(let i=0;i<4;i++){let p=compact(panel(h,{skin:false}));p.position.x=i*48*inch;p.userData.commentPrefix='Back panel '+(i+1);back.add(p);}for(let i=0;i<2;i++){let l=compact(panel(h,{skin:false}));l.position.x=-(i+1)*48*inch;l.userData.commentPrefix='Left wing panel '+(i+1);left.add(l);let r=compact(panel(h,{skin:false}));r.position.x=i*48*inch;r.userData.commentPrefix='Right wing panel '+(i+1);right.add(r);}finishedSkin(back,'Seamless finished back',0,192,h);finishedSkin(left,'Seamless finished left wing',-96,96,h);finishedSkin(right,'Seamless finished right wing',0,96,h);box(back,'Charcoal shoe trim',0,-.5,0,192,.5,.75,'charcoal');box(left,'Charcoal shoe trim',-96,-.5,0,96,.5,.75,'charcoal');box(right,'Charcoal shoe trim',0,-.5,0,96,.5,.75,'charcoal');root.userData.wings=[left,right];return root;}
-export function footprint(a){let c=Math.cos(a*Math.PI/180)*96,s=Math.sin(a*Math.PI/180)*96;return[[-96,0],[96,0],[96+c,s],[96+c,96],[-96-c,96],[-96-c,s]].filter((p,i,ar)=>!i||Math.hypot(p[0]-ar[i-1][0],p[1]-ar[i-1][1])>.001);}
+export {footprint};
 function clip(pg,axis,v,sgn){let out=[];for(let i=0;i<pg.length;i++){let A=pg[i],B=pg[(i+1)%pg.length],a=sgn*(A[axis]-v)>=-1e-6,b=sgn*(B[axis]-v)>=-1e-6;if(a)out.push(A);if(a!==b){let t=(v-A[axis])/(B[axis]-A[axis]);out.push([A[0]+t*(B[0]-A[0]),A[1]+t*(B[1]-A[1])]);}}return out;}
 export function floorMesh(a,type,rows=99){let root=new T.Group(),poly=footprint(a),pos=[],uv=[],col=[],min=Math.min(...poly.map(x=>x[0])),max=-min;const rand=n=>{let x=Math.sin(n*982.3)*14731;return x-Math.floor(x)};function piece(pg,x,z,seed){if(pg.length<3)return;let tint=.85+rand(seed)*.23;for(let i=1;i<pg.length-1;i++)for(let p of [pg[0],pg[i+1],pg[i]]){pos.push(p[0]*inch,-.002,p[1]*inch);uv.push((p[0]-x)/50.8+rand(seed),(p[1]-z)/30+rand(seed+1));col.push(tint,tint,tint);}}
 if(type==='charcoal')piece(poly,min,0,1);else{let row=0;for(let z=0;z<96&&row<rows;z+=7.6,row++){let c=0;for(let x=min-50.8+(row%3)*16.93;x<max;x+=50.8,c++){let pg=clip(clip(clip(clip(poly,0,x+.02,1),0,x+50.78,-1),1,z+.02,1),1,Math.min(z+7.58,96),-1);piece(pg,x,z,row*43+c);}}}
 let g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.computeVertexNormals();let m=(type==='wood'?mats.floor:mats.floorGray).clone();if(type==='charcoal')m.userData.surface='floor';m.side=T.DoubleSide;m.vertexColors=type==='wood';let mesh=new T.Mesh(g,m);mesh.receiveShadow=false;root.add(mesh);mesh.name='Floor';mesh.userData.commentKey='floor';root.userData.area=Math.abs(poly.reduce((s,p,i)=>{let q=poly[(i+1)%poly.length];return s+p[0]*q[1]-q[0]*p[1]},0))/288;return root;}
 export function dispose(r){r?.traverse(o=>{o.geometry?.dispose();if(o.material&&!Object.values(mats).includes(o.material))o.material.dispose()});r?.parent?.remove(r);}
+// Raised platform. Footprint polygons are [x, z] in inches; extrude them between two heights.
+export function slab(pg,y0,y1){const shape=new T.Shape(pg.map(([x,z])=>new T.Vector2(x*inch,z*inch)));const g=new T.ExtrudeGeometry(shape,{depth:(y1-y0)*inch,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(0,y1*inch,0);g.computeBoundingBox();const s=g.boundingBox.getSize(new T.Vector3());return grain(g,[s.x/inch,s.y/inch,s.z/inch],pg.length);}
+function slabMesh(G,id,pg,y0,y1,mat,step){return mesh(G,id,slab(pg,y0,y1),mat,step);}
+// The finished platform reads as one plastered block in the floor color.
+export function platformFloor(a,back,side,pa=a){const plan=platformPlan(a,back,side,pa),root=new T.Group(),m=mats.floorGray.clone();m.userData.surface='floor';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;root.add(block);root.userData.area=plan.deckArea;root.userData.plan=plan;return root;}
+// Every framing part, each tagged with the Build guide stage that adds it (30–37).
+export function platformParts(plan){const G=new T.Group();G.name='Platform construction';
+ for(const m of plan.modules){
+  for(const r of m.rims)slabMesh(G,'Platform rim',r.poly,rimBottom,legLength,'wood',31);
+  for(const j of m.joists)slabMesh(G,'Platform joist',j.poly,rimBottom,legLength,'wood',31);
+  for(const l of m.legs)slabMesh(G,l.onSill?'Platform leg on sill':'Platform leg',l.poly,legLength-l.length,legLength,'wood',32);
+  for(const s of m.sills)slabMesh(G,'Platform sill',s.poly,0,PLATFORM.sill,'wood',32);
+  slabMesh(G,'Platform deck',m.poly,legLength,PLATFORM.height,'ply',34);
+  for(const f of m.fascia)slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35);
+ }
+ G.userData.plan=plan;return G;}

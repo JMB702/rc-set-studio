@@ -119,4 +119,11 @@ nav{flex-shrink:0}.price-scopes,.price-floor-switch{display:flex;gap:5px;margin:
 .agent-copy{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:4px 0 8px;padding:0 16px;min-height:46px;border-radius:8px;background:var(--ink);color:#fff;font-size:14px;font-weight:600}
 .agent-copy:hover{background:#2a383d}.agent-copy.copied{background:var(--accent);color:var(--ink)}
 
+/* Platform gap sliders (explore, build guide, pricing) */
+.platform-settings label{display:flex;justify-content:space-between;align-items:baseline;margin-top:10px;font-size:14px;font-weight:600}
+.platform-settings label output{font-weight:700;color:var(--ink)}
+.platform-settings input[type=range]{width:100%}
+#guide-setup .platform-settings label{display:flex;margin:12px 0 4px}
+#platform-finish-note{margin:-6px 0 16px}
+
 .figure-scale-heading{margin:20px 0 6px}#figure-scenes strong{font-size:21px}

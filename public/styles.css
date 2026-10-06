@@ -114,3 +114,5 @@ nav{flex-shrink:0}.price-scopes,.price-floor-switch{display:flex;gap:5px;margin:
 #agent-prompt-dialog .primary{margin-top:12px;padding:0 20px;border-radius:7px;background:var(--ink);color:#fff}
 .agent-copy{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:4px 0 8px;padding:0 16px;min-height:46px;border-radius:8px;background:var(--ink);color:#fff;font-size:14px;font-weight:600}
 .agent-copy:hover{background:#2a383d}.agent-copy.copied{background:var(--accent);color:var(--ink)}
+
+.figure-scale-heading{margin:20px 0 6px}#figure-scenes strong{font-size:21px}

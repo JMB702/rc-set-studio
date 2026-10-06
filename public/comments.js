@@ -20,7 +20,7 @@ export function installComments(api) {
   $('#comment-pick').onclick=()=>{if(picking)cancelPicking();else pickMode(true);message('');};
   function visible(o){for(let p=o;p;p=p.parent)if(!p.visible)return false;return true;}
   function prefix(o){for(let p=o;p;p=p.parent)if(p.userData.commentPrefix)return p.userData.commentPrefix;return '';}
-  function descriptor(o,part=null){if(o.parent?.name==='Podcast scale reference')return {id:'podcast-reference',label:'Podcast table and seated figures',object:o.parent,part:null};const pre=prefix(o),key=part?.key||o.userData.commentKey,label=part?.label||o.name;if(!key)return null;return {id:(pre?pre+'/':'')+key,label:(pre?pre+' · ':'')+label,object:o,part};}
+  function descriptor(o,part=null){const fig=o.parent?.userData.figures;if(fig)return {id:fig.commentId,label:fig.commentLabel,object:o.parent,part:null};const pre=prefix(o),key=part?.key||o.userData.commentKey,label=part?.label||o.name;if(!key)return null;return {id:(pre?pre+'/':'')+key,label:(pre?pre+' · ':'')+label,object:o,part};}
   function outlineElement(d){clearOutline();const o=d.object;api.scene.updateMatrixWorld(true);let box;
     if(d.part){const a=o.geometry.attributes.position;box=new T.Box3();for(let i=d.part.start*3;i<(d.part.start+d.part.count)*3;i++)box.expandByPoint(new T.Vector3().fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld));}
     else box=new T.Box3().setFromObject(o);
@@ -42,7 +42,7 @@ export function installComments(api) {
   window.addEventListener('set-configured',resetSelection);
   document.querySelectorAll('#comment-name,#comment-body').forEach(el=>el.addEventListener('input',()=>{draftId=crypto.randomUUID();}));
   async function request(url,options){let r;try{r=await fetch(url,options);}catch{throw Error('Unable to connect. Please try again.');}let data;try{data=await r.json();}catch{throw Error('Comments are temporarily unavailable. Please try again.');}if(!r.ok)throw Error(data.error||'Unable to save comments. Please try again.');return data;}
-  function locate(c){pickMode(false);const config=c.context;api.configure({height:config.height,angle:config.angle,floor:config.floor,wallColor:config.wallColor||'#34383b',floorColor:config.floorColor||'#3c4041'});if(config.mode==='build')api.setStep(config.step);else api.setMode('finished');clearOutline();let found;
+  function locate(c){pickMode(false);const config=c.context;api.configure({height:config.height,angle:config.angle,floor:config.floor,wallColor:config.wallColor||'#34383b',floorColor:config.floorColor||'#3c4041',figures:config.figures||'podcast',figureScale:config.figureScale||1});if(config.mode==='build')api.setStep(config.step);else api.setMode('finished');clearOutline();let found;
     api.scene.traverse(o=>{if(found||!visible(o))return;for(const part of o.userData.commentParts||[]){const d=descriptor(o,part);if(d?.id===c.elementId){found=d;break;}}if(!found){const d=descriptor(o);if(d?.id===c.elementId)found=d;}});
     if(found){outlineElement(found);const box=outline.box,center=box.getCenter(new T.Vector3()),shift=center.clone().sub(api.orbit.target);api.camera.position.add(shift);api.orbit.target.copy(center);api.orbit.update();api.invalidate();message('Showing '+c.elementLabel+'.');if(innerWidth<=850)open(false);}
     else message('This element is unavailable in this view. The original configuration has been restored.',true);

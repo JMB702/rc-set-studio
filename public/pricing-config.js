@@ -12,11 +12,12 @@ export function normalizeCustom(item){
 export function normalizeConfiguration(input){
  if(!input||typeof input!=='object'||input.version!==1)throw Error('Unsupported pricing configuration.');
  if(!['set','panel','floor'].includes(input.scope)||![96,120].includes(input.height)||!Number.isInteger(input.angle)||input.angle<0||input.angle>90||!['wood','charcoal'].includes(input.floor))throw Error('Invalid set configuration.');
+ const floorColor=input.floorColor??'#34383b';if(typeof floorColor!=='string'||!/^#[0-9a-f]{6}$/i.test(floorColor))throw Error('Invalid floor color.');
  const wallColor=input.wallColor??'#34383b';if(typeof wallColor!=='string'||!/^#[0-9a-f]{6}$/i.test(wallColor))throw Error('Invalid wall color.');
  if(!['supports','ballast','finishes'].every(k=>typeof input[k]==='boolean'))throw Error('Invalid material options.');
  if(!Array.isArray(input.excluded)||input.excluded.length>200||input.excluded.some(id=>typeof id!=='string'||!/^[-a-zA-Z\d]{1,80}$/.test(id)))throw Error('Invalid removed items.');
  if(!Array.isArray(input.customItems)||input.customItems.length>100)throw Error('Too many custom items.');const customItems=input.customItems.map(normalizeCustom);if(new Set(customItems.map(i=>i.id)).size!==customItems.length)throw Error('Duplicate custom item IDs.');
- return {version:1,scope:input.scope,height:input.height,angle:input.angle,floor:input.floor,wallColor:wallColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
+ return {version:1,scope:input.scope,height:input.height,angle:input.angle,floor:input.floor,wallColor:wallColor.toLowerCase(),floorColor:floorColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
 }
 export function customizeRows(rows,configuration){const excluded=new Set(configuration.excluded);return [...rows.filter(r=>!excluded.has(r.id)),...configuration.customItems.map(i=>({id:i.id,custom:true,name:i.title,description:i.description,availability:i.description,productUrl:i.link,purchaseQuantity:i.quantity,packSize:1,needed:i.quantity,unitPriceCents:i.unitPriceCents,subtotalCents:i.quantity*i.unitPriceCents,group:'custom'}))];}
 export function removedPart(tags,floor,excluded){const physical=tags.includes('laminate')?(floor==='wood'?'laminate':'floorPly'):tags[0];return excluded.includes(physical);}

@@ -1,1 +1,25 @@
-{"name":"rc-set-studio","private":true,"type":"module","scripts":{"build":"node scripts/build.mjs","db:generate":"drizzle-kit generate","dev":"wrangler dev --config wrangler.json"},"dependencies":{"drizzle-orm":"0.45.2"},"devDependencies":{"drizzle-kit":"0.31.10","wrangler":"4.92.0"}}
+{
+  "name": "rc-set-studio",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "dev": "wrangler dev --config wrangler.json",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm test",
+    "sync:shopping": "node scripts/sync-shopping-list.mjs",
+    "quote": "node scripts/quote.mjs",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.2"
+  },
+  "devDependencies": {
+    "drizzle-kit": "0.31.10",
+    "wrangler": "4.92.0"
+  }
+}

@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {render} from '../scripts/sync-shopping-list.mjs';
+import {calculate} from '../public/shopping-calc.js';
+const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
+const requirementIds=v=>[v.panelRequirements,v.supportRequirements,v.ballastRequirements].flatMap(r=>Object.keys(r||{}));
+test('Every requirement names a real product (calculate() silently drops unknown ids)',()=>{const ids=new Set(data.products.map(p=>p.id));for(const [key,v] of Object.entries(data.variants))for(const id of requirementIds(v))assert.ok(ids.has(id),`${key} requires unknown product "${id}"`);});
+test('Every product is used by some variant, so no orphan stays in the JSON after a redesign',()=>{const used=new Set(Object.values(data.variants).flatMap(requirementIds));used.add('glue');for(const p of data.products)assert.ok(used.has(p.id),`product "${p.id}" is not required by any variant`);});
+test('Every product has a whole-number price, a pack size and a product link',()=>{for(const p of data.products){assert.ok(Number.isInteger(p.unitPriceCents)&&p.unitPriceCents>0,p.id+' price');assert.ok(Number.isInteger(p.packSize)&&p.packSize>0,p.id+' packSize');assert.match(p.productUrl,/^https:\/\//,p.id+' link');}});
+test('Each variant lists its cuts and prices to a positive total',()=>{for(const key of Object.keys(data.variants)){assert.ok(data.variants[key].cuts.length>0,key+' cuts');assert.ok(calculate(data,key,1,true,true).reduce((s,r)=>s+r.subtotalCents,0)>0,key+' total');}});
+test('Printable shopping list matches the JSON (run `npm run sync:shopping` after editing prices or quantities)',()=>{assert.equal(fs.readFileSync(new URL('../public/data/home-depot-shopping-list.txt',import.meta.url),'utf8'),render(data));});

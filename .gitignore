@@ -6,3 +6,8 @@ output/
 node_modules
 
 .playwright-cli/
+.DS_Store
+.claude/settings.local.json
+*.tar
+*.tar.gz
+.dev.vars

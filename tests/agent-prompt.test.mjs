@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import {agentPrompt,REPO,SKILL_PATH} from '../public/agent-prompt.js';
+const root=new URL('../',import.meta.url),read=p=>fs.readFileSync(new URL(p,root),'utf8'),pkg=JSON.parse(read('package.json'));
+test('Every npm command the copied prompt tells an agent to run exists in package.json',()=>{const named=[...agentPrompt.matchAll(/^\s+npm (?:run )?([a-z:]+)/gm)].map(m=>m[1]).filter(n=>n!=='install');assert.ok(named.length>=3);for(const n of named)assert.ok(pkg.scripts[n],`npm script "${n}" is missing`);});
+test('Every file the prompt points at exists, and the skill is the one AGENTS.md names',()=>{for(const f of ['AGENTS.md',SKILL_PATH])assert.ok(fs.existsSync(new URL(f,root)),f+' missing');assert.ok(read('AGENTS.md').includes(SKILL_PATH));assert.match(read(SKILL_PATH),/^---\nname: rc-set-sync\n/);});
+test('The prompt names the real public repo and tells the agent to fork, branch and open a pull request',()=>{assert.match(REPO,/^[\w-]+\/[\w.-]+$/);assert.ok(agentPrompt.includes(`https://github.com/${REPO}`));assert.ok(read('README.md').includes(REPO));for(const s of ['gh repo fork','git switch -c','git push','gh pr create','Never push to main'])assert.ok(agentPrompt.includes(s),s);});
+test('Prompt ends with a slot where the person types the change they want',()=>{assert.match(agentPrompt,/THE CHANGE I WANT:\n$/);});

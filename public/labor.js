@@ -76,7 +76,7 @@ export function mountLabor(host,api,{prefix='labor'}={}){
 <label for="${id('crew')}">People on the crew<span class="labor-stepper"><button type="button" data-step="-1" aria-label="One fewer person">−</button><input id="${id('crew')}" type="number" inputmode="numeric" min="1" max="${LABOR.maxCrew}" step="1"><button type="button" data-step="1" aria-label="One more person">+</button></span></label>
 <label for="${id('hours')}">Hours on site<span class="labor-input"><input id="${id('hours')}" type="number" inputmode="decimal" min="0.5" step="0.5"><span>hrs</span></span></label>
 </div><p class="labor-default"><span data-default></span> <button type="button" class="link-button" data-reset hidden>Reset to estimate</button></p>
-<fieldset class="labor-rates"><legend>Hourly rates <small>Optional</small></legend><ol data-rates></ol><button type="button" class="link-button" data-same hidden>Use the first rate for everyone without one</button></fieldset>
+<fieldset class="labor-rates"><legend>Hourly rates <small>Optional</small></legend><ol data-rates></ol><button type="button" class="link-button" data-same hidden>Copy the first rate to the rest</button></fieldset>
 <p class="labor-cost"><span>Labor</span><strong data-cost aria-live="polite"></strong></p>
 <details class="labor-tasks"><summary>How the hours add up <span>+</span></summary><ol data-tasks></ol><p class="hint">Planning allowances for experienced carpenters with the tools in the Build guide. Drying and curing time is not labor and is not counted. Adjust the hours if your crew works faster or slower.</p></details>`;
  const q=s=>host.querySelector(s),crew=q('#'+id('crew')),hours=q('#'+id('hours')),list=q('[data-rates]');
@@ -91,7 +91,7 @@ export function mountLabor(host,api,{prefix='labor'}={}){
  function rows(n){
   if(list.children.length===n)return;
   list.replaceChildren(...Array.from({length:n},(_,i)=>{const li=document.createElement('li'),label=document.createElement('label'),wrap=document.createElement('span'),input=document.createElement('input'),line=document.createElement('small');
-   label.htmlFor=input.id=id(`rate-${i+1}`);label.textContent=`Person ${i+1}`;wrap.className='labor-input';input.type='number';input.inputMode='decimal';input.min='0';input.step='1';input.placeholder='Rate';
+   label.htmlFor=input.id=id(`rate-${i+1}`);label.textContent=`Person ${i+1}`;wrap.className='labor-input';input.type='number';input.inputMode='decimal';input.min='0';input.step='1';input.placeholder='—';
    input.onchange=()=>{const v=Number(input.value),rates=[...settings.rates];rates[i]=input.value.trim()===''||!(v>=0)?null:Math.round(v*100);update({rates});};
    const dollar=document.createElement('span'),per=document.createElement('span');dollar.textContent='$';per.textContent='/hr';wrap.append(dollar,input,per);li.append(label,wrap,line);return li;}));
  }

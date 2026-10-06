@@ -1,0 +1,27 @@
+{
+  "license": "CC0 1.0",
+  "licenseEvidence": "https://polyhaven.com/license",
+  "notes": "Generic appearance textures, not an exact Home Depot product match. Grain runs horizontally (U axis) in both maps. Repeat U along board length; avoid mapping full square across narrow board width. Pine is a conventional lighter color-remapped derivative of coated pine; oak rotated 90 degrees. Both retain source tile boundaries.",
+  "assets": [
+    {
+      "file": "pine-framing.webp",
+      "sourcePage": "https://polyhaven.com/a/coated_pine",
+      "sourceDownload": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/coated_pine/coated_pine_diff_1k.jpg",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 77750
+    },
+    {
+      "file": "oak-floor.webp",
+      "sourcePage": "https://polyhaven.com/a/oak_veneer_01",
+      "sourceDownload": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/oak_veneer_01/oak_veneer_01_diff_1k.jpg",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "bytes": 100164
+    }
+  ]
+}

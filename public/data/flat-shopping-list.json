@@ -1,0 +1,342 @@
+{
+  "schemaVersion": 2,
+  "currency": "USD",
+  "checkedDate": "2026-10-05",
+  "store": {
+    "id": "6319",
+    "name": "E Bradenton",
+    "address": "5475 University Pkwy, Bradenton, FL 34201",
+    "url": "https://www.homedepot.com/l/E-Bradenton/FL/Bradenton/34201/6319"
+  },
+  "products": [
+    {
+      "id": "board14",
+      "name": "1\u00d74\u00d78 ft select kiln-dried whitewood",
+      "unitPriceCents": 1532,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/100072830",
+      "availability": "44 in stock \u00b7 aisle 25 / bay 001",
+      "group": "panel",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 44
+    },
+    {
+      "id": "board12",
+      "name": "1\u00d72\u00d78 ft select kiln-dried whitewood",
+      "unitPriceCents": 784,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/203450502",
+      "availability": "181 in stock \u00b7 aisle 25 / bay 001",
+      "group": "panel",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 181
+    },
+    {
+      "id": "board16",
+      "name": "1\u00d76\u00d712 ft premium kiln-dried whitewood",
+      "unitPriceCents": 2040,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/100071377",
+      "availability": "89 in stock \u00b7 select straight, sound stock",
+      "group": "panel",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 89
+    },
+    {
+      "id": "board13",
+      "name": "1\u00d73\u00d78 ft select kiln-dried whitewood",
+      "unitPriceCents": 1184,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/203450507",
+      "availability": "31 in stock",
+      "group": "panel",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 31
+    },
+    {
+      "id": "skin",
+      "name": "1/8 in \u00d7 4\u00d78 ft utility plywood \u00b7 actual 0.106 in",
+      "unitPriceCents": 2088,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/100543684",
+      "availability": "Unavailable at #6319 \u00b7 nearby pickup or delivery",
+      "group": "panel",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": null
+    },
+    {
+      "id": "frameScrews",
+      "name": "#6\u00d71\u00bd in flat-head wood screws \u00b7 100 pack",
+      "unitPriceCents": 797,
+      "packSize": 100,
+      "productUrl": "https://www.homedepot.com/p/204275507",
+      "availability": "5 packs in stock",
+      "group": "panel",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 5
+    },
+    {
+      "id": "glue",
+      "name": "Titebond III wood glue \u00b7 16 oz bottle",
+      "unitPriceCents": 998,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/100522343",
+      "availability": "22 bottles in stock",
+      "group": "panel",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 22
+    },
+    {
+      "id": "staples",
+      "name": "Grip-Rite \u00bd in / 18 gauge / \u00bc in crown staples \u00b7 1,000 box",
+      "unitPriceCents": 638,
+      "packSize": 1000,
+      "productUrl": "https://www.homedepot.com/p/316087492",
+      "availability": "Ship to store or delivery \u00b7 match stapler",
+      "group": "panel",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": null
+    },
+    {
+      "id": "board14long",
+      "name": "1\u00d74\u00d710 ft select kiln-dried whitewood",
+      "unitPriceCents": 1972,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/100053469",
+      "availability": "73 in stock",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 73
+    },
+    {
+      "id": "crossbar",
+      "name": "2\u00d74\u00d796 in #2 premium KD-HT stud",
+      "unitPriceCents": 425,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/312528776",
+      "availability": "1,454 in stock",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 1454
+    },
+    {
+      "id": "shelf",
+      "name": "\u00bd in \u00d7 2\u00d74 ft BCX plywood \u00b7 actual 15/32 in",
+      "unitPriceCents": 2346,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/202093833",
+      "availability": "48 in stock \u00b7 aisle 18 / bay 008",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 48
+    },
+    {
+      "id": "mount",
+      "name": "\u00bc-20\u00d72 in zinc flat-head machine screws \u00b7 25 pack",
+      "unitPriceCents": 397,
+      "packSize": 25,
+      "productUrl": "https://www.homedepot.com/p/204331396",
+      "availability": "7 packs in stock \u00b7 aisle 17 / bay 019",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 7
+    },
+    {
+      "id": "nuts",
+      "name": "\u00bc-20 stainless nylon locknuts \u00b7 15 pack",
+      "unitPriceCents": 497,
+      "packSize": 15,
+      "productUrl": "https://www.homedepot.com/p/328737880",
+      "availability": "22 packs in stock",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 22
+    },
+    {
+      "id": "washers",
+      "name": "\u00bc in zinc flat washers \u00b7 \u215d in OD \u00b7 12 pack",
+      "unitPriceCents": 147,
+      "packSize": 12,
+      "productUrl": "https://www.homedepot.com/p/204276451",
+      "availability": "Ship to store or delivery",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": null
+    },
+    {
+      "id": "shortScrews",
+      "name": "#8\u00d71 in flat-head wood screws \u00b7 100 pack",
+      "unitPriceCents": 697,
+      "packSize": 100,
+      "productUrl": "https://www.homedepot.com/p/204275495",
+      "availability": "22 packs in stock",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 22
+    },
+    {
+      "id": "lapScrews",
+      "name": "#8\u00d71\u00bc in flat-head wood screws \u00b7 100 pack",
+      "unitPriceCents": 797,
+      "packSize": 100,
+      "productUrl": "https://www.homedepot.com/p/204275496",
+      "availability": "6 packs in stock",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 6
+    },
+    {
+      "id": "barScrews",
+      "name": "SPAX #8\u00d72\u00bd in flat-head wood screws \u00b7 133 box",
+      "unitPriceCents": 1263,
+      "packSize": 133,
+      "productUrl": "https://www.homedepot.com/p/315169576",
+      "availability": "8 boxes in stock",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 8
+    },
+    {
+      "id": "pads",
+      "name": "\u215b in \u00d7 6\u00d736 in neoprene sheet \u00b7 cut bearing pads",
+      "unitPriceCents": 601,
+      "packSize": 1,
+      "productUrl": "https://www.homedepot.com/p/314459358",
+      "availability": "Ship to store or delivery",
+      "group": "supports",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": null
+    },
+    {
+      "id": "bags",
+      "name": "DURASACK 15\u00d727 in empty sandbags \u00b7 25 pack",
+      "unitPriceCents": 1567,
+      "packSize": 25,
+      "productUrl": "https://www.homedepot.com/p/301980932",
+      "availability": "142 packs in stock",
+      "group": "ballast",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": 142
+    },
+    {
+      "id": "sand",
+      "name": "Quikrete premium play sand \u00b7 50 lb bag",
+      "unitPriceCents": 478,
+      "packSize": 50,
+      "productUrl": "https://www.homedepot.com/p/100318476",
+      "availability": "Unavailable for pickup \u00b7 delivery listed",
+      "group": "ballast",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": null
+    },
+    {
+      "id": "straps",
+      "name": "Husky 1 in \u00d7 8 ft lashing straps \u00b7 2 pack",
+      "unitPriceCents": 799,
+      "packSize": 2,
+      "productUrl": "https://www.homedepot.com/p/206802158",
+      "availability": "Ship to store or delivery",
+      "group": "ballast",
+      "priceStatus": "observed-with-store-6319-selected",
+      "checkedDate": "2026-10-05",
+      "observedStock": null
+    }
+  ],
+  "notes": [
+    "Prices observed with E Bradenton selected; availability can change. Tax, delivery, tools, paint, primer, floor materials and panel-to-panel/corner connections excluded.",
+    "Whole retail packs are rounded after combining requirements. Adhesive allowance is one 16 oz bottle per four panels, rounded up; actual use depends on application.",
+    "The 10\u00d74 panel quantities match the current website model. This is a construction prototype, not structural validation.",
+    "10-foot facing uses a 48\u00d796 lower sheet and 48\u00d724 upper strip. Allowing saw kerf, only three full 24-inch strips fit a second 96-inch sheet.",
+    "8-foot ballast is the existing provisional 75 lb assumption. Fill three bags to 25 lb each and retain them around both shelf crossbars; supplied sandbag shape differs from the schematic.",
+    "10-foot required ballast mass, bag count and retention layout are unresolved; no complete freestanding total is presented.",
+    "Choose straight, sound dry lumber and measure supplied stock. Pilot drill and verify proposed screw sizes in the prototype. Use matched-thickness pads at all bearing points."
+  ],
+  "variants": {
+    "8x4": {
+      "heightInches": 96,
+      "panelRequirements": {
+        "board14": 2,
+        "board12": 3,
+        "skin": 1,
+        "frameScrews": 10,
+        "staples": 108
+      },
+      "supportRequirements": {
+        "board14": 5,
+        "crossbar": 1,
+        "shelf": 1,
+        "mount": 8,
+        "nuts": 8,
+        "washers": 8,
+        "shortScrews": 24,
+        "lapScrews": 8,
+        "barScrews": 4,
+        "pads": 1
+      },
+      "ballastRequirements": {
+        "bags": 3,
+        "sand": 75,
+        "straps": 3
+      },
+      "cuts": [
+        "2 \u00d7 96 in stiles \u00b7 1\u00d74 on edge",
+        "5 \u00d7 46.5 in rails/toggles \u00b7 1\u00d72 on edge",
+        "1 \u00d7 48\u00d796 in facing",
+        "Jacks: 2 \u00d7 68.5 in uprights; 2 \u00d7 36 in feet; 2 \u00d7 84 in diagonal blanks, fitted to layout",
+        "Shelf: 2 \u00d7 46.5 in 2\u00d74 bars; 46.5\u00d712 in plywood; two 8\u00d78 in triangular gussets"
+      ]
+    },
+    "10x4": {
+      "heightInches": 120,
+      "panelRequirements": {
+        "board16": 2,
+        "board13": 3,
+        "board14": 1,
+        "frameScrews": 14,
+        "staples": 144
+      },
+      "supportRequirements": {
+        "board14": 2,
+        "board14long": 3,
+        "crossbar": 1,
+        "shelf": 1,
+        "mount": 8,
+        "nuts": 8,
+        "washers": 8,
+        "shortScrews": 24,
+        "lapScrews": 8,
+        "barScrews": 4,
+        "pads": 1
+      },
+      "ballastRequirements": null,
+      "cuts": [
+        "2 \u00d7 120 in stiles \u00b7 1\u00d76 on edge, cut from 12 ft stock",
+        "5 \u00d7 46.5 in rails/toggles \u00b7 1\u00d73 on edge",
+        "1 \u00d7 46.5 in seam backer \u00b7 1\u00d74 laid flat, 3.5 in vertical, centered at 96 in",
+        "Facing: 48\u00d796 in lower + 48\u00d724 in upper per panel",
+        "Jacks: 2 \u00d7 92.5 in uprights from 8 ft boards; 2 \u00d7 48 in feet from one 10 ft board; 2 \u00d7 112 in diagonal blanks from two 10 ft boards, fit to layout",
+        "Shelf: 2 \u00d7 46.5 in 2\u00d74 bars; 46.5\u00d712 in plywood; two 8\u00d78 in triangular gussets"
+      ]
+    }
+  }
+}

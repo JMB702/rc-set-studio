@@ -1,0 +1,75 @@
+RC SET STUDIO — DESIGN BASIS / OCTOBER 5, 2026
+
+LAYOUT
+Four 4-foot panels form the 16-foot back wall. Two 4-foot panels per wing
+match Jeff's Blender additions. Two wings turn inward together from 0 to
+90 degrees; default 45 degrees. Front corner lines remain coincident.
+Floor is assumed 8 feet deep and follows the footprint. This represents
+recutting/reconfiguring the floor and re-dressing corner finishes, not
+moving a finished floor/wall assembly while occupied or ballasted.
+
+All lumber dimensions below are ACTUAL, in inches. Buy solid straight
+lumber whose measured dimensions match; product names alone are not enough.
+
+8 x 4 PANEL (REVISED FLUSH HARDWARE)
+2 stiles .75 x 3.5 x 96; 2 rails .75 x 1.5 x 46.5;
+3 toggles .75 x 1.5 x 46.5 at centers 24/48/72.
+Skin .106 x 48 x 96. Outside diagonals sqrt(48^2+96^2)=107.331.
+Frame: ten #6 x 1.5 screws plus glue; heads flush at outside edges.
+
+10 x 4 PANEL — NEW PROTOTYPE, NOT AN 8-FOOT PANEL SCALED UP
+2 full-length stiles .75 x 5.5 x 120 (trim solid 12-foot stock).
+2 rails + 3 toggles .75 x 2.5 x 46.5; centers 24/48/72.
+1 seam backer .75 deep x 3.5 high x 46.5 long, centered at height96.
+Backer height94.25 to97.75; aligned with skin rear face, supporting both
+sheets. Two .106-thick skins:48x96 plus48x24. No structural stile splice.
+Frame width .75+46.5+.75=48. Diagonal sqrt(48^2+120^2)=129.244.
+Fourteen #6 x1.5 frame screws (2 at each seam-backer end), plus glue.
+Skin glue and half-inch narrow crown staples at roughly4-inch centers,
+centered on wood. Staple into both edges of backed skin joint. Test on scrap.
+
+JACKS (TWO PER PANEL, MIRRORED)
+8-foot panel: overall jack72 high x36 deep. Uprights .75x3.5x68.5;
+feet .75x3.5x36; diagonal .75x3.5 blank84; fit outer edge80.498.
+10-foot panel: overall jack96 high x48 deep. Uprights .75x3.5x92.5;
+feet .75x3.5x48; diagonal .75x3.5 blank112; fit outer edge107.331.
+Do not cut two48-inch feet from one96-inch stick: allow kerf, e.g.10ft stock.
+Both use0.47 plywood triangular gussets with8-inch legs at lower front,
+inboard face. Glue laps and gussets;2 #8x1.25 screws per diagonal end;
+6 #8x1 screws per gusset. Square full-size layout before fitting diagonal.
+
+FLAT/JACK SIDE LAP
+8-foot jack front1.75 behind skin rear face, bolt axis2.625 behind it;
+heights12/30/48/60. 10-foot jack front3.75 behind skin rear face, bolt
+axis4.625 behind it; heights12/36/60/84. This clears deeper cross-members.
+Overlap depth1.75. Four1/4-20x2 flat-head screws per jack,9/32 holes;
+inside washers/locknuts; exterior countersinks matched to actual heads.
+
+SHELF
+2 crossbars1.5x3.5x46.5 laid flat;1 shelf0.47x12x46.5. Center on foot depth:
+8ft local depth12 to24;10ft18 to30. Shelf top5.47 above bearing floor.
+Four #8x2.5 screws bar-to-feet;12 #8x1.25 screws shelf-to-bars.
+Three25lb bags shown per panel are illustrative preliminary ballast only.
+A prior modest10lbf disturbance calculation is not structural approval.
+Validate connections, sideways stability, tipping, sliding and ballast
+on the real floor, at each layout, before use. No wind, leaning, doors or
+hung equipment are within this prototype scope.
+
+STRAIGHT WALL CONNECTIONS
+Flush skins and mating stiles. Four #8x1.25 flat-head wood screws per seam
+at12/36/60/84;10ft panels add108. Screw axis0.75 behind skin rear face;
+predrill clearance first stile/pilot second; clamp faces aligned first.
+This set has5 straight seams:3 across back and1 within each wing.
+Corners are variable-angle layout joints; final corner connector choice
+and attachment require scenic-shop review. This is not a verified hinge.
+
+FINISHES
+Render uses one unbroken charcoal surface per back/wing, including over
+the10ft skin joint. Practical scenic seam fabric and primer/paint need a
+fixed assembly; do not rigid-plaster a movable corner. Refinish after moves.
+Oak floor:glueless click-lock;3/8-inch expansion beneath wall-fixed trim.
+Charcoal:fully supported smooth plywood overlay, compatible defects/joint
+repair, wood primer, then floor paint. Seamless coating across moving
+plywood is not guaranteed; the seam system remains a test/compatibility
+item. Do not use underlayment patch as an assumed exposed wear finish.
+The visualization is dimensionally derived, not a structural certification.

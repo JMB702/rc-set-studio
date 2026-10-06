@@ -1,0 +1,51 @@
+RC SET STUDIO — SOURCES, 2026-10-05
+
+Construction references:
+https://hstech.org/how-to-tech/carpentry/flats/
+https://aact.org/brace
+https://theatrecrafts.com/pages/home/topics/scenic-design/flats-types-methods/
+https://www.flints.com/pdf/catalogue/stagebracesandweights.pdf
+These support the general scenic flat / French brace approach. The specific
+geometry, fastener schedules, taller-panel choices and illustrative ballast
+are custom prototype design choices, not manufacturer-tested structures.
+
+Flooring:
+https://www.homedepot.com/p/203315038
+TrafficMaster Gladstone Oak 32686. Listed $1.19/sq ft, $28.85/24.24 sq ft
+case. 7 mm thick x 7.6 inches wide, approx. 50.8 inches long. Price is a
+public listing checked Oct 5, 2026, not a local inventory or price quote.
+https://images.thdstatic.com/catalog/pdfImages/6e/6e8e46ae-2116-49c4-8215-025cc7c0ab54.pdf
+Manufacturer requires underlay, 3/8 inch perimeter expansion, 16 inch
+minimum end-joint stagger and starter/end piece lengths. Trim fixed only
+to wall. Follow substrate, acclimation and moisture instructions.
+
+Charcoal floor:
+https://www.homedepot.com/p/302055336
+BEHR Mined Coal PPU18-18 Porch & Patio floor paint (color approximation).
+https://www.behr.com/products/floor-coatings/behr-premium-porch-and-patio-floor-paint
+Wood-compatible preparation, priming and curing requirements.
+https://www.wwhenry.com/wp-content/uploads/2019/06/HENRY-549-Technical-Data.pdf
+HENRY 549 is an underlayment before floor coverings. This does not verify
+it as an exposed, painted traffic surface. We do not specify ordinary
+plaster or this product as the painted plywood seam/wear system.
+https://www.dap.com/products/patch-repair/plastic-wood-professional-wood-filler
+Wood repair reference for surface defects, not a tested monolithic floor
+joint system. Confirm final seam/coating compatibility and test movement.
+
+Wood and hardware:
+https://www.homedepot.com/p/100543684
+Lauan utility panel: actual 0.106 x 48 x 96 inches.
+https://www.homedepot.com/p/202088907
+Pine 1x2 reference: actual 0.75 x 1.5 inches.
+https://www.homedepot.com/p/321711458
+2x4 reference: actual 1.5 x 3.5 inches.
+https://www.homedepot.com/p/204331396
+Everbilt flat-head 1/4-20 x 2 inch machine screws. Match countersink to
+purchased hardware; all edge-facing heads flush.
+
+Textures (generic appearance, not Home Depot product samples):
+https://polyhaven.com/a/coated_pine
+https://polyhaven.com/a/oak_veneer_01
+https://polyhaven.com/license
+CC0 assets, resized and color adjusted. See texture-provenance.json.
+Three.js 0.186.1, MIT license in vendor/THREE-LICENSE.txt.

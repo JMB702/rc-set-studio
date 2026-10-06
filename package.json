@@ -1,0 +1,1 @@
+{"name":"rc-set-studio","private":true,"type":"module","scripts":{"build":"node scripts/build.mjs","db:generate":"drizzle-kit generate","dev":"wrangler dev --config wrangler.json"},"dependencies":{"drizzle-orm":"0.45.2"},"devDependencies":{"drizzle-kit":"0.31.10","wrangler":"4.92.0"}}

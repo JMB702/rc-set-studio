@@ -275,3 +275,55 @@ nav{flex-shrink:0}.price-scopes{display:flex;gap:5px;margin:16px 0}.price-scopes
 .dialog-actions .primary{background:var(--ink);color:#fff;border-color:var(--ink)}
 @media(max-width:850px){.building .design-approve{display:none}.dialog-actions button{flex:1}}
 #approvals-count{font-size:13px;font-weight:500;color:var(--muted);margin:0 auto 0 -6px}
+
+/* Labor: crew, hours and rate, in the Pricing guide and the approval gate (public/labor.js) */
+#labor-estimate{margin:18px 0;padding:16px;border:1px solid var(--line);border-radius:9px;background:#fff}
+#labor-estimate .group-head{margin-bottom:10px}
+.labor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.labor-grid label{display:grid;gap:6px;font-size:12px;font-weight:600;color:#3b4a47}
+.labor-stepper,.labor-input{display:flex;align-items:center;border:1px solid #c4d1bb;border-radius:7px;background:#fff;overflow:hidden;min-height:42px}
+.labor-stepper button{min-height:40px;width:34px;padding:0;border:0;background:#f1f4ef;font-size:18px;color:var(--ink)}
+.labor-stepper input,.labor-input input{flex:1;min-width:0;width:100%;border:0;font:inherit;font-size:16px;font-weight:600;padding:8px 6px;text-align:center;background:transparent;color:var(--ink);-moz-appearance:textfield}
+.labor input::-webkit-inner-spin-button,.labor input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.labor-input>span{padding:0 7px;font-size:13px;color:var(--muted);font-weight:500}
+.labor.adjusted .labor-grid label:nth-child(2)>.labor-input{border-color:#263b2b;box-shadow:0 0 0 1px #263b2b;background:#eaf3df}
+.labor-default{font-size:12px;line-height:1.45;color:var(--muted);margin:9px 0 0}
+.labor-default .link-button{font-size:12px;color:var(--ink);font-weight:600;margin-left:4px}
+.labor-cost{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:14px}
+.labor-cost strong{font-size:15px;text-align:right}
+.labor-tasks{margin-top:10px}
+.labor-tasks>summary{font-size:13px;font-weight:600;min-height:36px}
+.labor-tasks ol{list-style:none;margin:4px 0 8px;padding:0;display:grid;gap:7px}
+.labor-tasks li{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:10px;font-size:13px}
+.labor-tasks li small{grid-column:1/-1;font-size:11px;color:var(--muted)}
+.labor-tasks .hint{font-size:11px}
+#approve-dialog{max-height:calc(100dvh - 32px);overflow:auto}
+#approve-cost{margin:0 0 16px;padding:14px;border-radius:9px;background:#f4f7f1}
+#approve-cost h3{font-size:14px;margin:0 0 8px}
+#approve-cost dl{margin:0 0 12px;display:grid;gap:6px}
+#approve-cost dl div{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#approve-cost dt{font-size:14px;font-weight:600}
+#approve-cost dt small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+#approve-cost dd{margin:0;font-size:15px;font-weight:600;text-align:right;white-space:nowrap}
+#approve-cost .approve-total{padding-top:8px;margin-top:2px;border-top:1px solid #d3dccd}
+#approve-cost .approve-total dd{font-size:22px;letter-spacing:-.4px}
+#approve-labor .labor-cost{display:none}
+.labor-rates{border:0;margin:12px 0 0;padding:0;min-width:0}
+.labor-rates legend{padding:0;font-size:12px;font-weight:600;color:#3b4a47;margin-bottom:6px}
+.labor-rates legend small{font-weight:500;color:var(--muted);margin-left:4px}
+.labor-rates ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.labor-rates li{display:grid;grid-template-columns:72px minmax(0,1fr) 76px;align-items:center;gap:8px}
+.labor-rates li label{font-size:13px;font-weight:600}
+.labor-rates li small{font-size:12px;color:var(--muted);text-align:right}
+.labor-rates .labor-input{min-height:38px}
+.labor-rates .link-button{font-size:12px;margin-top:8px;font-weight:600}
+#price-estimate{margin:14px 0 0;padding:12px 14px;border-radius:8px;background:#f4f7f1;display:grid;gap:6px}
+#price-estimate:empty{display:none}
+#price-estimate .hint{margin:0}
+#price-estimate div,#approve-cost dl div{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#price-estimate dt{font-size:14px;font-weight:600}
+#price-estimate dt small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+#price-estimate dd{margin:0;font-size:15px;font-weight:600;white-space:nowrap}
+#price-estimate .estimate-total{padding-top:8px;border-top:1px solid #d3dccd}
+#price-estimate .estimate-total dd{font-size:22px;letter-spacing:-.4px}
+#labor-estimate.has-estimate .labor-cost{display:none}

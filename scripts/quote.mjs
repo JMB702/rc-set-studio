@@ -4,6 +4,7 @@
 //   npm run quote -- --angle 60 use a different wing angle (default 45)
 import {readFile} from 'node:fs/promises';
 import {priceRows, summary, money} from '../public/pricing-calc.js';
+import {laborEstimate} from '../public/labor.js';
 
 const data = JSON.parse(await readFile('public/data/flat-shopping-list.json', 'utf8'));
 const angleArg = process.argv.indexOf('--angle');
@@ -16,7 +17,8 @@ const lines = [`Pricing guide subtotals at ${angle}° wings, prices checked ${da
 {
   const rows = priceRows(data, {scope: 'set', height: 120, angle: 45, floor: 'charcoal', platformShape: 'square'});
   const {subtotal, pending} = summary(rows);
-  lines.push(`Default design, full set ${money(subtotal).padStart(11)}  ${rows.length} lines, ${pending} priced pending`, '');
+  const labor = laborEstimate({height: 120, angle: 45, floor: 'charcoal', platformShape: 'square', platformAngle: 90});
+  lines.push(`Default design, full set ${money(subtotal).padStart(11)}  ${rows.length} lines, ${pending} priced pending, labor ${labor.personHours} person-hours (${labor.hours} hrs for 2)`, '');
 }
 for (const height of [96, 120]) {
   for (const scope of ['panel', 'set', 'floor']) {
@@ -27,7 +29,8 @@ for (const height of [96, 120]) {
       const {subtotal, pending} = summary(rows);
       const design = platformShape === 'none' ? floor : floor === 'none' ? `${platformShape} platform` : `${floor} + ${platformShape}`;
       const label = `${height / 12}x4  ${scope.padEnd(5)} ${scope === 'panel' ? ''.padEnd(16) : design.padEnd(16)}`;
-      lines.push(`${label} ${money(subtotal).padStart(11)}  ${String(rows.length).padStart(2)} lines, ${pending} priced pending`);
+      const labor = scope === 'set' ? laborEstimate({height, angle, floor, platformShape, platformAngle: platformShape === 'square' ? 90 : platformAngle}) : null;
+      lines.push(`${label} ${money(subtotal).padStart(11)}  ${String(rows.length).padStart(2)} lines, ${pending} priced pending${labor ? `, labor ${labor.personHours} ph` : ''}`);
     }
   }
 }

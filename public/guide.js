@@ -74,11 +74,14 @@ function stepHelp(stage,floor){
 function outlinePiece(o){const outline=new T.LineSegments(new T.EdgesGeometry(o.geometry,30),new T.LineBasicMaterial({color:0x527b2b,transparent:true,opacity:1}));outline.name='Current piece outline';outline.userData.guideDecoration=true;outline.raycast=()=>{};o.add(outline);}
 export function installGuide(api){
  let model,markers,animation=[],start=0,all=steps(api.state.height,api.state.floor),bounds,detailBounds,focused=false,viewOverride=null;
- const S=api.state,controls=$('.controls'),settings=$('#panel-settings');let selectedBuildHeight=S.height;
+ const S=api.state,controls=$('.controls');let selectedBuildHeight=S.height;
  const progressKey='rc-set-build-progress-v1';let hasOpened=false,configurationChanged=false,saved;
  try{saved=JSON.parse(localStorage.getItem(progressKey));if(!saved||![96,120].includes(saved.height)||!['wood','charcoal'].includes(saved.floor)||!Number.isFinite(saved.angle)||saved.angle<0||saved.angle>90||!steps(saved.height,saved.floor).some(st=>st.stage===saved.stage))saved=null;}catch{saved=null;}
- controls.prepend($('#guide-controls'));
- const settingsHome=document.createComment('Panel settings');settings.before(settingsHome);
+ // The collapsed configuration summary sits above every mode's controls.
+ controls.prepend($('#guide-settings'),$('#guide-controls'));
+ const configVerb={finished:'Exploring',build:'Building',pricing:'Pricing'};
+ function configLabel(){$('#guide-config-label').textContent=`${configVerb[S.mode]||'Building'} ${S.height/12} × 4`;}
+ configLabel();$('#guide-build-setup').hidden=S.mode!=='build';
  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 function cutUI(){let r=cutRows(S.height);$('#cut-intro').textContent=`${S.height/12}′ × 4′ panel + two ${design(S.height).jackH/12}′ jacks. Quantities below are per panel.`;$('#cut-list').innerHTML='<table><thead><tr><th>Qty</th><th>Part / actual cut</th></tr></thead><tbody>'+r.map(([q,n,d,sub])=>`<tr><td>${q}</td><td><strong>${n}</strong><br>${d}<small>${sub}</small></td></tr>`).join('')+'</tbody></table>';}
 function materialUI(){const area=api.getFloor()?.userData.area||128,cases=Math.ceil(area*1.1/24.24),cost=cases*28.85;$('#materials-body').innerHTML=`<div class="material-title">Gladstone Oak laminate</div><p>TrafficMaster 32686 · 7 mm thick · click-lock installation.</p><div class="price">$1.19 / sq ft</div><p class="hint">Listed online Oct 5, 2026; $28.85 / 24.24 sq ft case. Local stock and prices may differ.</p><p>This layout: about <strong>${Math.round(area)} sq ft</strong>. With 10% waste: <strong>${cases} cases / $${cost.toFixed(2)}</strong>, flooring only.</p><a href="https://www.homedepot.com/p/203315038" target="_blank" rel="noopener">View flooring at Home Depot</a><br><a href="https://images.thdstatic.com/catalog/pdfImages/6e/6e8e46ae-2116-49c4-8215-025cc7c0ab54.pdf" target="_blank" rel="noopener">Manufacturer installation guide</a><p>Use underlayment and a ⅜″ expansion gap, hidden by wall-mounted trim. This is a visual approximation of oak, not a product photograph.</p><div class="material-title">Solid-color painted floor</div><p>Smooth plywood over a fully supporting existing floor, compatible wood repair and primer, then a wood-rated floor coating. The viewer represents the desired seamless finish.</p><a href="https://www.homedepot.com/p/302055336" target="_blank" rel="noopener">BEHR Mined Coal floor paint</a><p>Confirm a seam-treatment system for the chosen plywood and coating. Ordinary plaster and underlayment patch are not established here as an exposed painted wear layer; moving sheet joints can crack.</p>`;}
@@ -173,7 +176,7 @@ function materialUI(){const area=api.getFloor()?.userData.area||128,cases=Math.c
   $('#step-description').textContent=sentences.shift().trim();$('#step-actions').replaceChildren(...sentences.map(text=>{const li=document.createElement('li');li.textContent=text.trim();return li;}));
   $('#step-check-text').textContent=st.check||(S.floor==='wood'?{24:'Underlayment edges meet without overlap. Follow the required moisture-barrier details.',25:'Starter rows are straight, end pieces are at least 16″, and the ⅜″ expansion gap is clear.',26:'End joints are staggered at least 16″. All perimeter pieces retain their expansion gap.',27:'Trim attaches only to the walls and lets the floating floor move.'}:{24:'All sheets and their edges are supported. No joints flex or rock.',25:'The seam system is compatible with the sheets and coating and has passed a mockup.',26:'Primer covers the clean, smooth floor. Let it dry as specified.',27:'Coating has cured for the required foot-traffic time; BEHR lists 72 hours in suitable conditions.'})[st.stage];
   $('#guide-cut-link').hidden=st.stage!==0;$('#step-spec').textContent=st.spec;$('#step-tools').textContent='Bring: '+st.tools;
-  $('#guide-orientation').textContent=st.orientation;$('#guide-config-label').textContent=`Building ${S.height/12} × 4`;
+  $('#guide-orientation').textContent=st.orientation;configLabel();
   $('#guide-floor').value=S.floor;$('#guide-angle').value=S.angle;$('#guide-angle-value').textContent=S.angle+'°';
   $('#back').disabled=S.step===0;$('#next').textContent=S.step===all.length-1?'Finish & explore →':'Next step →';
   const next=all[S.step+1];$('#guide-next-label').textContent=!next?'Last step · check the finished set':next.section!==st.section?`Up next: ${sections.find(x=>x.id===next.section).label} · ${next.title}`:'Up next: '+next.title;
@@ -202,9 +205,8 @@ function materialUI(){const area=api.getFloor()?.userData.area||128,cases=Math.c
  }
  function mode(m){
   if(m==='build'&&!hasOpened){hasOpened=true;if(saved&&!configurationChanged){api.configure({height:saved.height,floor:saved.floor,angle:saved.angle});all=steps(S.height,S.floor);S.step=all.findIndex(st=>st.stage===saved.stage);}}
-  const entering=S.mode!=='build'&&m==='build';if(entering)$('#guide-settings').open=false;S.mode=m;document.body.classList.toggle('building',m==='build');
+  const entering=S.mode!=='build'&&m==='build';if(S.mode!==m)$('#guide-settings').open=false;S.mode=m;configLabel();$('#guide-build-setup').hidden=m!=='build';document.body.classList.toggle('building',m==='build');
   $('#explore-controls').hidden=m!=='finished';$('#guide-controls').hidden=m!=='build';$('#guide-scene-tools').hidden=m!=='build';$('#step-overlay').hidden=true;
-  if(m==='build')$('#guide-setup').prepend(settings);else settingsHome.after(settings);
   $('#scene-tag').textContent=m==='finished'?'FINISHED SET':'CONSTRUCTION GUIDE';$('#view-hint').textContent=m==='finished'?'Drag to orbit · pinch to zoom':'Green = this step · drag or pinch to inspect';
   document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===m);b.setAttribute('aria-pressed',b.dataset.mode===m)});
   if(m==='finished'){clear();api.getSet().visible=api.getFloor().visible=true;$('#panel-count').textContent='8 panels';api.orbit.minDistance=1.4;api.orbit.maxDistance=22;api.view('front');requestAnimationFrame(()=>api.view('front'));}
@@ -222,9 +224,9 @@ function materialUI(){const area=api.getFloor()?.userData.area||128,cases=Math.c
  $('#guide-focus').onclick=()=>{focused=!focused;$('#guide-focus').setAttribute('aria-pressed',focused);$('#guide-focus').textContent=focused?'Whole assembly':'See detail';fit(viewOverride);};
  new ResizeObserver(()=>{if(S.mode==='build')fit(viewOverride);}).observe($('#canvas-wrap'));
  $('#guide-settings').addEventListener('toggle',()=>{$('#guide-config-action').textContent=$('#guide-settings').open?'Done':'Change';});
- window.addEventListener('set-configured',()=>{if(S.height!==selectedBuildHeight){selectedBuildHeight=S.height;$('#guide-settings').open=false;}if(!hasOpened)configurationChanged=true;const current=all[S.step]?.stage;all=steps(S.height,S.floor);S.step=Math.max(0,all.findIndex(st=>st.stage===current));cutUI();materialUI();if(S.mode==='build')display();});
+ window.addEventListener('set-configured',()=>{configLabel();if(S.height!==selectedBuildHeight){selectedBuildHeight=S.height;$('#guide-settings').open=false;}if(!hasOpened)configurationChanged=true;const current=all[S.step]?.stage;all=steps(S.height,S.floor);S.step=Math.max(0,all.findIndex(st=>st.stage===current));cutUI();materialUI();if(S.mode==='build')display();});
  api.onTick=t=>{if(!animation.length)return;const e=reducedMotion.matches?1:Math.min(1,(t-start)/650),fade=(1-e)**3;for(const {o,offset}of animation)o.position.copy(offset).multiplyScalar(fade);api.invalidate();if(e===1)animation=[];};
  api.setMode=mode;api.setStep=n=>{if(!Number.isInteger(n)||n<0||n>=all.length)throw Error('Step outside guide');hasOpened=true;S.step=n;api.setMode('build');controls.scrollTop=0;window.scrollTo(0,0);return {...S,stepCount:all.length};};
- api.stepCount=()=>steps(S.height,S.floor).length;api.setSection=id=>{if(!all.some(step=>step.section===id))throw Error('No steps in that section');hasOpened=true;if(S.mode!=='build')api.setMode('build');goSection(id);return {...S,section:id};};api.guideView=v=>{viewOverride=v==='reset'?null:v;fit(viewOverride);};
+ api.refreshConfigLabel=configLabel;api.stepCount=()=>steps(S.height,S.floor).length;api.setSection=id=>{if(!all.some(step=>step.section===id))throw Error('No steps in that section');hasOpened=true;if(S.mode!=='build')api.setMode('build');goSection(id);return {...S,section:id};};api.guideView=v=>{viewOverride=v==='reset'?null:v;fit(viewOverride);};
  api.guideStats=()=>({step:S.step,...all[S.step],visible:model?.children.length||0,bounds:bounds?.clone(),detailBounds:detailBounds?.clone()});cutUI();materialUI();return {mode,display};
 }

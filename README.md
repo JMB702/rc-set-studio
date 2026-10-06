@@ -1,6 +1,6 @@
 # RC Set Studio
 
-An interactive 3D viewer, step-by-step **Build guide** and **Pricing guide** for a modular scenic set: a 16′ back wall and two 8′ wings built from 4′-wide panels (8′ or 10′ tall), with jacks, ballast and three floor options: oak laminate, a painted floor, or a 10″ plastered platform that follows the wall angle. Runs on a phone, with shared comments and saved estimates.
+An interactive 3D viewer, step-by-step **Build guide** and **Pricing guide** for a modular scenic set: a 16′ back wall and two 8′ wings built from 4′-wide panels (8′ or 10′ tall), with jacks, ballast and a 10″ plastered platform (angled or square) and an oak or painted floor, each optional and designed in one panel. Runs on a phone, with shared comments and saved estimates.
 
 Live site: https://rc-set-studio.thereallifeatheist.chatgpt.site
 
@@ -47,7 +47,8 @@ Local comments stay in ignored `.wrangler/` state. Schema changes belong in `db/
 
 | Area | Files |
 |---|---|
-| 3D model | `public/model.js`, `public/podcast.js`, `public/wall-colors.js` |
+| 3D model | `public/model.js`, `public/platform.js`, `public/podcast.js` |
+| Design panel (walls, platform, floor, colors) | `public/design.js` |
 | Build guide | `public/guide.js` |
 | Pricing guide | `public/pricing*.js`, `public/shopping-*.js`, `public/data/flat-shopping-list.json` |
 | Design notes | `public/assets/design-basis.txt`, `public/assets/sources.txt` |

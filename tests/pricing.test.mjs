@@ -74,7 +74,7 @@ test('Flush gaps drop the fascia on the wall side; a 90° flush platform is four
  assert.equal(Math.round(platformPlan(90,12,12).fasciaLength),2*168+2*84);
 });
 test('Platform pricing follows angle and gaps, uses observed prices only, and replaces the floor rows',()=>{
- const rows=priceRows(data,{scope:'set',height:96,angle:45,floor:'platform'}),ids=rows.map(r=>r.id);
+ const rows=priceRows(data,{scope:'set',height:96,angle:45,floor:'none',platformShape:'angled'}),ids=rows.map(r=>r.id);
  for(const id of ['laminate','floorPly','trim','floorFixings'])assert.ok(!ids.includes(id),id);
  for(const id of ['platformLumber','platformDeck','platformFrameScrews','platformDeckScrews','platformSkin','platformCompound','platformPrimer','platformPaint'])assert.ok(ids.includes(id),id);
  const platform=platformRows(data,45);assert.ok(platform.every(r=>Number.isInteger(r.subtotalCents)&&r.purchaseQuantity>0&&r.productUrl.startsWith('https://www.homedepot.com/')));
@@ -90,5 +90,14 @@ test('Platform angle turns the sides in independently but never opens wider than
  assert.deepEqual(platformPlan(45,12,12,30).outline,platformPlan(45,12,12).outline);
  for(const pa of [45,60,75,90]){const plan=platformPlan(45,12,12,pa),s=Math.sin(Math.PI/4),c=Math.cos(Math.PI/4);for(const [x,z] of plan.outline)assert.ok(-s*(x-96)+c*z>=12-1e-6&&s*(x+96)+c*z>=12-1e-6,`keeps the gap from the real wings at ${pa}°`);}
  assert.ok(summary(platformRows(data,45,12,12,90)).subtotal<summary(platformRows(data,45,12,12,45)).subtotal);
- assert.equal(priceRows(data,{scope:'floor',height:96,angle:45,floor:'platform',platformAngle:90}).find(r=>r.id==='platformDeck').purchaseQuantity,platformPlan(45,12,12,90).deckSheets);
+ assert.equal(priceRows(data,{scope:'floor',height:96,angle:45,floor:'none',platformShape:'square'}).find(r=>r.id==='platformDeck').purchaseQuantity,platformPlan(45,12,12,90).deckSheets);
+});
+test('Floor and platform are independent: either, both or neither are priced',()=>{
+ const ids=(floor,platformShape)=>priceRows(data,{scope:'floor',height:96,angle:45,floor,platformShape}).map(r=>r.id);
+ const both=ids('wood','square');assert.ok(both.includes('laminate')&&both.includes('platformDeck')&&both.includes('trim'));
+ assert.ok(!ids('none','angled').includes('trim'),'no shoe trim without a floor');assert.ok(!ids('wood','none').some(id=>id.startsWith('platform')));
+ assert.equal(ids('none','none').length,0);
+ const total=(f,p)=>summary(priceRows(data,{scope:'floor',height:96,angle:45,floor:f,platformShape:p})).subtotal;
+ assert.equal(total('wood','square'),total('wood','none')+total('none','square'));
+ assert.deepEqual(priceRows(data,{scope:'floor',height:96,angle:45,floor:'platform'}).map(r=>r.id),ids('none','angled'),'older floor:"platform" still prices');
 });

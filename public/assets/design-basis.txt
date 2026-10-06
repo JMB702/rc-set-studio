@@ -74,8 +74,10 @@ plywood is not guaranteed; the seam system remains a test/compatibility
 item. Do not use underlayment patch as an assumed exposed wear finish.
 The visualization is dimensionally derived, not a structural certification.
 
-10-INCH PLATFORM FLOOR OPTION (ADDED OCTOBER 6, 2026)
-Replaces the floor covering. Finished top 10 above the existing floor.
+10-INCH PLATFORM (ADDED OCTOBER 6, 2026)
+Optional and independent of the floor: none, angled or square. When a
+floor is also chosen it runs under the platform, wall to wall, and the
+platform stands on it. Finished top 10 above the floor it stands on.
 Outline: the 8ft floor footprint, kept a set gap from the back wall line and
 from both wing lines (each 0 to 48, default 12), out to the 96 front line.
 Wing gaps are measured from the full wing line. The platform's sides have

@@ -11,15 +11,18 @@ export function normalizeCustom(item){
 }
 export function normalizeConfiguration(input){
  if(!input||typeof input!=='object'||input.version!==1)throw Error('Unsupported pricing configuration.');
- if(!['set','panel','floor'].includes(input.scope)||![96,120].includes(input.height)||!Number.isInteger(input.angle)||input.angle<0||input.angle>90||!['wood','charcoal','platform'].includes(input.floor))throw Error('Invalid set configuration.');
+ if(!['set','panel','floor'].includes(input.scope)||![96,120].includes(input.height)||!Number.isInteger(input.angle)||input.angle<0||input.angle>90||!['none','wood','charcoal','platform'].includes(input.floor))throw Error('Invalid set configuration.');
+ // floor:'platform' was the earlier way to save a platform with no floor under it.
+ const legacy=input.floor==='platform',floor=legacy?'none':input.floor,platformShape=input.platformShape??(legacy?((input.platformAngle??input.angle)>=90?'square':'angled'):'none');if(!['none','angled','square'].includes(platformShape))throw Error('Invalid platform shape.');
+ const platformColor=input.platformColor??'#34383b';if(typeof platformColor!=='string'||!/^#[0-9a-f]{6}$/i.test(platformColor))throw Error('Invalid platform color.');
  const platformBack=input.platformBack??12,platformSide=input.platformSide??12;if(![platformBack,platformSide].every(v=>Number.isInteger(v)&&v>=0&&v<=48))throw Error('Invalid platform gap.');
- const platformAngle=Math.max(input.angle,input.platformAngle??input.angle);if(!Number.isInteger(platformAngle)||platformAngle>90)throw Error('Invalid platform angle.');
+ const platformAngle=platformShape==='square'?90:Math.max(input.angle,input.platformAngle??input.angle);if(!Number.isInteger(platformAngle)||platformAngle>90)throw Error('Invalid platform angle.');
  const floorColor=input.floorColor??'#34383b';if(typeof floorColor!=='string'||!/^#[0-9a-f]{6}$/i.test(floorColor))throw Error('Invalid floor color.');
  const wallColor=input.wallColor??'#34383b';if(typeof wallColor!=='string'||!/^#[0-9a-f]{6}$/i.test(wallColor))throw Error('Invalid wall color.');
  if(!['supports','ballast','finishes'].every(k=>typeof input[k]==='boolean'))throw Error('Invalid material options.');
  if(!Array.isArray(input.excluded)||input.excluded.length>200||input.excluded.some(id=>typeof id!=='string'||!/^[-a-zA-Z\d]{1,80}$/.test(id)))throw Error('Invalid removed items.');
  if(!Array.isArray(input.customItems)||input.customItems.length>100)throw Error('Too many custom items.');const customItems=input.customItems.map(normalizeCustom);if(new Set(customItems.map(i=>i.id)).size!==customItems.length)throw Error('Duplicate custom item IDs.');
- return {version:1,scope:input.scope,height:input.height,angle:input.angle,floor:input.floor,platformBack,platformSide,platformAngle,wallColor:wallColor.toLowerCase(),floorColor:floorColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
+ return {version:1,scope:input.scope,height:input.height,angle:input.angle,floor,platformShape,platformBack,platformSide,platformAngle,platformColor:platformColor.toLowerCase(),wallColor:wallColor.toLowerCase(),floorColor:floorColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
 }
 export function customizeRows(rows,configuration){const excluded=new Set(configuration.excluded);return [...rows.filter(r=>!excluded.has(r.id)),...configuration.customItems.map(i=>({id:i.id,custom:true,name:i.title,description:i.description,availability:i.description,productUrl:i.link,purchaseQuantity:i.quantity,packSize:1,needed:i.quantity,unitPriceCents:i.unitPriceCents,subtotalCents:i.quantity*i.unitPriceCents,group:'custom'}))];}
 export function removedPart(tags,floor,excluded){const physical=tags.includes('laminate')?(floor==='wood'?'laminate':'floorPly'):tags[0];return excluded.includes(physical);}

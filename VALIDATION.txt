@@ -2,6 +2,8 @@ RC SET STUDIO — checked 2026-10-05
 Local Chromium at 390 x 844 and 1200 x 900.
 12 finished combinations exercised: 2 heights x 0/45/90 degrees x 2 floors.
 Four guide paths traversed end to end: 27 steps for 8ft, 29 for 10ft.
+2026-10-06: guide split into sections (Flat build, Floor build, Platform build,
+Full assembly) with jump buttons; all four paths re-traversed in section order.
 Guide invalid-step input rejected; viewport widths fit without horizontal overflow.
 Finished scene with podcast scale references uses at most 115 draw calls including
 shadows and fewer than 66k rendered triangles in the checked views.

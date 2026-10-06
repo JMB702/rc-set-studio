@@ -35,6 +35,10 @@ nav{flex-shrink:0}.price-scopes,.price-floor-switch{display:flex;gap:5px;margin:
 #guide-scene-tools button{background:#fafbf8ed;border:1px solid #cbd6c4;border-radius:8px;color:#354831;padding:8px 11px;font-size:12px;min-height:44px}
 #guide-scene-tools button[aria-pressed=true]{background:#d7eac3}
 #guide-controls{padding-top:0}#guide-controls .step-count{color:#435940;font-size:13px;letter-spacing:0;font-weight:600}
+#guide-sections{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 18px}
+#guide-sections button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:9px 11px;border:1px solid #dbe1da;border-radius:8px;background:transparent;text-align:left;color:var(--ink)}
+#guide-sections button strong{font-size:14px;font-weight:600}#guide-sections button span{font-size:11px;color:var(--muted);line-height:1.3}
+#guide-sections button[aria-pressed=true]{border-color:#263b2b;background:#eaf3df}
 #guide-jump{background:#edf2e8;border-radius:7px;color:#354831;font-size:13px;padding:0 12px}
 #guide-controls progress{margin:8px 0 20px;height:4px}
 #step-phase{font-size:11px;color:#587942;letter-spacing:1px;margin-bottom:9px}

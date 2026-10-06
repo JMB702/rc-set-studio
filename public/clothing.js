@@ -1,8 +1,10 @@
 // Clothing colors for the scale figures: one card per person in the current scene, each with a
 // shirt row and a pants (or shorts) row. Swatches apply instantly; the last swatch opens the
-// device color picker. Colors live in state.clothing, so a person keeps their outfit across scenes.
+// device color picker. Colors live in state.clothing, so a person keeps their outfit across scenes,
+// and are remembered in this browser (localStorage) between visits.
 import {figurePeople,sceneCast} from './podcast.js';
 
+const storeKey='rc-figure-clothing-v1';
 const palette=[['White','#ecebe6'],['Black','#1d1f21'],['Gray','#8a8d8f'],['Navy','#26364d'],['Royal blue','#3559b5'],['Red','#b3372f'],['Orange','#e8641f'],['Olive','#5f6b3a'],['Tan','#b59a72']];
 const skin={host:'#d8ab8b',woman:'#d8ab8b',rapper:'#5b3a29'};
 const sides=['Left','Right'];
@@ -49,5 +51,8 @@ export function installClothing(api){
  let pending=null;
  host.addEventListener('input',e=>{const i=e.target;if(i.type!=='color')return;const first=!pending;pending=[i.closest('.wear-card').dataset.person,i.closest('.wear-row').dataset.part,i.value];if(first)requestAnimationFrame(()=>{set(...pending);pending=null;});});
  api.setClothing=(id,part,color)=>set(id,part,color);
- window.addEventListener('set-configured',refresh);refresh();
+ // Remember outfits in this browser. A bad or outdated entry is ignored and replaced on the next change.
+ try{const saved=JSON.parse(localStorage.getItem(storeKey));if(saved)api.configure({clothing:Object.fromEntries(Object.entries(saved).filter(([id])=>figurePeople[id]))});}catch{}
+ let stored=JSON.stringify(S.clothing);
+ window.addEventListener('set-configured',()=>{refresh();const now=JSON.stringify(S.clothing);if(now!==stored){stored=now;try{localStorage.setItem(storeKey,now);}catch{}}});refresh();
 }

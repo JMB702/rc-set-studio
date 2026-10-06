@@ -10,7 +10,10 @@ const skin={host:'#d8ab8b',woman:'#d8ab8b',rapper:'#5b3a29'};
 const sides=['Left','Right'];
 // Skip palette colors that look the same as a person's original (the original swatch already covers them).
 const rgbOf=c=>c.slice(1).match(/../g).map(x=>parseInt(x,16)),far=(a,b)=>Math.hypot(...rgbOf(a).map((n,i)=>n-rgbOf(b)[i]))>24;
-const name=(id,part,c)=>c===figurePeople[id][part]?'Original':palette.find(p=>p[1]===c)?.[0]||'Custom';
+// Plain names for each person's original colors, so summaries read as colors, not "Original".
+const originals={host:{shirt:'Slate blue',pants:'Charcoal'},woman:{shirt:'Plum',pants:'Charcoal'},rapper:{shirt:'Orange',pants:'Black'}};
+const colorName=(id,part,c)=>c===figurePeople[id][part]?originals[id][part]:palette.find(p=>p[1]===c)?.[0]||'Custom';
+const name=(id,part,c)=>colorName(id,part,c)+(c===figurePeople[id][part]?' · original':'');
 
 // A small front-on figure tinted with the person's current clothes, so each card reads at a glance.
 function silhouette(id){
@@ -19,10 +22,11 @@ function silhouette(id){
 }
 function row(id,part){
  const p=figurePeople[id],label=part==='shirt'?'Shirt':p.lower,colors=[['Original',p[part]],...palette.filter(([,c])=>far(c,p[part]))];
- return `<div class="wear-row" data-part="${part}"><div class="field-label"><span>${label}</span><output></output></div><div class="swatches wear-swatches" role="group" aria-label="${p.label} ${label.toLowerCase()} color">${colors.map(([n,c])=>`<button type="button" class="swatch${n==='Original'?' original':''}" data-wear="${c}" style="--c:${c}" aria-label="${n}${n==='Original'?` (${c})`:''}" title="${n}" aria-pressed="false"></button>`).join('')}<label class="swatch custom" title="Custom color"><input type="color" aria-label="Custom ${label.toLowerCase()} color for the ${p.label.toLowerCase()}"></label></div></div>`;
+ return `<div class="wear-row" data-part="${part}"><div class="field-label"><span>${label}</span><output></output></div><div class="swatches wear-swatches" role="group" aria-label="${p.label} ${label.toLowerCase()} color">${colors.map(([n,c])=>`<button type="button" class="swatch${n==='Original'?' original':''}" data-wear="${c}" style="--c:${c}" aria-label="${n==='Original'?`${originals[id][part]} (original)`:n}" title="${n==='Original'?`${originals[id][part]} (original)`:n}" aria-pressed="false"></button>`).join('')}<label class="swatch custom" title="Custom color"><input type="color" aria-label="Custom ${label.toLowerCase()} color for the ${p.label.toLowerCase()}"></label></div></div>`;
 }
+// Collapsed, a card is one row: silhouette, name and what they're wearing. Open, it shows the swatches.
 function card(id,i){
- return `<div class="wear-card" data-person="${id}">${silhouette(id)}<div class="wear-body"><div class="wear-head"><div><strong>${figurePeople[id].label}</strong><span>${sides[i]} from the front</span></div><button type="button" class="wear-reset">Reset</button></div>${row(id,'shirt')}${row(id,'pants')}</div></div>`;
+ return `<details class="wear-card" data-person="${id}"><summary>${silhouette(id)}<div class="wear-title"><strong>${figurePeople[id].label}</strong><small class="wear-outfit"></small><small>${sides[i]} from the front</small></div><span class="wear-toggle" aria-hidden="true">+</span></summary><div class="wear-body">${row(id,'shirt')}${row(id,'pants')}<button type="button" class="wear-reset">Reset to original</button></div></details>`;
 }
 
 export function installClothing(api){
@@ -34,6 +38,7 @@ export function installClothing(api){
   for(const c of host.querySelectorAll('.wear-card')){
    const id=c.dataset.person,wear=S.clothing[id];
    c.querySelector('.wear-shirt').setAttribute('fill',wear.shirt);c.querySelectorAll('.wear-arm').forEach(a=>a.setAttribute('fill',wear.shirt));c.querySelector('.wear-pants').setAttribute('fill',wear.pants);
+   c.querySelector('.wear-outfit').textContent=`${colorName(id,'shirt',wear.shirt)} shirt · ${colorName(id,'pants',wear.pants)} ${figurePeople[id].lower.toLowerCase()}`;
    c.querySelector('.wear-reset').hidden=wear.shirt===figurePeople[id].shirt&&wear.pants===figurePeople[id].pants;
    for(const r of c.querySelectorAll('.wear-row')){
     const part=r.dataset.part,color=wear[part];let match=false;

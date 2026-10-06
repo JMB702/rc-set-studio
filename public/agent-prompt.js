@@ -10,8 +10,8 @@ Needs Node 20+, npm and git. The GitHub CLI (gh) turns steps 1 and 5 into one co
 
 1. GET THE CODE
    gh repo fork ${REPO} --clone --default-branch-only && cd rc-set-studio
-   No gh? Run: git clone https://github.com/${REPO}.git && cd rc-set-studio
-   then fork it on GitHub and add your fork as a remote before you push.
+   If that fails (no gh, or you own or can write to the repo), clone it directly instead:
+   git clone https://github.com/${REPO}.git && cd rc-set-studio
 
 2. READ THE RULES BEFORE EDITING ANYTHING
    Read AGENTS.md, then follow ${SKILL_PATH}.
@@ -30,7 +30,7 @@ Needs Node 20+, npm and git. The GitHub CLI (gh) turns steps 1 and 5 into one co
 5. SUBMIT
    git switch -c <short-branch-name>
    git add -A && git commit -m "<what changed and why>"
-   git push -u origin HEAD
+   git push -u origin HEAD    (if you cannot push to origin, fork the repo on GitHub, add it as a remote and push there)
    gh pr create --repo ${REPO} --fill
    Complete the checklist in the pull request. Never push to main. Do not commit node_modules, dist or .wrangler.
 

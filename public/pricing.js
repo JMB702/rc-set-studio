@@ -2,6 +2,7 @@ import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 import {panel,floorMesh,platformParts,dispose,inch,mats,splitSkinFaces} from './model.js';
 import {platformPlan} from './platform.js';
+import {defaultDesign} from './design.js';
 import {money,priceRows,summary,floorArea,exportList} from './pricing-calc.js';
 import {dollarsToCents,normalizeCustom,normalizeConfiguration,customizeRows,removedPart} from './pricing-config.js';
 import {installPricingSwipe} from './pricing-swipe.js';
@@ -118,7 +119,7 @@ export function installPricing(api){
  function restoreConfiguration(raw){const c=normalizeConfiguration(raw);restoring=true;scope=c.scope;excluded=c.excluded;customItems=c.customItems;selected=null;q('#price-supports').checked=c.supports;q('#price-ballast').checked=c.ballast;q('#price-finishes').checked=c.finishes;api.configure({height:c.height,angle:c.angle,floor:c.floor,platformShape:c.platformShape,platformColor:c.platformColor,platformBack:c.platformBack,platformSide:c.platformSide,platformAngle:c.platformAngle,wallColor:c.wallColor,floorColor:c.floorColor});restoring=false;render();if(S.mode==='pricing')fit();if(S.mode==='pricing')$('#panel-count').textContent=scope==='panel'?'1 panel':scope==='floor'?'Floor + platform':'8 panels';}
  q('#price-add-open').onclick=()=>{q('#price-add').hidden=false;q('#price-add-open').hidden=true;q('#price-add').scrollIntoView({block:'nearest',behavior:'smooth'});q('#price-title').focus();};q('#price-add-close').onclick=()=>{q('#price-add').hidden=true;q('#price-add-open').hidden=false;q('#price-add-open').focus();};
  q('#price-add-form').onsubmit=e=>{e.preventDefault();try{const item=normalizeCustom({id:'custom-'+crypto.randomUUID(),title:q('#price-title').value,description:q('#price-description').value,link:q('#price-link').value,unitPriceCents:dollarsToCents(q('#price-amount').value),quantity:Number(q('#price-quantity').value||1)});if(customItems.length>=100)throw Error('Maximum 100 added items.');customItems.push(item);q('#price-add-form').reset();q('#price-add-status').textContent='Item added.';q('#price-add').hidden=true;q('#price-add-open').hidden=false;render(false);q('#price-add-open').focus();}catch(error){q('#price-add-status').textContent=error.message;}};
- q('#price-config-default').onclick=()=>{restoreConfiguration({version:1,scope:'set',height:96,angle:45,floor:'wood',supports:true,ballast:true,finishes:true,excluded:[],customItems:[]});q('#price-config-status').textContent='Default restored. Saved configurations remain available.';};
+ q('#price-config-default').onclick=()=>{restoreConfiguration({version:1,scope:'set',...defaultDesign,supports:true,ballast:true,finishes:true,excluded:[],customItems:[]});q('#price-config-status').textContent='Default restored. Saved configurations remain available.';};
  api.setMode=mode;api.pricingView=fit;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>mode(b.dataset.mode));
  host.querySelectorAll('[data-price-scope]').forEach(b=>b.onclick=()=>{scope=b.dataset.priceScope;selected=null;$('#panel-count').textContent=scope==='panel'?'1 panel':scope==='floor'?'Floor + platform':'8 panels';render();fit();});
  

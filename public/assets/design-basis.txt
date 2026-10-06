@@ -3,7 +3,9 @@ RC SET STUDIO — DESIGN BASIS / OCTOBER 5, 2026
 LAYOUT
 Four 4-foot panels form the 16-foot back wall. Two 4-foot panels per wing
 match Jeff's Blender additions. Two wings turn inward together from 0 to
-90 degrees; default 45 degrees. Front corner lines remain coincident.
+90 degrees; default 45 degrees.
+Default design: 10x4 panels at 45 degrees, square 10-inch platform 12
+from the walls, painted plywood floor under it, all surfaces charcoal. Front corner lines remain coincident.
 Floor is assumed 8 feet deep and follows the footprint. This represents
 recutting/reconfiguring the floor and re-dressing corner finishes, not
 moving a finished floor/wall assembly while occupied or ballasted.

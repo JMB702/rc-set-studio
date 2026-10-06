@@ -12,6 +12,12 @@ const platformArg = process.argv.indexOf('--platform-angle');
 const platformAngle = platformArg > -1 ? Math.max(angle, Number(process.argv[platformArg + 1])) : angle;
 
 const lines = [`Pricing guide subtotals at ${angle}° wings, prices checked ${data.checkedDate} (platform items ${data.platform.products[0].checkedDate}), platform gaps 12″, angled platform at ${platformAngle}° (before tax and delivery)`, ''];
+// The design a first visit opens with (public/design.js defaultDesign): 10×4 at 45°, square platform, painted floor.
+{
+  const rows = priceRows(data, {scope: 'set', height: 120, angle: 45, floor: 'charcoal', platformShape: 'square'});
+  const {subtotal, pending} = summary(rows);
+  lines.push(`Default design, full set ${money(subtotal).padStart(11)}  ${rows.length} lines, ${pending} priced pending`, '');
+}
 for (const height of [96, 120]) {
   for (const scope of ['panel', 'set', 'floor']) {
     // Floor and platform are independent design choices: [floor, platform shape].

@@ -11,12 +11,12 @@ export function installComments(api) {
   toggle.onclick=()=>picking?pickMode(false):open(panel.hidden);
   $('#comment-close').onclick=()=>open(false);
   document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(picking)pickMode(false);else if(!panel.hidden)open(false);}});
-  function setAttachment(a){attachment=a;$('#comment-target').textContent=a?a.label:'General comment';$('#comment-clear').hidden=!a;}
+  function setAttachment(a){draftId=crypto.randomUUID();attachment=a;$('#comment-target').textContent=a?a.label:'General comment';$('#comment-clear').hidden=!a;}
   $('#comment-clear').onclick=()=>{setAttachment(null);clearOutline();};
   $('#comment-pick').onclick=()=>{pickMode(!picking);message('');};
   function visible(o){for(let p=o;p;p=p.parent)if(!p.visible)return false;return true;}
   function prefix(o){for(let p=o;p;p=p.parent)if(p.userData.commentPrefix)return p.userData.commentPrefix;return '';}
-  function descriptor(o,part=null){const pre=prefix(o),key=part?.key||o.userData.commentKey,label=part?.label||o.name;if(!key)return null;return {id:(pre?pre+'/':'')+key,label:(pre?pre+' · ':'')+label,object:o,part};}
+  function descriptor(o,part=null){if(o.parent?.name==='Podcast scale reference')return {id:'podcast-reference',label:'Podcast table and seated figures',object:o.parent,part:null};const pre=prefix(o),key=part?.key||o.userData.commentKey,label=part?.label||o.name;if(!key)return null;return {id:(pre?pre+'/':'')+key,label:(pre?pre+' · ':'')+label,object:o,part};}
   function outlineElement(d){clearOutline();const o=d.object;api.scene.updateMatrixWorld(true);let box;
     if(d.part){const a=o.geometry.attributes.position;box=new T.Box3();for(let i=d.part.start*3;i<(d.part.start+d.part.count)*3;i++)box.expandByPoint(new T.Vector3().fromBufferAttribute(a,i).applyMatrix4(o.matrixWorld));}
     else box=new T.Box3().setFromObject(o);
@@ -36,7 +36,7 @@ export function installComments(api) {
   window.addEventListener('comment-scene-reset',clearOutline);
   window.addEventListener('set-configured',clearOutline);
   document.querySelectorAll('#comment-name,#comment-body').forEach(el=>el.addEventListener('input',()=>{draftId=crypto.randomUUID();}));
-  async function request(url,options){const r=await fetch(url,options);let data;try{data=await r.json();}catch{throw Error('Comments are temporarily unavailable. Please try again.');}if(!r.ok)throw Error(data.error||'Unable to save comments. Please try again.');return data;}
+  async function request(url,options){let r;try{r=await fetch(url,options);}catch{throw Error('Unable to connect. Please try again.');}let data;try{data=await r.json();}catch{throw Error('Comments are temporarily unavailable. Please try again.');}if(!r.ok)throw Error(data.error||'Unable to save comments. Please try again.');return data;}
   function locate(c){pickMode(false);const config=c.context;api.configure({height:config.height,angle:config.angle,floor:config.floor});if(config.mode==='build')api.setStep(config.step);else api.setMode('finished');clearOutline();let found;
     api.scene.traverse(o=>{if(found||!visible(o))return;for(const part of o.userData.commentParts||[]){const d=descriptor(o,part);if(d?.id===c.elementId){found=d;break;}}if(!found){const d=descriptor(o);if(d?.id===c.elementId)found=d;}});
     if(found){outlineElement(found);const box=outline.box,center=box.getCenter(new T.Vector3()),shift=center.clone().sub(api.orbit.target);api.camera.position.add(shift);api.orbit.target.copy(center);api.orbit.update();api.invalidate();message('Showing '+c.elementLabel+'.');if(innerWidth<=850)open(false);}
@@ -47,7 +47,7 @@ export function installComments(api) {
   }
   async function load(older=false){if(loading)return;loading=true;$('#comment-refresh').disabled=true;$('#comment-more').disabled=true;
     if(!comments.length)list.textContent='Loading comments…';
-    try{const data=await request('/api/comments'+(older&&nextBefore?'?before='+nextBefore:''));comments=older?[...comments,...data.comments.filter(c=>!comments.some(x=>x.id===c.id))]:data.comments;nextBefore=data.nextBefore;render();}
+    try{const data=await request('/api/comments'+(older&&nextBefore?'?before='+encodeURIComponent(nextBefore):''));comments=older?[...comments,...data.comments.filter(c=>!comments.some(x=>x.id===c.id))]:data.comments;nextBefore=data.nextBefore;render();}
     catch(e){message(e.message,true);if(!comments.length)list.textContent='Unable to load comments. Use Refresh to try again.';}
     finally{loading=false;$('#comment-refresh').disabled=false;$('#comment-more').disabled=false;}
   }

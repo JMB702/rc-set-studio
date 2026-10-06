@@ -3,10 +3,10 @@ Local Chromium at 390 x 844 and 1200 x 900.
 12 finished combinations exercised: 2 heights x 0/45/90 degrees x 2 floors.
 Four guide paths traversed end to end: 27 steps for 8ft, 29 for 10ft.
 Guide invalid-step input rejected; viewport widths fit without horizontal overflow.
-Finished scene with podcast scale references uses at most 109 draw calls including
-shadows and fewer than 56k rendered triangles in the checked views.
+Finished scene with podcast scale references uses at most 115 draw calls including
+shadows and fewer than 66k rendered triangles in the checked views.
 Two static seated figures, chairs, a 48 x 30 x 30 inch table, and boom microphones
-are baked into seven material meshes, with no extra textures or model downloads.
+are baked into ten material meshes, with no extra textures or model downloads.
 All 12 finished configurations checked again at 390 x 844; no horizontal overflow.
 Scale references hide in the construction guide, including height changes.
 Pixel ratio capped at1.6; textured geometry batched per panel/material;
@@ -18,3 +18,7 @@ so native WebMCP registration/execution could not be verified in this browser.
 The same visible state actions were exercised via the local QA hook.
 Construction remains a scenic prototype; physical loads/corner hardware/floor seam
 compatibility require validation described in the site's Before you build section.
+
+Blonde figure revision: contoured faces and clothed torsos, swept/long hair,
+facial details and fingers. Close-up visually checked, all 12 phone-size
+configurations checked; figures remain hidden in construction mode.

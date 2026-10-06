@@ -21,10 +21,11 @@ export default {async fetch(request,env) {
       const db=database(env);
       if(request.method==='GET') {
         const before=url.searchParams.get('before');
-        if(before!==null&&(!/^\d+$/.test(before)||!Number.isSafeInteger(Number(before))))return json({error:'Invalid page.'},400);
-        const rows=await db.prepare('SELECT * FROM comments WHERE created_at < ? ORDER BY created_at DESC, id DESC LIMIT 51').bind(before?Number(before):Number.MAX_SAFE_INTEGER).all();
+        if(before!==null&&!/^\d+\|[0-9a-f-]{36}$/i.test(before))return json({error:'Invalid page.'},400);
+        const [beforeTime,beforeId]=before?before.split('|'):[String(Number.MAX_SAFE_INTEGER),''];
+        const rows=await db.prepare('SELECT * FROM comments WHERE created_at < ? OR (created_at = ? AND id < ?) ORDER BY created_at DESC, id DESC LIMIT 51').bind(Number(beforeTime),Number(beforeTime),beforeId).all();
         const items=rows.results.slice(0,50).map(commentRow);
-        return json({comments:items,nextBefore:rows.results.length>50?items.at(-1).createdAt:null});
+        return json({comments:items,nextBefore:rows.results.length>50?items.at(-1).createdAt+'|'+items.at(-1).id:null});
       }
       if(request.method==='POST') {
         if(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)return json({error:'Please post from this site.'},403);

@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
-import {panel,floorMesh,dispose,inch,mats} from './model.js';
+import {panel,floorMesh,dispose,inch,mats,splitSkinFaces} from './model.js';
 import {money,priceRows,summary,floorArea,exportList} from './pricing-calc.js';
 import {dollarsToCents,normalizeCustom,normalizeConfiguration,customizeRows,removedPart} from './pricing-config.js';
 import {installPricingSwipe} from './pricing-swipe.js';
@@ -28,8 +28,11 @@ function ids(name,height){
  return [];
 }
 function pricedPanel(height){const root=panel(height),bins=new Map();
- for(const o of [...root.children]){if(!o.isMesh)continue;const matches=ids(o.name,height),support=o.userData.step>=13,key=matches.join(',')+o.material.uuid+support;
- const bin=bins.get(key)||{ids:matches,material:o.material,support,geometries:[]};bin.geometries.push(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone());bins.set(key,bin);root.remove(o);o.geometry.dispose();}
+ const add=(o,g,matches,support)=>{const key=matches.join(',')+o.material.uuid+support;const bin=bins.get(key)||{ids:matches,material:o.material,support,geometries:[]};bin.geometries.push(g);bins.set(key,bin);};
+ for(const o of [...root.children]){if(!o.isMesh)continue;const matches=ids(o.name,height),support=o.userData.step>=13;
+ if(/lauan/.test(o.name)){const faces=splitSkinFaces(o.geometry);add(o,faces.front,matches,support);add(o,faces.back,['skin'],support);}
+ else add(o,o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone(),matches,support);
+ root.remove(o);o.geometry.dispose();}
  for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(g=>g.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.support=bin.support;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0]||'Panel part';root.add(m);}
  return root;
 }

@@ -4,7 +4,7 @@
 import {mats} from './model.js';
 import {platformPlan} from './platform.js';
 // The design a first visit opens with, and what Revert to default restores in the Pricing guide.
-export const defaultDesign={height:120,angle:45,wallColor:'#34383b',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12,platformColor:'#34383b',floor:'charcoal',floorColor:'#34383b'};
+export const defaultDesign={height:120,angle:45,wallColor:'#34383b',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12,platformColor:'#34383b',floor:'charcoal',floorColor:'#34383b',figures:'rap',figureScale:1};
 export const presets=[['Charcoal','#34383b'],['White','#ecece7'],['Warm gray','#96918a'],['Navy','#26364d'],['Forest','#344c40'],['Black','#181a1c']];
 export const colorName=c=>presets.find(p=>p[1]===c)?.[0]||(c==='#3c4041'?'Charcoal':'Custom');
 export const gapText=v=>v===0?'Flush':v%12?`${v>=12?Math.floor(v/12)+'′ ':''}${v%12}″`:`${v/12}′`;

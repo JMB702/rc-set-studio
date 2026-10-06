@@ -327,3 +327,10 @@ nav{flex-shrink:0}.price-scopes{display:flex;gap:5px;margin:16px 0}.price-scopes
 #price-estimate .estimate-total{padding-top:8px;border-top:1px solid #d3dccd}
 #price-estimate .estimate-total dd{font-size:22px;letter-spacing:-.4px}
 #labor-estimate.has-estimate .labor-cost{display:none}
+.rate-reminder{position:relative;display:flex;align-items:flex-start;gap:8px;margin:2px 0 10px;padding:9px 10px 9px 12px;border-radius:8px;background:var(--ink);color:#fff;box-shadow:0 6px 18px #17202430;animation:rate-reminder .25s ease-out}
+.rate-reminder[hidden]{display:none}
+.rate-reminder::after{content:"";position:absolute;left:22px;bottom:-6px;width:12px;height:12px;background:var(--ink);transform:rotate(45deg)}
+#approve-dialog .rate-reminder p{margin:0;font-size:12.5px;line-height:1.4;color:#fff}
+.rate-reminder button{flex:none;min-height:0;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#ffffff1f;color:var(--accent);font-size:15px;line-height:1}
+@keyframes rate-reminder{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.rate-reminder{animation:none}}

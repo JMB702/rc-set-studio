@@ -21,6 +21,11 @@ export function installApprovals(api){
  document.body.append(dialog);
  const q=s=>document.querySelector(s);let approvals=[],draftId=crypto.randomUUID(),loaded=false,data=null;
  mountLabor(q('#approve-labor'),api,{prefix:'approve-labor'});
+ // A reminder beside the rates each time the gate opens: the labor figure is only as good as the rates and hours.
+ const tip=document.createElement('div');tip.className='rate-reminder';tip.setAttribute('role','note');tip.innerHTML='<p></p><button type="button" aria-label="Dismiss reminder">×</button>';
+ q('#approve-labor .labor-rates legend').after(tip);tip.querySelector('button').onclick=()=>{tip.hidden=true;};
+ q('#approve-labor .labor-rates').addEventListener('change',()=>{tip.hidden=true;});
+ function reminder(){const l=api.labor?.();tip.querySelector('p').textContent=!l||l.costCents==null?'Add each person’s hourly rate so labor is included in the total estimate.':l.unrated?'Some of the crew have no rate yet. Add them, and check the hours, for an accurate labor estimate.':'Check each person’s rate and the hours on site for an accurate labor estimate.';tip.hidden=false;}
  // The cost gate: materials for the full set from the Pricing guide's rows, plus labor from the crew settings.
  function costs(){
   if(!dialog.open)return;if(!data){q('#approve-materials').textContent='Loading…';return;}
@@ -55,7 +60,7 @@ export function installApprovals(api){
   const name=rememberedName()||q('#comment-name')?.value.trim()||'';
   q('#approve-summary').replaceChildren(...[['Walls',`${S.height/12}′ tall · ${S.angle}° wings · ${colorName(S.wallColor)}`],['Platform',S.platformShape==='none'?'None':`${S.platformShape==='square'?'Square':'Angled'} · ${S.platformBack}″ back · ${S.platformSide}″ sides · ${colorName(S.platformColor)}`],['Floor',S.floor==='none'?'None':S.floor==='wood'?'Oak laminate':`Painted plywood · ${colorName(S.floorColor)}`]].map(([k,v])=>{const li=document.createElement('li'),t=document.createElement('strong'),d=document.createElement('span');t.textContent=k;d.textContent=v;li.append(document.createElement('span'),t,d);return li;}));
   q('#approve-name').value=name;q('#approve-as-name').textContent=name;q('#approve-as').hidden=!name;q('#approve-name-field').hidden=!!name;q('#approve-error').textContent='';
-  dialog.showModal();costs();loadData();(name?q('#approve-confirm'):q('#approve-name')).focus();
+  dialog.showModal();reminder();costs();loadData();(name?q('#approve-confirm'):q('#approve-name')).focus();
  }
  q('#approve-not-me').onclick=()=>{q('#approve-as').hidden=true;q('#approve-name-field').hidden=false;q('#approve-name').value='';q('#approve-name').focus();};
  q('#approve-button').onclick=open;

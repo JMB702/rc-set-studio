@@ -13,14 +13,14 @@ export function steps(h,floor){let d=design(h),items=[
 [7,'Place the 72″ toggle','Add the third toggle and check all front edges sit in the same plane.','1 piece · centerline 72″ from bottom','back']];
 if(h===120)items.push([8,'Back the 8′ skin joint','Lay this wider member flat, with its 3½″ face against the plywood. Center it at 96″ so both skin edges have 1¾″ of backing.','1 piece · 46½″ long × 3½″ high × ¾″ deep','back']);
 items.push([9,'Glue and screw the frame','Glue each butt joint. Predrill through the stile into each rail and toggle. Countersink the heads flush so adjoining panels can touch. Lime markers locate every screw.',`#6 × 1½″ wood screws: ${h===120?'14 total; two into each end of the wide backer':'10 total, one at each member end'}. Axes ¾″ behind skin rear face; backer axes ⅜″ behind skin.`,'back'],
-[10,'Position the main skin','Spread wood glue along every frame contact. Lay the 48″ × 96″ skin on the frame, flush with the bottom and both side edges.','0.106″ actual lauan; keep the face flat while glue cures.','front']);
+[10,'Position the main skin','Turn the joined frame over onto level supports so its skin-facing edges face up. Spread wood glue along every frame contact. Lay the 48″ × 96″ skin on the frame, flush with the bottom and both side edges.','0.106″ actual lauan; keep the face flat while glue cures.','front']);
 if(h===120)items.push([11,'Add the upper 2′ skin','Butt the 48″ × 24″ cap to the lower sheet at 96″. Both edges land on the wide backer; no unsupported plywood joint.','2′ cap spans 96″–120″ above the bottom.','front']);
 items.push([12,'Staple the skin','Fasten while the glue cures. Keep staples centered on the frame edges, about 4″ apart. Test air pressure on scrap so crowns do not cut through the veneer.','½″ narrow-crown staples. Lime markers show centers, enlarged for visibility.','front'],
-[13,'Lay out both jack feet','Make two mirrored jacks on a flat surface. Each foot stands 3½″ high, with its ¾″ edge on the floor.',`2 pieces · ¾″ × 3½″ × ${d.foot}″`,'back'],
-[14,'Add the jack uprights','Stand each upright on its foot at the front end. Hold each assembly at a true right angle.',`2 pieces · ${d.jackH-3.5}″ long. Overall jack height ${d.jackH}″.`,'back'],
+[13,'Lay out both jack feet','Lay the parts for two mirrored jacks on a flat bench, with their inboard faces up. Align the feet as shown; their 3½″ edges will stand upright when installed.',`2 pieces · ¾″ × 3½″ × ${d.foot}″`,'back'],
+[14,'Add the jack uprights','With each jack still lying on its side, fit the upright against the front of the foot. Clamp the two pieces at a true right angle.',`2 pieces · ${d.jackH-3.5}″ long. Overall jack height ${d.jackH}″.`,'back'],
 [15,'Fit and fasten the diagonals','Lay each diagonal on the inboard face. Align its outer edge from the top-front corner to the bottom-rear toe. Scribe both ends, trim, glue the overlaps and predrill the screws.',`Start with ${h===120?'112':'84'}″ blanks. Two #8 × 1¼″ screws at each diagonal end; 8 total.`,'back'],
 [16,'Add the corner gussets','Glue one triangular gusset over each foot/upright joint on the inboard face, clear of the diagonal. Predrill and screw it to both members.','0.47″ plywood; 8″ legs. Six #8 × 1″ screws per gusset.','back'],
-[17,'Bolt the jacks to the flat','Keep the flat held upright and supported. Match-drill the stile and jack upright. Countersink only the outside flat-head screw seat; washers and locknuts stay inside.',`Eight ¼″-20 × 2″ flat-head machine screws. Holes 9/32″; heights ${d.boltHeights.join('″, ')}″. Axis ${d.boltDepth}″ behind skin rear face.`,'back'],
+[17,'Bolt the jacks to the flat','With a helper, raise the skinned flat and stand both completed jacks behind it. Keep the flat supported. Match-drill the stile and jack upright. Countersink only the outside flat-head screw seat; washers and locknuts stay inside.',`Eight ¼″-20 × 2″ flat-head machine screws. Holes 9/32″; heights ${d.boltHeights.join('″, ')}″. Axis ${d.boltDepth}″ behind skin rear face.`,'back'],
 [18,'Tie the jack feet together','Lay both shelf crossbars flat across the two feet. Predrill down into the center of each foot edge and fasten at all four crossings.',`2 crossbars · 1½″ × 3½″ × 46½″. Four #8 × 2½″ screws. Shelf zone: ${d.foot/2-6}″–${d.foot/2+6}″ from jack front.`,'back'],
 [19,'Screw down the shelf','Place the plywood shelf across the bars. Drive six screws into each bar, with their heads flush.','46½″ × 12″ × 0.47″ shelf; twelve #8 × 1″ screws.','back'],
 [20,'Secure ballast and check stability','Strap the bags around the shelf and both crossbars. Keep the weight low and centered. Check tipping, sliding, fasteners and floor contact in the actual layout before releasing the panel.','Three 25 lb bags are a preliminary planning quantity, not a certified minimum or load rating.','back'],
@@ -30,20 +30,183 @@ items.push([12,'Staple the skin','Fasten while the glue cures. Keep staples cent
 if(floor==='wood')items.push([24,'Roll out the underlayment','Install the underlayment specified by TrafficMaster. Butt its edges without overlap. Add the specified vapor barrier where the substrate requires it.','Let boards acclimate per the manufacturer. Never fasten the floating laminate to the subfloor.','top'],[25,'Click together the starter rows','Use the angle-angle locking joint. Begin with straight rows and a ⅜″ expansion space at all walls and fixed objects. Do not force a damaged tongue into place.','Gladstone Oak: 7 mm × 7.6″ × about 50.8″. First and last boards in each row: at least 16″ long.','top'],[26,'Stagger and fit the remaining rows','Continue the click-lock rows, offsetting end joints at least 16″. Scribe the boundary pieces to the angled walls and preserve the expansion space.','The 3D planks illustrate the finish; verify edge cuts against actual site measurements.','top'],[27,'Cover the expansion gap','Fit charcoal-painted shoe trim to the walls, covering the ⅜″ gap without trapping the floor. Attach trim only to the wall, never through the laminate.','The finished view shows the tight visual junction; the movement space sits beneath trim.','front']);
 else items.push([24,'Lay and stabilize the plywood','Lay smooth 23/32″-class plywood over the existing floor; use the actual thickness listed for the purchased panel. Stagger sheet joints and support every edge.','Overlay joints must not flex or rock. Set floor fastening/underlay details for the venue; do not screw into an unapproved floor.','top'],[25,'Prepare the sheet seams','Sand ridges and fill surface defects with a compatible wood repair product. A monolithic seam coating on moving sheets may crack; confirm the seam system with its manufacturer and test a mockup.','Do not treat ordinary plaster or HENRY FeatherFinish underlayment as a verified exposed painted wear surface.','top'],[26,'Prime the plywood','Clean thoroughly, then prime with a wood-compatible primer specified by the floor-paint manufacturer. Keep filled seams smooth and flush.','BEHR lists a wood primer for its Porch & Patio floor coating. Follow the current label.','top'],[27,'Apply the solid-color floor finish','Apply the floor coating in your selected floor color. Follow the chosen coating’s number of coats and drying schedule; use an appropriate slip-resistant finish for foot traffic.','BEHR Porch & Patio is specified for wood floors. It lists 72 hours before normal use; cooler/damp conditions take longer.','front']);
 items.push([28,'Dress and paint the walls','Once the configuration is fixed, dress the plywood joints with scenic seam fabric, feather the edges, sand and prime. Paint the entire face in the selected wall color for one continuous appearance.','Do not bridge a moving corner with rigid plaster. Re-dress corners after changing the wing angle. Rendered color is an approximation.','front']);
-return items.map(([stage,title,description,spec,view])=>({stage,title,description,spec,view}));}
-function outlinePiece(o){const outline=new T.LineSegments(new T.EdgesGeometry(o.geometry,30),new T.LineBasicMaterial({color:0x8eb654,transparent:true,opacity:.85}));outline.name='Current piece outline';outline.userData.guideDecoration=true;outline.raycast=()=>{};o.add(outline);}
-export function installGuide(api){let model,markers,animation=[],start=0,all=steps(api.state.height,api.state.floor);const S=api.state;
+return items.map(([stage,title,description,spec,view])=>({stage,title,description,spec,view,...stepHelp(stage)}));}
+const phases=['Prepare parts','Build the frame','Attach the skin','Build the jacks','Support the panel','Assemble the set','Lay the floor','Finish the walls'];
+const checks=[
+'Every part is labeled and cut to the actual size. Use the cut list below before starting.',
+'The skin-facing edge is against the bench. The board lies straight.',
+'Outside width is 48″; inside width is 46½″. Both ends line up.',
+'The bottom rail is flush with both stile ends.',
+'The two outside diagonals match. Keep the rectangle clamped square.',
+'The toggle center is 24″ from the bottom outside edge.',
+'The toggle center is 48″ from the bottom outside edge.',
+'The toggle center is 72″ from the bottom outside edge. All skin edges align.',
+'The backer center is 96″ from the bottom, leaving 1¾″ for each skin edge.',
+'All joints are glued and fastened, heads are flush, and the frame is still square.',
+'The sheet is flush with the bottom and both sides. The frame supports the face evenly.',
+'The joint lands on the backer, with both skin edges fully supported.',
+'Staples sit flush without cutting the veneer. Keep the face flat during curing.',
+'You have a left and right jack, both lying with their inboard faces up.',
+'Each upright meets its foot at 90°. Keep the parts clamped while fitting the diagonal.',
+'Both diagonals fit their overlaps and have two screws at each end.',
+'Each gusset clears the diagonal and is fastened to both members.',
+'All eight bolts have inside washers and locknuts. Keep the panel supported.',
+'Both bars are flat, centered, and fastened at all four foot crossings.',
+'The shelf sits flat; all twelve screw heads are flush.',
+'Ballast is strapped low and centered. Verify stability in the actual layout before releasing support.',
+'Four back panels and two panels per wing are aligned and joined. Supports remain secure.',
+'Wings are independently braced and corners secured at the chosen angle.',
+'The outline matches the final wall positions and the existing floor supports the whole overlay.',
+null,null,null,null,
+'Wall seams are smooth and primed. Let the selected paint cure before using the set.'
+];
+function stepHelp(stage){
+ const phaseIndex=stage===0?0:stage<=9?1:stage<=12?2:stage<=16?3:stage<=20?4:stage<=22?5:stage<=27?6:7;
+ const orientation=stage===0?'Parts laid flat':stage<=9?'Flat on bench · frame side up':stage<=12?'Flat on supports · skin side up':stage<=16?'Jacks on their sides · inboard faces up':stage<=20?'Panel upright · work from behind':stage<=22?'Walls upright · secure supports':stage<=26?'Floor flat · look down into the set':stage===27?'Finish at floor level':'Walls upright · work from the front';
+ const tools=stage===0?'Tape measure, square, pencil and saw':stage<=8?'Tape measure, square and clamps':stage===9?'Wood glue, clamps, drill, pilot bit and countersink':stage<=12?'Wood glue, clamps and narrow-crown stapler':stage<=16?'Square, clamps, saw, wood glue and drill':stage===17?'Helper, clamps, drill, 9/32″ bit, countersink and wrenches':stage<=20?'Drill, straps and ballast':stage<=22?'Helper, clamps, drill and independent braces':stage<=26?'Tape measure and tools specified by the floor manufacturer':'Sanding and finishing tools specified by the coating manufacturer';
+ return {phase:phases[phaseIndex],phaseIndex,orientation,tools,check:checks[stage]};
+}
+function outlinePiece(o){const outline=new T.LineSegments(new T.EdgesGeometry(o.geometry,30),new T.LineBasicMaterial({color:0x527b2b,transparent:true,opacity:1}));outline.name='Current piece outline';outline.userData.guideDecoration=true;outline.raycast=()=>{};o.add(outline);}
+export function installGuide(api){
+ let model,markers,animation=[],start=0,all=steps(api.state.height,api.state.floor),bounds,detailBounds,focused=false,viewOverride=null;
+ const S=api.state,controls=$('.controls'),settings=$('#panel-settings');
+ const progressKey='rc-set-build-progress-v1';let hasOpened=false,configurationChanged=false,saved;
+ try{saved=JSON.parse(localStorage.getItem(progressKey));if(!saved||![96,120].includes(saved.height)||!['wood','charcoal'].includes(saved.floor)||!Number.isFinite(saved.angle)||saved.angle<0||saved.angle>90||!steps(saved.height,saved.floor).some(st=>st.stage===saved.stage))saved=null;}catch{saved=null;}
+ controls.prepend($('#guide-controls'));
+ const settingsHome=document.createComment('Panel settings');settings.before(settingsHome);
+ const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 function cutUI(){let r=cutRows(S.height);$('#cut-intro').textContent=`${S.height/12}′ × 4′ panel + two ${design(S.height).jackH/12}′ jacks. Quantities below are per panel.`;$('#cut-list').innerHTML='<table><thead><tr><th>Qty</th><th>Part / actual cut</th></tr></thead><tbody>'+r.map(([q,n,d,sub])=>`<tr><td>${q}</td><td><strong>${n}</strong><br>${d}<small>${sub}</small></td></tr>`).join('')+'</tbody></table>';}
 function materialUI(){const area=api.getFloor()?.userData.area||128,cases=Math.ceil(area*1.1/24.24),cost=cases*28.85;$('#materials-body').innerHTML=`<div class="material-title">Gladstone Oak laminate</div><p>TrafficMaster 32686 · 7 mm thick · click-lock installation.</p><div class="price">$1.19 / sq ft</div><p class="hint">Listed online Oct 5, 2026; $28.85 / 24.24 sq ft case. Local stock and prices may differ.</p><p>This layout: about <strong>${Math.round(area)} sq ft</strong>. With 10% waste: <strong>${cases} cases / $${cost.toFixed(2)}</strong>, flooring only.</p><a href="https://www.homedepot.com/p/203315038" target="_blank" rel="noopener">View flooring at Home Depot</a><br><a href="https://images.thdstatic.com/catalog/pdfImages/6e/6e8e46ae-2116-49c4-8215-025cc7c0ab54.pdf" target="_blank" rel="noopener">Manufacturer installation guide</a><p>Use underlayment and a ⅜″ expansion gap, hidden by wall-mounted trim. This is a visual approximation of oak, not a product photograph.</p><div class="material-title">Solid-color painted floor</div><p>Smooth plywood over a fully supporting existing floor, compatible wood repair and primer, then a wood-rated floor coating. The viewer represents the desired seamless finish.</p><a href="https://www.homedepot.com/p/302055336" target="_blank" rel="noopener">BEHR Mined Coal floor paint</a><p>Confirm a seam-treatment system for the chosen plywood and coating. Ordinary plaster and underlayment patch are not established here as an exposed painted wear layer; moving sheet joints can crack.</p>`;}
-function clear(){window.dispatchEvent(new Event('comment-scene-reset'));dispose(model);dispose(markers);model=markers=null;animation=[];}
-function fit(view='back'){let stage=all[S.step]?.stage||0;if(stage>=21){api.view(view);return;}let target=new T.Vector3(0,S.height*inch*(innerWidth<851?.55:.47),-.3);api.orbit.target.copy(target);let d=Math.max(5.5,S.height*inch*(innerWidth<851?2.8:2.2)),v=view==='front'?[d*.33,d*.45,d*.87]:view==='top'?[0,d,.01]:[-d*.42,d*.39,-d*.86];api.orbit.enableDamping=false;api.camera.position.set(...v);api.camera.lookAt(target);api.orbit.update();api.orbit.enableDamping=true;api.invalidate();}
-function display(reframe=true){clear();all=steps(S.height,S.floor);S.step=Math.max(0,Math.min(S.step,all.length-1));let st=all[S.step];let built=st.stage;api.getSet().visible=S.mode==='finished';api.getFloor().visible=S.mode==='finished';if(S.mode==='finished'){api.invalidate();return;}
-model=new T.Group();api.scene.add(model);markers=new T.Group();api.scene.add(markers);
-if(built<21){const p=panel(S.height);p.userData.commentPrefix='Build panel';p.position.x=-24*inch;model.add(p);for(let o of p.children){if(built===0){o.visible=!o.userData.fastener&&o.userData.step<9;if(o.visible){o.geometry.computeBoundingBox();let idx=p.children.indexOf(o),center=o.geometry.boundingBox.getCenter(new T.Vector3());const size=o.geometry.boundingBox.getSize(new T.Vector3());const length=Math.max(size.x,size.y,size.z);o.geometry.dispose();const section=[size.x,size.y,size.z].sort((a,b)=>a-b);o.geometry=grain(new T.BoxGeometry(section[0],length,section[1]),[section[0]/inch,length/inch,section[1]/inch],idx);o.geometry.translate((3+idx*6)*inch,length/2,0);o.material=mats[o.userData.mat];outlinePiece(o);}}else{o.visible=o.userData.step<=built;if(o.userData.step===built){if(!o.userData.fastener)outlinePiece(o);let offset=new T.Vector3(.14,.18,.16);o.position.add(offset);animation.push({o,offset});if(o.userData.fastener){let center=o.geometry.boundingBox||(o.geometry.computeBoundingBox(),o.geometry.boundingBox);let m=new T.Mesh(new T.SphereGeometry(.018,8,5),mats.highlight);m.position.copy(center.getCenter(new T.Vector3())).add(p.position);markers.add(m);}}}}
-}else{let g=finishedSet(S.height,built===21?0:S.angle);model.add(g);if(built<27)g.traverse(o=>{if(o.name==='Charcoal shoe trim')o.visible=false;});if(built<28)g.traverse(o=>{if(o.isMesh&&o.material===mats.charcoal)o.material=mats.ply;});if(built>=23){let type=built<25?'charcoal':S.floor;let f=floorMesh(S.angle,type,S.floor==='wood'&&built===25?2:99);if(S.floor==='charcoal'&&built<27)f.traverse(o=>{if(o.isMesh)o.material=built===26?new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}):mats.ply});model.add(f);}if(built===24&&S.floor==='charcoal'){const lines=[];for(let x=-96;x<=96;x+=48){lines.push(x*inch,.008,0,x*inch,.008,96*inch)}for(let z=0;z<=96;z+=48){lines.push(-96*inch,.008,z*inch,96*inch,.008,z*inch)}let lg=new T.BufferGeometry();lg.setAttribute('position',new T.Float32BufferAttribute(lines,3));model.add(new T.LineSegments(lg,new T.LineBasicMaterial({color:0x5d4427})));}if(built===25&&S.floor==='charcoal'){for(let x of [-48,0,48]){const b=new T.Mesh(new T.BoxGeometry(.018,.004,96*inch),mats.highlight);b.position.set(x*inch,.006,48*inch);model.add(b);}}if(built===21){for(let seam of [-48,0,48])for(let h of [12,36,60,84,...(S.height===120?[108]:[])]){let m=new T.Mesh(new T.SphereGeometry(.026,8,5),mats.highlight);m.position.set(seam*inch,h*inch,-.85*inch);markers.add(m);}}}
-start=performance.now();$('#step-number').textContent=`STEP ${String(S.step+1).padStart(2,'0')} / ${all.length}`;$('#progress').max=all.length;$('#progress').value=S.step+1;$('#step-title').textContent=st.title;$('#step-description').textContent=st.description;$('#step-spec').textContent=st.spec;$('#back').disabled=S.step===0;$('#next').textContent=S.step===all.length-1?'Explore finished set':'Next';$('#part-label').textContent=st.title;$('#scene-title').textContent=built>=21?'Bring the set together.':`${S.height/12}′ × 4′ / piece by piece`;
-$('#scene-sub').textContent=built===0?'Actual sizes · cut and label before assembly':built>=21?'4 back panels + 2 panels per wing':'Bench assembly shown upright for clarity';$('#panel-count').textContent=built<21?'1 panel + 2 jacks':'8 panels';$('#dimensions').textContent=built<21?`${S.height}″ high × 48″ wide`:`${S.height/12}′ tall / ${S.angle}° wings`;
-if(reframe)fit(st.view);document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('selected',b.dataset.view===(st.view==='cuts'?'back':st.view)));api.invalidate();}
-function mode(m){S.mode=m;document.body.classList.toggle('building',m==='build');$('#explore-controls').hidden=m!=='finished';$('#guide-controls').hidden=m!=='build';$('#step-overlay').hidden=m!=='build';$('#scene-tag').textContent=m==='finished'?'FINISHED SET':'CONSTRUCTION GUIDE';$('#view-hint').textContent=m==='finished'?'Drag to orbit · pinch to zoom':'Lime outlines / fastener centers';document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===m);b.setAttribute('aria-pressed',b.dataset.mode===m)});if(m==='finished'){$('#scene-title').textContent='Make room for the scene.';$('#scene-sub').textContent='16′ back wall · two 8′ wings · 8′ floor depth';$('#panel-count').textContent='8 panels';clear();api.getSet().visible=api.getFloor().visible=true;api.view('front');}else display();}
-document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>mode(b.dataset.mode));$('#next').onclick=()=>{if(S.step===all.length-1)mode('finished');else{S.step++;display();}};$('#back').onclick=()=>{S.step--;display();};$('#restart').onclick=()=>{S.step=0;display();};window.addEventListener('set-configured',()=>{cutUI();materialUI();if(S.mode==='build')display();});api.onTick=t=>{if(!animation.length)return;let e=Math.min(1,(t-start)/650);if(matchMedia('(prefers-reduced-motion: reduce)').matches)e=1;let fade=(1-e)**3;for(let {o,offset}of animation)o.position.copy(offset).multiplyScalar(fade);api.invalidate();if(e===1)animation=[];};
-api.setMode=mode;api.setStep=n=>{if(!Number.isInteger(n)||n<0||n>=all.length)throw Error('Step outside guide');S.step=n;mode('build');return {...S,stepCount:all.length}};api.stepCount=()=>all.length;api.guideView=v=>fit(v);api.guideStats=()=>({step:S.step,...all[S.step],visible:model?.children.length||0});cutUI();materialUI();return {mode,display};}
+
+ function clear(){window.dispatchEvent(new Event('comment-scene-reset'));dispose(model);dispose(markers);model=markers=null;animation=[];}
+ function visibleBounds(root,filter=()=>true){const b=new T.Box3();root.updateMatrixWorld(true);root.traverseVisible(o=>{if(o.isMesh&&filter(o)){o.geometry.computeBoundingBox();b.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld));}});return b;}
+ function fit(view){
+  if(S.mode!=='build'||!bounds)return;
+  const st=all[S.step],stage=st.stage,b=focused&&!detailBounds.isEmpty()?detailBounds:bounds;
+  const center=b.getCenter(new T.Vector3());
+  let direction=stage<=16?[0,1,.32]:stage<=20?[-.42,.6,-1]:st.view==='top'?[0,1,.001]:st.view==='front'?[.12,.35,1]:[-.2,.45,-1];
+  if(focused&&stage===9)direction=[-1,.6,.4];
+  if(view==='top')direction=[0,1,.001];else if(view==='front')direction=[.15,.45,1];else if(view==='back')direction=[-.25,.45,-1];
+  const dir=new T.Vector3(...direction).normalize();
+  const right=new T.Vector3().crossVectors(api.camera.up,dir).normalize(),up=new T.Vector3().crossVectors(dir,right).normalize();
+  const r=$('#canvas-wrap').getBoundingClientRect(),aspect=r.width/Math.max(1,r.height),tan=Math.tan(api.camera.fov*Math.PI/360);
+  let distance=.7;
+  for(const x of [b.min.x,b.max.x])for(const y of [b.min.y,b.max.y])for(const z of [b.min.z,b.max.z]){
+   const delta=new T.Vector3(x,y,z).sub(center),depth=delta.dot(dir);
+   distance=Math.max(distance,depth+Math.abs(delta.dot(right))/(tan*aspect),depth+Math.abs(delta.dot(up))/tan);
+  }
+  distance*=1.22;
+  api.orbit.enableDamping=false;api.orbit.target.copy(center);api.camera.position.copy(center).addScaledVector(dir,distance);
+  api.orbit.minDistance=focused?.35:.8;api.orbit.maxDistance=Math.max(22,distance*2);api.camera.far=Math.max(60,distance*3);api.camera.updateProjectionMatrix();api.camera.lookAt(center);api.orbit.update();api.orbit.enableDamping=true;api.invalidate();
+ }
+ function highlight(o,holder){
+  if(!o.userData.fastener){outlinePiece(o);const mat=o.material.clone();mat.color.lerp(new T.Color('#c4e698'),.45);o.material=mat;}
+  const offset=new T.Vector3(0,0,.10);o.position.copy(offset);animation.push({o,offset});
+  if(o.userData.fastener){o.geometry.computeBoundingBox();const marker=new T.Mesh(new T.SphereGeometry(.012,8,5),mats.highlight);marker.userData.guideDecoration=true;marker.position.copy(o.geometry.boundingBox.getCenter(new T.Vector3()));holder.add(marker);}
+ }
+ function buildPanel(stage){
+  const p=panel(S.height);p.userData.commentPrefix='Build panel';p.position.x=-24*inch;model.add(p);
+  if(stage===0){
+   const parts=p.children.filter(o=>!o.userData.fastener&&o.userData.step<9);
+   for(const o of [...p.children]){o.visible=parts.includes(o);if(!o.visible)continue;
+    o.geometry.computeBoundingBox();const size=o.geometry.boundingBox.getSize(new T.Vector3()),dims=[size.x,size.y,size.z].sort((a,b)=>a-b),idx=parts.indexOf(o);
+    o.geometry.dispose();o.geometry=grain(new T.BoxGeometry(dims[1],dims[0],dims[2]),[dims[1]/inch,dims[0]/inch,dims[2]/inch],idx);
+    o.geometry.translate((idx-(parts.length-1)/2)*6*inch,dims[0]/2,dims[2]/2);outlinePiece(o);
+   }p.position.x=0;
+  }else if(stage>=13&&stage<=16){
+   model.remove(p);const d=design(S.height);
+   for(const side of ['Left','Right']){
+    const jack=new T.Group(),sign=side==='Left'?1:-1;jack.name=side+' jack laid on bench';jack.userData.commentPrefix=side+' jack';model.add(jack);
+    const matrix=new T.Matrix4().makeBasis(new T.Vector3(0,sign,0),new T.Vector3(0,0,1),new T.Vector3(sign,0,0));jack.quaternion.setFromRotationMatrix(matrix);
+    jack.position.set(sign*(-.15+(d.jackStart+.106)*inch),side==='Left'?-.75*inch:47.25*inch,0);
+    for(const o of [...p.children]){
+     const onSide=o.name.startsWith(side)||o.userData.fastener&&(side==='Left'?o.geometry.attributes.position.getX(0)<24*inch:o.geometry.attributes.position.getX(0)>24*inch);
+     if(o.userData.step>=13&&o.userData.step<=16&&onSide){jack.add(o);o.visible=o.userData.step<=stage;if(o.visible&&o.userData.step===stage)highlight(o,jack);}
+    }
+   }dispose(p);
+  }else{
+   for(const o of [...p.children]){o.visible=o.userData.step<=stage;if(o.visible&&o.userData.step===stage)highlight(o,p);}
+   if(stage<=9){p.rotation.x=Math.PI/2;}
+   else if(stage<=12){p.rotation.x=-Math.PI/2;p.position.y=(design(S.height).stileDepth+.106)*inch;p.position.z=S.height*inch;}
+  }
+  const d=design(S.height);
+  bounds=visibleBounds(model);
+  if(stage>=1&&stage<=12){bounds.min.set(-24*inch,0,0);bounds.max.set(24*inch,(d.stileDepth+.106)*inch,S.height*inch);}
+  if(stage>=13&&stage<=16){bounds.min.set(-d.foot*inch-.15,0,0);bounds.max.set(d.foot*inch+.15,2.5*inch,d.jackH*inch);}
+  if(stage>=18&&stage<=20){bounds.max.y=24*inch;}
+ }
+ function buildSet(stage){
+  const g=finishedSet(S.height,stage===21?0:S.angle);model.add(g);
+  if(stage<27)g.traverse(o=>{if(o.name==='Charcoal shoe trim')o.visible=false;});
+  if(stage<28)g.traverse(o=>{if(o.isMesh&&o.material===mats.charcoal)o.material=mats.ply;});
+  if(stage>=23){const f=floorMesh(S.angle,stage<25?'charcoal':S.floor,S.floor==='wood'&&stage===25?2:99);
+   if(stage<27)f.traverse(o=>{if(o.isMesh){const old=o.material;o.material=stage===26&&S.floor==='charcoal'?new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}):stage===24&&S.floor==='wood'?new T.MeshStandardMaterial({color:0x798481,roughness:1,side:T.DoubleSide}):stage<25||S.floor==='charcoal'?mats.ply:o.material;if(old!==o.material)old.dispose();}});
+   model.add(f);
+  }
+  if(stage===24&&S.floor==='charcoal'){const lines=[];for(let x=-96;x<=96;x+=48)lines.push(x*inch,.008,0,x*inch,.008,96*inch);for(let z=0;z<=96;z+=48)lines.push(-96*inch,.008,z*inch,96*inch,.008,z*inch);const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(lines,3));model.add(new T.LineSegments(geo,new T.LineBasicMaterial({color:0x5d4427})));}
+  if(stage===25&&S.floor==='charcoal')for(const x of [-48,0,48]){const line=new T.Mesh(new T.BoxGeometry(.018,.004,96*inch),mats.highlight);line.position.set(x*inch,.006,48*inch);model.add(line);}
+  if(stage===21)for(const seam of [-48,0,48])for(const h of [12,36,60,84,...(S.height===120?[108]:[])]){const marker=new T.Mesh(new T.SphereGeometry(.026,8,5),mats.highlight);marker.position.set(seam*inch,h*inch,-.85*inch);markers.add(marker);}
+  bounds=visibleBounds(model);
+  // Floor work is viewed from above; frame the footprint rather than empty wall height.
+  if(stage>=23&&stage<=27){bounds.min.y=0;bounds.max.y=.15;bounds.min.z=0;bounds.max.z=96*inch;}
+ }
+ function instructions(st){
+  $('#step-number').textContent=`Step ${S.step+1} of ${all.length}`;$('#progress').max=all.length;$('#progress').value=S.step+1;
+  $('#step-phase').textContent=`${st.phaseIndex+1} / ${phases.length} · ${st.phase}`;$('#step-title').textContent=st.title;
+  const sentences=st.description.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[st.description];
+  $('#step-description').textContent=sentences.shift().trim();$('#step-actions').replaceChildren(...sentences.map(text=>{const li=document.createElement('li');li.textContent=text.trim();return li;}));
+  $('#step-check-text').textContent=st.check||(S.floor==='wood'?{24:'Underlayment edges meet without overlap. Follow the required moisture-barrier details.',25:'Starter rows are straight, end pieces are at least 16″, and the ⅜″ expansion gap is clear.',26:'End joints are staggered at least 16″. All perimeter pieces retain their expansion gap.',27:'Trim attaches only to the walls and lets the floating floor move.'}:{24:'All sheets and their edges are supported. No joints flex or rock.',25:'The seam system is compatible with the sheets and coating and has passed a mockup.',26:'Primer covers the clean, smooth floor. Let it dry as specified.',27:'Coating has cured for the required foot-traffic time; BEHR lists 72 hours in suitable conditions.'})[st.stage];
+  $('#guide-cut-link').hidden=st.stage!==0;$('#step-spec').textContent=st.spec;$('#step-tools').textContent='Bring: '+st.tools;
+  $('#guide-orientation').textContent=st.orientation;$('#guide-config-label').textContent=`${S.height/12}′ · ${S.floor==='wood'?'oak':'painted'} · ${S.angle}°`;
+  $('#guide-floor').value=S.floor;$('#guide-angle').value=S.angle;$('#guide-angle-value').textContent=S.angle+'°';
+  $('#back').disabled=S.step===0;$('#next').textContent=S.step===all.length-1?'Finish & explore →':'Next step →';
+  $('#guide-next-label').textContent=all[S.step+1]?'Up next: '+all[S.step+1].title:'Last step · check the finished set';
+  $('#guide-step-select').replaceChildren(...phases.map(phase=>{const group=document.createElement('optgroup');group.label=phase;all.forEach((step,i)=>{if(step.phase===phase){const option=new Option(`${i+1}. ${step.title}`,i);group.append(option);}});return group;}));$('#guide-step-select').value=S.step;
+  $('#part-label').textContent=st.title;$('#scene-sub').textContent=st.orientation;$('#panel-count').textContent=st.stage<21?'1 panel + 2 jacks':'8 panels';$('#dimensions').textContent=st.stage<21?`${S.height}″ × 48″ panel`:`${S.height/12}′ walls · ${S.angle}° wings`;
+ }
+ function display(reframe=true){
+  clear();all=steps(S.height,S.floor);S.step=Math.max(0,Math.min(S.step,all.length-1));
+  if(S.mode!=='build'){api.getSet().visible=api.getFloor().visible=S.mode==='finished';api.invalidate();return;}
+  api.getSet().visible=api.getFloor().visible=false;
+  const st=all[S.step];model=new T.Group();model.name='Build step model';api.scene.add(model);markers=new T.Group();api.scene.add(markers);
+  if(st.stage<21)buildPanel(st.stage);else buildSet(st.stage);
+  // Fit against final part positions, so placement animation cannot change the camera framing.
+  for(const {o}of animation)o.position.set(0,0,0);model.updateMatrixWorld(true);
+  detailBounds=visibleBounds(model,o=>o.userData.step===st.stage&&!o.userData.guideDecoration);
+  if(st.stage===21)detailBounds=new T.Box3(new T.Vector3(-.15,0,-.3),new T.Vector3(.15,S.height*inch,0));
+  if([9,12,15,16,17,18,19].includes(st.stage)){
+   let fixing;model.traverseVisible(o=>{if(!fixing&&o.userData.fastener&&o.userData.step===st.stage)fixing=o;});
+   if(fixing){fixing.geometry.computeBoundingBox();const point=fixing.geometry.boundingBox.getCenter(new T.Vector3()).applyMatrix4(fixing.matrixWorld);detailBounds=new T.Box3().setFromCenterAndSize(point,new T.Vector3(.35,.35,.35));}
+  }
+  if(st.stage>=22)detailBounds=bounds.clone();
+  if(st.stage>=23&&st.stage<=27){const z=st.stage===25?0:24;detailBounds=new T.Box3(new T.Vector3(-48*inch,0,z*inch),new T.Vector3(48*inch,.15,(z+48)*inch));}
+  for(const {o,offset}of animation)o.position.copy(offset);
+  focused=false;viewOverride=null;$('#guide-focus').setAttribute('aria-pressed','false');$('#guide-focus').textContent='See detail';$('#guide-focus').disabled=detailBounds.isEmpty()||st.stage===0||st.stage===22||st.stage===28;
+  start=performance.now();instructions(st);try{localStorage.setItem(progressKey,JSON.stringify({height:S.height,floor:S.floor,angle:S.angle,stage:st.stage}));}catch{}if(reframe){fit();requestAnimationFrame(()=>fit());}api.invalidate();
+ }
+ function mode(m){
+  if(m==='build'&&!hasOpened){hasOpened=true;if(saved&&!configurationChanged){api.configure({height:saved.height,floor:saved.floor,angle:saved.angle});all=steps(S.height,S.floor);S.step=all.findIndex(st=>st.stage===saved.stage);}}
+  const entering=S.mode!=='build'&&m==='build';S.mode=m;document.body.classList.toggle('building',m==='build');
+  $('#explore-controls').hidden=m!=='finished';$('#guide-controls').hidden=m!=='build';$('#guide-scene-tools').hidden=m!=='build';$('#step-overlay').hidden=true;
+  if(m==='build')$('#guide-setup').prepend(settings);else settingsHome.after(settings);
+  $('#scene-tag').textContent=m==='finished'?'FINISHED SET':'CONSTRUCTION GUIDE';$('#view-hint').textContent=m==='finished'?'Drag to orbit · pinch to zoom':'Green = this step · drag or pinch to inspect';
+  document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===m);b.setAttribute('aria-pressed',b.dataset.mode===m)});
+  if(m==='finished'){clear();api.getSet().visible=api.getFloor().visible=true;$('#panel-count').textContent='8 panels';api.orbit.minDistance=1.4;api.orbit.maxDistance=22;api.view('front');requestAnimationFrame(()=>api.view('front'));}
+  else{display();if(entering){controls.scrollTop=0;window.scrollTo(0,0);}}
+ }
+ function go(n){S.step=Math.max(0,Math.min(n,all.length-1));display();controls.scrollTop=0;$('#guide-index').hidden=true;$('#guide-jump').setAttribute('aria-expanded','false');$('#step-content').focus({preventScroll:true});}
+ document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>mode(b.dataset.mode));
+ $('#next').onclick=()=>S.step===all.length-1?api.setMode('finished'):go(S.step+1);$('#back').onclick=()=>go(S.step-1);$('#restart').onclick=()=>go(0);
+ $('#guide-jump').onclick=()=>{const open=$('#guide-index').hidden;$('#guide-index').hidden=!open;$('#guide-jump').setAttribute('aria-expanded',open);if(open)$('#guide-step-select').focus({preventScroll:true});};
+ $('#guide-step-select').onchange=e=>go(+e.target.value);
+ $('#guide-cut-link').onclick=()=>{const cut=$('#cut-details');cut.open=true;cut.scrollIntoView({block:'start',behavior:reducedMotion.matches?'instant':'smooth'});};
+ $('#guide-floor').onchange=e=>api.configure({floor:e.target.value});$('#guide-angle').oninput=e=>api.configure({angle:+e.target.value});
+ $('#guide-reset-view').onclick=()=>{viewOverride=null;focused=false;$('#guide-focus').setAttribute('aria-pressed','false');$('#guide-focus').textContent='See detail';fit();};
+ $('#guide-focus').onclick=()=>{focused=!focused;$('#guide-focus').setAttribute('aria-pressed',focused);$('#guide-focus').textContent=focused?'Whole assembly':'See detail';fit(viewOverride);};
+ new ResizeObserver(()=>{if(S.mode==='build')fit(viewOverride);}).observe($('#canvas-wrap'));
+ window.addEventListener('set-configured',()=>{if(!hasOpened)configurationChanged=true;const current=all[S.step]?.stage;all=steps(S.height,S.floor);S.step=Math.max(0,all.findIndex(st=>st.stage===current));cutUI();materialUI();if(S.mode==='build')display();});
+ api.onTick=t=>{if(!animation.length)return;const e=reducedMotion.matches?1:Math.min(1,(t-start)/650),fade=(1-e)**3;for(const {o,offset}of animation)o.position.copy(offset).multiplyScalar(fade);api.invalidate();if(e===1)animation=[];};
+ api.setMode=mode;api.setStep=n=>{if(!Number.isInteger(n)||n<0||n>=all.length)throw Error('Step outside guide');hasOpened=true;S.step=n;api.setMode('build');controls.scrollTop=0;window.scrollTo(0,0);return {...S,stepCount:all.length};};
+ api.stepCount=()=>steps(S.height,S.floor).length;api.guideView=v=>{viewOverride=v==='reset'?null:v;fit(viewOverride);};
+ api.guideStats=()=>({step:S.step,...all[S.step],visible:model?.children.length||0,bounds:bounds?.clone(),detailBounds:detailBounds?.clone()});cutUI();materialUI();return {mode,display};
+}

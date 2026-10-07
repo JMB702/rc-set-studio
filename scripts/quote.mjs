@@ -12,7 +12,7 @@ const angle = angleArg > -1 ? Number(process.argv[angleArg + 1]) : 45;
 const platformArg = process.argv.indexOf('--platform-angle');
 const platformAngle = platformArg > -1 ? Math.max(angle, Number(process.argv[platformArg + 1])) : angle;
 
-const lines = [`Pricing guide subtotals at ${angle}° wings, prices checked ${data.checkedDate} (platform items ${data.platform.products[0].checkedDate}), platform gaps 12″, angled platform at ${platformAngle}° (before tax and delivery)`, ''];
+const lines = [`Pricing guide subtotals at ${angle}° wings, base prices ${data.checkedDate} (platform items ${data.platform.products[0].checkedDate}; jack screw pack ${data.products.find(p=>p.id==='lapScrews').checkedDate}), platform gaps 12″, angled platform at ${platformAngle}° (before tax and delivery)`, ''];
 // The design a first visit opens with (public/design.js defaultDesign): 10×4 at 45°, square platform, painted floor.
 {
   const rows = priceRows(data, {scope: 'set', height: 120, angle: 45, floor: 'charcoal', platformShape: 'square'});

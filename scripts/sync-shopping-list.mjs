@@ -2,6 +2,7 @@
 // so the printable list can never drift from the quantities and prices the site shows.
 //   node scripts/sync-shopping-list.mjs          write the file
 //   node scripts/sync-shopping-list.mjs --check  exit 1 if the file is stale (used by `npm run check`)
+import {pathToFileURL} from 'node:url';
 import {readFile, writeFile} from 'node:fs/promises';
 import {calculate} from '../public/shopping-calc.js';
 
@@ -17,7 +18,7 @@ export function render(data) {
   const out = [
     'RC SET / HOME DEPOT SHOPPING LIST',
     `Store #${data.store.id} - ${data.store.address.replace(/, (\w\w) (\d{5})$/, ' $1 $2')}`,
-    `Prices checked ${data.checkedDate} with selected store.`,
+    `Base product prices checked ${data.checkedDate}; see per-product notes for later checks.`,
     '',
   ];
   for (const [key, title] of SECTIONS) {
@@ -30,7 +31,7 @@ export function render(data) {
   return out.join('\n');
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const next = render(JSON.parse(await readFile(JSON_PATH, 'utf8')));
   if (process.argv.includes('--check')) {
     const current = await readFile(TXT_PATH, 'utf8');

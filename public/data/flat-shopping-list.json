@@ -142,42 +142,6 @@
       "observedStock": 48
     },
     {
-      "id": "mount",
-      "name": "\u00bc-20\u00d72 in zinc flat-head machine screws \u00b7 25 pack",
-      "unitPriceCents": 397,
-      "packSize": 25,
-      "productUrl": "https://www.homedepot.com/p/204331396",
-      "availability": "7 packs in stock \u00b7 aisle 17 / bay 019",
-      "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 7
-    },
-    {
-      "id": "nuts",
-      "name": "\u00bc-20 stainless nylon locknuts \u00b7 15 pack",
-      "unitPriceCents": 497,
-      "packSize": 15,
-      "productUrl": "https://www.homedepot.com/p/328737880",
-      "availability": "22 packs in stock",
-      "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 22
-    },
-    {
-      "id": "washers",
-      "name": "\u00bc in zinc flat washers \u00b7 \u215d in OD \u00b7 12 pack",
-      "unitPriceCents": 147,
-      "packSize": 12,
-      "productUrl": "https://www.homedepot.com/p/204276451",
-      "availability": "Ship to store or delivery",
-      "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": null
-    },
-    {
       "id": "shortScrews",
       "name": "#8\u00d71 in flat-head wood screws \u00b7 100 pack",
       "unitPriceCents": 697,
@@ -195,10 +159,10 @@
       "unitPriceCents": 797,
       "packSize": 100,
       "productUrl": "https://www.homedepot.com/p/204275496",
-      "availability": "6 packs in stock",
+      "availability": "6 packs in stock at E Bradenton #6319 \u00b7 aisle 17 / bay 009 \u00b7 checked Oct 7, 2026",
       "group": "supports",
       "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
+      "checkedDate": "2026-10-07",
       "observedStock": 6
     },
     {
@@ -269,7 +233,9 @@
     "10-foot facing uses a 48\u00d796 lower sheet and 48\u00d724 upper strip. Allowing saw kerf, only three full 24-inch strips fit a second 96-inch sheet.",
     "8-foot ballast is the existing provisional 75 lb assumption. Fill three bags to 25 lb each and retain them around both shelf crossbars; supplied sandbag shape differs from the schematic.",
     "10-foot required ballast mass, bag count and retention layout are unresolved; no complete freestanding total is presented.",
-    "Choose straight, sound dry lumber and measure supplied stock. Pilot drill and verify proposed screw sizes in the prototype. Use matched-thickness pads at all bearing points."
+    "Choose straight, sound dry lumber and measure supplied stock. Pilot drill and verify proposed screw sizes in the prototype. Use matched-thickness pads at all bearing points.",
+    "Screw-only jack revision, Oct 7, 2026: six #8 \u00d7 1\u00bc in wood screws per jack, driven from the stile into the upright, heads flush. Two actual \u00be in boards provide \u00bd in nominal penetration into the upright. Prototype connection: verify on scrap, avoid splits/over-countersinking, and replace wood with stripped holes. Keep the flat supported during assembly and removal. Staples fasten the skin; do not substitute them or nails at the jack attachment.",
+    "Only the #8 \u00d7 1\u00bc in screw pack was rechecked Oct 7, 2026: Home Depot #6319, model 801832, SKU 251429, internet 204275496, $7.97 per 100-pack, 6 packs shown in stock. Other product check dates remain as listed."
   ],
   "variants": {
     "8x4": {
@@ -285,11 +251,8 @@
         "board14": 5,
         "crossbar": 1,
         "shelf": 1,
-        "mount": 8,
-        "nuts": 8,
-        "washers": 8,
         "shortScrews": 24,
-        "lapScrews": 8,
+        "lapScrews": 20,
         "barScrews": 4,
         "pads": 1
       },
@@ -303,7 +266,8 @@
         "5 \u00d7 46.5 in rails/toggles \u00b7 1\u00d72 on edge",
         "1 \u00d7 48\u00d796 in facing",
         "Jacks: 2 \u00d7 68.5 in uprights; 2 \u00d7 36 in feet; 2 \u00d7 84 in diagonal blanks, fitted to layout",
-        "Shelf: 2 \u00d7 46.5 in 2\u00d74 bars; 46.5\u00d712 in plywood; two 8\u00d78 in triangular gussets"
+        "Shelf: 2 \u00d7 46.5 in 2\u00d74 bars; 46.5\u00d712 in plywood; two 8\u00d78 in triangular gussets",
+        "Jack attachment: 12 \u00d7 #8 \u00d7 1\u00bc in flat-head wood screws, six per jack; plus 8 of the same screws for diagonal laps (20 per panel before joining seams)."
       ]
     },
     "10x4": {
@@ -320,11 +284,8 @@
         "board14long": 3,
         "crossbar": 1,
         "shelf": 1,
-        "mount": 8,
-        "nuts": 8,
-        "washers": 8,
         "shortScrews": 24,
-        "lapScrews": 8,
+        "lapScrews": 20,
         "barScrews": 4,
         "pads": 1
       },
@@ -335,7 +296,8 @@
         "1 \u00d7 46.5 in seam backer \u00b7 1\u00d74 laid flat, 3.5 in vertical, centered at 96 in",
         "Facing: 48\u00d796 in lower + 48\u00d724 in upper per panel",
         "Jacks: 2 \u00d7 92.5 in uprights from 8 ft boards; 2 \u00d7 48 in feet from one 10 ft board; 2 \u00d7 112 in diagonal blanks from two 10 ft boards, fit to layout",
-        "Shelf: 2 \u00d7 46.5 in 2\u00d74 bars; 46.5\u00d712 in plywood; two 8\u00d78 in triangular gussets"
+        "Shelf: 2 \u00d7 46.5 in 2\u00d74 bars; 46.5\u00d712 in plywood; two 8\u00d78 in triangular gussets",
+        "Jack attachment: 12 \u00d7 #8 \u00d7 1\u00bc in flat-head wood screws, six per jack; plus 8 of the same screws for diagonal laps (20 per panel before joining seams)."
       ]
     }
   },
@@ -432,5 +394,6 @@
         "coverageSqFtPerGallon": 400
       }
     ]
-  }
+  },
+  "designRevision": "2026-10-07-screw-only-jacks"
 }

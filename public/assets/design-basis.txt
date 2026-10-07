@@ -1,4 +1,4 @@
-RC SET STUDIO — DESIGN BASIS / OCTOBER 5, 2026
+RC SET STUDIO — DESIGN BASIS / OCTOBER 7, 2026 / SCREW-ONLY JACK REVISION
 
 LAYOUT
 Four 4-foot panels form the 16-foot back wall. Two 4-foot panels per wing
@@ -13,7 +13,7 @@ moving a finished floor/wall assembly while occupied or ballasted.
 All lumber dimensions below are ACTUAL, in inches. Buy solid straight
 lumber whose measured dimensions match; product names alone are not enough.
 
-8 x 4 PANEL (REVISED FLUSH HARDWARE)
+8 x 4 PANEL (FLUSH WOOD SCREWS)
 2 stiles .75 x 3.5 x 96; 2 rails .75 x 1.5 x 46.5;
 3 toggles .75 x 1.5 x 46.5 at centers 24/48/72.
 Skin .106 x 48 x 96. Outside diagonals sqrt(48^2+96^2)=107.331.
@@ -40,17 +40,29 @@ Both use0.47 plywood triangular gussets with8-inch legs at lower front,
 inboard face. Glue laps and gussets;2 #8x1.25 screws per diagonal end;
 6 #8x1 screws per gusset. Square full-size layout before fitting diagonal.
 
-FLAT/JACK SIDE LAP
-8-foot jack front1.75 behind skin rear face, bolt axis2.625 behind it;
-heights12/30/48/60. 10-foot jack front3.75 behind skin rear face, bolt
-axis4.625 behind it; heights12/36/60/84. This clears deeper cross-members.
-Overlap depth1.75. Four1/4-20x2 flat-head screws per jack,9/32 holes;
-inside washers/locknuts; exterior countersinks matched to actual heads.
+FLAT/JACK SIDE LAP — SCREW-ONLY PROTOTYPE
+8-foot jack front 1.75 behind skin rear face; screw axis 2.625 behind it;
+heights 12/22/32/42/52/62. 10-foot jack front 3.75 behind skin rear face;
+screw axis 4.625 behind it; heights 12/26/40/54/68/82.
+Overlap depth 1.75. Six #8 x 1.25 flat-head WOOD screws per jack (12 per
+panel), driven from the outside stile into the upright. Both members are
+actual .75 thick, leaving .5 nominal penetration in the receiving upright
+and .25 to its far face. Do not over-countersink. Clamp first; clearance
+hole in the stile only, manufacturer-appropriate pilot in the upright.
+Test fit on scrap. Use sound wood and replace wood with stripped holes.
+Do not substitute nails or staples for these jack screws. No nut/washer
+assemblies, through-bolts or wrenches are needed. The attachment remains a
+prototype; screw count is not a verified capacity or equivalent rating.
+Retain support while fitting/removing the jacks, then verify the assembled
+panel and ballast in the intended layout before releasing it.
+Total #8 x 1.25 per panel: 12 jack + 8 diagonal = 20. Add 4 per straight
+8-foot seam or 5 per 10-foot seam. Five straight seams in the eight-panel
+set: 180 / 185 screws, respectively, bought as two 100-packs.
 
 SHELF
 2 crossbars1.5x3.5x46.5 laid flat;1 shelf0.47x12x46.5. Center on foot depth:
 8ft local depth12 to24;10ft18 to30. Shelf top5.47 above bearing floor.
-Four #8x2.5 screws bar-to-feet;12 #8x1.25 screws shelf-to-bars.
+Four #8x2.5 screws bar-to-feet;12 #8x1 screws shelf-to-bars.
 Three25lb bags shown per panel are illustrative preliminary ballast only.
 A prior modest10lbf disturbance calculation is not structural approval.
 Validate connections, sideways stability, tipping, sliding and ballast
@@ -62,8 +74,8 @@ Flush skins and mating stiles. Four #8x1.25 flat-head wood screws per seam
 at12/36/60/84;10ft panels add108. Screw axis0.75 behind skin rear face;
 predrill clearance first stile/pilot second; clamp faces aligned first.
 This set has5 straight seams:3 across back and1 within each wing.
-Corners are variable-angle layout joints; final corner connector choice
-and attachment require scenic-shop review. This is not a verified hinge.
+Corners are variable-angle layout joints; final screw-fixed corner detail
+and quantities require scenic-shop review. This is not a verified hinge.
 
 FINISHES
 Render uses one unbroken charcoal surface per back/wing, including over

@@ -1,6 +1,6 @@
 RC SET / HOME DEPOT SHOPPING LIST
 Store #6319 - 5475 University Pkwy, Bradenton FL 34201
-Prices checked 2026-10-05 with selected store.
+Base product prices checked 2026-10-05; see per-product notes for later checks.
 
 8x4 / ONE PANEL + TWO JACKS + SHELF + PROVISIONAL BALLAST
 7 x 1×4×8 ft select kiln-dried whitewood @ $15.32 = $107.24
@@ -27,20 +27,11 @@ Prices checked 2026-10-05 with selected store.
 1 x ½ in × 2×4 ft BCX plywood · actual 15/32 in @ $23.46 = $23.46
   48 in stock · aisle 18 / bay 008
   https://www.homedepot.com/p/202093833
-1 x ¼-20×2 in zinc flat-head machine screws · 25 pack @ $3.97 = $3.97
-  7 packs in stock · aisle 17 / bay 019
-  https://www.homedepot.com/p/204331396
-1 x ¼-20 stainless nylon locknuts · 15 pack @ $4.97 = $4.97
-  22 packs in stock
-  https://www.homedepot.com/p/328737880
-1 x ¼ in zinc flat washers · ⅝ in OD · 12 pack @ $1.47 = $1.47
-  Ship to store or delivery
-  https://www.homedepot.com/p/204276451
 1 x #8×1 in flat-head wood screws · 100 pack @ $6.97 = $6.97
   22 packs in stock
   https://www.homedepot.com/p/204275495
 1 x #8×1¼ in flat-head wood screws · 100 pack @ $7.97 = $7.97
-  6 packs in stock
+  6 packs in stock at E Bradenton #6319 · aisle 17 / bay 009 · checked Oct 7, 2026
   https://www.homedepot.com/p/204275496
 1 x SPAX #8×2½ in flat-head wood screws · 133 box @ $12.63 = $12.63
   8 boxes in stock
@@ -57,7 +48,7 @@ Prices checked 2026-10-05 with selected store.
 2 x Husky 1 in × 8 ft lashing straps · 2 pack @ $7.99 = $15.98
   Ship to store or delivery
   https://www.homedepot.com/p/206802158
-SUBTOTAL $288.88
+SUBTOTAL $278.47
 
 10x4 / ONE PANEL + TWO JACKS + SHELF / BALLAST PENDING
 3 x 1×4×8 ft select kiln-dried whitewood @ $15.32 = $45.96
@@ -90,20 +81,11 @@ SUBTOTAL $288.88
 1 x ½ in × 2×4 ft BCX plywood · actual 15/32 in @ $23.46 = $23.46
   48 in stock · aisle 18 / bay 008
   https://www.homedepot.com/p/202093833
-1 x ¼-20×2 in zinc flat-head machine screws · 25 pack @ $3.97 = $3.97
-  7 packs in stock · aisle 17 / bay 019
-  https://www.homedepot.com/p/204331396
-1 x ¼-20 stainless nylon locknuts · 15 pack @ $4.97 = $4.97
-  22 packs in stock
-  https://www.homedepot.com/p/328737880
-1 x ¼ in zinc flat washers · ⅝ in OD · 12 pack @ $1.47 = $1.47
-  Ship to store or delivery
-  https://www.homedepot.com/p/204276451
 1 x #8×1 in flat-head wood screws · 100 pack @ $6.97 = $6.97
   22 packs in stock
   https://www.homedepot.com/p/204275495
 1 x #8×1¼ in flat-head wood screws · 100 pack @ $7.97 = $7.97
-  6 packs in stock
+  6 packs in stock at E Bradenton #6319 · aisle 17 / bay 009 · checked Oct 7, 2026
   https://www.homedepot.com/p/204275496
 1 x SPAX #8×2½ in flat-head wood screws · 133 box @ $12.63 = $12.63
   8 boxes in stock
@@ -111,7 +93,7 @@ SUBTOTAL $288.88
 1 x ⅛ in × 6×36 in neoprene sheet · cut bearing pads @ $6.01 = $6.01
   Ship to store or delivery
   https://www.homedepot.com/p/314459358
-SUBTOTAL $319.23
+SUBTOTAL $308.82
 
 Prices observed with E Bradenton selected; availability can change. Tax, delivery, tools, paint, primer, floor materials and panel-to-panel/corner connections excluded.
 
@@ -126,3 +108,7 @@ The 10×4 panel quantities match the current website model. This is a constructi
 10-foot required ballast mass, bag count and retention layout are unresolved; no complete freestanding total is presented.
 
 Choose straight, sound dry lumber and measure supplied stock. Pilot drill and verify proposed screw sizes in the prototype. Use matched-thickness pads at all bearing points.
+
+Screw-only jack revision, Oct 7, 2026: six #8 × 1¼ in wood screws per jack, driven from the stile into the upright, heads flush. Two actual ¾ in boards provide ½ in nominal penetration into the upright. Prototype connection: verify on scrap, avoid splits/over-countersinking, and replace wood with stripped holes. Keep the flat supported during assembly and removal. Staples fasten the skin; do not substitute them or nails at the jack attachment.
+
+Only the #8 × 1¼ in screw pack was rechecked Oct 7, 2026: Home Depot #6319, model 801832, SKU 251429, internet 204275496, $7.97 per 100-pack, 6 packs shown in stock. Other product check dates remain as listed.

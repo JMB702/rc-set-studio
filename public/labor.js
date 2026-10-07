@@ -10,8 +10,8 @@ export const LABOR={crew:2,maxCrew:12,hoursPerDay:8,panels:8,seams:5,corners:2};
 // Person-hours to build one panel, by stage of the Build guide. The 10′ panel adds the wide backer, the
 // 2′ skin cap, longer jacks and a two-person lift.
 const PANEL={
- 96:{cut:.75,frame:.75,skin:.5,jacks:1.25,bolt:.6,shelf:.4},
- 120:{cut:.9,frame:1,skin:.75,jacks:1.5,bolt:.75,shelf:.45},
+ 96:{cut:.75,frame:.75,skin:.5,jacks:1.25,attach:.6,shelf:.4},
+ 120:{cut:.9,frame:1,skin:.75,jacks:1.5,attach:.75,shelf:.45},
 };
 const r1=v=>Math.round(v*10)/10;
 
@@ -25,7 +25,8 @@ export function laborTasks(d){
  add('frames','1–9','Assemble, glue and screw the frames',p.frame*n,`${p.frame} h per panel${tall?' · includes the wide skin-joint backer':''}`);
  add('skins','10–12',`Skin and staple${tall?' · plus the 2′ cap':''}`,p.skin*n,`${p.skin} h per panel`);
  add('jacks','13–16','Build the jacks · 16 total',p.jacks*n,`${p.jacks} h per pair: layout, scribed diagonals, gussets`);
- add('boltJacks','17','Bolt the jacks to the flats',p.bolt*n,`${p.bolt} h per panel: match-drill eight bolts${tall?' · taller lift':''}`);
+ // Keep this legacy task ID so saved labor-hour overrides still refer to stage 17.
+ add('boltJacks','17','Screw the jacks to the flats',p.attach*n,`${p.attach} h per panel: clamp, pilot-drill and drive 12 wood screws${tall?' · taller lift':''}. Allowance retained pending a timed prototype.`);
  add('shelves','18–20','Crossbars, shelf and ballast',p.shelf*n,`${p.shelf} h per panel`);
  add('assemble','21–22','Join the seams and set the wing angles',LABOR.seams*(tall?.5:.4)+LABOR.corners*(tall?1.25:1),`${LABOR.seams} straight seams and ${LABOR.corners} corners, braced while setting the angle`);
  add('wallFinish','28',`Dress, prime and paint the walls · ${wallArea} sq ft`,(tall?2:1.5)+wallArea/150+wallArea*2/200,'Seams and corners, one primer coat, two finish coats');
@@ -42,7 +43,7 @@ export function laborTasks(d){
  return tasks;
 }
 // How many people's worth of work a crew gets done. One person is slowed by the two-person lifts (raising
-// flats, bolting jacks, setting wings); past two, each extra person adds less because tasks share tools and space.
+// flats, attaching jacks, setting wings); past two, each extra person adds less because tasks share tools and space.
 export function crewFactor(crew){const n=Math.max(1,Math.min(LABOR.maxCrew,Math.round(crew)||1));return n===1?.85:n<=2?n:2+(n-2)*.75;}
 // Hours on site for the whole crew, rounded up to the half hour.
 export function laborEstimate(d,crew=LABOR.crew){

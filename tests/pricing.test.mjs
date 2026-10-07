@@ -17,7 +17,7 @@ test('Ten-foot sheets retain saw-kerf allowance in a batch',()=>{
 });
 test('Straight seam screws share the support screw pack',()=>{
  const rows=priceRows(data,{scope:'set',height:96,angle:45,floor:'wood',supports:true,ballast:true});
- const screws=rows.filter(r=>r.id==='lapScrews');assert.equal(screws.length,1);assert.equal(screws[0].needed,88);assert.equal(screws[0].purchaseQuantity,1);
+ const screws=rows.filter(r=>r.id==='lapScrews');assert.equal(screws.length,1);assert.equal(screws[0].needed,180);assert.equal(screws[0].purchaseQuantity,2);
 });
 test('Floor-only excludes panel stock and preserves unresolved costs',()=>{
  const rows=priceRows(data,{scope:'floor',height:120,angle:90,floor:'charcoal'});

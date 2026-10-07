@@ -50,9 +50,9 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  const paint=data.wallPaint;rows.push(extra('wallPaint',paint.name,Math.ceil(area*2/paint.coverageSqFtPerGallon),paint.unitPriceCents,paint.productUrl,paint.availability,'finish'));
  rows.push(extra('wallSeams','Scenic wall seam fabric and filler',null,null,'https://www.homedepot.com/s/paintable%20seam%20tape','Finish system / quantity pending; do not bridge moving corners rigidly','finish'));}
  if(scope==='set'){
- const p=data.products.find(p=>p.id==='lapScrews'),existing=rows.find(r=>r.id==='lapScrews'),needed=6*(height===120?5:4);
+ const p=data.products.find(p=>p.id==='lapScrews'),existing=rows.find(r=>r.id==='lapScrews'),needed=5*(height===120?5:4);
  if(existing){existing.needed+=needed;existing.purchaseQuantity=Math.ceil(existing.needed/p.packSize);existing.subtotalCents=existing.purchaseQuantity*p.unitPriceCents;}else rows.push({...p,needed,purchaseQuantity:Math.ceil(needed/p.packSize),subtotalCents:Math.ceil(needed/p.packSize)*p.unitPriceCents});
- rows.push(extra('corners','Two wing-corner connection assemblies',2,null,'https://www.homedepot.com/s/gate%20hinge%20hardware','Corner connector detail remains unselected; no load rating inferred','connections'));
+ rows.push(extra('corners','Two screw-fixed wing-corner connection assemblies',2,null,'https://www.homedepot.com/s/wood%20corner%20brace','Screw-fixed corner detail and quantities need scenic-shop review; no threaded through-fasteners specified','connections'));
  }
  if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle));}
  if(height===120&&scope!=='floor'&&supports&&ballast)rows.push(extra('tallBallast','10′ panel ballast and retention supplies',null,null,'https://www.homedepot.com/p/301980932','Ballast mass and retention design pending','ballast'));

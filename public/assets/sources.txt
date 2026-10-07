@@ -49,3 +49,11 @@ https://polyhaven.com/a/oak_veneer_01
 https://polyhaven.com/license
 CC0 assets, resized and color adjusted. See texture-provenance.json.
 Three.js 0.186.1, MIT license in vendor/THREE-LICENSE.txt.
+
+SCREW-ONLY JACK REVISION — OCT 7, 2026
+Home Depot E Bradenton #6319, selected in browser: Everbilt #8 x 1-1/4
+flat-head zinc wood screws, 100-pack, model 801832 / SKU 251429.
+https://www.homedepot.com/p/204275496
+Observed $7.97 per pack; 6 in stock, aisle 17 bay 009. This supplies the
+jack attachments, diagonal laps and straight panel seams. The six-per-jack
+schedule is a project prototype detail, not a supplier-certified capacity.

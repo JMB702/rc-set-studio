@@ -76,7 +76,7 @@ export function mountLabor(host,api,{prefix='labor'}={}){
 <label for="${id('crew')}">People on the crew<span class="labor-stepper"><button type="button" data-step="-1" aria-label="One fewer person">−</button><input id="${id('crew')}" type="number" inputmode="numeric" min="1" max="${LABOR.maxCrew}" step="1"><button type="button" data-step="1" aria-label="One more person">+</button></span></label>
 <label for="${id('hours')}">Hours on site<span class="labor-input"><input id="${id('hours')}" type="number" inputmode="decimal" min="0.5" step="0.5"><span>hrs</span></span></label>
 </div><p class="labor-default"><span data-default></span> <button type="button" class="link-button" data-reset hidden>Reset to estimate</button></p>
-<fieldset class="labor-rates"><legend>Hourly rates <small>Optional</small></legend><ol data-rates></ol><button type="button" class="link-button" data-same hidden>Copy the first rate to the rest</button></fieldset>
+<fieldset class="labor-rates"><legend>Hourly rates <small>$0 = already covered</small></legend><ol data-rates></ol><button type="button" class="link-button" data-same hidden>Copy the first rate to the rest</button></fieldset>
 <p class="labor-cost"><span>Labor</span><strong data-cost aria-live="polite"></strong></p>
 <details class="labor-tasks"><summary>How the hours add up <span>+</span></summary><ol data-tasks></ol><p class="hint">Planning allowances for experienced carpenters with the tools in the Build guide. Drying and curing time is not labor and is not counted. Adjust the hours if your crew works faster or slower.</p></details>`;
  const q=s=>host.querySelector(s),crew=q('#'+id('crew')),hours=q('#'+id('hours')),list=q('[data-rates]');
@@ -98,7 +98,7 @@ export function mountLabor(host,api,{prefix='labor'}={}){
  function render(){
   const l=laborFor(S),active=document.activeElement;
   if(active!==crew)crew.value=l.crew;if(active!==hours)hours.value=l.hours;
-  rows(l.crew);[...list.children].forEach((li,i)=>{const input=li.querySelector('input'),r=l.rates[i];if(active!==input)input.value=r==null?'':String(r/100);li.querySelector('small').textContent=r==null?'':money(Math.round(l.hours*r));});
+  rows(l.crew);[...list.children].forEach((li,i)=>{const input=li.querySelector('input'),r=l.rates[i];if(active!==input)input.value=r==null?'':String(r/100);li.querySelector('small').textContent=r==null?'Not priced':r===0?'Already covered':money(Math.round(l.hours*r));});
   q('[data-default]').textContent=l.adjusted?`Adjusted from the ${hoursText(l.defaultHours)} estimate.`:`Estimate for ${l.crew===2?'two skilled handymen':l.crew===1?'one skilled handyman':`a crew of ${l.crew}`}: ${l.personHours} person-hours, about ${l.days} ${l.days===1?'day':'days'} at ${LABOR.hoursPerDay} hrs.`;
   q('[data-reset]').hidden=!l.adjusted;host.classList.toggle('adjusted',l.adjusted);
   q('[data-same]').hidden=!(l.unrated&&l.crewRateCents!=null);
@@ -133,4 +133,6 @@ export function installLabor(api){
  }
  window.addEventListener('pricing-reviewed',e=>{materials=e.detail;estimate();});window.addEventListener('labor-changed',estimate);window.addEventListener('set-configured',estimate);
  api.labor=()=>laborFor(api.state);api.setLabor=patch=>update(patch);
+ api.captureLabor=()=>structuredClone(settings);
+ api.restoreLabor=s=>{if(!s)return;const est=laborEstimate(api.state,s.crew);update({crew:s.crew,rates:[...s.rates,...Array(Math.max(0,LABOR.maxCrew-s.rates.length)).fill(null)].slice(0,LABOR.maxCrew),hours:s.hours!=null&&s.hours!==(s.defaultHours??est.hours)?s.hours:null,hoursFor:s.hoursFor??s.defaultHours??est.hours});};
 }

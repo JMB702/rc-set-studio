@@ -21,5 +21,8 @@ export const designApprovals = sqliteTable('design_approvals', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   design: text('design').notNull(),
+  estimate: text('estimate'),
+  updatedAt: integer('updated_at'),
+  revision: integer('revision').notNull().default(0),
   createdAt: integer('created_at').notNull(),
 }, table => [index('design_approvals_created_at_idx').on(table.createdAt)]);

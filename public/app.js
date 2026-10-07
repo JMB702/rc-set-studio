@@ -48,11 +48,11 @@ function previewAngle(a){if(!set)return;set.userData.wings[0].rotation.y=a*Math.
 
 installDesign(window.__studio);
 installClothing(window.__studio);
-installApprovals(window.__studio);
 configure({...defaultDesign});
 installGuide(window.__studio);
 installPricing(window.__studio);
 installLabor(window.__studio);
+installApprovals(window.__studio);
 {const baseSetMode=window.__studio.setMode;window.__studio.setMode=m=>{const was=cam.on;cam.on=false;camApply();cam.on=was;const r=baseSetMode(m);if(m==='finished')$('#dimensions').textContent=label();requestAnimationFrame(camApply);return r;};camSync();}
 THREE.DefaultLoadingManager.onLoad=()=>invalidate();
 // Page-scoped agent actions use exactly the same state and visible controls.

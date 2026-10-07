@@ -44,25 +44,40 @@ export default {async fetch(request,env) {
       return json({error:'Method not allowed.'},405,{'Allow':collection?'GET, POST':'GET'});
     }catch(e){console.error('Pricing configuration request failed',e);return json({error:'Saved configurations are temporarily unavailable. Please try again.'},503);}
   }
-  // Design approvals: anyone can approve the current design under their name. The newest approval is the site default.
+  // Approval edits preserve creation order. A revision check prevents overwriting another edit.
   if(url.pathname==='/api/approvals') {
     try {
       const db=database(env);
+      const row=r=>({id:r.id,name:r.name,design:JSON.parse(r.design),createdAt:r.created_at,updatedAt:r.updated_at??null,revision:r.revision??0,estimate:r.estimate?JSON.parse(r.estimate):null});
       if(request.method==='GET'){
         const rows=await db.prepare('SELECT * FROM design_approvals ORDER BY created_at DESC, id DESC LIMIT 50').all();
-        return json({approvals:rows.results.map(r=>({id:r.id,name:r.name,design:JSON.parse(r.design),createdAt:r.created_at}))});
+        return json({approvals:rows.results.map(row)});
       }
-      if(request.method==='POST'){
+      if(['POST','PATCH'].includes(request.method)){
         if(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)return json({error:'Please approve from this site.'},403);
         if(!request.headers.get('Content-Type')?.includes('application/json'))return json({error:'Expected JSON.'},415);
-        const raw=await request.text();if(raw.length>4000)return json({error:'Approval is too large.'},413);
-        let input,name,design;try{input=JSON.parse(raw);name=typeof input.name==='string'?input.name.trim():'';if(!name||name.length>80)throw Error('Enter your name (up to 80 characters).');if(typeof input.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid approval ID.');design=normalizeDesign(input.design);}catch(e){return json({error:e.message},400);}
-        // Reusing the draft ID makes retries safe if a response is lost.
-        await db.prepare('INSERT INTO design_approvals (id,name,design,created_at) VALUES (?,?,?,?) ON CONFLICT(id) DO NOTHING').bind(input.id,name,JSON.stringify(design),Date.now()).run();
+        const raw=await request.text();if(raw.length>8000)return json({error:'Approval is too large.'},413);
+        let input,name,design,estimate;try{input=JSON.parse(raw);name=typeof input.name==='string'?input.name.trim():'';if(!name||name.length>80)throw Error('Enter your name (up to 80 characters).');if(typeof input.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid approval ID.');design=normalizeDesign(input.design);estimate=normalizeApprovalEstimate(input.estimate);
+          if(request.method==='PATCH'&&(!Number.isSafeInteger(input.revision)||input.revision<0))throw Error('Invalid approval revision.');
+        }catch(e){return json({error:e.message},400);}
+        const designText=JSON.stringify(design),estimateText=estimate?JSON.stringify(estimate):null;
+        if(request.method==='POST'){
+          await db.prepare('INSERT INTO design_approvals (id,name,design,created_at,estimate) VALUES (?,?,?,?,?) ON CONFLICT(id) DO NOTHING').bind(input.id,name,designText,Date.now(),estimateText).run();
+        }else{
+          const current=await db.prepare('SELECT * FROM design_approvals WHERE id = ?').bind(input.id).first();
+          if(!current)return json({error:'Approval not found.'},404);
+          // Repeated identical updates after a lost response are safe. Different stale edits are rejected.
+          if((current.revision??0)!==input.revision){
+            if((current.revision??0)===input.revision+1&&current.name===name&&current.design===designText&&(current.estimate??null)===estimateText)return json({approval:row(current)});
+            return json({error:'This approval was edited elsewhere. Reload it before saving your changes.'},409);
+          }
+          const result=await db.prepare('UPDATE design_approvals SET name=?,design=?,estimate=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=?').bind(name,designText,estimateText,Date.now(),input.id,input.revision).run();
+          if(result.meta.changes!==1)return json({error:'This approval was edited elsewhere. Reload it before saving your changes.'},409);
+        }
         const r=await db.prepare('SELECT * FROM design_approvals WHERE id = ?').bind(input.id).first();
-        return json({approval:{id:r.id,name:r.name,design:JSON.parse(r.design),createdAt:r.created_at}},201,{'Set-Cookie':`rc_comment_name=${encodeURIComponent(name)}; Path=/; Max-Age=31536000; SameSite=Lax${url.protocol==='https:'?'; Secure':''}`});
+        return json({approval:row(r)},request.method==='POST'?201:200,{'Set-Cookie':`rc_comment_name=${encodeURIComponent(name)}; Path=/; Max-Age=31536000; SameSite=Lax${url.protocol==='https:'?'; Secure':''}`});
       }
-      return json({error:'Method not allowed.'},405,{'Allow':'GET, POST'});
+      return json({error:'Method not allowed.'},405,{'Allow':'GET, POST, PATCH'});
     }catch(e){console.error('Approval request failed',e);return json({error:'Approvals are temporarily unavailable. Please try again.'},503);}
   }
   if(url.pathname==='/api/comments') {

@@ -38,3 +38,18 @@ export function normalizeDesign(input){
  const figures=input.figures??'rap';if(!['podcast','rap'].includes(figures))throw Error('Invalid figures.');
  return {height:input.height,angle:a,wallColor:hex(input.wallColor,'wall'),platformShape,platformAngle:pa,platformBack,platformSide,platformColor:hex(input.platformColor??'#34383b','platform'),floor,floorColor:hex(input.floorColor??'#34383b','floor'),figures};
 }
+
+// The estimate actually reviewed with an approval. Older approvals have no recorded estimate.
+export function normalizeApprovalEstimate(input){
+ if(input==null)return null;
+ const n=(v,name,max=1000000000)=>{if(!Number.isFinite(v)||v<0||v>max)throw Error('Invalid '+name+'.');return v;};
+ const crew=n(input.crew,'crew',12);if(!Number.isInteger(crew)||crew<1)throw Error('Invalid crew.');
+ const hours=n(input.hours,'labor hours',10000),defaultHours=n(input.defaultHours,'estimated hours',10000),personHours=n(input.personHours,'person-hours',100000);
+ if(hours<.5||defaultHours<.5||personHours<=0)throw Error('Invalid labor hours.');
+ if(!Array.isArray(input.rates)||input.rates.length!==crew)throw Error('Enter one rate per crew member.');
+ const rates=input.rates.map(r=>{if(r===null)return null;n(r,'hourly rate',10000000);if(!Number.isInteger(r))throw Error('Rates must be whole cents.');return r;});
+ const materialsCents=n(input.materialsCents,'material total'),pending=n(input.pending,'pending materials',10000);
+ if(!Number.isInteger(materialsCents)||!Number.isInteger(pending))throw Error('Invalid material total.');
+ const priced=rates.filter(r=>r!==null),laborCents=priced.length?Math.round(hours*priced.reduce((s,r)=>s+r,0)):null;
+ return {crew,hours,defaultHours,personHours,rates,materialsCents,pending,laborCents,totalCents:materialsCents+(laborCents??0)};
+}

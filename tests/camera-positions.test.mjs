@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
 import * as T from '../public/vendor/three.module.js';
-import {normalizeCameraShot,interpolateCameraShot} from '../public/camera-state.js';
+import {normalizeCameraShot,interpolateCameraShot,cameraPolarLimit} from '../public/camera-state.js';
 import {createCameraMotion} from '../public/camera-motion.js';
 const a={version:1,position:[.7123456789,3.25,9.87654321],target:[0,1.4,.7],mm:35,ratio:'16:9'};
 const b={version:1,position:[-8,4,-10],target:[1,1.8,.2],mm:85,ratio:'9:16'};
 test('Camera snapshots preserve full coordinate precision and reject invalid views',()=>{
  assert.deepEqual(normalizeCameraShot(JSON.parse(JSON.stringify(a))),a);
- for(const patch of [{version:2},{position:[NaN,2,3]},{position:[1,2]},{position:[0,1.4,.7]},{position:[0,-3,5]},{target:[Infinity,0,0]},{mm:201},{mm:0},{ratio:'square'}])assert.throws(()=>normalizeCameraShot({...a,...patch}));
+ for(const patch of [{version:2},{position:[NaN,2,3]},{position:[1,2]},{position:[0,1.4,.7]},{position:[0,1.4,50]},{target:[Infinity,0,0]},{mm:201},{mm:0},{ratio:'square'}])assert.throws(()=>normalizeCameraShot({...a,...patch}));
 });
 test('Camera moves retain exact endpoints and avoid collapsing through the target',()=>{
  assert.deepEqual(interpolateCameraShot(a,b,0),a);assert.deepEqual(interpolateCameraShot(a,b,1),b);
@@ -56,9 +56,9 @@ test('Camera API rejects invalid input, cross-origin writes and missing update t
 test('Real OrbitControls retains the restored camera and target after animation ends',async()=>{
  const source=fs.readFileSync(new URL('../public/vendor/OrbitControls.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(new URL('../public/vendor/three.module.js',import.meta.url).href));
  const {OrbitControls}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
- const r=rig(true);r.api.orbit=new OrbitControls(r.api.camera,null);r.api.orbit.target.fromArray(a.target);r.api.orbit.minDistance=1.4;r.api.orbit.maxDistance=45;r.api.orbit.maxPolarAngle=Math.PI*.485;r.api.orbit.enableDamping=true;
- r.motion.move(b);for(let i=0;i<10;i++)r.api.orbit.update();const actual=r.motion.snapshot();
- for(const key of ['position','target'])for(let i=0;i<3;i++)assert.ok(Math.abs(actual[key][i]-b[key][i])<1e-12);
+ const r=rig(true);r.api.orbit=new OrbitControls(r.api.camera,null);r.api.orbit.target.fromArray(a.target);r.api.orbit.minDistance=1.4;r.api.orbit.maxDistance=45;r.api.orbit.maxPolarAngle=cameraPolarLimit('cameras');r.api.orbit.enableDamping=true;
+ const low={...b,position:[1,.15,4]};r.motion.move(low);for(let i=0;i<10;i++)r.api.orbit.update();const actual=r.motion.snapshot();
+ for(const key of ['position','target'])for(let i=0;i<3;i++)assert.ok(Math.abs(actual[key][i]-low[key][i])<1e-12);
  assert.equal(actual.mm,b.mm);assert.equal(actual.ratio,b.ratio);
 });
 
@@ -110,5 +110,17 @@ test('POST camera actions delete and restore without relying on DELETE request b
  res=await api.fetch(request('POST',{id,revision:1,action:'restore'}),env);assert.equal(res.status,200);assert.equal((await res.json()).position.deletedAt,null);
  assert.equal((await api.fetch(request('POST',{id,revision:0,action:'delete'}),env)).status,409,'stale clients cannot remove restored angles');
  list=await(await api.fetch(request('GET'),env)).json();assert.equal(list.positions.length,1);assert.deepEqual(list.positions[0].shot,a);
+ }finally{env.sqlite.close();}
+});
+
+
+test('Low camera angles save, update, and round-trip through the camera API',async()=>{
+ const low={...a,position:[1,.15,4]};assert.ok(low.position[1]<low.target[1]);assert.deepEqual(normalizeCameraShot(low),low);
+ assert.equal(cameraPolarLimit('finished'),Math.PI);assert.equal(cameraPolarLimit('cameras'),Math.PI);assert.equal(cameraPolarLimit('build'),Math.PI*.485);assert.equal(cameraPolarLimit('pricing'),Math.PI*.485);
+ const env=database();try{
+  let response=await api.fetch(request('POST',{id,name:'Low angle',shot:low}),env);assert.equal(response.status,201);assert.deepEqual((await response.json()).position.shot,low);
+  const lower={...low,position:[1,.05,4]};response=await api.fetch(request('PATCH',{id,revision:0,name:'Ground angle',shot:lower}),env);assert.equal(response.status,200);
+  const list=await(await api.fetch(request('GET'),env)).json();assert.deepEqual(list.positions[0].shot,lower);
+  for(let t=0;t<=1;t+=.1)normalizeCameraShot(interpolateCameraShot(a,lower,t));
  }finally{env.sqlite.close();}
 });

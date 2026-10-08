@@ -9,7 +9,7 @@ Base product prices checked 2026-10-05; see per-product notes for later checks.
 3 x 1×2×8 ft select kiln-dried whitewood @ $7.84 = $23.52
   181 in stock · aisle 25 / bay 001
   https://www.homedepot.com/p/203450502
-1 x 1/8 in × 4×8 ft utility plywood · actual 0.106 in @ $20.88 = $20.88
+1 x ⅛ in × 4×8 ft utility plywood @ $20.88 = $20.88
   Unavailable at #6319 · nearby pickup or delivery
   https://www.homedepot.com/p/100543684
 1 x #6×1½ in flat-head wood screws · 100 pack @ $7.97 = $7.97
@@ -24,7 +24,7 @@ Base product prices checked 2026-10-05; see per-product notes for later checks.
 1 x 2×4×96 in #2 premium KD-HT stud @ $4.25 = $4.25
   1,454 in stock
   https://www.homedepot.com/p/312528776
-1 x ½ in × 2×4 ft BCX plywood · actual 15/32 in @ $23.46 = $23.46
+1 x ½ in × 2×4 ft BCX plywood @ $23.46 = $23.46
   48 in stock · aisle 18 / bay 008
   https://www.homedepot.com/p/202093833
 1 x #8×1 in flat-head wood screws · 100 pack @ $6.97 = $6.97
@@ -60,7 +60,7 @@ SUBTOTAL $278.47
 3 x 1×3×8 ft select kiln-dried whitewood @ $11.84 = $35.52
   31 in stock
   https://www.homedepot.com/p/203450507
-2 x 1/8 in × 4×8 ft utility plywood · actual 0.106 in @ $20.88 = $41.76
+2 x ⅛ in × 4×8 ft utility plywood @ $20.88 = $41.76
   Unavailable at #6319 · nearby pickup or delivery
   https://www.homedepot.com/p/100543684
 1 x #6×1½ in flat-head wood screws · 100 pack @ $7.97 = $7.97
@@ -78,7 +78,7 @@ SUBTOTAL $278.47
 1 x 2×4×96 in #2 premium KD-HT stud @ $4.25 = $4.25
   1,454 in stock
   https://www.homedepot.com/p/312528776
-1 x ½ in × 2×4 ft BCX plywood · actual 15/32 in @ $23.46 = $23.46
+1 x ½ in × 2×4 ft BCX plywood @ $23.46 = $23.46
   48 in stock · aisle 18 / bay 008
   https://www.homedepot.com/p/202093833
 1 x #8×1 in flat-head wood screws · 100 pack @ $6.97 = $6.97
@@ -94,6 +94,8 @@ SUBTOTAL $278.47
   Ship to store or delivery
   https://www.homedepot.com/p/314459358
 SUBTOTAL $308.82
+
+Lumber names use store sizes such as 1×6 and 2×4. Listed cut lengths and sheet cuts are exact finished dimensions. The 3D model retains actual geometry; this labeling change does not change what to buy or how long to cut it.
 
 Prices observed with E Bradenton selected; availability can change. Tax, delivery, tools, paint, primer, floor materials and panel-to-panel/corner connections excluded.
 

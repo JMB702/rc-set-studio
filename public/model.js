@@ -47,10 +47,10 @@ export function platformFloor(a,back,side,pa=a){const plan=platformPlan(a,back,s
 // Every framing part, each tagged with the Build guide stage that adds it (30–37).
 export function platformParts(plan){const G=new T.Group();G.name='Platform construction';
  for(const m of plan.modules){
-  for(const r of m.rims)slabMesh(G,'Platform rim',r.poly,rimBottom,legLength,'wood',31);
-  for(const j of m.joists)slabMesh(G,'Platform joist',j.poly,rimBottom,legLength,'wood',31);
-  for(const l of m.legs)slabMesh(G,l.onSill?'Platform leg on sill':'Platform leg',l.poly,legLength-l.length,legLength,'wood',32);
-  for(const s of m.sills)slabMesh(G,'Platform sill',s.poly,0,PLATFORM.sill,'wood',32);
+  for(const r of m.rims)slabMesh(G,'Platform rim',r.poly,rimBottom,legLength,'wood',31).userData.cutLength=r.length;
+  for(const j of m.joists)slabMesh(G,'Platform joist',j.poly,rimBottom,legLength,'wood',31).userData.cutLength=j.length;
+  for(const l of m.legs)slabMesh(G,l.onSill?'Platform leg on sill':'Platform leg',l.poly,legLength-l.length,legLength,'wood',32).userData.cutLength=l.length;
+  for(const s of m.sills)slabMesh(G,'Platform sill',s.poly,0,PLATFORM.sill,'wood',32).userData.cutLength=s.length;
   slabMesh(G,'Platform deck',m.poly,legLength,PLATFORM.height,'ply',34);
   for(const f of m.fascia)slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35);
  }

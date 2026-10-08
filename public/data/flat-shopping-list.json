@@ -59,7 +59,7 @@
     },
     {
       "id": "skin",
-      "name": "1/8 in \u00d7 4\u00d78 ft utility plywood \u00b7 actual 0.106 in",
+      "name": "\u215b in \u00d7 4\u00d78 ft utility plywood",
       "unitPriceCents": 2088,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/100543684",
@@ -131,7 +131,7 @@
     },
     {
       "id": "shelf",
-      "name": "\u00bd in \u00d7 2\u00d74 ft BCX plywood \u00b7 actual 15/32 in",
+      "name": "\u00bd in \u00d7 2\u00d74 ft BCX plywood",
       "unitPriceCents": 2346,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/202093833",
@@ -227,6 +227,7 @@
     }
   ],
   "notes": [
+    "Lumber names use store sizes such as 1\u00d76 and 2\u00d74. Listed cut lengths and sheet cuts are exact finished dimensions. The 3D model retains actual geometry; this labeling change does not change what to buy or how long to cut it.",
     "Prices observed with E Bradenton selected; availability can change. Tax, delivery, tools, paint, primer, floor materials and panel-to-panel/corner connections excluded.",
     "Whole retail packs are rounded after combining requirements. Adhesive allowance is one 16 oz bottle per four panels, rounded up; actual use depends on application.",
     "The 10\u00d74 panel quantities match the current website model. This is a construction prototype, not structural validation.",
@@ -314,7 +315,7 @@
     "products": [
       {
         "id": "platformDeck",
-        "name": "Plytanium 19/32 in. \u00d7 4\u00d78 ft BC sanded pine plywood \u00b7 actual 0.578 \u00d7 47.938 \u00d7 95.938 in",
+        "name": "Plytanium 19/32 in \u00d7 4\u00d78 ft BC sanded pine plywood",
         "unitPriceCents": 4492,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/100007300",

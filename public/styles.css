@@ -468,6 +468,11 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 #camera-deleted-list button{background:transparent;color:#38542c;padding:8px 12px}
 @media(max-width:850px){.camera-positions #camera-shot-list{max-height:none}}
 
+#step-fasteners{background:#eaf3df;border:1px solid #cbd9bd;border-radius:8px;padding:13px 15px;margin:14px 0 18px}
+#step-fasteners h3{font-size:12px;letter-spacing:1px;text-transform:uppercase;margin:0 0 10px;color:#506846}
+#step-fasteners-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+#step-fasteners-list strong{display:block;font-size:15px;line-height:1.35;color:#243925}
+#step-fasteners-list span{display:block;font-size:13px;line-height:1.5;margin-top:4px;color:#435342}
 /* All four tabs stay inside the phone viewport, including the compact build header. */
 @media(max-width:850px){.building>header{height:auto;min-height:112px}.building>header nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.building>header .mode{overflow-wrap:anywhere}}
 #camera-update{background:var(--ink);color:#fff}
@@ -476,3 +481,6 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .camera-actions{grid-template-columns:1fr 1fr}
 #camera-selection{margin:0 0 14px;overflow-wrap:anywhere}
 .camera-row-status{padding:8px 12px;margin:0;font-size:13px;line-height:1.5;background:#f3f5ef;overflow-wrap:anywhere}
+
+
+@media(max-width:850px){.building main{height:calc(100dvh - 112px)}}

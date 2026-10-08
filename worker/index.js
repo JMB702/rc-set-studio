@@ -24,6 +24,44 @@ function normalize(input) {
 function commentRow(r){return {id:r.id,name:r.name,body:r.body,elementId:r.element_id,elementLabel:r.element_label,context:JSON.parse(r.context),createdAt:r.created_at};}
 export default {async fetch(request,env) {
   const url=new URL(request.url);
+  if(url.pathname==='/api/camera-positions') {
+    try {
+      const db=database(env),row=r=>({id:r.id,name:r.name,shot:JSON.parse(r.shot),revision:r.revision,createdAt:r.created_at,updatedAt:r.updated_at});
+      if(request.method==='GET') {
+        const result=await db.prepare('SELECT * FROM camera_positions ORDER BY created_at DESC,id DESC').all();
+        return json({positions:result.results.map(row)});
+      }
+      if(['POST','PATCH'].includes(request.method)) {
+        if(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)return json({error:'Please save from this site.'},403);
+        if(!request.headers.get('Content-Type')?.includes('application/json'))return json({error:'Expected JSON.'},415);
+        const raw=await request.text();if(raw.length>4000)return json({error:'Camera position is too large.'},413);
+        let input,name,shot;
+        try {
+          input=JSON.parse(raw);name=typeof input?.name==='string'?input.name.trim():'';
+          if(!name||name.length>80)throw Error('Enter a camera name (up to 80 characters).');
+          if(typeof input.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid camera ID.');
+          shot=JSON.stringify(normalizeCameraShot(input.shot));
+          if(request.method==='PATCH'&&(!Number.isSafeInteger(input.revision)||input.revision<0))throw Error('Invalid camera revision.');
+        }catch(e){return json({error:e.message},400);}
+        const current=await db.prepare('SELECT * FROM camera_positions WHERE id=?').bind(input.id).first();
+        if(request.method==='POST') {
+          if(current&&(current.name!==name||current.shot!==shot))return json({error:'This camera ID is already in use.'},409);
+          await db.prepare('INSERT INTO camera_positions (id,name,shot,created_at,updated_at) VALUES (?,?,?,?,?) ON CONFLICT(id) DO NOTHING').bind(input.id,name,shot,Date.now(),Date.now()).run();
+        }else {
+          if(!current)return json({error:'Camera position not found.'},404);
+          if(current.revision!==input.revision) {
+            if(current.revision===input.revision+1&&current.name===name&&current.shot===shot)return json({position:row(current)});
+            return json({error:'This camera was edited elsewhere. Refresh the list and select it before saving again.'},409);
+          }
+          const result=await db.prepare('UPDATE camera_positions SET name=?,shot=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=?').bind(name,shot,Date.now(),input.id,input.revision).run();
+          if(result.meta.changes!==1)return json({error:'This camera was edited elsewhere. Refresh the list before saving again.'},409);
+        }
+        const saved=await db.prepare('SELECT * FROM camera_positions WHERE id=?').bind(input.id).first();
+        return json({position:row(saved)},request.method==='POST'?201:200);
+      }
+      return json({error:'Method not allowed.'},405,{'Allow':'GET, POST, PATCH'});
+    }catch(e){console.error('Camera position request failed',e);return json({error:'Camera positions are temporarily unavailable. Please try again.'},503);}
+  }
   if(url.pathname==='/api/pricing-configurations'||url.pathname.startsWith('/api/pricing-configurations/')) {
     try {
       const db=database(env),collection=url.pathname==='/api/pricing-configurations',id=collection?null:url.pathname.slice('/api/pricing-configurations/'.length);

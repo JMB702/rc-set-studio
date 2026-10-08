@@ -26,3 +26,12 @@ export const designApprovals = sqliteTable('design_approvals', {
   revision: integer('revision').notNull().default(0),
   createdAt: integer('created_at').notNull(),
 }, table => [index('design_approvals_created_at_idx').on(table.createdAt)]);
+
+export const cameraPositions = sqliteTable('camera_positions', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  shot: text('shot').notNull(),
+  revision: integer('revision').notNull().default(0),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+}, table => [index('camera_positions_created_at_idx').on(table.createdAt)]);

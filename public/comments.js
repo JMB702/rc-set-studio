@@ -34,7 +34,7 @@ export function installComments(api) {
     const hits=ray.intersectObjects(api.scene.children,true);let d;
     for(const hit of hits){if(!visible(hit.object))continue;let part=hit.object.userData.commentParts?.find(p=>hit.faceIndex>=p.start&&hit.faceIndex<p.start+p.count);d=descriptor(hit.object,part);if(d)break;}
     if(!d){$('#comment-picker-label').textContent=candidate?candidate.label+' · No element at that spot':'No element at that spot. Try another part.';return;}
-    candidate={id:d.id,label:d.label,context:{...api.state}};outlineElement(d);updateCandidate();
+    candidate={id:d.id,label:d.label,context:{...api.state,mode:api.state.mode==='build'?'build':'finished'}};outlineElement(d);updateCandidate();
   });
   canvas.addEventListener('pointercancel',()=>{down=null;});
   function resetSelection(){clearOutline();if(picking){candidate=null;updateCandidate();}}
@@ -59,7 +59,7 @@ export function installComments(api) {
   $('#comment-refresh').onclick=()=>load();$('#comment-more').onclick=()=>load(true);
   form.onsubmit=async e=>{e.preventDefault();if(posting)return;if(!name.value.trim()){name.setCustomValidity('Enter your name.');name.reportValidity();name.oninput=()=>name.setCustomValidity('');return;}if(!body.value.trim()){body.setCustomValidity('Enter a comment.');body.reportValidity();body.oninput=()=>body.setCustomValidity('');return;}
     posting=true;$('#comment-submit').disabled=true;pickMode(false);message('Posting…');
-    const payload={id:draftId,name:name.value.trim(),body:body.value.trim(),elementId:attachment?.id??null,elementLabel:attachment?.label??null,context:attachment?.context||{...api.state}};
+    const payload={id:draftId,name:name.value.trim(),body:body.value.trim(),elementId:attachment?.id??null,elementLabel:attachment?.label??null,context:attachment?.context||{...api.state,mode:api.state.mode==='build'?'build':'finished'}};
     const fields=[name,body,$('#comment-pick'),$('#comment-clear')];fields.forEach(el=>el.disabled=true);
     try{const data=await request('/api/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});comments=[data.comment,...comments.filter(c=>c.id!==data.comment.id)];name.value=data.comment.name;body.value='';draftId=crypto.randomUUID();setAttachment(null);clearOutline();render();message('Comment posted.');}
     catch(e){message(e.message+' Your draft has been kept.',true);}

@@ -10,6 +10,8 @@ Floor is assumed 8 feet deep and follows the footprint. This represents
 recutting/reconfiguring the floor and re-dressing corner finishes, not
 moving a finished floor/wall assembly while occupied or ballasted.
 
+The guides lead with store lumber sizes and exact cut lengths. Technical
+geometry below retains actual dimensions for design reference.
 All lumber dimensions below are ACTUAL, in inches. Buy solid straight
 lumber whose measured dimensions match; product names alone are not enough.
 

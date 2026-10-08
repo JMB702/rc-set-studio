@@ -410,3 +410,32 @@ label.swatch.custom:focus-within{outline:3px solid #648d2d;outline-offset:3px}
 #approve-cancel-edit{margin-top:8px}
 #approvals-list>li{padding-bottom:14px;border-bottom:1px solid var(--line)}
 .cut-part-button{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:transparent;border:0;padding:5px;min-height:44px;border-radius:5px}.cut-part-button:hover{background:#eaf1e0}.cut-selected{background:#e5f1d4;box-shadow:inset 3px 0 #6b9438}.cut-selected .cut-part-button strong{color:#34551b}#cut-list tr[data-cut-part]{cursor:pointer}
+
+/* Named camera shots share the existing lens controls and the full set view. */
+body>header nav .mode{padding-left:15px;padding-right:15px}
+.camera-positions #design,.camera-positions .controls>details,.camera-positions .panel-footer{display:none}
+.camera-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.camera-heading h2{font-size:26px;letter-spacing:-.7px;margin:6px 0}
+#camera-refresh{padding:8px 12px;border:1px solid var(--line);border-radius:7px;background:transparent;font-size:13px}
+#camera-shot-list{display:grid;gap:8px;margin:20px 0;max-height:260px;overflow:auto}
+.camera-shot{display:flex;flex-direction:column;gap:5px;width:100%;padding:14px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:9px;color:var(--ink);overflow-wrap:anywhere}
+.camera-shot[aria-pressed=true]{border-color:#344e32;background:#eaf3df;box-shadow:inset 3px 0 #668f39}
+.camera-shot span,.camera-empty{font-size:13px;color:var(--muted);line-height:1.5}
+#camera-save-form label{display:block;font-size:14px;font-weight:650;margin-bottom:9px}
+#camera-name{width:100%;padding:12px;font:inherit;font-size:16px;border:1px solid #bdc9bd;border-radius:7px;background:#fff;color:var(--ink)}
+.camera-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.camera-actions button{padding:10px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:transparent;color:var(--ink)}
+#camera-save{background:var(--ink);color:#fff}
+#camera-status{font-size:13px;line-height:1.5;min-height:40px;overflow-wrap:anywhere}
+.camera-positions #camera-controls{padding:18px 0;border-block:1px solid var(--line)}
+.camera-positions #camera-controls .hint{display:none}
+@media(max-width:850px){
+ body>header{height:auto;min-height:112px;flex-wrap:wrap;gap:10px;padding:12px 16px}
+ body>header nav{width:100%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px}
+ body>header nav .mode{padding:6px 3px;font-size:12px;line-height:1.2;min-height:44px}
+ .camera-positions .viewport{height:40dvh;min-height:240px}
+ .camera-positions .controls{display:block;padding-top:18px}
+ .camera-positions #camera-shot-list{grid-template-columns:repeat(2,minmax(0,1fr));max-height:180px;margin:14px 0}
+ .camera-shot{padding:11px}.camera-shot strong{font-size:14px}
+ .camera-positions #camera-controls{margin-bottom:16px}
+}

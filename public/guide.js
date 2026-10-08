@@ -225,7 +225,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  }
  function display(reframe=true){
   clear();all=steps(S.height,S.floor,S);S.step=Math.max(0,Math.min(S.step,all.length-1));
-  if(S.mode!=='build'){api.getSet().visible=api.getFloor().visible=S.mode==='finished';api.invalidate();return;}
+  if(S.mode!=='build'){api.getSet().visible=api.getFloor().visible=['finished','cameras'].includes(S.mode);api.invalidate();return;}
   api.getSet().visible=api.getFloor().visible=false;
   const st=all[S.step];model=new T.Group();model.name='Build step model';api.scene.add(model);markers=new T.Group();api.scene.add(markers);
   if(st.stage<21)buildPanel(st.stage);else if(st.section==='platform')buildPlatform(st.stage);else buildSet(st.stage);
@@ -246,11 +246,11 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  }
  function mode(m){
   if(m==='build'&&!hasOpened){hasOpened=true;if(saved&&!configurationChanged){api.configure({height:saved.height,floor:saved.floor,angle:saved.angle,...(saved.platformShape?{platformShape:saved.platformShape}:{})});all=steps(S.height,S.floor,S);S.step=all.findIndex(st=>st.stage===saved.stage);}}
-  const entering=S.mode!=='build'&&m==='build';S.mode=m;document.body.classList.toggle('building',m==='build');
+  const previousMode=S.mode,entering=S.mode!=='build'&&m==='build';S.mode=m;document.body.classList.toggle('building',m==='build');
   $('#explore-controls').hidden=m!=='finished';$('#guide-controls').hidden=m!=='build';$('#guide-scene-tools').hidden=m!=='build';$('#step-overlay').hidden=true;
   $('#scene-tag').textContent=m==='finished'?'FINISHED SET':'CONSTRUCTION GUIDE';$('#view-hint').textContent=m==='finished'?'Drag to orbit · pinch to zoom':'Green = this step · drag or pinch to inspect';
   document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===m);b.setAttribute('aria-pressed',b.dataset.mode===m)});
-  if(m==='finished'){clear();api.getSet().visible=api.getFloor().visible=true;$('#panel-count').textContent='8 panels';api.orbit.minDistance=1.4;api.orbit.maxDistance=22;api.view('front');requestAnimationFrame(()=>api.view('front'));}
+  if(m==='finished'||m==='cameras'){clear();api.getSet().visible=api.getFloor().visible=true;$('#panel-count').textContent='8 panels';api.orbit.minDistance=1.4;api.orbit.maxDistance=m==='cameras'?45:22;if(!['finished','cameras'].includes(previousMode)){api.view('front');if(m==='finished')requestAnimationFrame(()=>{if(S.mode===m&&!api.cameraAnimating)api.view('front');});}}
   else{display();if(entering){controls.scrollTop=0;window.scrollTo(0,0);}}
  }
  function go(n){S.step=Math.max(0,Math.min(n,all.length-1));display();controls.scrollTop=0;$('#guide-index').hidden=true;$('#guide-jump').setAttribute('aria-expanded','false');$('#step-content').focus({preventScroll:true});}

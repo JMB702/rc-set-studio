@@ -121,7 +121,7 @@ deck: no load rating is claimed. Test the finish on a mockup; seams can
 crack if modules move. Quantities in public/platform.js and pricing-calc.js.
 
 VIEWER CONVENTIONS
-Cut-list selection highlights matching installed parts and offsets them toward
-the viewer for inspection; this is not a change to assembly geometry or cut
-lengths. Return to model clears the inspection. Frame-side-up and skin-side-up
+Cut-list selection highlights matching visible parts in their current positions.
+It does not move parts, replace the assembly or reframe the camera. Click the
+row again, press Escape or close the cut list to clear the highlight. Frame-side-up and skin-side-up
 bench steps keep the panel top at the same far end; turn it over sideways.

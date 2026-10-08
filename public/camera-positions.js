@@ -10,8 +10,9 @@ export function installCameraPositions(api) {
 <div id="camera-shot-list" role="group" aria-label="Saved camera positions"></div>
 <p id="camera-save-hint" class="hint">Tap an angle to select it. Change the view, lens, frame or name, then Update selected. Save as new keeps a separate angle. Drag to orbit, pinch to zoom, or use two fingers to pan.</p>
 <p class="hint">Camera positions are saved on this website across devices.</p>
+<dialog id="camera-delete-dialog" aria-labelledby="camera-delete-title" aria-describedby="camera-delete-description"><h2 id="camera-delete-title">Delete camera position?</h2><p id="camera-delete-description"></p><p class="hint">This removes the saved angle across devices. You can restore it later under Deleted angles.</p><div class="dialog-actions"><button type="button" id="camera-delete-cancel" autofocus>Cancel</button><button type="button" id="camera-delete-confirm">Delete position</button></div></dialog>
 <details id="camera-deleted" hidden><summary>Deleted angles <span>+</span></summary><div id="camera-deleted-list"></div></details>`;
-  let positions=[],deleted=[],selected=null,busy=false,attempt=null,loadVersion=0,rowMessage=null;
+  let positions=[],deleted=[],selected=null,busy=false,attempt=null,loadVersion=0,rowMessage=null,pendingDelete=null;
   const motion=createCameraMotion(api),status=$('#camera-status'),name=$('#camera-name');
   function changed(){try{return cameraShotChanged(selected,motion.snapshot(),name.value);}catch{return false;}}
   function buttons(){
@@ -26,7 +27,7 @@ export function installCameraPositions(api) {
     for(const p of positions){
       const row=document.createElement('article'),b=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('span'),actions=document.createElement('div');
       row.className='camera-shot-row';b.type='button';b.className='camera-shot';b.setAttribute('aria-pressed',p.id===selected?.id);title.textContent=p.name;meta.textContent=`${Math.round(p.shot.mm)} mm · ${p.shot.ratio}`;b.append(title,meta);b.onclick=()=>select(p);b.disabled=busy;
-      actions.className='camera-row-actions';actions.append(action('Edit','Edit '+p.name,()=>select(p,true)),action('Delete','Delete '+p.name,()=>removeOrRestore(p,false)));row.append(b,actions);if(rowMessage?.id===p.id){const message=document.createElement('p');message.className='camera-row-status';message.setAttribute('role','status');message.textContent=rowMessage.text;row.append(message);}list.append(row);
+      actions.className='camera-row-actions';actions.append(action('Edit','Edit '+p.name,()=>select(p,true)),action('Delete','Delete '+p.name,()=>confirmDeletion(p)));row.append(b,actions);if(rowMessage?.id===p.id){const message=document.createElement('p');message.className='camera-row-status';message.setAttribute('role','status');message.textContent=rowMessage.text;row.append(message);}list.append(row);
     }
     $('#camera-deleted').hidden=!deleted.length;
     $('#camera-deleted-list').replaceChildren(...deleted.map(p=>{const row=document.createElement('div'),label=document.createElement('span');label.textContent=p.name;row.append(label,action('Restore','Restore '+p.name,()=>removeOrRestore(p,true)));return row;}));
@@ -58,6 +59,19 @@ export function installCameraPositions(api) {
     catch(e){status.textContent=e.message;}
     finally{busy=false;$('#camera-refresh').disabled=false;render();}
   }
+  const deleteDialog=$('#camera-delete-dialog');
+  function confirmDeletion(p){
+    if(busy||deleteDialog.open)return;
+    pendingDelete=p;
+    $('#camera-delete-description').textContent='Delete “'+p.name+'”?';
+    deleteDialog.showModal();$('#camera-delete-cancel').focus();
+  }
+  $('#camera-delete-cancel').onclick=()=>deleteDialog.close();
+  deleteDialog.addEventListener('close',()=>{pendingDelete=null;});
+  $('#camera-delete-confirm').onclick=()=>{
+    const p=pendingDelete;pendingDelete=null;deleteDialog.close();
+    if(p)removeOrRestore(p,false);
+  };
   async function removeOrRestore(p,restore){
     if(busy)return;motion.stop();busy=true;++loadVersion;$('#camera-refresh').disabled=true;rowMessage={id:p.id,text:restore?'Restoring…':'Deleting…'};render();status.textContent=rowMessage.text;
     try{const data=await request({method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:p.id,revision:p.revision,action:restore?'restore':'delete'})});remember(data.position);
@@ -75,7 +89,7 @@ export function installCameraPositions(api) {
   window.addEventListener('camera-lens-changed',()=>{if(api.state.mode==='cameras')buttons();});
   const baseMode=api.setMode;
   api.setMode=m=>{
-    motion.stop();const result=baseMode(m),active=m==='cameras';host.hidden=!active;document.body.classList.toggle('camera-positions',active);
+    if(deleteDialog.open)deleteDialog.close();pendingDelete=null;motion.stop();const result=baseMode(m),active=m==='cameras';host.hidden=!active;document.body.classList.toggle('camera-positions',active);
     if(active){$('#camera-lens-slot').append(lensControls);api.lens.set({on:true});$('#view-hint').textContent='Drag to orbit · two fingers to pan';buttons();refresh();}
     else{explore.prepend(lensControls);}
     return result;

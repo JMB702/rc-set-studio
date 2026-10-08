@@ -484,3 +484,10 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 
 
 @media(max-width:850px){.building main{height:calc(100dvh - 112px)}}
+
+#camera-delete-dialog{width:min(420px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;padding:24px;border:1px solid var(--line);border-radius:14px;background:#fafbf8;color:var(--ink);box-shadow:0 16px 70px #17202440}
+#camera-delete-dialog::backdrop{background:#17202480}
+#camera-delete-dialog h2{font-size:22px;margin:0 0 14px;letter-spacing:-.4px}
+#camera-delete-description{font-size:16px;line-height:1.5;overflow-wrap:anywhere;margin:0}
+#camera-delete-dialog .dialog-actions{margin-top:22px;gap:10px}
+#camera-delete-confirm{background:#91382e;color:#fff;border-color:#91382e}

@@ -51,7 +51,7 @@ Base product prices checked 2026-10-05; see per-product notes for later checks.
 SUBTOTAL $278.47
 
 10x4 / ONE PANEL + TWO JACKS + SHELF / BALLAST PENDING
-3 x 1×4×8 ft select kiln-dried whitewood @ $15.32 = $45.96
+4 x 1×4×8 ft select kiln-dried whitewood @ $15.32 = $61.28
   44 in stock · aisle 25 / bay 001
   https://www.homedepot.com/p/100072830
 2 x 1×6×12 ft premium kiln-dried whitewood @ $20.40 = $40.80
@@ -72,7 +72,7 @@ SUBTOTAL $278.47
 1 x Grip-Rite ½ in / 18 gauge / ¼ in crown staples · 1,000 box @ $6.38 = $6.38
   Ship to store or delivery · match stapler
   https://www.homedepot.com/p/316087492
-3 x 1×4×10 ft select kiln-dried whitewood @ $19.72 = $59.16
+2 x 1×4×10 ft select kiln-dried whitewood @ $19.72 = $39.44
   73 in stock
   https://www.homedepot.com/p/100053469
 1 x 2×4×96 in #2 premium KD-HT stud @ $4.25 = $4.25
@@ -93,7 +93,7 @@ SUBTOTAL $278.47
 1 x ⅛ in × 6×36 in neoprene sheet · cut bearing pads @ $6.01 = $6.01
   Ship to store or delivery
   https://www.homedepot.com/p/314459358
-SUBTOTAL $308.82
+SUBTOTAL $304.42
 
 Lumber names use store sizes such as 1×6 and 2×4. Listed cut lengths and sheet cuts are exact finished dimensions. The 3D model retains actual geometry; this labeling change does not change what to buy or how long to cut it.
 

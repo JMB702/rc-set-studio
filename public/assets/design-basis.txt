@@ -33,14 +33,17 @@ Skin glue and half-inch narrow crown staples at roughly4-inch centers,
 centered on wood. Staple into both edges of backed skin joint. Test on scrap.
 
 JACKS (TWO PER PANEL, MIRRORED)
-8-foot panel: overall jack72 high x36 deep. Uprights .75x3.5x68.5;
-feet .75x3.5x36; diagonal .75x3.5 blank84; fit outer edge80.498.
-10-foot panel: overall jack96 high x48 deep. Uprights .75x3.5x92.5;
-feet .75x3.5x48; diagonal .75x3.5 blank112; fit outer edge107.331.
-Do not cut two48-inch feet from one96-inch stick: allow kerf, e.g.10ft stock.
+8-foot panel: overall jack72 high x36 deep. Uprights .75x3.5x72;
+feet .75x3.5x32.5; diagonal .75x3.5 blank84; fit outer edge80.498.
+10-foot panel: overall jack96 high x48 deep. Uprights .75x3.5x96 (full 8-foot boards);
+feet .75x3.5x44.5; diagonal .75x3.5 blank112; fit outer edge107.331.
+Uprights run to the floor. Feet butt against their rear edges, bottoms flush.
+Two44.5-inch feet fit one96-inch board with room for saw kerf; 10-foot
+stock is needed only for the two112-inch diagonal blanks. Overall jack
+height, depth, diagonal fit, shelf position and attachment heights stay unchanged.
 Both use0.47 plywood triangular gussets with8-inch legs at lower front,
 inboard face. Glue laps and gussets;2 #8x1.25 screws per diagonal end;
-6 #8x1 screws per gusset. Square full-size layout before fitting diagonal.
+6 #8x1 screws per gusset: three into the upright, three into the foot. Square full-size layout before fitting diagonal.
 
 FLAT/JACK SIDE LAP — SCREW-ONLY PROTOTYPE
 8-foot jack front 1.75 behind skin rear face; screw axis 2.625 behind it;

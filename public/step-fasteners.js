@@ -11,7 +11,7 @@ export function stepFasteners(stage,height,floor,cfg={}){
   if(stage===12)return [item('½″ long, 18-gauge, ¼″ narrow-crown staples',`About 4″ apart, centered over framing. Allow ${height===120?144:108} per panel. Match the stapler; these are not brad nails.`,'staples',height===120?144:108)];
   if(stage===13||stage===14)return none('Clamp the foot and upright square. The diagonals and corner gussets secure these joints in the following steps.');
   if(stage===15)return [item('#8 × 1¼″ flat-head wood screws','Two at each end of each diagonal: 8 total for two jacks. Predrill.','lapScrews',8),item('Titebond III wood glue','Glue each diagonal overlap.','glue')];
-  if(stage===16)return [item('#8 × 1″ flat-head wood screws','Six per corner gusset: 12 total for two jacks. Drive into both the foot and upright.','shortScrews',12),item('Titebond III wood glue','Glue both gusset contact faces.','glue')];
+  if(stage===16)return [item('#8 × 1″ flat-head wood screws','Six per corner gusset: 12 total for two jacks. Use three screws into the foot and three into the upright.','shortScrews',12),item('Titebond III wood glue','Glue both gusset contact faces.','glue')];
   if(stage===17)return [item('#8 × 1¼″ flat-head wood screws','Six per jack: 12 per panel, driven through the stile into the jack upright. Predrill; keep heads flush. No nails or staples here.','lapScrews',12)];
   if(stage===18)return [item('#8 × 2½″ flat-head wood screws','One at each crossbar/foot crossing: 4 total. Predrill down through the bars into the feet.','barScrews',4)];
   if(stage===19)return [item('#8 × 1″ flat-head wood screws','Six into each shelf crossbar: 12 total. Heads flush.','shortScrews',12)];

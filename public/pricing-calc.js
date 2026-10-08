@@ -26,7 +26,7 @@ export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,plat
  const rows=[],deckSheets=plan.deckSheets,strips=plan.fasciaStrips,finish=plan.finishArea;
  rows.push(row('platformLumber',shared('crossbar'),'2×4×96 in stud · platform rims, joists, legs and sills',plan.lumberLengths.length,plan.studs,`${plan.lumberLengths.length} cuts packed into ${plan.studs} studs with ⅛″ kerf; choose straight stock`));
  rows.push(row('platformDeck',own('platformDeck'),own('platformDeck').name,deckSheets,deckSheets,`${plan.counts.modules} deck pieces (${plan.deckArea.toFixed(1)} sq ft): up to two per sheet, small pieces four`));
- rows.push(pack('platformFrameScrews',own('platformFrameScrews'),own('platformFrameScrews').name,plan.frameScrews,'Rim corners, joist ends, legs, sills and module-to-module seams'));
+ rows.push(pack('platformFrameScrews',own('platformFrameScrews'),own('platformFrameScrews').name,plan.frameScrews,'Build guide: 2 per rim joint, 2 per joist end, 4 per leg, 2 per sill, 2 per sill-supported leg; plus module seams'));
  rows.push(pack('platformDeckScrews',shared('barScrews'),'SPAX #8×2½ in flat-head wood screws · deck to frame · 133 box',plan.deckScrews,'Deck screwed, not glued, so it can lift off for a move · 6″ on rims, 12″ on joists'));
  rows.push(row('platformSkin',shared('skin'),'1/8 in × 4×8 ft lauan utility plywood · 10″ fascia strips',Math.ceil(strips/4),Math.ceil(strips/4),`${(plan.fasciaLength/12).toFixed(1)} ft of fascia + 10%: ${strips} strips at 4 per sheet`));
  rows.push(pack('platformStaples',shared('staples'),'Grip-Rite ½ in narrow-crown staples · fascia · 1,000 box',plan.staples,'Fascia to rims, sills and legs at about 4″'));

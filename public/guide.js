@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {stepFasteners} from './step-fasteners.js';
 import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,slab,dispose,grain} from './model.js';
 import {floorArea} from './pricing-calc.js';
 import {platformPlan,platformCuts,PLATFORM,legLength,sillLegLength,rimBottom,inches} from './platform.js';
@@ -43,7 +44,7 @@ items.push([28,'Dress and paint the walls','Once the configuration is fixed, dre
 // A design may have a floor, a platform, both or neither. The floor goes down first; the platform stands on it.
 const platform=floor==='platform'||cfg.platformShape&&cfg.platformShape!=='none';if(floor!=='wood'&&floor!=='charcoal')items=items.filter(([stage])=>stage<23||stage>27);
 if(platform)items.push(...platformSteps(platformPlan(cfg.angle??45,cfg.platformBack??PLATFORM.gap,cfg.platformSide??PLATFORM.gap,cfg.platformAngle),floor==='wood'||floor==='charcoal'));
-return items.map(([stage,title,description,spec,view])=>({stage,title,description,spec,view,section:sectionOf(stage,floor),...stepHelp(stage,floor)})).sort((a,b)=>sectionIndex(a.section)-sectionIndex(b.section));}
+return items.map(([stage,title,description,spec,view])=>({stage,title,description,spec,view,section:sectionOf(stage,floor),...stepHelp(stage,floor),fasteners:stepFasteners(stage,h,floor,cfg)})).sort((a,b)=>sectionIndex(a.section)-sectionIndex(b.section));}
 // The guide is split into sections a builder can jump between. Stages keep their numbers; only the order changes.
 // Stages 30–39 are reserved for the platform build.
 export const sections=[{id:'flat',label:'Flat build',sub:'Wall panels + jacks'},{id:'floor',label:'Floor build',sub:'Floor overlay'},{id:'platform',label:'Platform build',sub:'Raised platform'},{id:'assembly',label:'Full assembly',sub:'Stand, join + finish'}];
@@ -92,7 +93,7 @@ null,null,null,null,
 function stepHelp(stage,floor){
  const phaseIndex=stage===0?0:stage<=9?1:stage<=12?2:stage<=16?3:stage<=20?4:stage<=22?5:stage>=30&&stage<40?8:stage<=26||stage===27&&floor!=='wood'?6:7;
  const orientation=platformHelp[stage]?platformHelp[stage][0]:stage===0?'Parts laid flat':stage<=9?'Flat on bench · frame side up':stage<=12?'Flat on supports · skin side up':stage<=16?'Jacks on their sides · inboard faces up':stage<=20?'Panel upright · work from behind':stage<=22?'Walls upright · secure supports':stage<=26?'Floor flat · look down into the set':stage===27?'Finish at floor level':'Walls upright · work from the front';
- const tools=platformHelp[stage]?platformHelp[stage][1]:stage===0?'Tape measure, square, pencil and saw':stage<=8?'Tape measure, square and clamps':stage===9?'Wood glue, clamps, drill, pilot bit and countersink':stage<=12?'Wood glue, clamps and narrow-crown stapler':stage<=16?'Square, clamps, saw, wood glue and drill':stage===17?'Helper, clamps, drill/driver, #2 Phillips bit, clearance bit, pilot bit and countersink':stage<=20?'Drill, straps and ballast':stage<=22?'Helper, clamps, drill and independent braces':stage<=26?'Tape measure and tools specified by the floor manufacturer':'Sanding and finishing tools specified by the coating manufacturer';
+ const tools=platformHelp[stage]?platformHelp[stage][1]:stage===0?'Tape measure, square, pencil and saw':stage<=8?'Tape measure, square and clamps':stage===9?'Wood glue, clamps, drill, pilot bit and countersink':stage<=12?'Wood glue, clamps and narrow-crown stapler':stage<=16?'Square, clamps, saw, wood glue and drill':stage===17?'Helper, clamps, drill/driver, #2 Phillips bit, clearance bit, pilot bit and countersink':stage<=19?'Drill/driver, matching driver bit, pilot bit and countersink':stage===20?'Straps and ballast':stage<=22?'Helper, clamps, drill and independent braces':stage<=26?'Tape measure and tools specified by the floor manufacturer':'Sanding and finishing tools specified by the coating manufacturer';
  return {phase:phases[phaseIndex],phaseIndex,orientation,tools,check:platformHelp[stage]?.[2]??checks[stage]};
 }
 function outlinePiece(o){const outline=new T.LineSegments(new T.EdgesGeometry(o.geometry,30),new T.LineBasicMaterial({color:0x527b2b,transparent:true,opacity:1}));outline.name='Current piece outline';outline.userData.guideDecoration=true;outline.raycast=()=>{};o.add(outline);}
@@ -213,6 +214,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   $('#step-number').textContent=`${section.label} · Step ${inSection.indexOf(st)+1} of ${inSection.length}`;$('#progress').max=inSection.length;$('#progress').value=inSection.indexOf(st)+1;
   sectionUI(st.section);
   $('#step-phase').textContent=st.phase;$('#step-title').textContent=st.title;
+  $('#step-fasteners-list').replaceChildren(...st.fasteners.map(f=>{const li=document.createElement('li'),title=document.createElement('strong'),note=document.createElement('span');title.textContent=f.title;note.textContent=f.note;li.append(title,note);return li;}));
   const sentences=st.description.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[st.description];
   $('#step-description').textContent=sentences.shift().trim();$('#step-actions').replaceChildren(...sentences.map(text=>{const li=document.createElement('li');li.textContent=text.trim();return li;}));
   $('#step-check-text').textContent=st.check||(S.floor==='wood'?{24:'Underlayment edges meet without overlap. Follow the required moisture-barrier details.',25:'Starter rows are straight, end pieces are at least 16″, and the ⅜″ expansion gap is clear.',26:'End joints are staggered at least 16″. All perimeter pieces retain their expansion gap.',27:'Trim attaches only to the walls and lets the floating floor move.'}:{24:'All sheets and their edges are supported. No joints flex or rock.',25:'The seam system is compatible with the sheets and coating and has passed a mockup.',26:'Primer covers the clean, smooth floor. Let it dry as specified.',27:'Coating has cured for the required foot-traffic time; BEHR lists 72 hours in suitable conditions.'})[st.stage];
@@ -242,7 +244,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   if(st.stage>=23&&st.stage<=27){const z=st.stage===25?0:24;detailBounds=new T.Box3(new T.Vector3(-48*inch,0,z*inch),new T.Vector3(48*inch,.15,(z+48)*inch));}
   for(const {o,offset}of animation)o.position.copy(offset);
   focused=false;viewOverride=null;$('#guide-focus').setAttribute('aria-pressed','false');$('#guide-focus').textContent='See detail';$('#guide-focus').disabled=detailBounds.isEmpty()||st.stage===0||st.stage===22||st.stage===28;
-  start=performance.now();instructions(st);try{localStorage.setItem(progressKey,JSON.stringify({height:S.height,floor:S.floor,angle:S.angle,platformShape:S.platformShape,stage:st.stage}));}catch{}if(reframe){fit();requestAnimationFrame(()=>fit());}api.invalidate();
+  start=performance.now();instructions(st);window.dispatchEvent(new Event('studio-view-changed'));try{localStorage.setItem(progressKey,JSON.stringify({height:S.height,floor:S.floor,angle:S.angle,platformShape:S.platformShape,stage:st.stage}));}catch{}if(reframe){fit();requestAnimationFrame(()=>fit());}api.invalidate();
  }
  function mode(m){
   if(m==='build'&&!hasOpened){hasOpened=true;if(saved&&!configurationChanged){api.configure({height:saved.height,floor:saved.floor,angle:saved.angle,...(saved.platformShape?{platformShape:saved.platformShape}:{})});all=steps(S.height,S.floor,S);S.step=all.findIndex(st=>st.stage===saved.stage);}}
@@ -266,6 +268,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  window.addEventListener('set-configured',()=>{if(S.height!==selectedBuildHeight){selectedBuildHeight=S.height;}if(!hasOpened)configurationChanged=true;const current=all[S.step]?.stage;all=steps(S.height,S.floor,S);S.step=Math.max(0,all.findIndex(st=>st.stage===current));cutUI();materialUI();if(S.mode==='build')display();});
  api.onTick=t=>{if(!animation.length)return;const e=reducedMotion.matches?1:Math.min(1,(t-start)/650),fade=(1-e)**3;for(const {o,offset}of animation)o.position.copy(offset).multiplyScalar(fade);api.invalidate();if(e===1)animation=[];};
  api.setMode=mode;api.setStep=n=>{if(!Number.isInteger(n)||n<0||n>=all.length)throw Error('Step outside guide');hasOpened=true;S.step=n;api.setMode('build');controls.scrollTop=0;window.scrollTo(0,0);return {...S,stepCount:all.length};};
+ api.getGuideStage=()=>all[S.step]?.stage??0;api.restoreGuideStage=stage=>{hasOpened=true;S.step=Math.max(0,all.findIndex(st=>st.stage===stage));};
  api.stepCount=()=>steps(S.height,S.floor,S).length;api.setSection=id=>{if(!all.some(step=>step.section===id))throw Error('No steps in that section');hasOpened=true;if(S.mode!=='build')api.setMode('build');goSection(id);return {...S,section:id};};api.guideView=v=>{viewOverride=v==='reset'?null:v;fit(viewOverride);};
  api.guideStats=()=>({step:S.step,...all[S.step],visible:model?.children.length||0,bounds:bounds?.clone(),detailBounds:detailBounds?.clone()});cutUI();materialUI();return {mode,display};
 }

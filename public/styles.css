@@ -467,3 +467,10 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 #camera-deleted-list span{overflow-wrap:anywhere;min-width:0}
 #camera-deleted-list button{background:transparent;color:#38542c;padding:8px 12px}
 @media(max-width:850px){.camera-positions #camera-shot-list{max-height:none}}
+
+#step-fasteners{background:#eaf3df;border:1px solid #cbd9bd;border-radius:8px;padding:13px 15px;margin:14px 0 18px}
+#step-fasteners h3{font-size:12px;letter-spacing:1px;text-transform:uppercase;margin:0 0 10px;color:#506846}
+#step-fasteners-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+#step-fasteners-list strong{display:block;font-size:15px;line-height:1.35;color:#243925}
+#step-fasteners-list span{display:block;font-size:13px;line-height:1.5;margin-top:4px;color:#435342}
+@media(max-width:850px){.building>header .mode{white-space:normal;font-size:11px;line-height:1.15;padding:0 3px;min-width:0}}

@@ -49,7 +49,7 @@ test('Camera API rejects invalid input, cross-origin writes and missing update t
  assert.equal((await api.fetch(request('POST',{id,name:'Wide',shot:a},'https://other.com'),env)).status,403);
  assert.equal((await api.fetch(request('PATCH',{id,name:'Wide',shot:a,revision:0}),env)).status,404);
  assert.equal((await api.fetch(request('POST',{id,name:'x'.repeat(4100),shot:a}),env)).status,413);
- assert.equal((await api.fetch(request('DELETE'),env)).status,405);
+ assert.equal((await api.fetch(request('PUT'),env)).status,405);
  }finally{env.sqlite.close();}
 });
 
@@ -60,4 +60,32 @@ test('Real OrbitControls retains the restored camera and target after animation 
  r.motion.move(b);for(let i=0;i<10;i++)r.api.orbit.update();const actual=r.motion.snapshot();
  for(const key of ['position','target'])for(let i=0;i<3;i++)assert.ok(Math.abs(actual[key][i]-b[key][i])<1e-12);
  assert.equal(actual.mm,b.mm);assert.equal(actual.ratio,b.ratio);
+});
+
+
+test('Deleted angles disappear across clients and can be restored with their exact saved view',async()=>{
+ const env=database();try{
+  await api.fetch(request('POST',{id,name:'Wide master',shot:a}),env);
+  const remove={id,revision:0};let res=await api.fetch(request('DELETE',remove),env);assert.equal(res.status,200);
+  let saved=(await res.json()).position;assert.ok(saved.deletedAt);assert.equal(saved.revision,1);assert.deepEqual(saved.shot,a);
+  assert.equal((await api.fetch(request('DELETE',remove),env)).status,200,'lost response retry');
+  let list=await(await api.fetch(request('GET'),env)).json();assert.equal(list.positions.length,0);assert.equal(list.deletedPositions.length,1);
+  assert.equal((await api.fetch(request('PATCH',{id,revision:1,name:'Deleted edit',shot:b}),env)).status,409);
+  assert.equal((await api.fetch(request('POST',{id,name:'Wide master',shot:a}),env)).status,409,'create retry never resurrects a deleted shot');
+  const restore={id,revision:1,restore:true};res=await api.fetch(request('PATCH',restore),env);assert.equal(res.status,200);saved=(await res.json()).position;assert.equal(saved.deletedAt,null);assert.equal(saved.revision,2);assert.deepEqual(saved.shot,a);
+  assert.equal((await api.fetch(request('PATCH',restore),env)).status,200);
+  list=await(await api.fetch(request('GET'),env)).json();assert.equal(list.positions.length,1);assert.equal(list.deletedPositions.length,0);
+  assert.equal((await api.fetch(request('DELETE',remove),env)).status,409,'stale deletion cannot delete a restored view');
+ }finally{env.sqlite.close();}
+});
+test('Deletion rejects stale revisions, unknown IDs and cross-origin requests',async()=>{
+ const env=database();try{
+  await api.fetch(request('POST',{id,name:'Wide',shot:a}),env);
+  await api.fetch(request('PATCH',{id,revision:0,name:'Newer angle',shot:b}),env);
+  assert.equal((await api.fetch(request('DELETE',{id,revision:0}),env)).status,409);
+  assert.equal((await api.fetch(request('DELETE',{id,revision:1},'https://other.com'),env)).status,403);
+  assert.equal((await api.fetch(request('DELETE',{id}),env)).status,400);
+  assert.equal((await api.fetch(request('DELETE',{id:'43d6ed9a-6b19-498f-870c-a9e272ce1b02',revision:0}),env)).status,404);
+  const list=await(await api.fetch(request('GET'),env)).json();assert.equal(list.positions[0].name,'Newer angle');assert.deepEqual(list.positions[0].shot,b);
+ }finally{env.sqlite.close();}
 });

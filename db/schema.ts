@@ -28,6 +28,7 @@ export const designApprovals = sqliteTable('design_approvals', {
 }, table => [index('design_approvals_created_at_idx').on(table.createdAt)]);
 
 export const cameraPositions = sqliteTable('camera_positions', {
+  deletedAt: integer('deleted_at'),
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   shot: text('shot').notNull(),

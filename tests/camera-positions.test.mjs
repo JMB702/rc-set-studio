@@ -89,3 +89,26 @@ test('Deletion rejects stale revisions, unknown IDs and cross-origin requests',a
   const list=await(await api.fetch(request('GET'),env)).json();assert.equal(list.positions[0].name,'Newer angle');assert.deepEqual(list.positions[0].shot,b);
  }finally{env.sqlite.close();}
 });
+
+test('Update selected only enables for real differences and disables again at the saved shot',async()=>{
+ const {cameraShotChanged}=await import('../public/camera-state.js');const saved={name:'Wide master',shot:a};
+ assert.equal(cameraShotChanged(null,a,'Wide master'),false);
+ assert.equal(cameraShotChanged(saved,structuredClone(a),'Wide master'),false);
+ assert.equal(cameraShotChanged(saved,{...a,position:a.position.map(n=>n+1e-12)},'Wide master'),false);
+ for(const shot of [{...a,position:[a.position[0]+.01,...a.position.slice(1)]},{...a,target:[.01,...a.target.slice(1)]},{...a,mm:50},{...a,ratio:'9:16'}])assert.equal(cameraShotChanged(saved,shot,saved.name),true);
+ assert.equal(cameraShotChanged(saved,a,'Renamed'),true);assert.equal(cameraShotChanged(saved,a,' Wide master '),false);
+ assert.equal(cameraShotChanged(saved,a,saved.name),false,'returning to the saved state clears dirty status');
+});
+test('POST camera actions delete and restore without relying on DELETE request bodies',async()=>{
+ const env=database();try{
+ await api.fetch(request('POST',{id,name:'Wide',shot:a}),env);
+ assert.equal((await api.fetch(request('POST',{id,action:'delete'}),env)).status,400);
+ assert.equal((await api.fetch(request('POST',{id,revision:0,action:'unknown'}),env)).status,400);
+ let res=await api.fetch(request('POST',{id,revision:0,action:'delete'}),env);assert.equal(res.status,200);assert.ok((await res.json()).position.deletedAt);
+ assert.equal((await api.fetch(request('POST',{id,revision:0,action:'delete'}),env)).status,200,'retries remain safe');
+ let list=await(await api.fetch(request('GET'),env)).json();assert.equal(list.positions.length,0);assert.equal(list.deletedPositions.length,1);
+ res=await api.fetch(request('POST',{id,revision:1,action:'restore'}),env);assert.equal(res.status,200);assert.equal((await res.json()).position.deletedAt,null);
+ assert.equal((await api.fetch(request('POST',{id,revision:0,action:'delete'}),env)).status,409,'stale clients cannot remove restored angles');
+ list=await(await api.fetch(request('GET'),env)).json();assert.equal(list.positions.length,1);assert.deepEqual(list.positions[0].shot,a);
+ }finally{env.sqlite.close();}
+});

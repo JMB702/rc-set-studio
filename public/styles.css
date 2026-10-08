@@ -439,3 +439,31 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
  .camera-shot{padding:11px}.camera-shot strong{font-size:14px}
  .camera-positions #camera-controls{margin-bottom:16px}
 }
+
+/* The camera workflow uses the same order at every viewport size. */
+#camera-controls{display:flex;flex-direction:column}
+#camera-controls #cam-focal-field{order:1;margin-bottom:18px}
+#camera-controls #cam-frame-field{order:2;margin-bottom:0}
+#camera-controls #cam-save-positions{order:3;margin-top:16px;padding:12px;border-radius:7px;background:var(--ink);color:#fff}
+#camera-controls>.hint{order:4}
+.cam-live:not(.camera-positions) .controls{display:flex;flex-direction:column}
+.cam-live:not(.camera-positions) #explore-controls{display:contents}
+.cam-live:not(.camera-positions) #camera-controls{order:-1}
+.camera-positions #camera-controls{padding:0 0 20px;border-top:0;margin-bottom:20px}
+.camera-positions #camera-controls .group-head,.camera-positions #cam-save-positions{display:none}
+#camera-save-form h2{font-size:20px;letter-spacing:-.4px;margin:0 0 16px}
+.camera-actions{grid-template-columns:1fr}
+.camera-actions:has(#camera-cancel:not([hidden])){grid-template-columns:1fr 1fr}
+.camera-heading{border-top:1px solid var(--line);padding-top:18px}
+.camera-heading h2{font-size:20px}
+#camera-shot-list{max-height:none}
+.camera-shot-row{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:white}
+.camera-shot-row .camera-shot{border:0;border-radius:0}
+.camera-row-actions{display:flex;border-top:1px solid var(--line)}
+.camera-row-actions button{flex:1;min-height:44px;font-size:13px;background:transparent;color:var(--ink)}
+.camera-row-actions button+button{border-left:1px solid var(--line);color:#90392e}
+#camera-deleted{margin-top:22px}
+#camera-deleted-list>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+#camera-deleted-list span{overflow-wrap:anywhere;min-width:0}
+#camera-deleted-list button{background:transparent;color:#38542c;padding:8px 12px}
+@media(max-width:850px){.camera-positions #camera-shot-list{max-height:none}}

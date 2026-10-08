@@ -1,0 +1,1 @@
+ALTER TABLE `camera_positions` ADD `deleted_at` integer;

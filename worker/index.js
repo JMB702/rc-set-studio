@@ -37,9 +37,9 @@ export default {async fetch(request,env) {
         const raw=await request.text();if(raw.length>4000)return json({error:'Camera position is too large.'},413);
         let input,name,shot,removing,restoring;
         try {
-          input=JSON.parse(raw);removing=request.method==='DELETE';restoring=request.method==='PATCH'&&input?.restore===true;
+          input=JSON.parse(raw);if(input?.action!==undefined&&(request.method!=='POST'||!['delete','restore'].includes(input.action)))throw Error('Invalid camera action.');removing=request.method==='DELETE'||input?.action==='delete';restoring=request.method==='PATCH'&&input?.restore===true||input?.action==='restore';
           if(typeof input?.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid camera ID.');
-          if(request.method!=='POST'&&(!Number.isSafeInteger(input.revision)||input.revision<0))throw Error('Invalid camera revision.');
+          if((request.method!=='POST'||removing||restoring)&&(!Number.isSafeInteger(input.revision)||input.revision<0))throw Error('Invalid camera revision.');
           if(!removing&&!restoring){
             name=typeof input.name==='string'?input.name.trim():'';
             if(!name||name.length>80)throw Error('Enter a camera name (up to 80 characters).');

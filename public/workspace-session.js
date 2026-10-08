@@ -9,7 +9,7 @@ export function installWorkspaceSession(api,saved){
   // Mode changes and every guide step save immediately; camera/scroll updates are batched.
   const baseMode=api.setMode;api.setMode=m=>{const result=baseMode(m);persist();return result;};
   for(const event of ['studio-view-changed','set-configured','surface-color-changed'])window.addEventListener(event,persist);
-  window.addEventListener('studio-lens-changed',()=>api.cameraAnimating?soon():persist());
+  window.addEventListener('camera-lens-changed',()=>api.cameraAnimating?soon():persist());
   api.orbit.addEventListener('change',soon);
   window.addEventListener('scroll',soon,{passive:true});controls.addEventListener('scroll',soon,{passive:true});
   document.addEventListener('toggle',soon,true);

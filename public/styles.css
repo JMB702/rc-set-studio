@@ -91,9 +91,9 @@ nav{flex-shrink:0}.price-scopes{display:flex;gap:5px;margin:16px 0}.price-scopes
 @media(min-width:851px){.building .controls{padding-top:22px}.building .viewport{min-height:440px}.building #guide-scene-tools{inset:20px 24px auto}.building #guide-orientation{font-size:14px}}
 @media(max-width:850px){
  body.building{height:100dvh;overflow:hidden}
- .building>header{height:60px;min-height:60px;padding:8px 12px;flex-wrap:nowrap;gap:8px}
+ .building>header{height:60px;min-height:60px;padding:8px 12px;flex-wrap:wrap;gap:8px}
  .building .brand{gap:0}.building .brand>span:last-child{display:none}.building .brand-icon{width:32px;height:32px;font-size:12px}
- .building>header nav{width:auto;flex:1;margin:0;min-width:0}.building>header .mode{flex:1;padding:0 5px;min-height:40px;font-size:12px;white-space:nowrap}
+ .building>header nav{width:100%;flex:1 1 100%;margin:0;min-width:0}.building>header .mode{min-width:0;padding:6px 3px;min-height:44px;font-size:12px;white-space:normal}
  .building main{height:calc(100dvh - 60px);display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(190px,38%) minmax(0,1fr)}
  .building .viewport{position:relative;top:auto;height:100%;width:100%;min-height:0;max-height:none;z-index:1}
  .building #canvas-wrap{top:54px;bottom:30px}
@@ -473,4 +473,14 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 #step-fasteners-list{list-style:none;margin:0;padding:0;display:grid;gap:12px}
 #step-fasteners-list strong{display:block;font-size:15px;line-height:1.35;color:#243925}
 #step-fasteners-list span{display:block;font-size:13px;line-height:1.5;margin-top:4px;color:#435342}
-@media(max-width:850px){.building>header .mode{white-space:normal;font-size:11px;line-height:1.15;padding:0 3px;min-width:0}}
+/* All four tabs stay inside the phone viewport, including the compact build header. */
+@media(max-width:850px){.building>header{height:auto;min-height:112px}.building>header nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}.building>header .mode{overflow-wrap:anywhere}}
+#camera-update{background:var(--ink);color:#fff}
+#camera-update:disabled{background:#e4e8e3;color:#7b857d;border-color:#d8ded7;opacity:1;cursor:default}
+#camera-save{background:transparent;color:var(--ink)}
+.camera-actions{grid-template-columns:1fr 1fr}
+#camera-selection{margin:0 0 14px;overflow-wrap:anywhere}
+.camera-row-status{padding:8px 12px;margin:0;font-size:13px;line-height:1.5;background:#f3f5ef;overflow-wrap:anywhere}
+
+
+@media(max-width:850px){.building main{height:calc(100dvh - 112px)}}

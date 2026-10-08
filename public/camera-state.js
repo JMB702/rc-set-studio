@@ -18,3 +18,10 @@ export function interpolateCameraShot(from,to,progress) {
   const r=lerp(a.r,b.r),phi=lerp(a.phi,b.phi),theta=a.theta+turn*t,target=from.target.map((n,i)=>lerp(n,to.target[i]));
   return {version:1,target,position:[r*Math.sin(phi)*Math.sin(theta),r*Math.cos(phi),r*Math.sin(phi)*Math.cos(theta)].map((n,i)=>n+target[i]),mm:lerp(from.mm,to.mm),ratio:to.ratio};
 }
+
+// Ignore numeric roundoff from OrbitControls, but detect real changes to a saved shot.
+export function cameraShotChanged(saved,current,name) {
+  if(!saved||!current)return false;
+  if(name.trim()!==saved.name||current.ratio!==saved.shot.ratio)return true;
+  return Math.abs(current.mm-saved.shot.mm)>1e-6||['position','target'].some(key=>current[key].some((n,i)=>Math.abs(n-saved.shot[key][i])>1e-6));
+}

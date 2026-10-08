@@ -3,7 +3,7 @@ export function normalizeCameraShot(input) {
   if(!input || input.version!==1)throw Error('Invalid camera position.');
   const vector=key=>{const v=input[key];if(!Array.isArray(v)||v.length!==3||v.some(n=>!Number.isFinite(n)||Math.abs(n)>1000))throw Error('Invalid camera '+key+'.');return [...v];};
   const position=vector('position'),target=vector('target'),delta=position.map((n,i)=>n-target[i]),distance=Math.hypot(...delta);
-  if(distance<1.4-1e-8||distance>45+1e-8||delta[1]/distance<Math.cos(Math.PI*.485)-1e-8)throw Error('Camera position is outside the viewing range.');
+  if(distance<1.4-1e-8||distance>45+1e-8)throw Error('Camera position is outside the viewing range.');
   if(!Number.isFinite(input.mm)||input.mm<14||input.mm>200||!['16:9','9:16'].includes(input.ratio))throw Error('Invalid camera lens or aspect ratio.');
   return {version:1,position,target,mm:input.mm,ratio:input.ratio};
 }
@@ -24,4 +24,9 @@ export function cameraShotChanged(saved,current,name) {
   if(!saved||!current)return false;
   if(name.trim()!==saved.name||current.ratio!==saved.shot.ratio)return true;
   return Math.abs(current.mm-saved.shot.mm)>1e-6||['position','target'].some(key=>current[key].some((n,i)=>Math.abs(n-saved.shot[key][i])>1e-6));
+}
+
+// Shot planning can look up from below its target; build/pricing keep their inspection limit.
+export function cameraPolarLimit(mode) {
+  return ['finished','cameras'].includes(mode)?Math.PI:Math.PI*.485;
 }

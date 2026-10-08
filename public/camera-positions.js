@@ -8,7 +8,7 @@ export function installCameraPositions(api) {
 <p id="camera-status" role="status" aria-live="polite"></p>
 <div class="camera-heading"><h2>Saved angles</h2><button id="camera-refresh" type="button">Refresh</button></div>
 <div id="camera-shot-list" role="group" aria-label="Saved camera positions"></div>
-<p id="camera-save-hint" class="hint">Tap an angle to select it. Change the view, lens, frame or name, then Update selected. Save as new keeps a separate angle. Drag to orbit, pinch to zoom, or use two fingers to pan.</p>
+<p id="camera-save-hint" class="hint">Tap an angle to select it. Change the view, lens, frame or name, then Update selected. Save as new keeps a separate angle. Drag to orbit (upward to lower the camera), pinch to zoom, or use two fingers to pan.</p>
 <p class="hint">Camera positions are saved on this website across devices.</p>
 <dialog id="camera-delete-dialog" aria-labelledby="camera-delete-title" aria-describedby="camera-delete-description"><h2 id="camera-delete-title">Delete camera position?</h2><p id="camera-delete-description"></p><p class="hint">This removes the saved angle across devices. You can restore it later under Deleted angles.</p><div class="dialog-actions"><button type="button" id="camera-delete-cancel" autofocus>Cancel</button><button type="button" id="camera-delete-confirm">Delete position</button></div></dialog>
 <details id="camera-deleted" hidden><summary>Deleted angles <span>+</span></summary><div id="camera-deleted-list"></div></details>`;

@@ -3,7 +3,7 @@ import {saveWorkspace} from './workspace-state.js';
 export function installWorkspaceSession(api,saved){
   let restoring=!!saved,timer,interacted=false;
   const controls=document.querySelector('.controls');
-  function capture(){return {version:1,mode:api.state.mode,design:api.state,stage:api.getGuideStage(),camera:{position:api.camera.position.toArray(),target:api.orbit.target.toArray(),...api.lens.get()},scrollY:window.scrollY,panelScroll:controls.scrollTop,openDetails:[...document.querySelectorAll('details[id][open]')].map(d=>d.id)};}
+  function capture(){return {version:1,jackViewRevision:1,mode:api.state.mode,design:api.state,stage:api.getGuideStage(),camera:{position:api.camera.position.toArray(),target:api.orbit.target.toArray(),...api.lens.get()},scrollY:window.scrollY,panelScroll:controls.scrollTop,openDetails:[...document.querySelectorAll('details[id][open]')].map(d=>d.id)};}
   function persist(){if(restoring)return;clearTimeout(timer);saveWorkspace(capture());}
   function soon(){if(restoring)return;clearTimeout(timer);timer=setTimeout(persist,120);}
   // Mode changes and every guide step save immediately; camera/scroll updates are batched.

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {normalizeWorkspace,readWorkspace,saveWorkspace,workspaceKey} from '../public/workspace-state.js';
 import {installWorkspaceSession} from '../public/workspace-session.js';
 const design={height:120,angle:60,wallColor:'#34383b',platformShape:'angled',platformAngle:70,platformBack:24,platformSide:18,platformColor:'#34383b',floor:'wood',floorColor:'#34383b',figures:'rap',figureScale:1.1,clothing:{rapper:{shirt:'#112233',pants:'#445566'}}};
-const saved={version:1,mode:'build',stage:17,design,scrollY:427,panelScroll:0,openDetails:['cut-details'],camera:{position:[1,2,3],target:[0,1,0],on:false,mm:50,ratio:'16:9'}};
+const saved={version:1,jackViewRevision:1,mode:'build',stage:17,design,scrollY:427,panelScroll:0,openDetails:['cut-details'],camera:{position:[1,2,3],target:[0,1,0],on:false,mm:50,ratio:'16:9'}};
 function storage(initial={}){const values=new Map(Object.entries(initial));return {getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v),values};}
 test('Workspace preserves each tab, stable build stage, full design, lens and reading position',()=>{
  const store=storage();for(const mode of ['finished','build','pricing','cameras']){assert.equal(saveWorkspace({...saved,mode},store),true);assert.deepEqual(readWorkspace(design,store),{...saved,mode});}
@@ -27,3 +27,5 @@ test('Stage/mode actions persist before backgrounding; startup restores without 
  api.setMode('cameras');assert.equal(readWorkspace(design,store).mode,'cameras');win.scrollY=611;doc.visibilityState='hidden';doc.dispatchEvent(new Event('visibilitychange'));assert.equal(readWorkspace(design,store).scrollY,611);
  }finally{for(const key of ['window','document','history','localStorage','requestAnimationFrame'])delete globalThis[key];}
 });
+
+test('Old upside-down jack views reset without losing their build step, design or scroll',()=>{const old=normalizeWorkspace({...saved,stage:14,jackViewRevision:0});assert.equal(old.camera,null);assert.equal(old.stage,14);assert.equal(old.scrollY,saved.scrollY);assert.deepEqual(old.design,saved.design);assert.deepEqual(normalizeWorkspace({...saved,stage:14}).camera,saved.camera);assert.deepEqual(normalizeWorkspace({...saved,stage:17,jackViewRevision:0}).camera,saved.camera);});

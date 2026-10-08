@@ -3,7 +3,7 @@ import {stepFasteners} from './step-fasteners.js';
 import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,slab,dispose,grain} from './model.js';
 import {floorArea} from './pricing-calc.js';
 import {platformPlan,platformCuts,PLATFORM,legLength,sillLegLength,rimBottom,inches} from './platform.js';
-import {benchPanelPose} from './guide-orientation.js';
+import {benchPanelPose,jackBenchDirection} from './guide-orientation.js';
 const $=s=>document.querySelector(s);
 export function cutRows(h){const tall=h===120,rows=[
 [2,'Outer stiles',`${tall?'1×6':'1×4'} · cut to ${h}″`,tall?'Cut each 12′ board to 10′ (120″).':'Use 8′ boards; finished length 96″.'],
@@ -11,7 +11,7 @@ export function cutRows(h){const tall=h===120,rows=[
 [3,'Toggles',`${tall?'1×3':'1×2'} · cut to 46½″`,'Centers: 24″, 48″, 72″']];
 if(tall)rows.push([1,'Skin seam backer','1×4 · cut to 46½″','Lay the wide face against the skin; center 96″ above bottom']);
 rows.push([1,'Lower skin','⅛″ plywood · 4′ × 8′ sheet','Use the full sheet']);if(tall)rows.push([1,'Upper skin','⅛″ plywood · cut to 48″ × 24″','Joint centered on the seam backer']);
-rows.push([2,'Jack uprights',`1×4 · cut to ${tall?'92½':'68½'}″`,'Sit on the jack feet'],[2,'Jack feet',`1×4 · cut to ${tall?48:36}″`,'Stand boards on edge'],[2,'Diagonal blanks',`1×4 · cut ${tall?112:84}″ blanks`,`Scribe ends to the jack layout; finished outer edge ≈ ${tall?'107 5/16':'80½'}″`],[2,'Corner gussets','½″ plywood · 8″ × 8″ triangles','Inboard face, lower front corner'],[2,'Shelf crossbars','2×4 · cut to 46½″','Lay boards flat'],[1,'Ballast shelf','½″ plywood · cut to 46½″ × 12″','Centered on jack feet'],[12,'Jack attachment screws','#8 × 1¼″ flat-head wood screws','Six per jack; heads flush. Shared pack with diagonal and seam screws.']);return rows;}
+rows.push([2,'Jack uprights',tall?'1×4 · full 8′ board (96″)':'1×4 · cut to 72″','Run from the floor to the top of the jack'],[2,'Jack feet',`1×4 · cut to ${tall?'44½':'32½'}″`,'Butt against the rear edge of the upright; bottoms flush'],[2,'Diagonal blanks',`1×4 · cut ${tall?112:84}″ blanks`,`Scribe ends to the jack layout; finished outer edge ≈ ${tall?'107 5/16':'80½'}″`],[2,'Corner gussets','½″ plywood · 8″ × 8″ triangles','Inboard face, lower front corner'],[2,'Shelf crossbars','2×4 · cut to 46½″','Lay boards flat'],[1,'Ballast shelf','½″ plywood · cut to 46½″ × 12″','Centered on jack feet'],[12,'Jack attachment screws','#8 × 1¼″ flat-head wood screws','Six per jack; heads flush. Shared pack with diagonal and seam screws.']);return rows;}
 
 export function steps(h,floor,cfg={}){let d=design(h),items=[
 [0,'Cut and label the parts','Use the lumber names and exact cut lengths in the cut list. Mark the skin-facing edge of each board, allow for saw kerf, and reject warped or split stock.',h===120?'10′ version: 120″ solid stiles, deeper cross-members, a supported skin joint and 96″ × 48″ jacks.':'8′ version: 96″ stiles; 46½″ cross-members; one full plywood sheet.','cuts'],
@@ -27,10 +27,10 @@ items.push([9,'Glue and screw the frame','Glue each butt joint. Predrill through
 [10,'Position the main skin','Roll the joined frame over sideways onto level supports so its skin-facing edges face up. Keep the top end pointing away from you. Spread wood glue along every frame contact. Lay the 48″ × 96″ skin on the frame, flush with the bottom and both side edges.','⅛″ lauan plywood; keep the face flat while glue cures.','front']);
 if(h===120)items.push([11,'Add the upper 2′ skin','Butt the 48″ × 24″ cap to the lower sheet at 96″. Both edges land on the wide backer; no unsupported plywood joint.','2′ cap spans 96″–120″ above the bottom.','front']);
 items.push([12,'Staple the skin','Fasten while the glue cures. Keep staples centered on the frame edges, about 4″ apart. Test air pressure on scrap so crowns do not cut through the veneer.','½″ narrow-crown staples. Lime markers show centers, enlarged for visibility.','front'],
-[13,'Lay out both jack feet','Lay the parts for two mirrored jacks on a flat bench, with their inboard faces up. Align the feet as shown; their 3½″ edges will stand upright when installed.',`2 pieces · 1×4 · cut to ${d.foot}″`,'back'],
-[14,'Add the jack uprights','With each jack still lying on its side, fit the upright against the front of the foot. Clamp the two pieces at a true right angle.',`2 pieces · 1×4 · cut to ${d.jackH-3.5}″. Overall jack height ${d.jackH}″.`,'back'],
+[13,'Lay out both jack feet','Lay the parts for two mirrored jacks on a flat bench, with their inboard faces up. Stand the feet on edge when installed. Leave room at the front for the full-height upright; both pieces meet the floor.',`2 pieces · 1×4 · cut to ${h===120?'44½':'32½'}″. Overall jack depth stays ${d.foot}″ including the upright.`,'back'],
+[14,'Add the jack uprights','With each jack lying on its side, run the upright all the way to the floor line. Butt the shorter foot against its rear edge with their bottom edges flush. Clamp the joint square.',`2 pieces · 1×4 · ${h===120?'use the full 8′ boards (96″); no length cut':'cut to 72″'}. Overall jack height ${d.jackH}″.`,'back'],
 [15,'Fit and fasten the diagonals','Lay each diagonal on the inboard face. Align its outer edge from the top-front corner to the bottom-rear toe. Scribe both ends, trim, glue the overlaps and predrill the screws.',`Start with ${h===120?'112':'84'}″ blanks. Two #8 × 1¼″ screws at each diagonal end; 8 total.`,'back'],
-[16,'Add the corner gussets','Glue one triangular gusset over each foot/upright joint on the inboard face, clear of the diagonal. Predrill and screw it to both members.','½″ plywood; cut triangles with 8″ legs. Six #8 × 1″ screws per gusset.','back'],
+[16,'Add the corner gussets','Glue one triangular gusset over each foot/upright joint on the inboard face, clear of the diagonal. Predrill and use three screws into the upright and three into the foot.','½″ plywood; cut triangles with 8″ legs. Six #8 × 1″ screws per gusset.','back'],
 [17,'Screw the jacks to the flat','With a helper, hold the flat upright and clamp each completed jack against its stile. Use sound wood at every screw location. Drill clearance through the stile only, then a pilot into the jack upright. Drive from the outside of the stile, with heads just flush so adjacent flats can touch. Do not use nails or staples for this connection.',`Twelve #8 × 1¼″ flat-head wood screws: six per jack at ${d.attachmentHeights.join('″, ')}″. Axis ${d.attachmentDepth}″ behind the skin rear face. Use the specified 1× lumber; keep the screw heads flush and avoid over-countersinking.`,'back'],
 [18,'Tie the jack feet together','Lay both shelf crossbars flat across the two feet. Predrill down into the center of each foot edge and fasten at all four crossings.',`2 crossbars · 2×4 · cut to 46½″. Four #8 × 2½″ screws. Shelf zone: ${d.foot/2-6}″–${d.foot/2+6}″ from jack front.`,'back'],
 [19,'Screw down the shelf','Place the plywood shelf across the bars. Drive six screws into each bar, with their heads flush.','½″ plywood shelf · cut to 46½″ × 12″; twelve #8 × 1″ screws.','back'],
@@ -77,7 +77,7 @@ const checks=[
 'The joint lands on the backer, with both skin edges fully supported.',
 'Staples sit flush without cutting the veneer. Keep the face flat during curing.',
 'You have a left and right jack, both lying with their inboard faces up.',
-'Each upright meets its foot at 90°. Keep the parts clamped while fitting the diagonal.',
+'The upright and foot bottoms are flush, and the foot butts against the upright at 90°. Keep them clamped while fitting the diagonal.',
 'Both diagonals fit their overlaps and have two screws at each end.',
 'Each gusset clears the diagonal and is fastened to both members.',
 'Six flush wood-screw heads per jack; no protruding tips or split wood. Keep the panel supported.',
@@ -115,7 +115,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   if(S.mode!=='build'||!bounds)return;
   const st=all[S.step],stage=st.stage,b=focused&&!detailBounds.isEmpty()?detailBounds:bounds;
   const center=b.getCenter(new T.Vector3());
-  let direction=stage<=16?[0,1,.32]:stage<=20?[-.42,.6,-1]:st.view==='top'?[0,1,.001]:st.view==='front'?[.12,.35,1]:[-.2,.45,-1];
+  let direction=stage>=13&&stage<=16?jackBenchDirection():stage<=16?[0,1,.32]:stage<=20?[-.42,.6,-1]:st.view==='top'?[0,1,.001]:st.view==='front'?[.12,.35,1]:[-.2,.45,-1];
   if(focused&&stage===9)direction=[-1,.6,.4];
   if(st.section==='platform'&&st.view!=='top')direction=[.3,.75,1];
   if(view==='top')direction=[0,1,.001];else if(view==='front')direction=[.15,.45,1];else if(view==='back')direction=[-.25,.45,-1];

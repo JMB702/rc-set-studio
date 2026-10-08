@@ -16,7 +16,8 @@ function ids(name,height){
  if(/lauan/.test(name))return ['skin','wallPrimer','wallPaint','wallSeams'];
  if(/Frame screw|Seam backer screw/.test(name))return ['frameScrews'];
  if(/Skin staple/.test(name))return ['staples'];
- if(/jack foot|diagonal/.test(name))return [height===120?'board14long':'board14','glue'];
+ if(/jack foot/.test(name))return ['board14','glue'];
+ if(/diagonal/.test(name))return [height===120?'board14long':'board14','glue'];
  if(/jack upright/.test(name))return ['board14','glue'];
  if(/gusset/.test(name))return ['shelf','glue'];
  if(/Jack attachment screw/.test(name))return ['lapScrews'];

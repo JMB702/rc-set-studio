@@ -266,7 +266,7 @@
         "2 \u00d7 96 in stiles \u00b7 1\u00d74 on edge",
         "5 \u00d7 46.5 in rails/toggles \u00b7 1\u00d72 on edge",
         "1 \u00d7 48\u00d796 in facing",
-        "Jacks: 2 \u00d7 68.5 in uprights; 2 \u00d7 36 in feet; 2 \u00d7 84 in diagonal blanks, fitted to layout",
+        "Jacks: 2 \u00d7 72 in uprights; 2 \u00d7 32.5 in feet (butt behind the uprights, bottoms flush); 2 \u00d7 84 in diagonal blanks, fitted to layout",
         "Shelf: 2 \u00d7 46.5 in 2\u00d74 bars; 46.5\u00d712 in plywood; two 8\u00d78 in triangular gussets",
         "Jack attachment: 12 \u00d7 #8 \u00d7 1\u00bc in flat-head wood screws, six per jack; plus 8 of the same screws for diagonal laps (20 per panel before joining seams)."
       ]
@@ -281,8 +281,8 @@
         "staples": 144
       },
       "supportRequirements": {
-        "board14": 2,
-        "board14long": 3,
+        "board14": 3,
+        "board14long": 2,
         "crossbar": 1,
         "shelf": 1,
         "shortScrews": 24,
@@ -296,7 +296,7 @@
         "5 \u00d7 46.5 in rails/toggles \u00b7 1\u00d73 on edge",
         "1 \u00d7 46.5 in seam backer \u00b7 1\u00d74 laid flat, 3.5 in vertical, centered at 96 in",
         "Facing: 48\u00d796 in lower + 48\u00d724 in upper per panel",
-        "Jacks: 2 \u00d7 92.5 in uprights from 8 ft boards; 2 \u00d7 48 in feet from one 10 ft board; 2 \u00d7 112 in diagonal blanks from two 10 ft boards, fit to layout",
+        "Jacks: 2 \u00d7 96 in uprights using full 8 ft boards; 2 \u00d7 44.5 in feet from one 8 ft board (butt behind the uprights, bottoms flush); 2 \u00d7 112 in diagonal blanks from two 10 ft boards, fit to layout",
         "Shelf: 2 \u00d7 46.5 in 2\u00d74 bars; 46.5\u00d712 in plywood; two 8\u00d78 in triangular gussets",
         "Jack attachment: 12 \u00d7 #8 \u00d7 1\u00bc in flat-head wood screws, six per jack; plus 8 of the same screws for diagonal laps (20 per panel before joining seams)."
       ]
@@ -396,5 +396,5 @@
       }
     ]
   },
-  "designRevision": "2026-10-07-screw-only-jacks"
+  "designRevision": "2026-10-08-full-length-jack-uprights"
 }

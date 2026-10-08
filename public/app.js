@@ -60,3 +60,6 @@ const ctx=document.modelContext;if(ctx?.registerTool){const controller=new Abort
 
 import {installComments} from './comments.js';
 installComments(window.__studio);
+
+import {installCutPreview} from './cut-preview.js';
+installCutPreview(window.__studio);

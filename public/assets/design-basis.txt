@@ -119,3 +119,9 @@ primer, two coats BEHR Porch & Patio floor paint in the floor color.
 The top is walked on, but this is a scenic prototype, not a rated stage
 deck: no load rating is claimed. Test the finish on a mockup; seams can
 crack if modules move. Quantities in public/platform.js and pricing-calc.js.
+
+VIEWER CONVENTIONS
+Cut-list selection highlights matching installed parts and offsets them toward
+the viewer for inspection; this is not a change to assembly geometry or cut
+lengths. Return to model clears the inspection. Frame-side-up and skin-side-up
+bench steps keep the panel top at the same far end; turn it over sideways.

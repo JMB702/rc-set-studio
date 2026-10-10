@@ -1,0 +1,16 @@
+WALL FINISH APPEARANCE — researched October 10, 2026
+
+Substrate: the project's thin lauan plywood wall skins, with vertical veneer grain.
+
+Research:
+- Theatre on a Shoestring, "Covering Wall Seams" (Laurie Swigart, December 7, 2020): scenic guidance specifically discusses lauan and thin filler application, leaving the wood visible through a haze at the feathered joint edges.
+  https://www.upstagereview.org/post/covering-wall-seams
+- USG's UltraLightweight Joint Compound sheet describes progressive feathering and sanding. Its substrate/application specification is for gypsum panels, not approval for direct application to our lauan.
+  https://www.usg.com/content/dam/USG/pdpmovedocuments/sheetrock-ultralightweight-all-purpose-joint-compound-submittal-en-J2051.pdf
+- Rosco FoamCoat documentation lists primed wood as a substrate and calls for compatible preparation. This reinforces that product and substrate compatibility remain specific to the coating selected.
+  https://us.rosco.com/en/product/foamcoat
+
+Visual implementation:
+Stable, small tone and grain-offset differences distinguish each lower sheet and top extension. Grain remains vertical at the existing physical scale. The unpainted filled-joint state shows matte off-white bands with irregular feathered edges; plywood stays visible between them. The bands follow the five straight joins, both inside corners, and the 8-foot-high sheet join on 10-foot flats. No horizontal sheet join is invented on 8-foot flats. Unexposed backs and free outer wing edges remain raw.
+
+Band width and tool marks are illustrative appearance choices, not construction tolerances. This update does not select a plaster/filler product, change quantities/prices, or claim that ordinary drywall compound is suitable for bare plywood. Existing seam-system specification and preparation requirements still apply.

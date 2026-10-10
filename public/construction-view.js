@@ -22,7 +22,8 @@ export function installConstructionView(api){
  function finishMaterial(base,part,result){const ghost=!result.assembled,finish=result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish);if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();materials.set(key,m);}
   const oldMap=m.map,oldTransparent=m.transparent;m.copy(base);
   if(ghost){m.color.set('#929c96');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.16,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
-  else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){m.color.copy(mats.ply.color);m.map=mats.ply.map;}
+  else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.ply;m.color.copy(raw.color);m.map=raw.map;}
+  else if(finish==='seams'&&part.kind==='wallSkin'){m.color.set(0xffffff);m.map=(api.state.height===120?mats.wallSeams10:mats.wallSeams8).map;m.roughness=1;}
   else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
   else if(finish==='primer'||finish==='skim'){m.map=null;m.color.set(finish==='primer'?'#e3e0d8':'#cfcbc0');}
   if(oldMap!==m.map||oldTransparent!==m.transparent)m.needsUpdate=true;
@@ -35,7 +36,7 @@ export function installConstructionView(api){
   api.scene.traverseVisible(o=>{if(!o.isMesh||!o.material||Array.isArray(o.material)||o.userData.guideDecoration)return;let part=o.userData.progress;
    if(!part&&o.name==='Floor')part={kind:'floor'};
    if(!part)return;part={...part,panel:part.panel??inheritedPanel(o)};
-   const result=projectPartStatus(part,tracking),base=o.material;
+   const preview=o.userData.wallFinishPreview&&['build','pricing'].includes(api.state.mode),result=preview?{assembled:true,finish:o.userData.wallFinishPreview}:projectPartStatus(part,tracking),base=o.material;
    restored.push([o,'material',base],[o,'castShadow',o.castShadow],[o,'receiveShadow',o.receiveShadow]);o.material=finishMaterial(base,part,result);if(!result.assembled)o.castShadow=o.receiveShadow=false;
   });
  };

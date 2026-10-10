@@ -1,3 +1,4 @@
+import {makeWallAtlas} from './wall-appearance.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 import {footprint,platformPlan,PLATFORM,legLength,rimBottom} from './platform.js';
@@ -5,11 +6,14 @@ import {jackLayout} from './jack-layout.js';
 import {jackAttachment} from './jack-attachment.js';
 export const inch=.0254;
 export const design=h=>({h,w:48,railDepth:h===120?2.5:1.5,...jackLayout(h),stileDepth:h===120?5.5:3.5,jackStart:h===120?3.75:1.75,...jackAttachment(h)});
-const loader=new T.TextureLoader(),pine=loader.load('assets/pine-framing.webp'),oak=loader.load('assets/oak-floor.webp'),lauan=loader.load('assets/lauan-plywood.webp');for(let m of [pine,oak,lauan]){m.colorSpace=T.SRGBColorSpace;m.wrapS=m.wrapT=T.RepeatWrapping;m.anisotropy=4;}
-export const mats={wood:new T.MeshStandardMaterial({map:pine,color:0xdfc7a6,roughness:.83}),ply:new T.MeshStandardMaterial({map:lauan,color:0xffffff,roughness:.96}),charcoal:new T.MeshStandardMaterial({color:0x34383b,roughness:.88}),metal:new T.MeshStandardMaterial({color:0x899393,roughness:.4,metalness:.65}),bag:new T.MeshStandardMaterial({color:0x8c7555,roughness:1}),strap:new T.MeshStandardMaterial({color:0x242e31}),highlight:new T.MeshStandardMaterial({color:0xb2e46d,emissive:0x416a15,emissiveIntensity:.14}),floor:new T.MeshStandardMaterial({map:oak,color:0xc6ae8a,roughness:.84}),floorGray:new T.MeshStandardMaterial({color:0x3c4041,roughness:.94}),platform:new T.MeshStandardMaterial({color:0x34383b,roughness:.9})};
+const wallRawMap=new T.Texture(),wallSeams8Map=new T.Texture(),wallSeams10Map=new T.Texture();
+for(const map of [wallRawMap,wallSeams8Map,wallSeams10Map]){map.colorSpace=T.SRGBColorSpace;map.wrapS=map.wrapT=T.RepeatWrapping;map.repeat.set(1/8,.8);map.anisotropy=4;}
+function loadWallMaps(source){for(const [map,height,seams]of [[wallRawMap,120,false],[wallSeams8Map,96,true],[wallSeams10Map,120,true]]){map.image=makeWallAtlas(source.image,{height,seams});map.needsUpdate=true;}}
+const loader=new T.TextureLoader(),pine=loader.load('assets/pine-framing.webp'),oak=loader.load('assets/oak-floor.webp'),lauan=loader.load('assets/lauan-plywood.webp',loadWallMaps);for(let m of [pine,oak,lauan]){m.colorSpace=T.SRGBColorSpace;m.wrapS=m.wrapT=T.RepeatWrapping;m.anisotropy=4;}
+export const mats={wallRaw:new T.MeshStandardMaterial({map:wallRawMap,color:0xffffff,roughness:.96}),wallSeams8:new T.MeshStandardMaterial({map:wallSeams8Map,color:0xffffff,roughness:1}),wallSeams10:new T.MeshStandardMaterial({map:wallSeams10Map,color:0xffffff,roughness:1}),wood:new T.MeshStandardMaterial({map:pine,color:0xdfc7a6,roughness:.83}),ply:new T.MeshStandardMaterial({map:lauan,color:0xffffff,roughness:.96}),charcoal:new T.MeshStandardMaterial({color:0x34383b,roughness:.88}),metal:new T.MeshStandardMaterial({color:0x899393,roughness:.4,metalness:.65}),bag:new T.MeshStandardMaterial({color:0x8c7555,roughness:1}),strap:new T.MeshStandardMaterial({color:0x242e31}),highlight:new T.MeshStandardMaterial({color:0xb2e46d,emissive:0x416a15,emissiveIntensity:.14}),floor:new T.MeshStandardMaterial({map:oak,color:0xc6ae8a,roughness:.84}),floorGray:new T.MeshStandardMaterial({color:0x3c4041,roughness:.94}),platform:new T.MeshStandardMaterial({color:0x34383b,roughness:.9})};
 export function grain(g,dims,seed=0){let p=g.attributes.position,uv=g.attributes.uv,axis=dims.indexOf(Math.max(...dims));for(let i=0;i<p.count;i++){let a=[p.getX(i),p.getY(i),p.getZ(i)];uv.setXY(i,a[axis]/(inch*48)+seed*.17,(a[(axis+1)%3]+a[(axis+2)%3])/(inch*12)+seed*.113);}return g;}
 // Plywood grain stays vertical on full sheets and the wide upper extension.
-export function panelGrain(g){const p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,p.getX(i)/(48*inch),p.getY(i)/(96*inch));return g;}
+export function panelGrain(g,offset=0){const p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,p.getX(i)/(48*inch)+offset,p.getY(i)/(96*inch));return g;}
 function mesh(G,id,g,mat,step){let o=new T.Mesh(g,mats[mat]);o.name=id;o.userData={mat,step,commentKey:id+'-'+G.children.filter(c=>c.name===id).length};if(step>=1&&step<=12)o.userData.progress={kind:step>=10?'wallSkin':'panel'};
 if(step>=13&&step<=17){g.computeBoundingBox();o.userData.progress={kind:'jack',side:(g.boundingBox.min.x+g.boundingBox.max.x)/2<24*inch?0:1};}
 if(step>=18&&step<=20)o.userData.progress={kind:'bracing'};
@@ -17,10 +21,10 @@ o.castShadow=o.receiveShadow=true;G.add(o);return o;}
 export function box(G,id,x,z,y,w,d,h,mat='wood',step=0){let g=grain(new T.BoxGeometry(w*inch,h*inch,d*inch),[w,h,d],id.length);g.translate((x+w/2)*inch,(y+h/2)*inch,-(z+d/2)*inch);return mesh(G,id,g,mat,step);}
 function prism(G,id,x,w,p,step,mat='wood'){let s=new T.Shape();p.forEach(([z,y],i)=>i?s.lineTo(-z*inch,y*inch):s.moveTo(-z*inch,y*inch));s.closePath();let g=new T.ExtrudeGeometry(s,{depth:w*inch,bevelEnabled:false});g.rotateY(-Math.PI/2);g.translate(x*inch,0,0);grain(g,[w,96,48],x);return mesh(G,id,g,mat,step);}
 function pin(G,id,x,z,y,axis,step,r=.24,l=.06){let g=new T.CylinderGeometry(r*inch,r*inch,l*inch,8);if(axis==='x')g.rotateZ(Math.PI/2);if(axis==='z')g.rotateX(Math.PI/2);g.translate(x*inch,y*inch,-z*inch);let m=mesh(G,id,g,'metal',step);m.userData.fastener=true;return m;}
-export function panel(h=96,{jacks=true,skin=true}={}){let G=new T.Group(),D=design(h);box(G,'Left stile',0,.106,0,.75,D.stileDepth,h,'wood',1);box(G,'Right stile',47.25,.106,0,.75,D.stileDepth,h,'wood',2);box(G,'Bottom rail',.75,.106,0,46.5,D.railDepth,.75,'wood',3);box(G,'Top rail',.75,.106,h-.75,46.5,D.railDepth,.75,'wood',4);
+export function panel(h=96,{jacks=true,skin=true,appearance=0}={}){let G=new T.Group(),D=design(h);box(G,'Left stile',0,.106,0,.75,D.stileDepth,h,'wood',1);box(G,'Right stile',47.25,.106,0,.75,D.stileDepth,h,'wood',2);box(G,'Bottom rail',.75,.106,0,46.5,D.railDepth,.75,'wood',3);box(G,'Top rail',.75,.106,h-.75,46.5,D.railDepth,.75,'wood',4);
 [24,48,72].forEach((y,i)=>box(G,`Toggle ${y}″`,.75,.106,y-.375,46.5,D.railDepth,.75,'wood',5+i));if(h===120)box(G,'Wide skin-seam backer',.75,.106,94.25,46.5,.75,3.5,'wood',8);
 for(let y of [.375,24,48,72,h-.375])for(let x of [.006,47.994])pin(G,'Frame screw',x,.856,y,'x',9,.13);if(h===120)for(let x of [.006,47.994])for(let y of [95,97])pin(G,'Seam backer screw',x,.481,y,'x',9,.13);
-if(skin){panelGrain(box(G,'Lower lauan skin',0,0,0,48,.106,96,'ply',10).geometry);if(h===120)panelGrain(box(G,'Upper lauan skin',0,0,96,48,.106,24,'ply',11).geometry);}
+if(skin){panelGrain(box(G,'Lower lauan skin',0,0,0,48,.106,96,'wallRaw',10).geometry,appearance);if(h===120)panelGrain(box(G,'Upper lauan skin',0,0,96,48,.106,24,'wallRaw',11).geometry,appearance);}
 for(let x of [.375,47.625])for(let y=2;y<h;y+=4)pin(G,'Skin staple',x,-.015,y,'z',12,.06,.025);for(let y of [.375,24,48,72,h-.375,...(h===120?[95,97]:[])])for(let x=2;x<48;x+=4)pin(G,'Skin staple',x,-.015,y,'z',12,.06,.025);
 if(jacks){for(let [side,x,dx] of [['Left',.75,2.25],['Right',46.5,46.5]]){let start=D.jackStart+.106;box(G,side+' jack foot',x,start+D.jackBoardWidth,0,.75,D.jackFootLength,D.jackBoardWidth,'wood',13);box(G,side+' jack upright',x,start,0,.75,D.jackBoardWidth,D.jackUprightLength,'wood',14);let off=3.5*Math.sqrt(D.jackH**2+D.foot**2)/D.foot;prism(G,side+' diagonal',dx,.75,[[start,D.jackH],[start+D.foot,0],[start+D.foot-off*D.foot/D.jackH,0],[start,D.jackH-off]],15);prism(G,side+' gusset',side==='Left'?1.97:46.5,.47,[[start,0],[start+8,0],[start,8]],16,'ply');
 for(let y of D.attachmentHeights)pin(G,'Jack attachment screw',side==='Left'?.03:47.97,D.attachmentDepth+.106,y,'x',17,.13);
@@ -35,7 +39,8 @@ export function splitSkinFaces(geometry){
  const result={front:make(front),back:make(back)};src.dispose();return result;
 }
 function finishedSkin(group,name,x,w,h,progressPanel){
- const rear=box(group,name,x,-.006,0,w,.112,h,'ply');panelGrain(rear.geometry);const faces=splitSkinFaces(rear.geometry);rear.geometry.dispose();rear.geometry=faces.back;rear.name=name+' — exposed plywood back';rear.userData.commentKey=name+'-rear';
+ const offset=name.includes('left')||name.includes('right')?6:0;
+ const rear=box(group,name,x,-.006,0,w,.112,h,'wallRaw');panelGrain(rear.geometry,offset);const faces=splitSkinFaces(rear.geometry);rear.geometry.dispose();rear.geometry=faces.back;rear.name=name+' — exposed plywood back';rear.userData.commentKey=name+'-rear';
  const front=mesh(group,name,faces.front,'charcoal',0);front.userData.paintedSide='front';rear.userData.paintedSide='none';
  if(progressPanel===undefined){front.userData.completeOnly=rear.userData.completeOnly=true;const base=name.includes('left')?4:name.includes('right')?6:0;for(let i=0;i<w/48;i++)finishedSkin(group,name+' · panel '+(i+1),x+i*48,48,h,base+i);}
  else{front.userData.progressOnly=rear.userData.progressOnly=true;front.visible=rear.visible=false;front.userData.progress={kind:'wallSkin',panel:progressPanel,front:true};rear.userData.progress={kind:'wallSkin',panel:progressPanel,front:false};}

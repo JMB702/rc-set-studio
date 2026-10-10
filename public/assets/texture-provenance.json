@@ -43,5 +43,12 @@
       ],
       "notes": "Pale low-contrast gray-beige lauan approximation. Lighting, framing, pencil lines and sheet edges intentionally omitted."
     }
-  ]
+  ],
+  "runtimeWallAppearance": {
+    "generator": "public/wall-appearance.js",
+    "variation": "Stable offsets and subtle tones for sixteen lower/upper sheet appearances; veneer stays vertical.",
+    "finish": "Geometry-aligned, feathered off-white seam bands composed over the original lauan texture; no external photograph is redistributed.",
+    "research": "public/assets/wall-finish-notes.txt",
+    "notes": "Illustrative appearance only; unchanged material quantities and unresolved seam product specifications."
+  }
 }

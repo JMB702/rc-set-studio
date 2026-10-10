@@ -98,3 +98,5 @@ Measure the actual floor-to-deck height (about 10 inches) and trim to fit.
 Butt joints land on existing legs; corner ends include a trim allowance.
 Default square layout: 6 side pieces instead of 12. Default angled: 12 instead of 19.
 Cut lengths, stock packing, staples and joint tape follow these pieces; no bottom-edge tape.
+
+Project tracking omits the decorative heading, manual refresh and assembly-count card (stored counts remain intact). Visible viewers check shared tracking revisions every three seconds, retry after connection failures and refresh on focus. Polls pause during edits, dialogs, saves and drags; stale responses are discarded. The progress hero contracts into a sticky summary on scroll, below the mobile 3D preview. No material or pricing changes.

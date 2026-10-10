@@ -521,3 +521,9 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 #guide-step-done{width:20px;height:20px;accent-color:#476b35;flex-shrink:0}
 #guide-save-status{display:block;font-size:11px;line-height:1.4;color:#6b7e60;margin-top:5px}
 #guide-save-status:empty{display:none}
+/* Desktop guide navigation stays in one place, independent of instruction length. */
+@media(min-width:851px){
+ .building .controls{padding-bottom:112px}
+ .building .step-buttons{position:fixed;left:auto;right:0;bottom:0;width:370px;z-index:18;margin:0;padding:12px 25px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #d8e1d1;background:#fafbf8f5;backdrop-filter:blur(12px);box-shadow:0 -6px 20px #17202408}
+}
+@media(min-width:1500px){.building .step-buttons{width:400px;padding-left:32px;padding-right:32px}}

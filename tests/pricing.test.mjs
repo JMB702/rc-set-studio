@@ -77,7 +77,7 @@ test('Platform pricing follows angle and gaps, uses observed prices only, and re
  const rows=priceRows(data,{scope:'set',height:96,angle:45,floor:'none',platformShape:'angled'}),ids=rows.map(r=>r.id);
  for(const id of ['laminate','floorPly','trim','floorFixings'])assert.ok(!ids.includes(id),id);
  for(const id of ['platformLumber','platformDeck','platformFrameScrews','platformDeckScrews','platformSkin','platformCompound','platformPrimer','platformPaint'])assert.ok(ids.includes(id),id);
- const platform=platformRows(data,45);assert.ok(platform.every(r=>Number.isInteger(r.subtotalCents)&&r.purchaseQuantity>0&&r.productUrl.startsWith('https://www.homedepot.com/')));
+ const platform=platformRows(data,45);assert.deepEqual(platform.filter(r=>r.subtotalCents===null).map(r=>r.id),['platformDeckSkim','platformDeckPrimer']);assert.ok(platform.filter(r=>r.subtotalCents!==null).every(r=>Number.isInteger(r.subtotalCents)&&r.purchaseQuantity>0&&r.productUrl.startsWith('https://www.homedepot.com/')));
  const total=a=>summary(platformRows(data,a,12,12)).subtotal;assert.ok(total(0)>total(45)&&total(45)>total(90));
  assert.ok(summary(platformRows(data,45,48,48)).subtotal<summary(platformRows(data,45,0,0)).subtotal);
  assert.equal(platformRows(data,45).find(r=>r.id==='platformLumber').unitPriceCents,data.products.find(p=>p.id==='crossbar').unitPriceCents);
@@ -100,4 +100,12 @@ test('Floor and platform are independent: either, both or neither are priced',()
  const total=(f,p)=>summary(priceRows(data,{scope:'floor',height:96,angle:45,floor:f,platformShape:p})).subtotal;
  assert.equal(total('wood','square'),total('wood','none')+total('none','square'));
  assert.deepEqual(priceRows(data,{scope:'floor',height:96,angle:45,floor:'platform'}).map(r=>r.id),ids('none','angled'),'older floor:"platform" still prices');
+});
+
+test('Platform walking surface uses cement skim while drywall products are fascia-only',()=>{
+ const rows=platformRows(data,45),plan=platformPlan(45,12,12);
+ assert.equal(rows.find(r=>r.id==='platformDeckSkim').productUrl,'https://www.homedepot.com/p/313474246');
+ assert.match(rows.find(r=>r.id==='platformCompound').name,/fascia only/);
+ assert.equal(rows.find(r=>r.id==='platformCompound').purchaseQuantity,Math.ceil((plan.finishArea-plan.deckArea)/60));
+ assert.equal(rows.find(r=>r.id==='platformDeck').purchaseQuantity,plan.deckSheets);
 });

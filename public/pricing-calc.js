@@ -34,13 +34,15 @@ export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,plat
  rows.push(pack('platformStaples',shared('staples'),'Grip-Rite ½ in narrow-crown staples · fascia · 1,000 box',plan.staples,'Fascia to rims, sills and legs at about 4″'));
  rows.push(row('platformGlue',shared('glue'),'Titebond III wood glue · fascia · 16 oz bottle',Math.max(1,Math.ceil(plan.fasciaLength/720)),Math.max(1,Math.ceil(plan.fasciaLength/720)),'Planning allowance: one bottle per 60 ft of fascia'));
  const pads=Math.max(1,Math.ceil(plan.padArea*1.15/216));rows.push(row('platformPads',shared('pads'),'⅛ in neoprene sheet · leg and sill pads',pads,pads,`${plan.counts.fullLegs} leg pads + sill pads every 24″, cut from 6×36 in sheets`));
- const tape=own('platformTape'),bead=own('platformBead'),compound=Math.ceil(finish/60),primer=Math.ceil(finish/300),paint=Math.ceil(finish*2/300);
- rows.push(row('platformTape',tape,tape.name,Math.ceil(plan.tapeLength*1.1/tape.lengthInches),Math.ceil(plan.tapeLength*1.1/tape.lengthInches),`${(plan.tapeLength/12).toFixed(0)} ft of deck seams and fascia joints + 10%`));
- rows.push(row('platformBead',bead,bead.name,Math.ceil(plan.beadLength*1.1/bead.lengthInches),Math.ceil(plan.beadLength*1.1/bead.lengthInches),`${(plan.beadLength/12).toFixed(0)} ft of top edges and outside corners + 10%`));
- rows.push(row('platformCompound',own('platformCompound'),own('platformCompound').name,compound,compound,`Planning at 60 sq ft per bag for two thin skim coats over ${finish.toFixed(0)} sq ft; check on a mockup`));
- rows.push(row('platformPrimer',own('platformPrimer'),own('platformPrimer').name,primer,primer,`One coat over ${finish.toFixed(0)} sq ft, planned at 300 sq ft/gallon on porous compound`));
+ const tape=own('platformTape'),bead=own('platformBead'),compound=Math.ceil((finish-plan.deckArea)/60),primer=Math.ceil((finish-plan.deckArea)/300),paint=Math.ceil(finish*2/300);
+ rows.push(row('platformTape',tape,tape.name,Math.ceil((plan.tapeLength-plan.deckSeamLength)*1.1/tape.lengthInches),Math.ceil((plan.tapeLength-plan.deckSeamLength)*1.1/tape.lengthInches),`${((plan.tapeLength-plan.deckSeamLength)/12).toFixed(0)} ft of vertical fascia joints + 10%; no drywall tape on deck`));
+ rows.push(row('platformBead',bead,bead.name,Math.ceil(plan.fasciaCorners*PLATFORM.height*1.1/bead.lengthInches),Math.ceil(plan.fasciaCorners*PLATFORM.height*1.1/bead.lengthInches),`${(plan.fasciaCorners*PLATFORM.height/12).toFixed(0)} ft of vertical fascia corners + 10%`));
+ rows.push(row('platformCompound',own('platformCompound'),own('platformCompound').name+' · vertical fascia only',compound,compound,`Scenic fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft at 60 sq ft/bag; not for the walking surface`));
+ rows.push(row('platformPrimer',own('platformPrimer'),own('platformPrimer').name,primer,primer,`Fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft, one coat at 300 sq ft/gallon`));
+ rows.push(extra('platformDeckSkim','Rapid Set SKIM FLOOR · platform walking surface',null,null,'313474246',`Plan ${Math.ceil(plan.deckArea*1.1/134)} × 20-lb equivalents at 1/16 inch + 10%; verify retail pack size, yield and price`,'platform'));
+ rows.push(extra('platformDeckPrimer','Cement-compatible deck primer · selection pending',null,null,'https://www.homedepot.com/s/concrete%20floor%20primer','Same primer selection as painted floor; paint-only cement skim wear system unverified','platform'));
  rows.push(row('platformPaint',own('platformPaint'),own('platformPaint').name,paint,paint,`Two coats over ${finish.toFixed(0)} sq ft, planned at 300 sq ft/gallon`));
- return rows;
+ return rows.filter(r=>r.purchaseQuantity!==0);
 }
 // floor: 'none' | 'wood' | 'charcoal'; platformShape: 'none' | 'angled' | 'square'. Floor:'platform' is the older
 // spelling of a platform with no floor under it.

@@ -32,6 +32,7 @@ export function projectSeparateFinishing(input){
   const finish={id:to,name:label,notes:source.steps.length?[]:source.notes,steps};
   if(source.steps.length)data.stages.splice(index+1,0,finish);else data.stages.splice(index,1,finish);
  }
+ for(const source of data.stages)for(const step of source.steps)if(step.id==='platform-skim'&&['Tape, skim and sand','Skim and sand the full surface'].includes(step.name)){edit();data.stages.find(s=>s.id===source.id).steps.find(t=>t.id===step.id).name='Cement-skim deck and finish fascia';}
  return projectUpgradeFloorLayers(data);
 }
 export function projectUpgradeFloorLayers(input){

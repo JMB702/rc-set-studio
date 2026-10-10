@@ -125,11 +125,15 @@ allowance per edge; scribe angled boundaries to the joined frames.
 Decks screwed (#8x2.5 at 6 around deck perimeters, 12 on interior rims and
 joists), not glued. Remove spanning decks and fascia BEFORE separating the frames.
 Frame seams retain #9x3 screws through adjoining rims, about every 12,
-both sides. Tape follows deck-piece seams, not hidden frame joints.
+both sides. Deck joints remain supported by rims or joists; no second deck layer.
 Fascia: 0.106 lauan, 10 tall, glued and stapled to rims, legs and sills.
-Finish: vinyl corner bead on top edges and outside corners, mesh tape on
-deck seams and fascia joints, setting-type compound skim, sand, KILZ 2
-cement-compatible primer and two coats floor paint; double plywood layers and full cement skim.
+Finish: Rapid Set SKIM FLOOR cement skim on the horizontal walking deck,
+planning average 1/16 inch, then selected cement-compatible primer and floor
+paint. No epoxy or polyurethane. User accepts touch-up work; the paint-only
+cement skim system is unverified. On vertical fascia only: mesh tape, scenic
+setting compound, vertical-corner bead, KILZ 2 and matching paint. Do not extend
+the floor skim to vertical lauan or drywall compound onto the deck. Stay assembled
+after finishing; dismantling requires finish repairs. Deck skim/primer prices pending.
 19/32 chosen over 3/4 for weight; framing at 16 centers carries the deck.
 The top is walked on, but this is a scenic prototype, not a rated stage
 deck: no load rating is claimed. Test the finish on a mockup; seams can

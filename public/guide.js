@@ -1,8 +1,9 @@
+import {applyPlatformSeamTexture} from './platform-finish.js';
 import * as T from 'three';
 import {stepFasteners} from './step-fasteners.js';
 import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,slab,dispose,grain} from './model.js';
 import {floorArea} from './pricing-calc.js';
-import {platformPlan,platformCuts,PLATFORM,legLength,sillLegLength,rimBottom,inches} from './platform.js';
+import {platformPlan,platformCuts,footprint,PLATFORM,legLength,sillLegLength,rimBottom,inches} from './platform.js';
 import {benchPanelPose,jackBenchDirection} from './guide-orientation.js';
 const $=s=>document.querySelector(s);
 export function cutRows(h){const tall=h===120,rows=[
@@ -175,7 +176,10 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   // Wall lines snapped on the floor; the walls stand during Full assembly.
   model.add(lines([-96*inch,.003,0,96*inch,.003,0,96*inch,.003,0,(96+c)*inch,.003,sn*inch,-96*inch,.003,0,(-96-c)*inch,.003,sn*inch],0x273e2e));
   if(stage===30){model.add(lines(outlines(plan.modules.map(m=>m.poly),.004)));const pad=new T.Mesh(slab(plan.outline,0,.05),new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}));pad.userData.step=30;model.add(pad);}
-  else if(stage>=36){const m=stage===37?mats.platform.clone():mats.compound.clone();if(stage===37)m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.step=stage;block.userData.completeOnly=true;const detail=platformParts(plan);detail.userData.progressOnly=true;detail.visible=false;model.add(detail);block.castShadow=block.receiveShadow=true;model.add(block);if(stage===36)model.add(lines(outlines(plan.decks.map(x=>x.poly),(PLATFORM.height+.02)*inch),0x9c9888));}
+  else if(stage>=36){
+   if(stage===36){const parts=platformParts(plan);model.add(parts);for(const o of parts.children){o.userData.guideMaterial=true;if(o.userData.step>=34){const mat=o.material.clone();applyPlatformSeamTexture(mat,o.userData.progress,mats.compound.map);o.material=mat;}}}
+   else{const m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.step=stage;block.userData.progress={kind:'platform',stage:35,total:1,module:0};block.userData.guideMaterial=true;block.castShadow=block.receiveShadow=true;model.add(block);}
+  }
   else{
    const parts=platformParts(plan);parts.userData.commentPrefix='Platform';model.add(parts);if(stage===31)parts.position.y=-rimBottom*inch;
    for(const o of [...parts.children]){o.visible=o.userData.step<=stage;if(o.visible&&o.userData.step===stage){outlinePiece(o);const mat=o.material.clone();mat.color.lerp(new T.Color('#c4e698'),.45);o.material=mat;const offset=new T.Vector3(0,.12,0);o.position.copy(offset);animation.push({o,offset});}}
@@ -192,14 +196,19 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   if(sectionOf(stage,S.floor)==='floor')g.visible=false;
   const floorWork=stage>=23&&stage<=27;
   if(stage<27||S.floor==='none')g.traverse(o=>{if(o.name==='Charcoal shoe trim')o.visible=false;});
-  if(stage>=22&&S.platformShape!=='none')model.add(platformFloor(S.angle,S.platformBack,S.platformSide,S.platformAngle));
+  if(stage>=22&&!floorWork&&S.platformShape!=='none')model.add(platformFloor(S.angle,S.platformBack,S.platformSide,S.platformAngle));
   if(stage<28)g.traverse(o=>{if(o.isMesh&&o.material===mats.charcoal)o.material=mats.ply;});
   if(stage>=22&&(S.floor==='wood'||S.floor==='charcoal')){const f=floorMesh(S.angle,floorWork&&stage<25?'charcoal':S.floor,S.floor==='wood'&&stage===25?2:99);
-   if(floorWork&&stage<27)f.traverse(o=>{if(o.isMesh){const old=o.material;o.material=stage===26&&S.floor==='charcoal'?new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}):stage===24&&S.floor==='wood'?new T.MeshStandardMaterial({color:0x798481,roughness:1,side:T.DoubleSide}):stage<25||S.floor==='charcoal'?mats.ply:o.material;if(old!==o.material)old.dispose();}});
+   if(floorWork)f.traverse(o=>{if(!o.isMesh)return;o.userData.guideMaterial=true;const old=o.material;
+    if(S.floor==='charcoal'&&stage<=25){o.material=mats.platformWood.clone();o.material.side=T.DoubleSide;const pos=o.geometry.attributes.position,uv=o.geometry.attributes.uv;for(let i=0;i<pos.count;i++)uv.setXY(i,pos.getZ(i)/(48*inch),pos.getX(i)/(96*inch));
+     if(stage===25){const poly=footprint(S.angle),xs=poly.map(p=>p[0]),lo=Math.min(...xs),hi=Math.max(...xs),seams=[];for(let x=lo+96;x<hi-1e-6;x+=96)seams.push([x,0,x,96]);seams.push([lo,48,hi,48]);applyPlatformSeamTexture(o.material,{seamEdges:seams},mats.compound.map);}
+    }else if(stage===26&&S.floor==='charcoal')o.material=new T.MeshStandardMaterial({color:0xe3e0d8,roughness:1,side:T.DoubleSide});
+    else if(stage===24&&S.floor==='wood')o.material=new T.MeshStandardMaterial({color:0x798481,roughness:1,side:T.DoubleSide});
+    else if(stage<24)o.material=mats.platformWood.clone();
+    if(old!==o.material)old.dispose();
+   });
    model.add(f);
   }
-  if(stage===24&&S.floor==='charcoal'){const lines=[];for(let x=-96;x<=96;x+=48)lines.push(x*inch,.008,0,x*inch,.008,96*inch);for(let z=0;z<=96;z+=48)lines.push(-96*inch,.008,z*inch,96*inch,.008,z*inch);const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(lines,3));model.add(new T.LineSegments(geo,new T.LineBasicMaterial({color:0x5d4427})));}
-  if(stage===25&&S.floor==='charcoal')for(const x of [-48,0,48]){const line=new T.Mesh(new T.BoxGeometry(.018,.004,96*inch),mats.highlight);line.position.set(x*inch,.006,48*inch);model.add(line);}
   if(stage===21)for(const seam of [-48,0,48])for(const h of [12,36,60,84,...(S.height===120?[108]:[])]){const marker=new T.Mesh(new T.SphereGeometry(.026,8,5),mats.highlight);marker.position.set(seam*inch,h*inch,-.85*inch);markers.add(marker);}
   bounds=visibleBounds(model);
   // Floor work is viewed from above; frame the footprint rather than empty wall height.

@@ -651,3 +651,10 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .approval-dock-visible .controls{padding-bottom:100px}
 .approval-latest{font-size:13px;line-height:1.6;color:#52635b;margin:0 0 12px}
 @media(max-width:850px){#approval-dock{padding-left:16px;padding-right:16px}.approval-dock-visible .controls{padding-bottom:calc(100px + env(safe-area-inset-bottom))}}
+
+#approval-dock{flex-direction:column;align-items:stretch;gap:8px}
+#approval-dock #approvals{margin:0;border-top:0;max-height:45dvh;overflow-y:auto;overscroll-behavior:contain}
+#approval-dock #approvals>summary{position:sticky;top:0;background:#fafbf8;min-height:44px;z-index:1}
+.approval-dock-actions{display:flex;gap:10px;align-items:center}
+.approval-dock-actions .approve-button{min-width:0;flex:1}
+.approval-dock-visible .controls{padding-bottom:calc(var(--approval-dock-height,132px) + 24px)}

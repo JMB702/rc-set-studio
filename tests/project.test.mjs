@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
-import {projectDefaultFinance,projectDefaultTracking,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
+import {projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
 const H=3600000,now=Date.now(),shift={id:'shift',personId:'person-1',start:now-1.5*H,end:null,rateCents:2500,note:''};
 test('Live cost changes only at complete hourly boundaries; clock-out includes the exact partial hour',()=>{
  assert.deepEqual(projectShiftCost(shift,now-0.6*H),{hours:0,cents:0});assert.deepEqual(projectShiftCost(shift,now),{hours:1,cents:2500});assert.deepEqual(projectShiftCost(shift,now+0.5*H),{hours:2,cents:5000});assert.deepEqual(projectShiftCost({...shift,end:now},now),{hours:1.5,cents:3750});
@@ -17,8 +17,8 @@ test('Reject overlapping shifts, future times, duplicate records and removal of 
  assert.throws(()=>projectValidate('finance',{...d,shifts:[shift,shift]},now),/Duplicate/);
  const e={id:'a',vendor:'Lumber',amountCents:3200,date:'2026-10-09',note:'',receiptId:'receipt'};assert.throws(()=>projectValidate('finance',{...d,expenses:[e,{...e,id:'b'}]},now),/already recorded/);
 });
-test('Production starts walls, floor, platform; progress includes partial steps and survives reorder',()=>{
- const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Floor','Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:15});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:10,done:1,total:15});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,10);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
+test('Production starts walls, finishing, floor, platform; progress includes partial steps and survives reorder',()=>{
+ const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint','Floor','Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:19});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:8,done:1,total:19});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,8);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
 });
 test('Receipt extraction distinguishes total from subtotal, savings, tender and card numbers',()=>{
  const r=projectParseReceipt('LOCAL HARDWARE\n10/09/2026\nSUBTOTAL 100.00\nTAX 7.00\nTOTAL $107.00\nCASH 120.00\nCHANGE 13.00\nTOTAL SAVINGS 10.00');assert.equal(r.amountCents,10700);assert.equal(r.date,'2026-10-09');assert.equal(r.taxCents,700);assert.equal(r.warning,'');
@@ -55,4 +55,19 @@ test('Receipt data is private, deduplicated and restricted to validated image pa
  assert.deepEqual(await (await r.call('receipts','POST',{...receipt,id:'receipt-b'},cookie)).json(),{id:'receipt-a',duplicate:true});
  assert.equal((await r.call('receipts/receipt-a','GET',null,cookie)).status,200);assert.equal((await r.call('receipts','POST',{...receipt,pages:['data:text/html;base64,evil']},cookie)).status,400);
  const d=await (await r.call('finance','GET',null,cookie)).json();d.data.expenses=[{id:'expense-a',vendor:'Shop',date:'2026-10-09',amountCents:100,note:'note',receiptId:'missing'}];assert.equal((await r.call('finance','PUT',d,cookie)).status,400);
+});
+
+test('Promoting wall finishing preserves custom order, progress and notes and is idempotent',()=>{
+ const data=projectDefaultTracking();data.stages=data.stages.filter(s=>s.id!=='wall-finishing');
+ const walls=data.stages.find(s=>s.id==='walls');walls.steps=walls.steps.filter(t=>t.id!=='walls-4');walls.steps[0].percent=100;
+ const note={id:'note',text:'Use the approved color.',at:Date.now()};walls.steps.push({id:'walls-6',name:'Dress, prime and paint',percent:40,notes:[note]});
+ data.stages.reverse();const updated=projectUpgradeTracking(data),finish=updated.stages.find(s=>s.id==='wall-finishing');
+ assert.deepEqual(updated.stages.map(s=>s.id),['platform','floor','walls','wall-finishing']);assert.deepEqual(finish.notes,[note]);assert.equal(finish.steps.length,5);assert.ok(finish.steps.every(t=>t.percent===40));
+ assert.deepEqual(updated.stages.find(s=>s.id==='walls').steps,walls.steps.slice(0,-1));assert.equal(projectUpgradeTracking(updated),updated);assert.equal(data.stages.length,3);
+});
+test('Existing saved trackers upgrade once with an optimistic revision bump',async()=>{
+ const r=rig(),old=projectDefaultTracking();old.stages=old.stages.filter(s=>s.id!=='wall-finishing');old.stages[0].steps.push({id:'walls-6',name:'Dress, prime and paint',percent:30,notes:[]});
+ r.sqlite.prepare('INSERT INTO project_documents (id,content,revision,updated_at) VALUES (?,?,?,?)').run('tracking',JSON.stringify(old),4,Date.now());
+ const result=await (await r.call('tracking')).json();assert.equal(result.revision,5);assert.equal(result.data.stages[1].name,'Dress, prime and paint');assert.ok(result.data.stages[1].steps.every(s=>s.percent===30));
+ assert.equal((await (await r.call('tracking')).json()).revision,5);
 });

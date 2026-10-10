@@ -62,7 +62,14 @@ async function projectAPI(request,env) {
   if(!['finance','tracking'].includes(path))return json({error:'Not found.'},404);
   const initial=path==='finance'?projectDefaultFinance():projectDefaultTracking();
   await db.prepare('INSERT INTO project_documents (id,content,updated_at) VALUES (?,?,?) ON CONFLICT(id) DO NOTHING').bind(path,JSON.stringify(initial),now).run();
-  const row=await db.prepare('SELECT * FROM project_documents WHERE id=?').bind(path).first();
+  let row=await db.prepare('SELECT * FROM project_documents WHERE id=?').bind(path).first();
+  if(path==='tracking'&&request.method==='GET'){
+   const current=JSON.parse(row.content),upgraded=projectUpgradeTracking(current);
+   if(upgraded!==current){
+    await db.prepare('UPDATE project_documents SET content=?,revision=revision+1,updated_at=? WHERE id=? AND revision=?').bind(JSON.stringify(upgraded),now,path,row.revision).run();
+    row=await db.prepare('SELECT * FROM project_documents WHERE id=?').bind(path).first();
+   }
+  }
   if(request.method==='GET')return json({data:JSON.parse(row.content),revision:row.revision});
   if(request.method!=='PUT')return json({error:'Method not allowed.'},405);
   if(!Number.isSafeInteger(input?.revision)||input.revision<0)return json({error:'Invalid revision.'},400);

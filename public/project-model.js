@@ -4,7 +4,17 @@ export function projectDefaultFinance() {
 }
 export function projectDefaultTracking() {
  const groups=[['walls','Walls',['Cut and label parts','Assemble the frames','Skin the panels','Build and attach jacks','Add shelves and ballast','Join walls and set angles','Dress, prime and paint']],['floor','Floor',['Mark the footprint','Prepare the base','Lay the flooring','Finish and trim']],['platform','Platform',['Cut and frame modules','Fit legs and join modules','Install decks and fascia','Skim, prime and paint']]];
- return {stages:groups.map(([id,name,steps])=>({id,name,notes:[],steps:steps.map((name,i)=>({id:`${id}-${i}`,name,percent:0,notes:[]}))}))};
+ return projectUpgradeTracking({stages:groups.map(([id,name,steps])=>({id,name,notes:[],steps:steps.map((name,i)=>({id:`${id}-${i}`,name,percent:0,notes:[]}))}))});
+}
+// Promote the original wall finishing milestone without resetting customized stages or notes.
+export function projectUpgradeTracking(input) {
+ const wall=input.stages.find(s=>s.id==='walls'),legacy=wall?.steps.find(t=>t.id==='walls-6'&&t.name==='Dress, prime and paint');
+ if(!legacy||input.stages.some(s=>s.id==='wall-finishing'))return input;
+ const data=structuredClone(input),index=data.stages.findIndex(s=>s.id==='walls');
+ data.stages[index].steps=data.stages[index].steps.filter(t=>t.id!==legacy.id);
+ if(!data.stages[index].steps.length)return input;
+ data.stages.splice(index+1,0,{id:'wall-finishing',name:'Dress, prime and paint',notes:structuredClone(legacy.notes),steps:['Dress seams and corners','Fill and feather joints','Sand and clean surfaces','Prime the walls','Paint the walls'].map((name,i)=>({id:`wall-finishing-${i}`,name,percent:legacy.percent,notes:[]}))});
+ return data;
 }
 export function projectStagePercent(stage){return stage.steps.length?Math.round(stage.steps.reduce((n,s)=>n+s.percent,0)/stage.steps.length):0;}
 export function projectProgress(data){const steps=data.stages.flatMap(s=>s.steps);return {percent:steps.length?Math.round(steps.reduce((n,s)=>n+s.percent,0)/steps.length):0,done:steps.filter(s=>s.percent===100).length,total:steps.length};}

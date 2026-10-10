@@ -9,12 +9,30 @@ export function projectDefaultTracking() {
 // Promote the original wall finishing milestone without resetting customized stages or notes.
 export function projectUpgradeTracking(input) {
  const wall=input.stages.find(s=>s.id==='walls'),legacy=wall?.steps.find(t=>t.id==='walls-6'&&t.name==='Dress, prime and paint');
- if(!legacy||input.stages.some(s=>s.id==='wall-finishing'))return projectUpgradePlatform(input);
+ if(!legacy||input.stages.some(s=>s.id==='wall-finishing'))return projectSeparateFinishing(projectUpgradePlatform(input));
  const data=structuredClone(input),index=data.stages.findIndex(s=>s.id==='walls');
  data.stages[index].steps=data.stages[index].steps.filter(t=>t.id!==legacy.id);
  if(!data.stages[index].steps.length)return input;
  data.stages.splice(index+1,0,{id:'wall-finishing',name:'Dress, prime and paint',notes:structuredClone(legacy.notes),steps:['Dress seams and corners','Fill and feather joints','Sand and clean surfaces','Prime the walls','Paint the walls'].map((name,i)=>({id:`wall-finishing-${i}`,name,percent:legacy.percent,notes:[]}))});
- return projectUpgradePlatform(data);
+ return projectSeparateFinishing(projectUpgradePlatform(data));
+}
+// Reorganize existing milestones without adding work or changing the overall denominator.
+export function projectSeparateFinishing(input){
+ let data=input;
+ const edit=()=>{if(data===input)data=structuredClone(input);};
+ if(data.stages.find(s=>s.id==='wall-finishing')?.name==='Dress, prime and paint'){edit();data.stages.find(s=>s.id==='wall-finishing').name='Dress, prime and paint — Walls';}
+ for(const [from,to,label,ids]of [
+  ['floor','floor-finishing','Dress, prime and paint — Floor',['floor-3']],
+  ['platform','platform-finishing','Dress, prime and paint — Platform',['platform-seams','platform-skim','platform-prime','platform-paint']],
+ ]){
+  if(data.stages.some(s=>s.id===to))continue;
+  const original=data.stages.find(s=>s.id===from);if(!original||!original.steps.some(t=>ids.includes(t.id)))continue;
+  edit();const index=data.stages.findIndex(s=>s.id===from),source=data.stages[index],steps=source.steps.filter(t=>ids.includes(t.id));
+  source.steps=source.steps.filter(t=>!ids.includes(t.id));
+  const finish={id:to,name:label,notes:source.steps.length?[]:source.notes,steps};
+  if(source.steps.length)data.stages.splice(index+1,0,finish);else data.stages.splice(index,1,finish);
+ }
+ return data;
 }
 export function projectStagePercent(stage){return stage.steps.length?Math.round(stage.steps.reduce((n,s)=>n+s.percent,0)/stage.steps.length):0;}
 export function projectProgress(data){const steps=data.stages.flatMap(s=>s.steps);return {percent:steps.length?Math.round(steps.reduce((n,s)=>n+s.percent,0)/steps.length):0,done:steps.filter(s=>s.percent===100).length,total:steps.length};}

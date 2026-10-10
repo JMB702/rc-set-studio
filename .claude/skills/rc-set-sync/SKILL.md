@@ -101,3 +101,8 @@ Fork, branch, commit, `gh pr create --repo JMB702/rc-set-studio --fill`. Never p
 - which Build guide steps and Pricing guide rows you updated, or why none needed it.
 
 For ordinary edits, preserve `.openai/` and do not deploy. An explicit user shipping request overrides this default: follow `.claude/skills/ship/SKILL.md` and run `npm run ship`. The release worker can merge verified work into main and publish the existing Site.
+
+
+## Finishing sections and progress preservation
+
+`projectSeparateFinishing()` relocates existing finishing milestones into Walls, Floor and Platform finishing sections. It preserves every step ID, percentage and note; it adds no milestones and changes no progress weight. Floor's existing combined `floor-3` task remains one task. Platform's seam, skim, prime and paint tasks keep their IDs. Always find milestones by stable step ID across all stages, not by their former parent stage. The existing optimistic revision upgrade protects saved trackers from stale tabs. Overall progress and completed/total counts must match before and after this reorganization.

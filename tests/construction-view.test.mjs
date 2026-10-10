@@ -20,7 +20,7 @@ test('Generated full-set geometry retains separate panels and all 16 independent
 });
 test('Progress materials are temporary, the toggle restores the model, and camera positions always bypass shading',async()=>{
  const originals={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch};const nodes=[];
- const element=()=>({hidden:false,attributes:{},setAttribute(k,v){this.attributes[k]=v;},append(o){nodes.push(o);}});
+ const element=()=>({hidden:false,classList:{add(){},remove(){}},attributes:{},setAttribute(k,v){this.attributes[k]=v;},append(o){nodes.push(o);}});
  globalThis.document={querySelector:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,createElement:element};globalThis.window=new EventTarget();globalThis.fetch=async()=>({ok:true,json:async()=>({data,revision:1})});
  const scene=new T.Scene(),root=model.finishedSet(120,45),platform=model.platformFloor(45,12,12,90);scene.add(root,platform);const api={scene,state:{mode:'finished',floor:'charcoal'},invalidate(){}};
  try{installConstructionView(api);await new Promise(setImmediate);const before=new Map();scene.traverse(o=>{if(o.isMesh)before.set(o,{material:o.material,visible:o.visible,castShadow:o.castShadow});});

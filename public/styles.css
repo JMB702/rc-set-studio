@@ -541,3 +541,17 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 /* Keep design editing and approvals in the design/pricing views, not the Build guide. */
 .building #design{display:none}
 .building .step-buttons #guide-completion.guide-auto-mark label{background:#e4f1d7;box-shadow:0 0 0 2px #668e42;border-radius:6px;padding:0 8px;margin-left:-8px;color:#345a27}
+
+#construction-view-status{opacity:0;transform:translateX(6px);transition:opacity .3s ease,transform .3s ease}
+#construction-view-status.view-notice-visible{opacity:1;transform:translateX(0)}
+#viewport-project-progress{position:absolute;top:14px;left:14px;z-index:6;width:64px;height:64px;padding:0;min-height:44px;border-radius:50%;background:#20382fec;color:#f4f8ee;box-shadow:0 3px 16px #14251c18;display:grid;place-items:center;cursor:pointer}
+#viewport-project-progress svg{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke-width:3}
+#viewport-project-progress .progress-track{stroke:#78907855}
+#viewport-project-progress .progress-value{stroke:#c7ec9d;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;transition:stroke-dasharray .4s ease}
+#viewport-project-progress span{font-size:19px;letter-spacing:-.6px;font-weight:600}
+#viewport-project-progress small{font-size:10px;margin-left:1px}
+#viewport-project-progress:focus-visible{outline:3px solid #779c52;outline-offset:3px}
+.building #guide-scene-tools{padding-left:72px}
+.camera-positions #viewport-project-progress{display:none}
+@media(max-width:850px){#viewport-project-progress{top:10px;left:12px;width:54px;height:54px}.building #guide-scene-tools{padding-left:62px}.pricing #price-preview-toggle{left:78px}}
+@media(prefers-reduced-motion:reduce){#construction-view-status,#viewport-project-progress .progress-value{transition:none}}

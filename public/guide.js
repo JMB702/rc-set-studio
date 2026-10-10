@@ -264,7 +264,10 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  $('#guide-cut-link').onclick=()=>{const cut=$('#cut-details');cut.open=true;cut.scrollIntoView({block:'start',behavior:reducedMotion.matches?'instant':'smooth'});};
  $('#guide-reset-view').onclick=()=>{api.clearCutInspection?.();viewOverride=null;focused=false;$('#guide-focus').setAttribute('aria-pressed','false');$('#guide-focus').textContent='See detail';fit();};
  $('#guide-focus').onclick=()=>{api.clearCutInspection?.();focused=!focused;$('#guide-focus').setAttribute('aria-pressed',focused);$('#guide-focus').textContent=focused?'Whole assembly':'See detail';fit(viewOverride);};
- new ResizeObserver(()=>{if(S.mode==='build')fit(viewOverride);}).observe($('#canvas-wrap'));
+ // Mobile browser chrome and keyboards change height without a new layout.
+ // Keep the user's orbit/zoom on those resizes; reframe when the layout width changes.
+ let guideViewportWidth=0;
+ new ResizeObserver(()=>{const width=$('#canvas-wrap').getBoundingClientRect().width,changed=Math.abs(width-guideViewportWidth)>1;guideViewportWidth=width;if(S.mode==='build'&&(changed||!matchMedia('(max-width:850px), (pointer:coarse)').matches))fit(viewOverride);}).observe($('#canvas-wrap'));
  window.addEventListener('set-configured',()=>{if(S.height!==selectedBuildHeight){selectedBuildHeight=S.height;}if(!hasOpened)configurationChanged=true;const current=all[S.step]?.stage;all=steps(S.height,S.floor,S);S.step=Math.max(0,all.findIndex(st=>st.stage===current));cutUI();materialUI();if(S.mode==='build')display();});
  api.onTick=t=>{if(!animation.length)return;const e=reducedMotion.matches?1:Math.min(1,(t-start)/650),fade=(1-e)**3;for(const {o,offset}of animation)o.position.copy(offset).multiplyScalar(fade);api.invalidate();if(e===1)animation=[];};
  api.setMode=mode;api.setStep=n=>{if(!Number.isInteger(n)||n<0||n>=all.length)throw Error('Step outside guide');hasOpened=true;S.step=n;api.setMode('build');controls.scrollTop=0;window.scrollTo(0,0);return {...S,stepCount:all.length};};

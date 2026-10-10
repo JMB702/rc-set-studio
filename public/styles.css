@@ -491,3 +491,23 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 #camera-delete-description{font-size:16px;line-height:1.5;overflow-wrap:anywhere;margin:0}
 #camera-delete-dialog .dialog-actions{margin-top:22px;gap:10px}
 #camera-delete-confirm{background:#91382e;color:#fff;border-color:#91382e}
+
+/* The scene is a gesture surface, not selectable document text. */
+.viewport,.viewport *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.viewport{touch-action:none}
+.viewport button{touch-action:manipulation}
+/* Stable scene heights avoid zoom/framing jumps as mobile browser chrome opens or closes. */
+@media(max-width:850px){
+ .viewport{height:45svh}
+ .building .viewport{height:100%}
+ .pricing .viewport{height:30svh}
+ .camera-positions .viewport{height:40svh}
+ body.building{height:100svh}
+ .building main{height:calc(100svh - 112px)}
+ .pricing .price-summary,.pricing .price-item,.pricing #price-add{scroll-margin-top:calc(30svh + 16px)}
+}
+/* iOS auto-zooms small focused fields. Preserve page pinch zoom for accessibility. */
+@media(max-width:850px),(pointer:coarse){
+ body input:not([type=range]):not([type=checkbox]):not([type=radio]),body textarea,body select{font-size:16px!important}
+ button{touch-action:manipulation}
+}

@@ -75,3 +75,6 @@ installCameraPositions(window.__studio);
 installWorkspaceSession(window.__studio,savedWorkspace);
 
 installProject(window.__studio);
+
+// Suppress long-press selection/callouts only inside the interactive viewer.
+for(const event of ['selectstart','contextmenu'])document.querySelector('.viewport').addEventListener(event,e=>e.preventDefault());

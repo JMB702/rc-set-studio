@@ -106,3 +106,6 @@ For ordinary edits, preserve `.openai/` and do not deploy. An explicit user ship
 ## Finishing sections and progress preservation
 
 `projectSeparateFinishing()` relocates existing finishing milestones into Walls, Floor and Platform finishing sections. It preserves every step ID, percentage and note; it adds no milestones and changes no progress weight. Floor's existing combined `floor-3` task remains one task. Platform's seam, skim, prime and paint tasks keep their IDs. Always find milestones by stable step ID across all stages, not by their former parent stage. The existing optimistic revision upgrade protects saved trackers from stale tabs. Overall progress and completed/total counts must match before and after this reorganization.
+
+
+Guide completion supports integer 0–100 percentages in `guideChecks`, while preserving legacy boolean values. `projectGuideStagePercent()` reads both forms and falls back to the tracker milestone percentage. `projectSetGuideStage()` averages constituent guide percentages into each milestone; direct tracker edits still clear superseded guide detail. The sticky guide dock offers a numeric field, five-percent slider and ten-percent buttons. Checking done saves 100%; reducing progress disables auto-mark-next and clears the checkbox. Never treat a nonzero numeric percentage as boolean completion.

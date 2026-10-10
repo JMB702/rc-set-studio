@@ -557,3 +557,14 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 @media(prefers-reduced-motion:reduce){#construction-view-status,#viewport-project-progress .progress-value{transition:none}}
 
 @media(max-width:850px){#cam-toggle{left:12px;bottom:12px}}
+
+/* Touch-friendly partial completion next to the existing done checkbox. */
+.building .step-buttons #guide-completion{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
+#guide-completion .guide-percent-controls{display:flex;align-items:center;gap:5px}
+#guide-completion .guide-percent-controls button{width:44px;min-height:44px;padding:0;font-size:22px;border:1px solid #c9d6c0;border-radius:7px;background:#f8fbf4}
+#guide-completion .guide-percent-field{gap:2px;min-width:0}
+#guide-step-percent{width:56px;min-height:44px;padding:4px;font:inherit;font-size:16px;text-align:center;border:1px solid #c9d6c0;border-radius:6px;background:white;color:var(--ink);appearance:textfield}
+#guide-step-percent::-webkit-inner-spin-button{appearance:none}
+#guide-percent-slider{grid-column:1/-1;width:100%;height:28px;touch-action:pan-y}
+#guide-completion #guide-save-status{grid-column:1/-1}
+@media(max-width:380px){.building .step-buttons #guide-completion{column-gap:5px}.building .step-buttons #guide-completion>label{font-size:12px;gap:5px}#guide-completion .guide-percent-controls{gap:3px}#guide-step-percent{width:48px}}

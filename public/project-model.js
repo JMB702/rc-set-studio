@@ -137,22 +137,24 @@ export function projectGuideGroups(design={}) {
 export function projectGuideKey(stage,design){return stage<=12?`panel:${design.height===96?96:120}:${stage}`:stage<=20?`jack:${design.height===96?96:120}:${stage}`:stage>=23&&stage<=27?`floor:${design.floor}:${stage}`:`set:${stage}`;}
 export function projectGuideChecks(input={}) {
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length>100)throw Error('Invalid guide completion records.');
- const result={};for(const [key,value] of Object.entries(input)){if(!/^(?:(?:panel|jack):(?:96|120)|floor:(?:wood|charcoal)|set):\d{1,2}$/.test(key)||typeof value!=='boolean')throw Error('Invalid guide completion record.');result[key]=value;}return result;
+ const result={};for(const [key,value] of Object.entries(input)){if(!/^(?:(?:panel|jack):(?:96|120)|floor:(?:wood|charcoal)|set):\d{1,2}$/.test(key)||(typeof value!=='boolean'&&(!Number.isInteger(value)||value<0||value>100)))throw Error('Invalid guide completion record.');result[key]=value;}return result;
 }
-export function projectGuideStageDone(data,stage,design){
- const key=projectGuideKey(stage,design);if(Object.hasOwn(data.guideChecks||{},key))return data.guideChecks[key];
+export function projectGuideStagePercent(data,stage,design){
+ const key=projectGuideKey(stage,design),saved=data.guideChecks?.[key];
+ if(saved!==undefined)return typeof saved==='boolean'?(saved?100:0):saved;
  const groups=Object.entries(projectGuideGroups(design)).filter(([,stages])=>stages.includes(stage));
- return groups.length>0&&groups.every(([id])=>projectStepPercent(data,id)===100);
+ return groups.length?Math.round(groups.reduce((sum,[id])=>sum+projectStepPercent(data,id),0)/groups.length):0;
 }
+export function projectGuideStageDone(data,stage,design){return projectGuideStagePercent(data,stage,design)===100;}
 export function projectSetGuideStage(input,stage,done,design){
  const groups=projectGuideGroups(design),affected=Object.entries(groups).filter(([,stages])=>stages.includes(stage));
- if(!affected.length||typeof done!=='boolean')throw Error('This guide step is not part of the current design.');
+ if(!affected.length||(typeof done!=='boolean'&&(!Number.isInteger(done)||done<0||done>100)))throw Error('This guide step is not part of the current design.');
  const data=structuredClone(projectUpgradeTracking(input));data.guideChecks=projectGuideChecks(data.guideChecks||{});
- for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStageDone(input,number,design);}
+ for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStagePercent(input,number,design);}
  data.guideChecks[projectGuideKey(stage,design)]=done;
  for(const [id,stages]of affected){let row=data.stages.flatMap(s=>s.steps).find(t=>t.id===id);
   if(!row&&done){const defaults=projectDefaultTracking(),source=defaults.stages.find(s=>s.steps.some(t=>t.id===id));if(source){let parent=data.stages.find(s=>s.id===source.id);if(!parent){parent={id:source.id,name:source.name,notes:[],steps:[]};data.stages.push(parent);}row=structuredClone(source.steps.find(t=>t.id===id));parent.steps.push(row);}}
-  if(row)row.percent=Math.round(stages.filter(number=>data.guideChecks[projectGuideKey(number,design)]).length/stages.length*100);
+  if(row)row.percent=Math.round(stages.reduce((sum,number)=>sum+projectGuideStagePercent(data,number,design),0)/stages.length);
  }
  return data;
 }

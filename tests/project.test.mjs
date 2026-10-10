@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
-import {projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStageDone,projectSetGuideStage,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
+import {projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
 const H=3600000,now=Date.now(),shift={id:'shift',personId:'person-1',start:now-1.5*H,end:null,rateCents:2500,note:''};
 test('Live cost changes only at complete hourly boundaries; clock-out includes the exact partial hour',()=>{
  assert.deepEqual(projectShiftCost(shift,now-0.6*H),{hours:0,cents:0});assert.deepEqual(projectShiftCost(shift,now),{hours:1,cents:2500});assert.deepEqual(projectShiftCost(shift,now+0.5*H),{hours:2,cents:5000});assert.deepEqual(projectShiftCost({...shift,end:now},now),{hours:1.5,cents:3750});
@@ -184,4 +184,20 @@ test('Server upgrades combined finishing once and rejects writes from stale tabs
  const next=await(await r.call('tracking')).json();assert.equal(next.revision,8);assert.deepEqual(projectProgress(next.data),projectProgress(old));assert.equal(next.data.stages.length,6);
  const again=await(await r.call('tracking')).json();assert.equal(again.revision,8);
  assert.equal((await r.call('tracking','PUT',{data:old,revision:7})).status,409);
+});
+
+test('Guide percentages preserve partial milestones and legacy boolean completion',()=>{
+ const design={height:120,floor:'charcoal',platformShape:'square'},base=projectDefaultTracking();base.stages[0].steps[1].percent=50;
+ assert.equal(projectGuideStagePercent(base,1,design),50);
+ const partial=projectSetGuideStage(base,1,20,design);assert.equal(projectGuideStagePercent(partial,1,design),20);assert.equal(projectGuideStageDone(partial,1,design),false);assert.equal(projectGuideStagePercent(partial,2,design),50);assert.equal(partial.stages[0].steps[1].percent,47);
+ const full=projectSetGuideStage(partial,1,true,design);assert.equal(projectGuideStagePercent(full,1,design),100);assert.equal(projectGuideStageDone(full,1,design),true);
+ const lowered=projectSetGuideStage(full,1,90,design);assert.equal(projectGuideStageDone(lowered,1,design),false);assert.equal(projectGuideStagePercent(lowered,1,design),90);
+ for(const value of [-1,101,1.5,'50',null])assert.throws(()=>projectSetGuideStage(base,1,value,design));
+ projectValidate('tracking',lowered);
+});
+test('Guide percentages round-trip through storage and update project totals',async()=>{
+ const r=rig(),design={height:120,floor:'charcoal',platformShape:'square'},snapshot=await(await r.call('tracking')).json();
+ snapshot.data=projectSetGuideStage(snapshot.data,0,70,design);let response=await r.call('tracking','PUT',snapshot);assert.equal(response.status,200);
+ const saved=await(await r.call('tracking')).json();assert.equal(projectGuideStagePercent(saved.data,0,design),70);assert.equal(saved.data.stages[0].steps[0].percent,70);assert.equal(projectProgress(saved.data).done,0);
+ saved.data=projectSetGuideStage(saved.data,0,true,design);response=await r.call('tracking','PUT',saved);assert.equal(response.status,200);const done=await response.json();assert.equal(projectGuideStagePercent(done.data,0,design),100);assert.equal(projectProgress(done.data).done,1);
 });

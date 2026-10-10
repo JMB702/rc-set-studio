@@ -1,6 +1,7 @@
 import {saveWorkspace} from './workspace-state.js';
 
 export function installWorkspaceSession(api,saved){
+  let resolveReady;api.workspaceReady=new Promise(resolve=>resolveReady=resolve);
   let restoring=!!saved,timer,interacted=false;
   const controls=document.querySelector('.controls');
   function capture(){return {version:1,jackViewRevision:1,mode:api.state.mode,design:api.state,stage:api.getGuideStage(),camera:{position:api.camera.position.toArray(),target:api.orbit.target.toArray(),...api.lens.get()},scrollY:window.scrollY,panelScroll:controls.scrollTop,openDetails:[...document.querySelectorAll('details[id][open]')].map(d=>d.id)};}
@@ -17,15 +18,15 @@ export function installWorkspaceSession(api,saved){
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')persist();});
   window.addEventListener('pagehide',persist);
   // No unload handler: Safari can keep this page in its back/forward cache.
-  if(!saved)return;
+  if(!saved){resolveReady();return;}
   if('scrollRestoration' in history)history.scrollRestoration='manual';
   api.restoreGuideStage(saved.stage);api.setMode(saved.mode);
   const ready=saved.mode==='pricing'?api.pricingReady:Promise.resolve();
   Promise.resolve(ready).catch(()=>{}).then(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    if(interacted)return;
+    if(interacted){resolveReady();return;}
     for(const id of saved.openDetails){const el=document.getElementById(id);if(el?.tagName==='DETAILS')el.open=true;}
     if(saved.camera){const c=saved.camera,damping=api.orbit.enableDamping;api.orbit.enableDamping=false;api.orbit.update();api.lens.set({mm:c.mm,ratio:c.ratio,on:c.on});api.camera.position.fromArray(c.position);api.orbit.target.fromArray(c.target);api.camera.lookAt(api.orbit.target);const distance=Math.hypot(...c.position.map((n,i)=>n-c.target[i]));if(Number.isFinite(api.orbit.minDistance))api.orbit.minDistance=Math.min(api.orbit.minDistance,distance);if(Number.isFinite(api.orbit.maxDistance))api.orbit.maxDistance=Math.max(api.orbit.maxDistance,distance);api.orbit.enableDamping=damping;api.invalidate();}
     window.scrollTo(0,saved.scrollY);controls.scrollTop=saved.panelScroll;
-    restoring=false;persist();
+    restoring=false;persist();resolveReady();
   })));
 }

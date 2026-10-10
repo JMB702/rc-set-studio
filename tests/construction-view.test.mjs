@@ -7,9 +7,9 @@ const url=name=>new URL('../public/'+name,import.meta.url).href;
 const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
 const utils=fs.readFileSync(new URL('../public/vendor/BufferGeometryUtils.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js')));
 let source=fs.readFileSync(new URL('../public/model.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./vendor/BufferGeometryUtils.js'",JSON.stringify(moduleURL(utils)));
-for(const name of ['platform.js','jack-attachment.js','jack-layout.js','wall-appearance.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
+for(const name of ['platform.js','jack-attachment.js','jack-layout.js','wall-appearance.js','platform-finish.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
 const modelURL=moduleURL(source),load=T.TextureLoader.prototype.load;T.TextureLoader.prototype.load=()=>new T.Texture();const model=await import(modelURL);T.TextureLoader.prototype.load=load;
-const viewSource=fs.readFileSync(new URL('../public/construction-view.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./model.js'",JSON.stringify(modelURL)).replace("'./project-model.js'",JSON.stringify(url('project-model.js')));
+const viewSource=fs.readFileSync(new URL('../public/construction-view.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./platform-finish.js'",JSON.stringify(url('platform-finish.js'))).replace("'./model.js'",JSON.stringify(modelURL)).replace("'./project-model.js'",JSON.stringify(url('project-model.js')));
 const {installConstructionView}=await import(moduleURL(viewSource));
 const data={...projectDefaultTracking(),assembly:{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2}};
 function panelIndex(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}

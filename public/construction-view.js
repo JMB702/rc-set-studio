@@ -1,3 +1,4 @@
+import {applyPlatformSeams} from './platform-finish.js';
 import * as THREE from 'three';
 import {mats} from './model.js';
 import {projectPartStatus,projectUpgradeTracking} from './project-model.js';
@@ -20,10 +21,11 @@ export function installConstructionView(api){
  window.addEventListener('studio-view-changed',()=>{toggle.hidden=guideOrCamera();status.hidden=guideOrCamera();});
  const baseMode=api.setMode;api.setMode=m=>{const result=baseMode(m);sync();return result;};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>api.setMode(b.dataset.mode));
  function inheritedPanel(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
- function finishMaterial(base,part,result){const ghost=!result.assembled,finish=result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish);if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();materials.set(key,m);}
+ function finishMaterial(base,part,result,seams){const ghost=!result.assembled,finish=result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish)+(finish==='skim'&&seams?JSON.stringify(seams):'');if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();if(!ghost&&finish==='skim'&&part.kind==='platform'&&seams)applyPlatformSeams(m,seams);materials.set(key,m);}
   const oldMap=m.map,oldTransparent=m.transparent;m.copy(base);
   if(ghost){m.color.set('#929c96');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.16,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
   else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.ply;m.color.copy(raw.color);m.map=raw.map;}
+  else if((finish==='raw'||finish==='skim')&&part.kind==='platform'&&part.stage>=34){m.color.copy(mats.ply.color);m.map=mats.ply.map;m.roughness=1;}
   else if(finish==='seams'&&part.kind==='wallSkin'){m.color.set(0xffffff);m.map=(api.state.height===120?mats.wallSeams10:mats.wallSeams8).map;m.roughness=1;}
   else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
   else if(finish==='primer'||finish==='skim'){m.map=null;m.color.set(finish==='primer'?'#e3e0d8':'#cfcbc0');}
@@ -38,7 +40,7 @@ export function installConstructionView(api){
    if(!part&&o.name==='Floor')part={kind:'floor'};
    if(!part)return;part={...part,panel:part.panel??inheritedPanel(o)};
    const preview=o.userData.wallFinishPreview&&['build','pricing'].includes(api.state.mode),result=preview?{assembled:true,finish:o.userData.wallFinishPreview}:projectPartStatus(part,tracking),base=o.material;
-   restored.push([o,'material',base],[o,'castShadow',o.castShadow],[o,'receiveShadow',o.receiveShadow]);o.material=finishMaterial(base,part,result);if(!result.assembled)o.castShadow=o.receiveShadow=false;
+   restored.push([o,'material',base],[o,'castShadow',o.castShadow],[o,'receiveShadow',o.receiveShadow]);o.material=finishMaterial(base,part,result,o.userData.plasterSeams);if(!result.assembled)o.castShadow=o.receiveShadow=false;
   });
  };
  api.scene.onAfterRender=function(...args){for(let i=restored.length-1;i>=0;i--){const [o,key,value]=restored[i];o[key]=value;}restored=[];originalAfter?.apply(this,args);};

@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import fs f
 const url=name=>new URL('../public/'+name,import.meta.url).href;
 const utils=fs.readFileSync(new URL('../public/vendor/BufferGeometryUtils.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js')));
 let source=fs.readFileSync(new URL('../public/model.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./vendor/BufferGeometryUtils.js'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(utils).toString('base64')));
-for(const name of ['platform.js','jack-attachment.js','jack-layout.js','wall-appearance.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
+for(const name of ['platform.js','jack-attachment.js','jack-layout.js','wall-appearance.js','platform-finish.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
 const load=T.TextureLoader.prototype.load;T.TextureLoader.prototype.load=path=>{const t=new T.Texture();t.name=path;return t;};let model;
 try{model=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));}finally{T.TextureLoader.prototype.load=load;}
 const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-6,`${a} != ${b}`);
@@ -23,5 +23,14 @@ test('Both mirrored jack diagonals have grain parallel to the brace, at both pan
    const index=(y,z)=>{for(let i=0;i<p.count;i++)if(Math.abs(p.getX(i)-x)<1e-6&&Math.abs(p.getY(i)-y*model.inch)<1e-6&&Math.abs(p.getZ(i)-z*model.inch)<1e-6)return i;throw Error('Missing brace endpoint');};
    const top=index(d.jackH,-start),toe=index(0,-start-d.foot);close(uv.getY(top),uv.getY(toe));close(Math.abs(uv.getX(top)-uv.getX(toe)),Math.hypot(d.jackH,d.foot)/48);
   }model.dispose(panel);
+ }
+});
+
+test('Platform seam finish preserves the preceding plywood mesh, UVs and texture',async()=>{
+ const {platformPlan}=await import('../public/platform.js'),{applyPlatformSeams}=await import('../public/platform-finish.js');
+ for(const angle of [0,45,90]){const plan=platformPlan(angle,12,12,angle),parts=model.platformParts(plan);let coated=0;
+  for(const o of parts.children){if(!o.userData.plasterSeams)continue;const position=[...o.geometry.attributes.position.array],uv=[...o.geometry.attributes.uv.array],map=o.material.map;const material=applyPlatformSeams(o.material.clone(),o.userData.plasterSeams);assert.equal(material.map,map);assert.deepEqual([...o.geometry.attributes.position.array],position);assert.deepEqual([...o.geometry.attributes.uv.array],uv);
+   const shader={uniforms:{},vertexShader:'#include <begin_vertex>',fragmentShader:'#include <map_fragment>'};material.onBeforeCompile(shader);assert.match(shader.fragmentShader,/#include <map_fragment>/);assert.match(shader.fragmentShader,/mix\(diffuseColor.rgb/);assert.equal(shader.uniforms.platformSeamA.value.length,o.userData.plasterSeams.length*3);assert.ok(o.userData.plasterSeams.length>=1);material.dispose();coated++;
+  }assert.ok(coated>=plan.modules.length);model.dispose(parts);
  }
 });

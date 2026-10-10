@@ -1,3 +1,4 @@
+import {platformSeamSegments} from './platform-finish.js';
 import {makeWallAtlas} from './wall-appearance.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
@@ -67,8 +68,8 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
   for(const j of m.joists)slabMesh(G,'Platform joist',j.poly,rimBottom,legLength,'wood',31).userData.cutLength=j.length;
   for(const l of m.legs)slabMesh(G,l.onSill?'Platform leg on sill':'Platform leg',l.poly,legLength-l.length,legLength,'wood',32).userData.cutLength=l.length;
   for(const s of m.sills)slabMesh(G,'Platform sill',s.poly,0,PLATFORM.sill,'wood',32).userData.cutLength=s.length;
-  slabMesh(G,'Platform deck',m.poly,legLength,PLATFORM.height,'ply',34);
-  for(const f of m.fascia)slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35);
+  slabMesh(G,'Platform deck',m.poly,legLength,PLATFORM.height,'ply',34).userData.plasterSeams=platformSeamSegments(m.edges.filter(e=>e.shared||e.fascia));
+  for(const [i,f]of m.fascia.entries())slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35).userData.plasterSeams=platformSeamSegments([m.edges.filter(e=>e.fascia)[i]],true);
   for(const o of G.children.slice(first))o.userData.progress={kind:'platform',stage:o.userData.step,module:moduleIndex,total:plan.modules.length};
  }
  G.userData.plan=plan;return G;}

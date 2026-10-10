@@ -6,11 +6,11 @@ export function installCutPreview(api){
  const list=document.querySelector('#cut-list'),details=document.querySelector('#cut-details');let active=null,restores=[],overlays=[];
  function clear(){for(const [o,original,highlight]of restores){if(o.material===highlight)o.material=original;highlight.dispose();}restores=[];for(const o of overlays){o.removeFromParent();o.geometry.dispose();o.material.dispose();}overlays=[];active=null;list.querySelectorAll('[data-cut-part]').forEach(r=>{r.classList.remove('cut-selected');r.querySelector('button').setAttribute('aria-pressed','false')});api.invalidate();}
  function show(row){const key=JSON.stringify(row.dataset);if(key===active){clear();return;}clear();
-  const selection={family:row.dataset.cutFamily,part:row.dataset.cutPart,length:row.dataset.cutLength===undefined?null:Number(row.dataset.cutLength)};
-  const candidates=[];api.scene.traverseVisible(o=>{if(o.isMesh&&!o.userData.guideDecoration)candidates.push(o)});
+  const selection={family:row.dataset.cutFamily,part:row.dataset.cutPart,deckId:row.dataset.cutDeck,length:row.dataset.cutLength===undefined?null:Number(row.dataset.cutLength)};
+  const candidates=[];api.scene.traverse(o=>{if(!o.isMesh||o.userData.guideDecoration)return;const progress=api.constructionView&&!api.constructionView.completed;for(let p=o;p;p=p.parent){const visible=p.userData.progressOnly?progress:p.userData.completeOnly?!progress:p.visible;if(!visible)return;}candidates.push(o);});
   for(const o of candidates){
-   if(matchesCutPart(selection,o.name,o.userData.cutLength)){
-    const original=o.material;if(Array.isArray(original))continue;const highlighted=original.clone();highlighted.color?.lerp(new T.Color('#b8e67c'),.65);highlighted.emissive?.set('#456326');highlighted.emissiveIntensity=.45;o.material=highlighted;restores.push([o,original,highlighted]);
+   if(matchesCutPart(selection,o.name,o.userData.cutLength,o.userData.deckId)){
+    const original=o.material;if(Array.isArray(original))continue;const highlighted=original.clone();highlighted.color?.lerp(new T.Color('#b8e67c'),.65);highlighted.emissive?.set('#456326');highlighted.emissiveIntensity=.45;o.material=highlighted;restores.push([o,original,highlighted]);if(selection.deckId){const edge=new T.LineSegments(new T.EdgesGeometry(o.geometry),new T.LineBasicMaterial({color:'#62882f',depthTest:false}));edge.userData.guideDecoration=true;edge.raycast=()=>{};o.add(edge);overlays.push(edge);}
    }else if(selection.family==='panel'&&o.userData.commentParts){
     const parts=o.userData.commentParts.filter(p=>matchesCutPart(selection,p.label));if(!parts.length)continue;
     const g=new T.BufferGeometry();for(const [name,a]of Object.entries(o.geometry.attributes)){const values=[];for(const p of parts)for(let i=p.start*3;i<(p.start+p.count)*3;i++)for(let j=0;j<a.itemSize;j++)values.push(a.array[i*a.itemSize+j]);g.setAttribute(name,new T.Float32BufferAttribute(values,a.itemSize));}

@@ -9,7 +9,7 @@ export const PLATFORM={
  lumber:[1.5,3.5],     // actual 2×4
  rim:3.5,              // rims and joists stand on edge
  sill:1.5,             // sills lie flat under the fascia
- module:48,            // largest module side; a half-sheet deck (47 29/32″ × 47 15/16″ actual) lands ≤3/32″ short, filled by compound
+ module:48,            // nominal frame grid; larger decks bridge adjacent frames
  joistOC:16,
  maxLegSpan:48,
  skin:.106,            // lauan fascia, actual thickness
@@ -54,7 +54,7 @@ const insidePoly=(pg,p)=>pg.length>2&&edgeFrames(pg).every(e=>e.n[0]*p[0]+e.n[1]
 const centroid=pg=>[pg.reduce((s,p)=>s+p[0],0)/pg.length,pg.reduce((s,p)=>s+p[1],0)/pg.length];
 
 // Split the outline into movable modules: each row is divided into equal columns and rows are of equal
-// depth, none larger than 48″, so every deck is at most half a sheet. A sliver at either end merges into its neighbor.
+// depth, none deeper than 48″. Deck sheets are planned independently across adjacent frames. A sliver at either end merges into its neighbor.
 function moduleCells(outline){
  const M=PLATFORM.module,[z0,z1]=extent(outline,1),depth=z1-z0,rows=Math.max(1,Math.ceil(depth/M-1e-6)),cells=[];
  for(let r=0;r<rows;r++){
@@ -101,32 +101,81 @@ export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a){
   modules.push({poly,row,col,center:centroid(poly),width:mx1-mx0,depth:mz1-mz0,area:Math.abs(area(poly)),edges:E,rims,sills,joists,legs,fascia,
    full:E.length===4&&Math.abs(mx1-mx0-PLATFORM.module)<.01&&Math.abs(mz1-mz0-PLATFORM.module)<.01,inside:p=>insidePoly(poly,p)});
  }
- return {angle:a,platformAngle:pa,back,side,outline,modules,...platformTotals(outline,modules)};
+ const decks=platformDecks(modules),sheetLayout=packDecks(decks),fasciaPieces=platformFascia(outline,modules);
+ return {angle:a,platformAngle:pa,back,side,outline,modules,decks,sheetLayout,fasciaPieces,...platformTotals(outline,modules,decks,sheetLayout,fasciaPieces)};
 }
 
-// Deck pieces nest by their bounding boxes: a piece up to 48″ square takes half a sheet, one that is also
-// no more than 23⅞″ in one direction takes a quarter, and a merged end module larger than half a sheet is pieced from a whole one.
-export function deckSheets(modules){const M=PLATFORM.module,slots=modules.reduce((s,m)=>{const a=Math.min(m.width,m.depth),b=Math.max(m.width,m.depth);return s+(b>M+1e-6?2:a<=23.875+1e-6?.5:1);},0);return Math.ceil(slots/2);}
+// Long side strips bridge frames. Every butt joint stays on an existing corner leg.
+export function platformFascia(outline,modules){
+ const pieces=[];
+ for(const edge of edgeFrames(outline)){
+  const project=p=>(p[0]-edge.A[0])*edge.u[0]+(p[1]-edge.A[1])*edge.u[1];
+  const spans=modules.flatMap((m,module)=>m.edges.filter(e=>e.fascia&&Math.abs(e.n[0]*edge.n[0]+e.n[1]*edge.n[1]-1)<1e-6&&Math.abs(e.c-edge.c)<1e-6).map(e=>({start:project(e.A),end:project(e.B),module}))).sort((a,b)=>a.start-b.start);
+  for(let i=0;i<spans.length;){
+   const start=spans[i].start,first=i;let end=spans[i].end;
+   while(i+1<spans.length&&Math.abs(spans[i+1].start-end)<1e-6&&spans[i+1].end-start+2*PLATFORM.skin<=96){end=spans[++i].end;}
+   const left=start<1e-6?PLATFORM.skin:0,right=end>edge.len-1e-6?PLATFORM.skin:0;
+   const point=t=>[edge.A[0]+edge.u[0]*t,edge.A[1]+edge.u[1]*t],A=point(start-left),B=point(end+right),o=PLATFORM.skin;
+   pieces.push({id:'fascia-'+pieces.length,label:'F'+(pieces.length+1),A:point(start),B:point(end),length:end-start,cutLength:end-start+left+right,height:PLATFORM.height,moduleIndices:spans.slice(first,i+1).map(s=>s.module),joint:start>1e-6,poly:[A,B,[B[0]-edge.n[0]*o,B[1]-edge.n[1]*o],[A[0]-edge.n[0]*o,A[1]-edge.n[1]*o]].reverse()});i++;
+  }
+ }
+ const stock=[];
+ for(const p of [...pieces].sort((a,b)=>b.cutLength-a.cutLength)){const length=Math.ceil(p.cutLength*16)/16;let index=stock.findIndex(used=>used+length<=96);if(index<0){index=stock.length;stock.push(0);}stock[index]+=length+PLATFORM.kerf;p.strip=index+1;p.sheet=Math.floor(index/4)+1;}
+ return pieces;
+}
+
+// Pair neighboring frames along X: the 8-foot sheet/grain direction crosses the joists.
+// Keep the frame grid unchanged. Actual undersized stock is centered over the supporting rims.
+function convexHull(points){const ps=[...new Map(points.map(p=>[p.join(','),p])).values()].sort((a,b)=>a[0]-b[0]||a[1]-b[1]),cross=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);const half=xs=>{const h=[];for(const p of xs){while(h.length>1&&cross(h.at(-2),h.at(-1),p)<=1e-8)h.pop();h.push(p);}return h;};return ccw([...half(ps).slice(0,-1),...half([...ps].reverse()).slice(0,-1)]);}
+export function platformDecks(modules){
+ const decks=[],tolerance=3/32;
+ for(let i=0;i<modules.length;i++){
+  const first=modules[i],members=[i];let nominalPoly=first.poly;
+  const next=modules[i+1];if(next&&next.row===first.row&&next.col===first.col+1){const joined=convexHull([...first.poly,...next.poly]),[x0,x1]=extent(joined,0),[z0,z1]=extent(joined,1);if(x1-x0<=PLATFORM.sheet[1]+tolerance&&z1-z0<=PLATFORM.sheet[0]+tolerance&&Math.abs(Math.abs(area(joined))-first.area-next.area)<1e-4){nominalPoly=joined;members.push(++i);}}
+  const [x0,x1]=extent(nominalPoly,0),[z0,z1]=extent(nominalPoly,1),nominalWidth=x1-x0,nominalDepth=z1-z0;
+  if(nominalWidth>PLATFORM.sheet[1]+tolerance||nominalDepth>PLATFORM.sheet[0]+tolerance)throw Error('Deck does not fit the selected plywood stock.');
+  const width=Math.min(nominalWidth,PLATFORM.sheet[1]),depth=Math.min(nominalDepth,PLATFORM.sheet[0]),dx=(nominalWidth-width)/2,dz=(nominalDepth-depth)/2;
+  const poly=clipHalf(clipHalf(clipHalf(clipHalf(nominalPoly,1,0,x0+dx),-1,0,-(x1-dx)),0,1,z0+dz),0,-1,-(z1-dz));
+  decks.push({id:'deck-'+decks.length,label:'D'+(decks.length+1),moduleIndices:members,poly,nominalPoly,width,depth,nominalWidth,nominalDepth,edges:edgeFrames(nominalPoly),area:Math.abs(area(poly)),edgeAllowance:{x:dx,z:dz}});
+ }
+ return decks;
+}
+// A conservative, reproducible rectangular cut layout; no rotation, so face grain stays across joists.
+export function packDecks(decks){
+ const sheets=[],kerf=PLATFORM.kerf;
+ for(const deck of [...decks].sort((a,b)=>b.width*b.depth-a.width*a.depth)){
+  let target;for(let sheet=0;sheet<sheets.length;sheet++){const index=sheets[sheet].free.findIndex(r=>deck.width<=r.w+1e-7&&deck.depth<=r.h+1e-7);if(index>=0){target={sheet,index};break;}}
+  if(!target){sheets.push({cuts:[],free:[{x:0,z:0,w:PLATFORM.sheet[1],h:PLATFORM.sheet[0]}]});target={sheet:sheets.length-1,index:0};}
+  const sheet=sheets[target.sheet],r=sheet.free.splice(target.index,1)[0];if(deck.width>r.w+1e-7||deck.depth>r.h+1e-7)throw Error('Plywood blank exceeds stock.');
+  sheet.cuts.push({deckId:deck.id,label:deck.label,x:r.x,z:r.z,width:deck.width,depth:deck.depth});deck.sheet=target.sheet+1;
+  if(r.w-deck.width>kerf)sheet.free.push({x:r.x+deck.width+kerf,z:r.z,w:r.w-deck.width-kerf,h:r.h});
+  if(r.h-deck.depth>kerf)sheet.free.push({x:r.x,z:r.z+deck.depth+kerf,w:deck.width,h:r.h-deck.depth-kerf});
+ }
+ return sheets;
+}
+export function deckSheets(modules){return packDecks(platformDecks(modules)).length;}
 // First-fit decreasing: how many 96″ studs the cut list needs, allowing a saw kerf per cut.
 export function studCount(lengths,stock=PLATFORM.stud,kerf=PLATFORM.kerf){const bins=[];for(const len of [...lengths].sort((a,b)=>b-a)){const need=Math.ceil(len*16)/16;const bin=bins.find(b=>b+need<=stock+1e-9);if(bin!==undefined)bins[bins.indexOf(bin)]+=need+kerf;else bins.push(need+kerf);}return bins.length;}
 
-function platformTotals(outline,modules){
+function platformTotals(outline,modules,decks,sheetLayout,fasciaPieces){
  const sum=(f)=>modules.reduce((s,m)=>s+f(m),0),each=(k,f=x=>x.length)=>modules.flatMap(m=>m[k].map(f));
  const lumber=[...each('rims'),...each('joists'),...each('legs'),...each('sills')];
  const fasciaLength=sum(m=>m.fascia.reduce((s,f)=>s+f.length,0)),seamLength=sum(m=>m.edges.filter(e=>e.shared).reduce((s,e)=>s+e.len,0))/2;
  const fasciaCorners=sum(m=>m.edges.filter((e,i)=>e.fascia&&m.edges[(i+1)%m.edges.length].fascia).length);
+ const deckSeamLength=decks.reduce((sum,d)=>sum+d.edges.filter(e=>!onOutline(e.A,e.B,outline)).reduce((n,e)=>n+e.len,0),0)/2;
+ const deckForModule=new Map(decks.flatMap(d=>d.moduleIndices.map(i=>[modules[i],d])));
  const legs=each('legs',l=>l),fullLegs=legs.filter(l=>!l.onSill).length;
  const deckArea=sum(m=>m.area),fasciaArea=fasciaLength*PLATFORM.height;
  return {
-  deckArea:deckArea/144,deckSheets:deckSheets(modules),fasciaLength,seamLength,fasciaCorners,finishArea:(deckArea+fasciaArea)/144,
+  deckArea:deckArea/144,deckSheets:sheetLayout.length,deckSeamLength,fasciaLength,seamLength,fasciaCorners,finishArea:(deckArea+fasciaArea)/144,
   lumberLengths:lumber,studs:studCount(lumber),
-  counts:{modules:modules.length,fullModules:modules.filter(m=>m.full).length,rims:each('rims').length,joists:each('joists').length,legs:legs.length,sillLegs:legs.length-fullLegs,fullLegs,sills:each('sills').length},
+  counts:{modules:modules.length,decks:decks.length,fullModules:modules.filter(m=>m.full).length,rims:each('rims').length,joists:each('joists').length,legs:legs.length,sillLegs:legs.length-fullLegs,fullLegs,sills:each('sills').length},
   frameScrews:sum(m=>m.rims.length*2+m.joists.length*4+m.legs.length*4+m.legs.filter(l=>l.onSill).length*2+m.sills.length*2+m.edges.filter(e=>e.shared).reduce((s,e)=>s+Math.max(2,Math.ceil(e.len/24)),0)),
-  deckScrews:sum(m=>m.rims.reduce((s,r)=>s+Math.ceil(r.length/6)+1,0)+m.joists.reduce((s,j)=>s+Math.ceil(j.length/12)+1,0)),
-  staples:sum(m=>m.fascia.reduce((s,f)=>s+2*(Math.ceil(f.length/4)+1),0)+m.legs.filter(l=>l.onSill).length*3),
+  deckScrews:sum(m=>m.rims.reduce((s,r)=>s+Math.ceil(r.length/(onOutline(m.edges[r.edge].A,m.edges[r.edge].B,deckForModule.get(m).nominalPoly)?6:12))+1,0)+m.joists.reduce((s,j)=>s+Math.ceil(j.length/12)+1,0)),
+  staples:fasciaPieces.reduce((s,f)=>s+2*(Math.ceil(f.length/4)+1),0)+sum(m=>m.legs.filter(l=>l.onSill).length*3),
   padArea:fullLegs*PLATFORM.lumber[0]*PLATFORM.lumber[1]+sum(m=>m.sills.reduce((s,x)=>s+(Math.ceil(x.length/24)+1)*PLATFORM.lumber[1]**2,0)),
-  fasciaStrips:Math.ceil(fasciaLength*1.1/PLATFORM.stud),
-  tapeLength:seamLength+Math.ceil(fasciaLength*1.1/PLATFORM.stud)*PLATFORM.height,
+  fasciaStrips:Math.max(0,...fasciaPieces.map(f=>f.strip)),fasciaSheets:Math.max(0,...fasciaPieces.map(f=>f.sheet)),
+  tapeLength:deckSeamLength+fasciaPieces.filter(f=>f.joint).length*PLATFORM.height,
   beadLength:fasciaLength+fasciaCorners*PLATFORM.height
  };
 }

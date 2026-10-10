@@ -12,3 +12,15 @@ body.project-module .price-dock,body.project-module #price-dock{display:none!imp
 @media(prefers-reduced-motion:reduce){.pj *{transition:none!important}}
 @media print{#project-tabs,#project-panel,.project-dialog{display:none!important}}
 body.project-module #price-total-dock{display:none!important}
+.pj-assembly{border:1px solid #d9e2d2;border-radius:12px;padding:0 15px 17px;margin-top:18px;background:#f1f5ec}.pj-assembly .pj-section-head{margin:12px 0}.pj-assembly-counts{display:grid;grid-template-columns:1fr 1fr;gap:15px}.pj-assembly-counts strong{display:block;font-size:26px;font-weight:600;letter-spacing:-1px}.pj-assembly-counts small{font-size:12px;font-weight:400;letter-spacing:0;color:#84927c}.pj-assembly-counts span{font-size:11px;color:#708265}
+
+/* Scroll-driven copy: the original card reserves stable document space. */
+.pj-progress-mini{position:fixed;z-index:4;box-sizing:border-box;pointer-events:none;overflow:hidden;padding:0;will-change:height}
+.pj-progress-mini[hidden]{display:none!important}
+.pj-progress-mini .pj-ring{position:absolute;margin:0;transform-origin:top left}
+.pj-progress-mini .pj-ring>svg{transform-origin:center}
+.pj-progress-mini .pj-progress-caption,.pj-progress-mini .pj-stage-legend{position:absolute;margin:0}
+
+.pj-progress-mini::before{content:"";position:absolute;left:6px;top:10px;width:80px;height:64px;background:radial-gradient(ellipse,rgba(207,241,168,.18),rgba(207,241,168,.06) 42%,transparent 72%);opacity:0;transition:opacity .18s ease;pointer-events:none}
+.pj-progress-mini.is-minimized::before{opacity:1}
+.pj-progress-mini .pj-ring,.pj-progress-mini .pj-progress-caption{z-index:1}

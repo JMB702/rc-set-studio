@@ -638,3 +638,5 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 
 [data-load-percent]{font-style:normal;font-variant-numeric:tabular-nums}
 [data-load-arc]{transition:none!important}
+
+.pj-finance-actions{display:flex;justify-content:flex-end;margin:0 0 10px}

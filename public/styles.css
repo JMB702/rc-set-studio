@@ -538,3 +538,5 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
  .building .step-buttons button{min-height:48px;padding-top:10px;padding-bottom:10px}
 }
 @media(max-width:850px) and (orientation:portrait){.building main{grid-template-rows:minmax(190px,32%) minmax(0,1fr)}}
+/* Keep design editing and approvals in the design/pricing views, not the Build guide. */
+.building #design{display:none}

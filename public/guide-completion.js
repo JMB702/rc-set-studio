@@ -1,7 +1,9 @@
 import {projectGuideStageDone,projectSetGuideStage} from './project-model.js';
 export function installGuideCompletion(api){
  const host=document.createElement('div');host.id='guide-completion';host.innerHTML='<label><input id="guide-step-done" type="checkbox" disabled><span>Mark this step done</span></label><span id="guide-save-status" role="status" aria-live="polite"></span>';
- document.querySelector('#step-title').after(host);const checkbox=host.querySelector('input'),status=host.querySelector('[role=status]');let data=null,busy=false,loading=false;
+ const dock=document.querySelector('.step-buttons');dock.prepend(host);
+ new ResizeObserver(()=>{const height=dock.getBoundingClientRect().height;if(height>0)document.documentElement.style.setProperty('--guide-dock-height',height+'px');}).observe(dock);
+ const checkbox=host.querySelector('input'),status=host.querySelector('[role=status]');let data=null,busy=false,loading=false;
  function render(){const step=api.currentGuideStep();checkbox.disabled=busy||!data||step.stage===undefined;checkbox.checked=!!data&&projectGuideStageDone(data,step.stage,api.state);host.querySelector('label span').textContent=checkbox.checked?'Step done':'Mark this step done';checkbox.setAttribute('aria-label','Mark '+(step.title||'this step')+' done');}
  async function read(){const r=await fetch('/api/project/tracking',{signal:AbortSignal.timeout(15000)}),snapshot=await r.json();if(!r.ok)throw Error(snapshot.error||'Could not load project progress.');return snapshot;}
  async function refresh(){if(loading||busy)return;loading=true;try{const snapshot=await read();data=snapshot.data;status.textContent='';render();}catch(e){status.textContent=e.message;}finally{loading=false;}}

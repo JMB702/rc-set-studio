@@ -590,3 +590,13 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .pj-count-input input::-webkit-inner-spin-button{appearance:none}
 .pj-assembly button[type=submit]{width:100%;margin:14px 0 0}
 @media(max-width:380px){.pj-count-row{font-size:12px}.pj-count-input{gap:2px}.pj-count-input input{width:42px}.pj-count-input button{width:40px}}
+
+/* One disclosure keeps section and step navigation out of the instructions. */
+.guide-navigation{margin-bottom:10px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.guide-navigation #guide-jump{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;padding:12px;text-align:left;border-radius:0;background:#eef3e9;font-size:13px;font-weight:600}
+.guide-navigation-action{display:flex;gap:7px;align-items:center;flex-shrink:0;color:#52674b;font-size:12px}
+.guide-navigation-action>span{display:inline-block;transition:transform .15s}
+#guide-jump[aria-expanded=true] .guide-navigation-action>span{transform:rotate(180deg)}
+.guide-navigation #guide-index{padding:12px;border-top:1px solid var(--line)}
+.guide-navigation #guide-sections{margin:0 0 12px}
+.guide-navigation #restart{margin-bottom:0}

@@ -25,7 +25,7 @@ body.project-module #price-total-dock{display:none!important}
 .pj-progress-mini.is-minimized::before{opacity:1}
 .pj-progress-mini .pj-ring,.pj-progress-mini .pj-progress-caption{z-index:1}
 
-.pj-morph-background{position:absolute;inset:0;background:#192d29;border-radius:18px;transform-origin:top;will-change:transform;overflow:hidden}
+.pj-morph-background{position:absolute;inset:0;background:#192d29;border-radius:18px;clip-path:inset(0 round 18px);will-change:clip-path;overflow:hidden}
 .pj-morph-background>div{position:absolute;inset:0;background:#223b32;opacity:0;will-change:opacity}
 .pj-progress-mini .pj-ring strong{transform-origin:center;will-change:transform}
 .pj-progress-mini .pj-stage-legend>div{will-change:transform,opacity}
@@ -43,3 +43,5 @@ body.project-module #price-total-dock{display:none!important}
 .pj-progress-marker{position:absolute;top:80px;left:0;width:1px;height:1px}
 .pj-progress-mini::before{display:none}
 .pj-morph-bloom{position:absolute;z-index:1;left:6px;top:10px;width:80px;height:64px;background:radial-gradient(ellipse,rgba(207,241,168,.18),rgba(207,241,168,.06) 42%,transparent 72%);opacity:0;will-change:opacity}
+
+.pj-production-flow{display:flow-root;will-change:transform}

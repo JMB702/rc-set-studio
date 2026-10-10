@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {stepFasteners} from './step-fasteners.js';
-import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,slab,dispose,grain} from './model.js';
+import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,slab,dispose,grain,footprint} from './model.js';
 import {floorArea} from './pricing-calc.js';
 import {platformPlan,platformCuts,PLATFORM,legLength,sillLegLength,rimBottom,inches} from './platform.js';
 import {benchPanelPose,jackBenchDirection} from './guide-orientation.js';
@@ -189,16 +189,17 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  function buildSet(stage){
   const g=finishedSet(S.height,stage===21?0:S.angle);model.add(g);
   // Floor build happens before the walls stand, so the floor section shows the floor alone.
-  if(sectionOf(stage,S.floor)==='floor')g.visible=false;
-  const floorWork=stage>=23&&stage<=27;
+  const floorWork=sectionOf(stage,S.floor)==='floor';
+  if(floorWork)g.visible=false;
   if(stage<27||S.floor==='none')g.traverse(o=>{if(o.name==='Charcoal shoe trim')o.visible=false;});
-  if(stage>=22&&S.platformShape!=='none')model.add(platformFloor(S.angle,S.platformBack,S.platformSide,S.platformAngle));
+  if(stage>=22&&!floorWork&&S.platformShape!=='none')model.add(platformFloor(S.angle,S.platformBack,S.platformSide,S.platformAngle));
   if(stage===28)g.traverse(o=>{if(o.isMesh&&o.userData.paintedSide==='front'){o.material=S.height===120?mats.wallSeams10:mats.wallSeams8;o.userData.wallFinishPreview='seams';}});
   if(stage<28)g.traverse(o=>{if(o.isMesh&&o.material===mats.charcoal)o.material=o.userData.paintedSide==='front'?mats.wallRaw:mats.ply;});
   if(stage>=22&&(S.floor==='wood'||S.floor==='charcoal')){const f=floorMesh(S.angle,floorWork&&stage<25?'charcoal':S.floor,S.floor==='wood'&&stage===25?2:99);
-   if(floorWork&&stage<27)f.traverse(o=>{if(o.isMesh){const old=o.material;o.material=stage===26&&S.floor==='charcoal'?new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}):stage===24&&S.floor==='wood'?new T.MeshStandardMaterial({color:0x798481,roughness:1,side:T.DoubleSide}):stage<25||S.floor==='charcoal'?mats.ply:o.material;if(old!==o.material)old.dispose();}});
+   if(floorWork&&stage<27)f.traverse(o=>{if(o.isMesh){const old=o.material;o.material=stage===23?new T.MeshStandardMaterial({color:0xd7ded5,roughness:1}):stage===26&&S.floor==='charcoal'?new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}):stage===24&&S.floor==='wood'?new T.MeshStandardMaterial({color:0x798481,roughness:1,side:T.DoubleSide}):stage<25||S.floor==='charcoal'?mats.ply:o.material;if(old!==o.material)old.dispose();}});
    model.add(f);
   }
+  if(stage===23)model.add(lines(outlines([footprint(S.angle)],.004),0x536b55));
   if(stage===24&&S.floor==='charcoal'){const lines=[];for(let x=-96;x<=96;x+=48)lines.push(x*inch,.008,0,x*inch,.008,96*inch);for(let z=0;z<=96;z+=48)lines.push(-96*inch,.008,z*inch,96*inch,.008,z*inch);const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(lines,3));model.add(new T.LineSegments(geo,new T.LineBasicMaterial({color:0x5d4427})));}
   if(stage===25&&S.floor==='charcoal')for(const x of [-48,0,48]){const line=new T.Mesh(new T.BoxGeometry(.018,.004,96*inch),mats.highlight);line.position.set(x*inch,.006,48*inch);model.add(line);}
   if(stage===21)for(const seam of [-48,0,48])for(const h of [12,36,60,84,...(S.height===120?[108]:[])]){const marker=new T.Mesh(new T.SphereGeometry(.026,8,5),mats.highlight);marker.position.set(seam*inch,h*inch,-.85*inch);markers.add(marker);}

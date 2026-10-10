@@ -10,13 +10,14 @@ export function installConstructionView(api){
  const status=document.createElement('span');status.id='construction-view-status';status.setAttribute('role','status');viewport.append(status);
  let completed=false,tracking=null,revision=-1,materials=new Map(),watched=new WeakSet(),disposed=false,loading=false,generation=0;
  const originalBefore=api.scene.onBeforeRender,originalAfter=api.scene.onAfterRender;let restored=[];
- function mode(){return completed||api.state.mode==='cameras';}
- function sync(){toggle.hidden=api.state.mode==='cameras';toggle.setAttribute('aria-pressed',String(completed));toggle.setAttribute('aria-label',completed?'Show construction progress':'Show completed set');toggle.title=completed?'Completed set · show progress':'Construction progress · show completed set';status.textContent=api.state.mode==='cameras'?'':completed?'Completed set':tracking?'Construction progress':'Progress unavailable';status.hidden=api.state.mode==='cameras';api.invalidate();}
+ function guideOrCamera(){return ['build','cameras'].includes(api.state.mode);}
+ function mode(){return completed||guideOrCamera();}
+ function sync(){toggle.hidden=guideOrCamera();toggle.setAttribute('aria-pressed',String(completed));toggle.setAttribute('aria-label',completed?'Show construction progress':'Show completed set');toggle.title=completed?'Completed set · show progress':'Construction progress · show completed set';status.textContent=api.state.mode==='cameras'?'':completed?'Completed set':tracking?'Construction progress':'Progress unavailable';status.hidden=guideOrCamera();api.invalidate();}
  toggle.onclick=()=>{completed=!completed;sync();window.dispatchEvent(new Event('studio-view-changed'));};
  function accept(data,nextRevision){if(nextRevision!==undefined&&nextRevision<revision)return;tracking=projectUpgradeTracking(data);if(nextRevision!==undefined)revision=nextRevision;sync();window.dispatchEvent(new CustomEvent('project-tracking-loaded',{detail:tracking}));}
  async function refresh(){if(loading||disposed)return;loading=true;const version=generation;try{const r=await fetch('/api/project/tracking',{signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('Progress unavailable');const data=await r.json();if(version===generation)accept(data.data,data.revision);}catch{if(!tracking){status.textContent='Progress unavailable';status.title='Could not load saved progress. Unconfirmed parts remain gray.';}}finally{loading=false;}}
  window.addEventListener('project-tracking-changed',e=>{generation++;revision=-1;accept(e.detail);});
- window.addEventListener('studio-view-changed',()=>{toggle.hidden=api.state.mode==='cameras';status.hidden=api.state.mode==='cameras';});
+ window.addEventListener('studio-view-changed',()=>{toggle.hidden=guideOrCamera();status.hidden=guideOrCamera();});
  const baseMode=api.setMode;api.setMode=m=>{const result=baseMode(m);sync();return result;};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>api.setMode(b.dataset.mode));
  function inheritedPanel(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
  function finishMaterial(base,part,result){const ghost=!result.assembled,finish=result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish);if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();materials.set(key,m);}

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `project_receipts_fingerprint_idx` ON `project_receipts` (`fingerprint`);

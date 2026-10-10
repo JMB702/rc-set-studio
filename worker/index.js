@@ -24,6 +24,7 @@ function normalize(input) {
 function commentRow(r){return {id:r.id,name:r.name,body:r.body,elementId:r.element_id,elementLabel:r.element_label,context:JSON.parse(r.context),createdAt:r.created_at};}
 export default {async fetch(request,env) {
   const url=new URL(request.url);
+  if(url.pathname.startsWith('/api/project/'))return projectAPI(request,env);
   if(url.pathname==='/api/camera-positions') {
     try {
       const db=database(env),row=r=>({id:r.id,name:r.name,shot:JSON.parse(r.shot),revision:r.revision,createdAt:r.created_at,updatedAt:r.updated_at,deletedAt:r.deleted_at??null});

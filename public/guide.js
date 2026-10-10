@@ -45,11 +45,13 @@ items.push([28,'Dress and paint the walls','Once the configuration is fixed, dre
 // A design may have a floor, a platform, both or neither. The floor goes down first; the platform stands on it.
 const platform=floor==='platform'||cfg.platformShape&&cfg.platformShape!=='none';if(floor!=='wood'&&floor!=='charcoal')items=items.filter(([stage])=>stage<23||stage>27);
 if(platform)items.push(...platformSteps(platformPlan(cfg.angle??45,cfg.platformBack??PLATFORM.gap,cfg.platformSide??PLATFORM.gap,cfg.platformAngle),floor==='wood'||floor==='charcoal'));
-return items.map(([stage,title,description,spec,view])=>({stage,title,description,spec,view,section:sectionOf(stage,floor),...stepHelp(stage,floor),fasteners:stepFasteners(stage,h,floor,cfg)})).sort((a,b)=>sectionIndex(a.section)-sectionIndex(b.section));}
+return items.map(([stage,title,description,spec,view])=>({stage,title,description,spec,view,section:sectionOf(stage,floor),...stepHelp(stage,floor),fasteners:stepFasteners(stage,h,floor,cfg)})).sort((a,b)=>sectionIndex(a.section)-sectionIndex(b.section)).flatMap(step=>{
+ const checkpoint={12:[38,'Record completed wall panels'],16:[39,'Record completed jacks'],17:[40,'Record attached jacks']}[step.stage];
+ return checkpoint?[step,{...step,stage:checkpoint[0],visualStage:step.stage,checkpoint:true,title:checkpoint[1],phase:'Batch progress',fasteners:[],description:'Update your completed count before continuing.',spec:'',check:''}]:[step];});}
 // The guide is split into sections a builder can jump between. Stages keep their numbers; only the order changes.
-// Stages 30–39 are reserved for the platform build.
+// Stages 30–37 are platform construction; 38–40 are flat-build count checkpoints.
 export const sections=[{id:'flat',label:'Flat build',sub:'Wall panels + jacks'},{id:'floor',label:'Floor build',sub:'Floor overlay'},{id:'platform',label:'Platform build',sub:'Raised platform'},{id:'assembly',label:'Full assembly',sub:'Stand, join + finish'}];
-export function sectionOf(stage,floor){return stage<=20?'flat':stage>=30&&stage<40?'platform':stage>=23&&stage<=26||stage===27&&floor!=='wood'?'floor':'assembly';}
+export function sectionOf(stage,floor){return stage<=20||stage>=38&&stage<=40?'flat':stage>=30&&stage<38?'platform':stage>=23&&stage<=26||stage===27&&floor!=='wood'?'floor':'assembly';}
 const sectionIndex=id=>sections.findIndex(s=>s.id===id);
 // Platform build: stages 30–37. Quantities follow the current wall angle and gaps.
 function platformSteps(p,onFloor){const c=p.counts,ft=v=>(v/12).toFixed(1)+' ft',gap=v=>v?inches(v):'flush',sheets=p.fasciaSheets;return [
@@ -114,7 +116,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  function visibleBounds(root,filter=()=>true){const b=new T.Box3();root.updateMatrixWorld(true);root.traverseVisible(o=>{if(o.isMesh&&filter(o)){o.geometry.computeBoundingBox();b.union(o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld));}});return b;}
  function fit(view){
   if(S.mode!=='build'||!bounds)return;
-  const st=all[S.step],stage=st.stage,b=focused&&!detailBounds.isEmpty()?detailBounds:bounds;
+  const st=all[S.step],stage=st.visualStage??st.stage,b=focused&&!detailBounds.isEmpty()?detailBounds:bounds;
   const center=b.getCenter(new T.Vector3());
   let direction=stage>=13&&stage<=16?jackBenchDirection():stage<=16?[0,1,.32]:stage<=20?[-.42,.6,-1]:st.view==='top'?[0,1,.001]:st.view==='front'?[.12,.35,1]:[-.2,.45,-1];
   if(focused&&stage===9)direction=[-1,.6,.4];
@@ -220,6 +222,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
    b.title=x.sub;b.innerHTML=`<strong>${x.label}</strong><span>${count?`${count} step${count===1?'':'s'}`:x.id==='platform'?'No platform in this design':'No floor in this design'}</span>`;b.onclick=()=>goSection(x.id);return b;}));
  }
  function instructions(st){
+  $('#guide-controls').classList.toggle('batch-checkpoint',!!st.checkpoint);
   const inSection=all.filter(x=>x.section===st.section),section=sections.find(x=>x.id===st.section);
   $('#step-number').textContent=`${section.label} · Step ${inSection.indexOf(st)+1} of ${inSection.length}`;$('#progress').max=inSection.length;$('#progress').value=inSection.indexOf(st)+1;
   sectionUI(st.section);
@@ -240,7 +243,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   if(S.mode!=='build'){api.getSet().visible=api.getFloor().visible=['finished','cameras'].includes(S.mode);api.invalidate();return;}
   api.getSet().visible=api.getFloor().visible=false;
   const st=all[S.step];model=new T.Group();model.name='Build step model';api.scene.add(model);markers=new T.Group();api.scene.add(markers);
-  if(st.stage<21)buildPanel(st.stage);else if(st.section==='platform')buildPlatform(st.stage);else buildSet(st.stage);
+  if(st.checkpoint)buildPanel(st.visualStage);else if(st.stage<21)buildPanel(st.stage);else if(st.section==='platform')buildPlatform(st.stage);else buildSet(st.stage);
   // Fit against final part positions, so placement animation cannot change the camera framing.
   for(const {o}of animation)o.position.set(0,0,0);model.updateMatrixWorld(true);
   detailBounds=visibleBounds(model,o=>o.userData.step===st.stage&&!o.userData.guideDecoration);
@@ -269,7 +272,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  function goSection(id){const i=all.findIndex(step=>step.section===id);if(i>=0)go(i);}
  document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>mode(b.dataset.mode));
  $('#next').onclick=()=>S.step===all.length-1?api.setMode('finished'):go(S.step+1);$('#back').onclick=()=>go(S.step-1);$('#restart').onclick=()=>go(0);
- $('#guide-jump').onclick=()=>{const open=$('#guide-index').hidden;$('#guide-index').hidden=!open;$('#guide-jump').setAttribute('aria-expanded',open);if(open)$('#guide-step-select').focus({preventScroll:true});};
+ $('#guide-jump').onclick=()=>{const open=$('#guide-index').hidden;$('#guide-index').hidden=!open;$('#guide-jump').setAttribute('aria-expanded',open);};
  $('#guide-step-select').onchange=e=>go(+e.target.value);
  $('#guide-cut-link').onclick=()=>{const cut=$('#cut-details');cut.open=true;cut.scrollIntoView({block:'start',behavior:reducedMotion.matches?'instant':'smooth'});};
  $('#guide-reset-view').onclick=()=>{api.clearCutInspection?.();viewOverride=null;focused=false;$('#guide-focus').setAttribute('aria-pressed','false');$('#guide-focus').textContent='See detail';fit();};
@@ -282,8 +285,8 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  api.onTick=t=>{if(!animation.length)return;const e=reducedMotion.matches?1:Math.min(1,(t-start)/650),fade=(1-e)**3;for(const {o,offset}of animation)o.position.copy(offset).multiplyScalar(fade);api.invalidate();if(e===1)animation=[];};
  api.setMode=mode;api.setStep=n=>{if(!Number.isInteger(n)||n<0||n>=all.length)throw Error('Step outside guide');hasOpened=true;S.step=n;api.setMode('build');controls.scrollTop=0;window.scrollTo(0,0);return {...S,stepCount:all.length};};
  api.getGuideStage=()=>all[S.step]?.stage??0;api.restoreGuideStage=stage=>{hasOpened=true;S.step=Math.max(0,all.findIndex(st=>st.stage===stage));};
- api.currentGuideStep=()=>({stage:all[S.step]?.stage,title:all[S.step]?.title});
- api.nextGuideStep=()=>all[S.step+1]?{stage:all[S.step+1].stage,title:all[S.step+1].title}:null;
+ api.currentGuideStep=()=>({stage:all[S.step]?.stage,title:all[S.step]?.title,checkpoint:!!all[S.step]?.checkpoint});
+ api.nextGuideStep=()=>all[S.step+1]?{stage:all[S.step+1].stage,title:all[S.step+1].title,checkpoint:!!all[S.step+1].checkpoint}:null;
  api.stepCount=()=>steps(S.height,S.floor,S).length;api.setSection=id=>{if(!all.some(step=>step.section===id))throw Error('No steps in that section');hasOpened=true;if(S.mode!=='build')api.setMode('build');goSection(id);return {...S,section:id};};api.guideView=v=>{viewOverride=v==='reset'?null:v;fit(viewOverride);};
  api.guideStats=()=>({step:S.step,...all[S.step],visible:model?.children.length||0,bounds:bounds?.clone(),detailBounds:detailBounds?.clone()});cutUI();materialUI();return {mode,display};
 }

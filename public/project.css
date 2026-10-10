@@ -14,8 +14,9 @@ body.project-module .price-dock,body.project-module #price-dock{display:none!imp
 body.project-module #price-total-dock{display:none!important}
 .pj-assembly{border:1px solid #d9e2d2;border-radius:12px;padding:0 15px 17px;margin-top:18px;background:#f1f5ec}.pj-assembly .pj-section-head{margin:12px 0}.pj-assembly-counts{display:grid;grid-template-columns:1fr 1fr;gap:15px}.pj-assembly-counts strong{display:block;font-size:26px;font-weight:600;letter-spacing:-1px}.pj-assembly-counts small{font-size:12px;font-weight:400;letter-spacing:0;color:#84927c}.pj-assembly-counts span{font-size:11px;color:#708265}
 
-/* A compact persistent progress summary, with reserved space to prevent scroll jumps. */
-.pj-progress-hero{position:sticky;top:0;z-index:3}
+/* Separate overlay keeps the document geometry stable while scrolling. */
+.pj-progress-mini{position:fixed;z-index:4;box-sizing:border-box;pointer-events:none}
+.pj-progress-mini[hidden]{display:none!important}
 .pj-progress-hero.is-compact{display:flex;align-items:center;gap:14px;padding:10px 16px;border-radius:10px;min-height:76px}
 .pj-progress-hero.is-compact .pj-ring{width:64px;height:64px;min-width:64px;margin:0}
 .pj-progress-hero.is-compact .pj-ring strong{font-size:23px;letter-spacing:-1px}
@@ -24,4 +25,3 @@ body.project-module #price-total-dock{display:none!important}
 .pj-progress-hero.is-compact .pj-progress-caption{text-align:left;margin:0}
 .pj-progress-hero.is-compact .pj-progress-caption p{margin:6px 0 0;font-size:12px}
 .pj-progress-hero.is-compact .pj-pill{font-size:9px;padding:4px 8px}
-.pj-progress-spacer{pointer-events:none}

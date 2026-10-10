@@ -14,5 +14,14 @@ test('Finished wall backs and front UVs keep the same vertical mapping for unpai
  const scene=model.finishedSet(120,45);let backs=0,fronts=0,progress=0;scene.traverse(o=>{if(o.userData.paintedSide){assertVertical(o.geometry,o.name.includes('left')||o.name.includes('right')?6:0);if(o.userData.progressOnly)progress++;if(o.userData.paintedSide==='none'){backs++;assert.equal(o.material,model.mats.wallRaw);}else{fronts++;assert.equal(o.material,model.mats.charcoal);assert.equal(o.material.map,null);}}});assert.equal(backs,11);assert.equal(fronts,11);assert.equal(progress,16);model.dispose(scene);
 });
 test('Plywood has its own pale texture while framing retains pine',()=>{
- assert.match(model.mats.ply.map.name,/lauan-plywood/);assert.match(model.mats.wood.map.name,/pine-framing/);assert.notEqual(model.mats.ply.map,model.mats.wood.map);assert.equal(model.mats.ply.color.getHex(),0xffffff);
+ assert.match(model.mats.ply.map.name,/lauan-plywood/);assert.match(model.mats.wood.map.name,/pine-framing/);assert.notEqual(model.mats.ply.map,model.mats.wood.map);assert.equal(model.mats.ply.color.getHex(),0xffffff);assert.equal(model.mats.wood.color.getHex(),0xffffff,'framing has no dark amber multiplier');
+});
+
+test('Both mirrored jack diagonals have grain parallel to the brace, at both panel heights',()=>{
+ for(const height of [96,120]){const panel=model.panel(height),d=model.design(height),start=d.jackStart+.106;
+  for(const side of ['Left','Right']){const g=panel.getObjectByName(side+' diagonal').geometry,p=g.attributes.position,uv=g.attributes.uv;g.computeBoundingBox();const x=g.boundingBox.min.x;
+   const index=(y,z)=>{for(let i=0;i<p.count;i++)if(Math.abs(p.getX(i)-x)<1e-6&&Math.abs(p.getY(i)-y*model.inch)<1e-6&&Math.abs(p.getZ(i)-z*model.inch)<1e-6)return i;throw Error('Missing brace endpoint');};
+   const top=index(d.jackH,-start),toe=index(0,-start-d.foot);close(uv.getY(top),uv.getY(toe));close(Math.abs(uv.getX(top)-uv.getX(toe)),Math.hypot(d.jackH,d.foot)/48);
+  }model.dispose(panel);
+ }
 });

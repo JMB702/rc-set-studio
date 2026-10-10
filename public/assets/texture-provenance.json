@@ -50,5 +50,10 @@
     "finish": "Geometry-aligned, feathered off-white seam bands composed over the original lauan texture; no external photograph is redistributed.",
     "research": "public/assets/wall-finish-notes.txt",
     "notes": "Illustrative appearance only; unchanged material quantities and unresolved seam product specifications."
+  },
+  "framingAppearance": {
+    "material": "Pine texture with neutral white albedo multiplier (removed the dark amber tint), matte roughness 0.9.",
+    "mapping": "Rectangular boards use their long axis; diagonal jack braces use along-brace and across-brace projections in diagonalGrain().",
+    "reference": "User-supplied front and rear photographs of the built flat, October 10, 2026."
   }
 }

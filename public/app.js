@@ -1,3 +1,5 @@
+import {installGuideCompletion} from './guide-completion.js';
+import {installConstructionView} from './construction-view.js';
 import {installProject} from './project.js';
 import {cameraPolarLimit} from './camera-state.js';
 import {readWorkspace} from './workspace-state.js';
@@ -78,3 +80,7 @@ installProject(window.__studio);
 
 // Suppress long-press selection/callouts only inside the interactive viewer.
 for(const event of ['selectstart','contextmenu'])document.querySelector('.viewport').addEventListener(event,e=>e.preventDefault());
+
+installConstructionView(window.__studio);
+
+installGuideCompletion(window.__studio);

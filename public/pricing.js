@@ -31,19 +31,19 @@ function ids(name,height){
  return [];
 }
 function pricedPanel(height){const root=panel(height),bins=new Map();
- const add=(o,g,matches,support)=>{const key=matches.join(',')+o.material.uuid+support;const bin=bins.get(key)||{ids:matches,material:o.material,support,geometries:[]};bin.geometries.push(g);bins.set(key,bin);};
+ const add=(o,g,matches,support)=>{const key=matches.join(',')+o.material.uuid+support+JSON.stringify(o.userData.progress||{});const bin=bins.get(key)||{ids:matches,material:o.material,support,progress:o.userData.progress?.kind==='wallSkin'?{...o.userData.progress,front:matches.includes('wallPaint')}:o.userData.progress,geometries:[]};bin.geometries.push(g);bins.set(key,bin);};
  for(const o of [...root.children]){if(!o.isMesh)continue;const matches=ids(o.name,height),support=o.userData.step>=13;
  if(/lauan/.test(o.name)){const faces=splitSkinFaces(o.geometry);add(o,faces.front,matches,support);add(o,faces.back,['skin'],support);}
  else add(o,o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone(),matches,support);
  root.remove(o);o.geometry.dispose();}
- for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(g=>g.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.support=bin.support;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0]||'Panel part';root.add(m);}
+ for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(g=>g.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.support=bin.support;m.userData.progress=bin.progress;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0]||'Panel part';root.add(m);}
  return root;
 }
 // The platform's framing, deck and fascia, merged per material and tagged with the rows they price.
 function pricedPlatform(plan){const root=new T.Group(),parts=platformParts(plan),bins=new Map();
  const finish=['platformTape','platformCompound','platformPrimer','platformPaint'],tag=name=>/deck/.test(name)?['platformDeck','platformDeckScrews',...finish]:/fascia/.test(name)?['platformSkin','platformStaples','platformGlue','platformBead',...finish]:['platformLumber','platformFrameScrews'];
- for(const o of [...parts.children]){const ids=tag(o.name),key=ids[0],bin=bins.get(key)||{ids,material:o.material,geometries:[]};bin.geometries.push(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone());bins.set(key,bin);o.geometry.dispose();}
- for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(x=>x.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0];m.castShadow=m.receiveShadow=true;root.add(m);}
+ for(const o of [...parts.children]){const ids=tag(o.name),key=ids[0]+JSON.stringify(o.userData.progress),bin=bins.get(key)||{ids,material:o.material,progress:o.userData.progress,geometries:[]};bin.geometries.push(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone());bins.set(key,bin);o.geometry.dispose();}
+ for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(x=>x.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0];m.userData.progress=bin.progress;m.castShadow=m.receiveShadow=true;root.add(m);}
  return root;}
 export function installPricing(api){
  const host=$('#pricing-controls'),baseMode=api.setMode,S=api.state;
@@ -77,7 +77,7 @@ export function installPricing(api){
   const h=S.height,a=S.angle*Math.PI/180;
   if(scope==='panel'){const p=pricedPanel(h);p.position.x=-24*inch;model.add(p);}else{
    const back=new T.Group(),left=new T.Group(),right=new T.Group();back.position.x=left.position.x=-96*inch;right.position.x=96*inch;left.rotation.y=a;right.rotation.y=-a;model.add(back,left,right);
-   for(let i=0;i<4;i++){const p=pricedPanel(h);p.position.x=i*48*inch;back.add(p);}for(let i=0;i<2;i++){const l=pricedPanel(h),r=pricedPanel(h);l.position.x=-(i+1)*48*inch;r.position.x=i*48*inch;left.add(l);right.add(r);}
+   for(let i=0;i<4;i++){const p=pricedPanel(h);p.position.x=i*48*inch;p.userData.progressPanel=i;back.add(p);}for(let i=0;i<2;i++){const l=pricedPanel(h),r=pricedPanel(h);l.position.x=-(i+1)*48*inch;r.position.x=i*48*inch;l.userData.progressPanel=4+i;r.userData.progressPanel=6+i;left.add(l);right.add(r);}
    if(S.floor!=='none'){const f=floorMesh(S.angle,S.floor);f.traverse(o=>{if(o.isMesh){o.userData.pricingIds=['laminate','underlay','vapor','floorPly','floorPrimer','floorPaint','floorSeams','floorFixings'];o.userData.baseColor=o.material.color.clone();o.userData.baseMap=o.material.map;}});model.add(f);}
    if(S.platformShape!=='none')model.add(pricedPlatform(platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle)));
   }

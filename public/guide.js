@@ -175,7 +175,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   // Wall lines snapped on the floor; the walls stand during Full assembly.
   model.add(lines([-96*inch,.003,0,96*inch,.003,0,96*inch,.003,0,(96+c)*inch,.003,sn*inch,-96*inch,.003,0,(-96-c)*inch,.003,sn*inch],0x273e2e));
   if(stage===30){model.add(lines(outlines(plan.modules.map(m=>m.poly),.004)));const pad=new T.Mesh(slab(plan.outline,0,.05),new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}));pad.userData.step=30;model.add(pad);}
-  else if(stage>=36){const m=stage===37?mats.platform.clone():new T.MeshStandardMaterial({color:0xdedbd2,roughness:1});if(stage===37)m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.step=stage;block.castShadow=block.receiveShadow=true;model.add(block);if(stage===36)model.add(lines(outlines(plan.modules.map(x=>x.poly),(PLATFORM.height+.02)*inch),0x9c9888));}
+  else if(stage>=36){const m=stage===37?mats.platform.clone():new T.MeshStandardMaterial({color:0xdedbd2,roughness:1});if(stage===37)m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.step=stage;block.userData.progress={kind:'platform',stage:35,total:1,module:0};block.castShadow=block.receiveShadow=true;model.add(block);if(stage===36)model.add(lines(outlines(plan.modules.map(x=>x.poly),(PLATFORM.height+.02)*inch),0x9c9888));}
   else{
    const parts=platformParts(plan);parts.userData.commentPrefix='Platform';model.add(parts);if(stage===31)parts.position.y=-rimBottom*inch;
    for(const o of [...parts.children]){o.visible=o.userData.step<=stage;if(o.visible&&o.userData.step===stage){outlinePiece(o);const mat=o.material.clone();mat.color.lerp(new T.Color('#c4e698'),.45);o.material=mat;const offset=new T.Vector3(0,.12,0);o.position.copy(offset);animation.push({o,offset});}}
@@ -272,6 +272,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
  api.onTick=t=>{if(!animation.length)return;const e=reducedMotion.matches?1:Math.min(1,(t-start)/650),fade=(1-e)**3;for(const {o,offset}of animation)o.position.copy(offset).multiplyScalar(fade);api.invalidate();if(e===1)animation=[];};
  api.setMode=mode;api.setStep=n=>{if(!Number.isInteger(n)||n<0||n>=all.length)throw Error('Step outside guide');hasOpened=true;S.step=n;api.setMode('build');controls.scrollTop=0;window.scrollTo(0,0);return {...S,stepCount:all.length};};
  api.getGuideStage=()=>all[S.step]?.stage??0;api.restoreGuideStage=stage=>{hasOpened=true;S.step=Math.max(0,all.findIndex(st=>st.stage===stage));};
+ api.currentGuideStep=()=>({stage:all[S.step]?.stage,title:all[S.step]?.title});
  api.stepCount=()=>steps(S.height,S.floor,S).length;api.setSection=id=>{if(!all.some(step=>step.section===id))throw Error('No steps in that section');hasOpened=true;if(S.mode!=='build')api.setMode('build');goSection(id);return {...S,section:id};};api.guideView=v=>{viewOverride=v==='reset'?null:v;fit(viewOverride);};
  api.guideStats=()=>({step:S.step,...all[S.step],visible:model?.children.length||0,bounds:bounds?.clone(),detailBounds:detailBounds?.clone()});cutUI();materialUI();return {mode,display};
 }

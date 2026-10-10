@@ -9,12 +9,12 @@ export function projectDefaultTracking() {
 // Promote the original wall finishing milestone without resetting customized stages or notes.
 export function projectUpgradeTracking(input) {
  const wall=input.stages.find(s=>s.id==='walls'),legacy=wall?.steps.find(t=>t.id==='walls-6'&&t.name==='Dress, prime and paint');
- if(!legacy||input.stages.some(s=>s.id==='wall-finishing'))return input;
+ if(!legacy||input.stages.some(s=>s.id==='wall-finishing'))return projectUpgradePlatform(input);
  const data=structuredClone(input),index=data.stages.findIndex(s=>s.id==='walls');
  data.stages[index].steps=data.stages[index].steps.filter(t=>t.id!==legacy.id);
  if(!data.stages[index].steps.length)return input;
  data.stages.splice(index+1,0,{id:'wall-finishing',name:'Dress, prime and paint',notes:structuredClone(legacy.notes),steps:['Dress seams and corners','Fill and feather joints','Sand and clean surfaces','Prime the walls','Paint the walls'].map((name,i)=>({id:`wall-finishing-${i}`,name,percent:legacy.percent,notes:[]}))});
- return data;
+ return projectUpgradePlatform(data);
 }
 export function projectStagePercent(stage){return stage.steps.length?Math.round(stage.steps.reduce((n,s)=>n+s.percent,0)/stage.steps.length):0;}
 export function projectProgress(data){const steps=data.stages.flatMap(s=>s.steps);return {percent:steps.length?Math.round(steps.reduce((n,s)=>n+s.percent,0)/steps.length):0,done:steps.filter(s=>s.percent===100).length,total:steps.length};}
@@ -35,7 +35,7 @@ export function projectValidate(kind,input,now=Date.now()) {
  if(kind==='tracking') {
   if(!list(input.stages,30)||!input.stages.length||!unique(input.stages))fail('Keep 1–30 production stages.');
   for(const s of input.stages){if(!id(s.id)||!str(s.name)||!s.name.trim()||!notes(s.notes)||!list(s.steps,100)||!s.steps.length||!unique(s.steps))fail('Invalid stage or notes.');for(const t of s.steps)if(!id(t.id)||!str(t.name)||!t.name.trim()||!Number.isInteger(t.percent)||t.percent<0||t.percent>100||!notes(t.notes))fail('Each step needs a name and progress from 0–100%.');}
-  return {stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes}))}))};
+  return {assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes}))}))};
  }
  if(kind!=='finance')fail('Unknown project module.');
  if(input.budgetCents!==null&&!money(input.budgetCents)||!list(input.expenses,5000)||!list(input.crew,100)||!list(input.shifts,10000))fail('Invalid project totals or too many entries.');
@@ -57,4 +57,86 @@ export function projectParseReceipt(text) {
  let date=iso?.[0]||null;if(!date&&match){const y=match[3].length===2?'20'+match[3]:match[3];date=`${y}-${match[1].padStart(2,'0')}-${match[2].padStart(2,'0')}`;if(Number.isNaN(Date.parse(date)))date=null;}
  const amountCents=values.length===1?values[0]:null,subtotalCents=amount(subtotal||''),taxCents=amount(tax||'');
  return {vendor:lines.slice(0,5).find(s=>/[a-z]{3}/i.test(s)&&!/receipt|welcome|invoice|thank|\b(?:tel|www)\b/i.test(s))||'',date,amountCents,subtotalCents,taxCents,warning:values.length>1?'More than one total was found. Enter the correct receipt total.':amountCents===null?'Could not confidently find the total. Enter it from the receipt.':subtotalCents!==null&&taxCents!==null&&Math.abs(subtotalCents+taxCents-amountCents)>1?'Subtotal and tax do not match the total. Check discounts or fees.':''};
+}
+
+export function projectAssembly(input={}) {
+ const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['jacksPartial',16]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
+ if((out.jacksAttached??0)>(out.jacksBuilt??0)||(out.jacksAttached??0)>(out.panelsCompleted??0)*2)throw Error('Attached jacks cannot exceed built jacks or two per completed panel.');
+ if((out.jacksBuilt??0)+(out.jacksPartial??0)>16)throw Error('Built and partially built jacks cannot exceed 16.');
+ return out;
+}
+export function projectStepPercent(data,id){for(const s of data?.stages||[]){const step=s.steps.find(t=>t.id===id);if(step)return step.percent;}return 0;}
+export function projectPartStatus(part,data) {
+ const counts=projectAssembly(data?.assembly),percent=id=>projectStepPercent(data,id),panel=part.panel??0;
+ const unit=(id,index,total)=>index<Math.floor(percent(id)*total/100);
+ const wall=panel<(counts.panelsCompleted??0),attached=panel*2+(part.side??0)<(counts.jacksAttached??0)&&wall;
+ if(part.kind==='panel')return {assembled:wall};
+ if(part.kind==='jack')return {assembled:attached};
+ if(part.kind==='bracing')return {assembled:wall&&panel*2+1<(counts.jacksAttached??0)&&percent('walls-4')===100};
+ if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':'raw'};
+ if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':'raw'};
+ if(part.kind==='trim')return {assembled:percent('floor-3')===100&&wall};
+ if(part.kind==='platform'){
+  const i=part.module??0,n=part.total??1;
+  const frame=unit('platform-frame',i,n),legs=unit('platform-legs',i,n),joined=unit('platform-join',i,n),deck=unit('platform-deck',i,n),fascia=unit('platform-fascia',i,n);
+  const assembled=frame&&legs&&joined&&(part.stage>=34?deck:true)&&(part.stage>=35?fascia:true);
+  const surface=part.stage>=34,skim=deck&&fascia&&unit('platform-skim',i,n),primer=skim&&unit('platform-prime',i,n),paint=primer&&unit('platform-paint',i,n);
+  return {assembled,finish:surface?(paint?'paint':primer?'primer':skim?'skim':'raw'):'raw'};
+ }
+ return {assembled:false};
+}
+export function projectUpgradePlatform(input) {
+ const stage=input.stages.find(s=>s.id==='platform');if(!stage||stage.steps.some(t=>t.id==='platform-frame'))return input;
+ const legacy=['platform-0','platform-1','platform-2','platform-3'];if(!legacy.every(id=>stage.steps.some(t=>t.id===id)))return input;
+ const groups={
+  'platform-0':[['platform-cut','Lay out and number modules'],['platform-frame','Cut and assemble module frames']],
+  'platform-1':[['platform-legs','Fit legs and sills'],['platform-join','Position and join modules']],
+  'platform-2':[['platform-deck','Attach the decks'],['platform-fascia','Attach the fascia']],
+  'platform-3':[['platform-skim','Tape, skim and sand'],['platform-prime','Prime the platform'],['platform-paint','Paint the platform']],
+ };
+ const data=structuredClone(input),target=data.stages.find(s=>s.id==='platform');
+ target.steps=target.steps.flatMap(t=>groups[t.id]?groups[t.id].map(([id,name],i)=>({id,name,percent:t.percent,notes:i===0?t.notes:[]})): [t]);return data;
+}
+
+export function projectGuideGroups(design={}) {
+ const tall=design.height!==96;
+ const groups={
+  'walls-0':[0],'walls-1':[1,2,3,4,5,6,7,...(tall?[8]:[]),9],'walls-2':[10,...(tall?[11]:[]),12],
+  'walls-3':[13,14,15,16,17],'walls-4':[18,19,20],'walls-5':[21,22],
+  'wall-finishing-0':[28],'wall-finishing-1':[28],'wall-finishing-2':[28],'wall-finishing-3':[28],'wall-finishing-4':[28],
+ };
+ if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
+ if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-3':[26,27]});
+ if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':[33],'platform-deck':[34],'platform-fascia':[35],'platform-skim':[36],'platform-prime':[37],'platform-paint':[37]});
+ return groups;
+}
+export function projectGuideKey(stage,design){return stage<=12?`panel:${design.height===96?96:120}:${stage}`:stage<=20?`jack:${design.height===96?96:120}:${stage}`:stage>=23&&stage<=27?`floor:${design.floor}:${stage}`:`set:${stage}`;}
+export function projectGuideChecks(input={}) {
+ if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length>100)throw Error('Invalid guide completion records.');
+ const result={};for(const [key,value] of Object.entries(input)){if(!/^(?:(?:panel|jack):(?:96|120)|floor:(?:wood|charcoal)|set):\d{1,2}$/.test(key)||typeof value!=='boolean')throw Error('Invalid guide completion record.');result[key]=value;}return result;
+}
+export function projectGuideStageDone(data,stage,design){
+ const key=projectGuideKey(stage,design);if(Object.hasOwn(data.guideChecks||{},key))return data.guideChecks[key];
+ const groups=Object.entries(projectGuideGroups(design)).filter(([,stages])=>stages.includes(stage));
+ return groups.length>0&&groups.every(([id])=>projectStepPercent(data,id)===100);
+}
+export function projectSetGuideStage(input,stage,done,design){
+ const groups=projectGuideGroups(design),affected=Object.entries(groups).filter(([,stages])=>stages.includes(stage));
+ if(!affected.length||typeof done!=='boolean')throw Error('This guide step is not part of the current design.');
+ const data=structuredClone(projectUpgradeTracking(input));data.guideChecks=projectGuideChecks(data.guideChecks||{});
+ for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStageDone(input,number,design);}
+ data.guideChecks[projectGuideKey(stage,design)]=done;
+ for(const [id,stages]of affected){let row=data.stages.flatMap(s=>s.steps).find(t=>t.id===id);
+  if(!row&&done){const defaults=projectDefaultTracking(),source=defaults.stages.find(s=>s.steps.some(t=>t.id===id));if(source){let parent=data.stages.find(s=>s.id===source.id);if(!parent){parent={id:source.id,name:source.name,notes:[],steps:[]};data.stages.push(parent);}row=structuredClone(source.steps.find(t=>t.id===id));parent.steps.push(row);}}
+  if(row)row.percent=Math.round(stages.filter(number=>data.guideChecks[projectGuideKey(number,design)]).length/stages.length*100);
+ }
+ return data;
+}
+// A direct tracker percentage edit supersedes earlier checkbox detail for that milestone.
+export function projectReconcileGuideChecks(previous,next){
+ if(JSON.stringify(previous.guideChecks||{})!==JSON.stringify(next.guideChecks||{}))return next;
+ const changed=new Set(next.stages.flatMap(s=>s.steps).filter(t=>t.percent!==projectStepPercent(previous,t.id)).map(t=>t.id));if(!changed.size)return next;
+ const checks={...(next.guideChecks||{})};
+ for(const height of [96,120])for(const floor of ['wood','charcoal']){const design={height,floor,platformShape:'square'};for(const [id,stages]of Object.entries(projectGuideGroups(design)))if(changed.has(id))for(const stage of stages)delete checks[projectGuideKey(stage,design)];}
+ return {...next,guideChecks:checks};
 }

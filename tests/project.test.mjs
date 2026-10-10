@@ -18,7 +18,7 @@ test('Reject overlapping shifts, future times, duplicate records and removal of 
  const e={id:'a',vendor:'Lumber',amountCents:3200,date:'2026-10-09',note:'',receiptId:'receipt'};assert.throws(()=>projectValidate('finance',{...d,expenses:[e,{...e,id:'b'}]},now),/already recorded/);
 });
 test('Production starts walls, finishing, floor, platform; progress includes partial steps and survives reorder',()=>{
- const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:25});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:25});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
+ const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:26});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:26});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
 });
 test('Receipt extraction distinguishes total from subtotal, savings, tender and card numbers',()=>{
  const r=projectParseReceipt('LOCAL HARDWARE\n10/09/2026\nSUBTOTAL 100.00\nTAX 7.00\nTOTAL $107.00\nCASH 120.00\nCHANGE 13.00\nTOTAL SAVINGS 10.00');assert.equal(r.amountCents,10700);assert.equal(r.date,'2026-10-09');assert.equal(r.taxCents,700);assert.equal(r.warning,'');
@@ -241,4 +241,12 @@ test('An older client carrying assembly fields preserves the new ballast count',
  const r=rig(),first=await (await r.call('tracking')).json();first.data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:0,ballastAttached:1};
  const saved=await (await r.call('tracking','PUT',first)).json();delete saved.data.assembly.ballastAttached;
  const updated=await (await r.call('tracking','PUT',saved)).json();assert.equal(updated.data.assembly.ballastAttached,1);
+});
+
+test('Double-layer floor migration preserves old completion and notes but starts the new layer undone',()=>{
+ const old=projectDefaultTracking();delete old.floorAssemblyVersion;for(const s of old.stages)s.steps=s.steps.filter(t=>t.id!=='floor-upper');
+ const lower=old.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-2');lower.percent=100;lower.notes=[{id:'floor-note',text:'Existing floor work',at:1}];
+ const upgraded=projectUpgradeTracking(old),upper=upgraded.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-upper');
+ assert.equal(upper.percent,0);assert.deepEqual(upgraded.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-2'),lower);assert.equal(projectUpgradeTracking(upgraded),upgraded);
+ const saved=projectSetGuideStage(upgraded,42,50,{height:120,floor:'charcoal'});assert.equal(saved.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-upper').percent,50);assert.equal(projectGuideStagePercent(saved,24,{height:120,floor:'charcoal'}),100);
 });

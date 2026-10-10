@@ -11,3 +11,7 @@ test('Floor sheets cover every supported wing angle without overlapping rows or 
   for(const x of back)assert.ok(!front.includes(x));
  }
 });
+
+test('Upper layer offsets joints in both axes and covers the complete footprint',()=>{
+ for(const angle of [0,45,90]){const lower=floorSheetPlan(angle),upper=floorSheetPlan(angle,1);assert.ok(Math.abs(upper.pieces.reduce((s,p)=>s+Math.abs(area(p.poly)),0)-Math.abs(area(upper.outline)))<1e-6);for(const u of upper.pieces)for(const l of lower.pieces){assert.notEqual(u.x,l.x);assert.notEqual(u.z,l.z);}}
+});

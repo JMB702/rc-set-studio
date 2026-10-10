@@ -32,6 +32,15 @@ export function projectSeparateFinishing(input){
   const finish={id:to,name:label,notes:source.steps.length?[]:source.notes,steps};
   if(source.steps.length)data.stages.splice(index+1,0,finish);else data.stages.splice(index,1,finish);
  }
+ return projectUpgradeFloorLayers(data);
+}
+export function projectUpgradeFloorLayers(input){
+ if(input.floorAssemblyVersion===1&&!input.stages.some(s=>s.steps.some(t=>t.id==='floor-1'&&t.name==='Prepare the base'||t.id==='floor-2'&&t.name==='Lay the flooring'||t.id==='floor-3'&&t.name==='Finish and trim')))return input;
+ const data=structuredClone(input);data.floorAssemblyVersion=1;
+ for(const stage of data.stages)for(const step of stage.steps){if(step.id==='floor-1'&&step.name==='Prepare the base')step.name='Prepare underlayment / cement skim';if(step.id==='floor-2'&&step.name==='Lay the flooring')step.name='Lay flooring / lower plywood layer';if(step.id==='floor-3'&&step.name==='Finish and trim')step.name='Prime, paint and trim floor';}
+ const floor=data.stages.find(s=>s.steps.some(t=>t.id==='floor-2'));
+ if(floor&&!data.stages.some(s=>s.steps.some(t=>t.id==='floor-upper')))floor.steps.splice(floor.steps.findIndex(t=>t.id==='floor-2')+1,0,{id:'floor-upper',name:'Glue and screw second plywood layer (painted floor)',percent:0,notes:[]});
+ if(floor){const skim=floor.steps.find(t=>t.id==='floor-1'&&t.name==='Prepare underlayment / cement skim');if(skim){floor.steps=floor.steps.filter(t=>t!==skim);floor.steps.push(skim);}}
  return data;
 }
 export function projectStagePercent(stage){return stage.steps.length?Math.round(stage.steps.reduce((n,s)=>n+s.percent,0)/stage.steps.length):0;}
@@ -53,7 +62,7 @@ export function projectValidate(kind,input,now=Date.now()) {
  if(kind==='tracking') {
   if(!list(input.stages,30)||!input.stages.length||!unique(input.stages))fail('Keep 1–30 production stages.');
   for(const s of input.stages){if(!id(s.id)||!str(s.name)||!s.name.trim()||!notes(s.notes)||!list(s.steps,100)||!s.steps.length||!unique(s.steps))fail('Invalid stage or notes.');for(const t of s.steps)if(!id(t.id)||!str(t.name)||!t.name.trim()||!Number.isInteger(t.percent)||t.percent<0||t.percent>100||!notes(t.notes))fail('Each step needs a name and progress from 0–100%.');}
-  return {assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes}))}))};
+  return {floorAssemblyVersion:input.floorAssemblyVersion===1?1:0,assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes}))}))};
  }
  if(kind!=='finance')fail('Unknown project module.');
  if(input.budgetCents!==null&&!money(input.budgetCents)||!list(input.expenses,5000)||!list(input.crew,100)||!list(input.shifts,10000))fail('Invalid project totals or too many entries.');
@@ -112,7 +121,7 @@ export function projectPartStatus(part,data) {
  if(part.kind==='jack')return {assembled:attached};
  if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&(counts.ballastAttached===null?percent('walls-4')===100:jackPanel<counts.ballastAttached)};
  if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':unit('wall-finishing-1',panel,8)||unit('wall-finishing-2',panel,8)?'seams':'raw'};
- if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':'raw'};
+ if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':percent('floor-upper')===100&&percent('floor-1')===100?'skim':'raw'};
  if(part.kind==='trim')return {assembled:percent('floor-3')===100&&wall};
  if(part.kind==='platform'){
   if(part.members?.length){const states=part.members.map((module,index)=>projectPartStatus({...part,module,deckIndex:part.deckIndices?.[index]??part.deckIndex,members:null},data)),finishes=['raw','seams','skim','primer','paint'];return {assembled:states.every(s=>s.assembled),finish:finishes[Math.min(...states.map(s=>finishes.indexOf(s.finish)))]};}
@@ -145,11 +154,11 @@ export function projectGuideGroups(design={}) {
   'wall-finishing-0':[28],'wall-finishing-1':[28],'wall-finishing-2':[28],'wall-finishing-3':[28],'wall-finishing-4':[28],
  };
  if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
- if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-3':[26,27]});
+ if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-upper':[42],'floor-3':[26,27]});
  if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':[33],'platform-deck':[34],'platform-fascia':[35],'platform-seams':[36],'platform-skim':[36],'platform-prime':[37],'platform-paint':[37]});
  return groups;
 }
-export function projectGuideKey(stage,design){return stage<=12?`panel:${design.height===96?96:120}:${stage}`:stage<=20?`jack:${design.height===96?96:120}:${stage}`:stage>=23&&stage<=27?`floor:${design.floor}:${stage}`:`set:${stage}`;}
+export function projectGuideKey(stage,design){return stage<=12?`panel:${design.height===96?96:120}:${stage}`:stage<=20?`jack:${design.height===96?96:120}:${stage}`:(stage>=23&&stage<=27||stage===42)?`floor:${design.floor}:${stage}`:`set:${stage}`;}
 export function projectGuideChecks(input={}) {
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length>100)throw Error('Invalid guide completion records.');
  const result={};for(const [key,value] of Object.entries(input)){if(!/^(?:(?:panel|jack):(?:96|120)|floor:(?:wood|charcoal)|set):\d{1,2}$/.test(key)||(typeof value!=='boolean'&&(!Number.isInteger(value)||value<0||value>100)))throw Error('Invalid guide completion record.');result[key]=value;}return result;

@@ -9,10 +9,12 @@ export function floorRows(data,angle,type){const area=floorArea(angle),waste=are
  rows.push(extra('underlay','TrafficMaster 100 sq ft standard underlayment',Math.ceil(waste/100),3900,'327262533','30 rolls in stock · check substrate and manufacturer requirements'));
  rows.push(extra('vapor','Substrate-dependent vapor barrier',null,null,'https://www.homedepot.com/s/laminate%20vapor%20barrier','Required on applicable substrates; selection and quantity pending'));
  }else{
- rows.push(extra('floorPly','23/32 in sanded plywood · 4×8 sheet',Math.ceil(waste/32),null,'100000837','Area allowance with 10% waste; verify sheet layout before cutting'));
- rows.push(extra('floorPrimer','BEHR No. 436 wood-compatible primer · gallon',Math.ceil(area/250),null,'https://www.homedepot.com/s/BEHR%2043601','Planning at 250 sq ft/gallon; verify selected product coverage'));
- rows.push(extra('floorPaint','BEHR Mined Coal porch & patio paint · gallon',Math.ceil(area*2/300),null,'302055336','Two coats at 300 sq ft/gallon on smooth surfaces; local price unavailable'));
- rows.push(extra('floorSeams','Compatible plywood seam repair / stabilization',null,null,'https://www.homedepot.com/s/wood%20floor%20repair','Venue and coating-compatible seam treatment needs selection'));
+ rows.push(extra('floorPly','23/32 in plywood · two layers · 4×8 sheet',2*Math.ceil(waste/32),null,'100000837','Two layers, each with 10% area waste; offset joints both ways. Verify actual cut yield'));
+ rows.push(extra('floorPrimer','Cement-skim-compatible floor primer · selection pending',null,null,'https://www.homedepot.com/s/concrete%20floor%20primer','Select with floor paint; paint-only SKIM FLOOR finish is an unverified scenic compromise'));
+ rows.push(extra('floorPaint','BEHR Mined Coal porch & patio paint · gallon',Math.ceil(area*2/300),null,'302055336','Two-coat planning allowance at 300 sq ft/gallon; compatibility over selected skim/primer unverified. No epoxy or polyurethane; touch-ups expected'));
+ rows.push(extra('floorSeams','Rapid Set SKIM FLOOR · full-surface cement skim',null,null,'313474246',`Plan ${Math.ceil(area*1.1/134)} × 20-lb equivalents at 1/16 inch including 10% allowance. Manufacturer TDS says 20 lb; retail listing says 35 lb—verify pack yield and price before buying`));
+ rows.push(extra('floorGlue','Full-spread plywood laminating adhesive',null,null,'https://www.homedepot.com/s/plywood%20wood%20glue',`Bond ${area.toFixed(1)} sq ft between layers; select spread rate and pack quantity. Separate from wall glue`));
+ rows.push(extra('floorLayerScrews','Plywood layer screws · pack selection pending',null,null,'https://www.homedepot.com/s/wood%20screws%201%201%2F4','Clamp upper layer to lower; select fastening schedule and screws that do not protrude through combined thickness'));
  }
  rows.push(extra('trim','Wall-mounted shoe trim · 8 ft lengths',5,null,'https://www.homedepot.com/s/wood%20shoe%20moulding','32 ft along walls + 10% cutting allowance; trim profile pending'));
  rows.push(extra('floorFixings','Floor / trim fixing supplies',null,null,'https://www.homedepot.com/s/flooring%20installation%20supplies','Venue-approved attachment and pack selection pending'));

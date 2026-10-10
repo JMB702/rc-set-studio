@@ -21,7 +21,7 @@ test('Straight seam screws share the support screw pack',()=>{
 });
 test('Floor-only excludes panel stock and preserves unresolved costs',()=>{
  const rows=priceRows(data,{scope:'floor',height:120,angle:90,floor:'charcoal'});
- assert.ok(!rows.some(r=>r.id==='board16'));assert.equal(rows.find(r=>r.id==='floorPly').purchaseQuantity,5);
+ assert.ok(!rows.some(r=>r.id==='board16'));assert.equal(rows.find(r=>r.id==='floorPly').purchaseQuantity,10);
  assert.ok(summary(rows).pending>0);assert.ok(rows.every(r=>r.subtotalCents===null));
 });
 test('All scopes and variants use integer packs and Home Depot links',()=>{

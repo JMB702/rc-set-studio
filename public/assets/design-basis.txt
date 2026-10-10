@@ -87,10 +87,16 @@ Render uses one unbroken charcoal surface per back/wing, including over
 the10ft skin joint. Practical scenic seam fabric and primer/paint need a
 fixed assembly; do not rigid-plaster a movable corner. Refinish after moves.
 Oak floor:glueless click-lock;3/8-inch expansion beneath wall-fixed trim.
-Charcoal:fully supported smooth plywood overlay, compatible defects/joint
-repair, wood primer, then floor paint. Seamless coating across moving
-plywood is not guaranteed; the seam system remains a test/compatibility
-item. Do not use underlayment patch as an assumed exposed wear finish.
+Charcoal show floor: two 23/32-inch plywood layers, approximately 1 7/16 inches
+combined, over continuously supporting concrete. Upper joints offset in both
+axes. Full-spread plywood-compatible adhesive and screws join the layers.
+Thin Rapid Set SKIM FLOOR cement skim (planning average 1/16 inch), compatible
+cementitious primer, then floor paint. No epoxy or polyurethane wear finish.
+User chose limited performance traffic with patching and repainting accepted.
+Paint alone over this cement underlayment is not a manufacturer-verified wear
+system. Primer compatibility, adhesive/screw schedule and local product prices
+remain pending. The retail skim bag listing and manufacturer TDS differ in size;
+use verified pack yield when buying. Model finished-floor datum stays at zero.
 The visualization is dimensionally derived, not a structural certification.
 
 10-INCH PLATFORM (ADDED OCTOBER 6, 2026)
@@ -123,7 +129,7 @@ both sides. Tape follows deck-piece seams, not hidden frame joints.
 Fascia: 0.106 lauan, 10 tall, glued and stapled to rims, legs and sills.
 Finish: vinyl corner bead on top edges and outside corners, mesh tape on
 deck seams and fascia joints, setting-type compound skim, sand, KILZ 2
-primer, two coats BEHR Porch & Patio floor paint in the floor color.
+cement-compatible primer and two coats floor paint; double plywood layers and full cement skim.
 19/32 chosen over 3/4 for weight; framing at 16 centers carries the deck.
 The top is walked on, but this is a scenic prototype, not a rated stage
 deck: no load rating is claimed. Test the finish on a mockup; seams can

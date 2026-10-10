@@ -75,7 +75,7 @@ async function projectAPI(request,env) {
   if(request.method==='GET')return json({data:JSON.parse(row.content),revision:row.revision});
   if(request.method!=='PUT')return json({error:'Method not allowed.'},405);
   if(!Number.isSafeInteger(input?.revision)||input.revision<0)return json({error:'Invalid revision.'},400);
-  let content;try{if(path==='tracking'&&input.data){const previous=JSON.parse(row.content);for(const key of ['assembly','guideChecks'])if(!Object.hasOwn(input.data,key))input.data[key]=previous[key];if(input.data.assembly&&!Object.hasOwn(input.data.assembly,'ballastAttached'))input.data.assembly.ballastAttached=previous.assembly?.ballastAttached??null;input.data=projectReconcileGuideChecks(previous,input.data);}content=JSON.stringify(projectValidate(path,input.data,now));}catch(e){return json({error:e.message},400);}
+  let content;try{if(path==='tracking'&&input.data){const previous=JSON.parse(row.content);for(const key of ['assembly','guideChecks','floorAssemblyVersion'])if(!Object.hasOwn(input.data,key))input.data[key]=previous[key];if(input.data.assembly&&!Object.hasOwn(input.data.assembly,'ballastAttached'))input.data.assembly.ballastAttached=previous.assembly?.ballastAttached??null;input.data=projectReconcileGuideChecks(previous,input.data);}content=JSON.stringify(projectValidate(path,input.data,now));}catch(e){return json({error:e.message},400);}
   if(path==='finance'){
    const known=new Set(JSON.parse(row.content).expenses.map(e=>e.receiptId).filter(Boolean));
    for(const id of new Set(input.data.expenses.map(e=>e.receiptId).filter(id=>id&&!known.has(id))))if(!await db.prepare('SELECT id FROM project_receipts WHERE id=?').bind(id).first())return json({error:'Receipt is missing. Upload it again before saving.'},400);

@@ -141,3 +141,14 @@ test('Patched platform seams are a separate finish before full skim, primer and 
  steps.find(t=>t.id==='platform-prime').percent=100;assert.equal(projectPartStatus(part,data).finish,'primer');
  steps.find(t=>t.id==='platform-paint').percent=100;assert.equal(projectPartStatus(part,data).finish,'paint');
 });
+
+test('Legacy completed frame and skin steps color panels without inventing attached jacks',()=>{
+ const data=projectDefaultTracking();delete data.assembly;
+ const set=(id,n)=>data.stages.find(s=>s.id==='walls').steps.find(t=>t.id===id).percent=n;
+ set('walls-1',100);set('walls-2',100);set('walls-3',15);
+ assert.equal(projectPartStatus({kind:'panel',panel:7},data).assembled,true);
+ assert.equal(projectPartStatus({kind:'wallSkin',panel:7},data).finish,'raw');
+ assert.equal(projectPartStatus({kind:'jack',panel:0,side:0},data).assembled,false);
+ data.assembly={panelsCompleted:0};assert.equal(projectPartStatus({kind:'panel'},data).assembled,false);
+ delete data.assembly;set('walls-2',99);assert.equal(projectPartStatus({kind:'panel'},data).assembled,false);
+});

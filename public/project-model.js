@@ -69,7 +69,10 @@ export function projectStepPercent(data,id){for(const s of data?.stages||[]){con
 export function projectPartStatus(part,data) {
  const counts=projectAssembly(data?.assembly),percent=id=>projectStepPercent(data,id),panel=part.panel??0;
  const unit=(id,index,total)=>index<Math.floor(percent(id)*total/100);
- const wall=panel<(counts.panelsCompleted??0),attached=panel*2+(part.side??0)<(counts.jacksAttached??0)&&wall;
+ // Legacy tracking has no counts: fully framed and skinned means all panels exist.
+ // Partial jack progress cannot tell us how many are actually attached.
+ const completedPanels=counts.panelsCompleted??(percent('walls-1')===100&&percent('walls-2')===100?8:0);
+ const wall=panel<completedPanels,attached=panel*2+(part.side??0)<(counts.jacksAttached??0)&&wall;
  if(part.kind==='panel')return {assembled:wall};
  if(part.kind==='jack')return {assembled:attached};
  if(part.kind==='bracing')return {assembled:wall&&panel*2+1<(counts.jacksAttached??0)&&percent('walls-4')===100};

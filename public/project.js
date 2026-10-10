@@ -18,9 +18,8 @@ export function installProject(api){
  tabs.innerHTML=[['pricing','Pricing guide'],['finance','Project burn-down'],['tracking','Project tracking']].map(([id,label])=>`<button type="button" id="project-tab-${id}" role="tab" data-tab="${id}" aria-controls="${id==='pricing'?'pricing-controls':'project-panel'}" aria-selected="${id==='pricing'}" tabindex="${id==='pricing'?0:-1}">${label}</button>`).join('');
  host.id='project-panel';host.className='pj';host.setAttribute('role','tabpanel');aside.prepend(tabs);tabs.after(host);
  const guideDialog=document.createElement('dialog');guideDialog.id='guide-tracker-dialog';guideDialog.className='pj';guideDialog.setAttribute('aria-labelledby','guide-tracker-title');guideDialog.innerHTML='<div class="guide-tracker-head"><h2 id="guide-tracker-title">Progress & notes</h2><button type="button" aria-label="Close progress and return to instructions">×</button></div><p class="guide-tracker-context"></p>';document.body.append(guideDialog);
- const guideOpen=document.createElement('button');guideOpen.id='guide-project-open';guideOpen.type='button';guideOpen.textContent='Progress & notes';document.querySelector('#step-title').after(guideOpen);
  guideDialog.querySelector('button').onclick=()=>guideDialog.close();
- guideDialog.addEventListener('close',()=>{stopProgressMotion();tabs.after(host);layout();guideOpen.focus({preventScroll:true});});
+ guideDialog.addEventListener('close',()=>{stopProgressMotion();tabs.after(host);layout();progressButton.focus({preventScroll:true});});
  const dialog=document.createElement('dialog');dialog.className='project-dialog';dialog.setAttribute('aria-labelledby','pj-dialog-title');document.body.append(dialog);
  let stopProgressMotion=()=>{};
  let selected='pricing',records={},access=null,busy=false,openStages=new Set(['walls']),clockTimer,dragged=null,loadSequence=0;
@@ -44,7 +43,6 @@ export function installProject(api){
   selected='tracking';guideDialog.append(host);guideDialog.querySelector('.guide-tracker-context').textContent=step.title||'Current build step';guideDialog.showModal();layout();await load();
   for(const stage of get('tracking')?.stages||[])if(stage.steps.some(t=>ids.includes(t.id)))openStages.add(stage.id);if(get('tracking'))tracking();
  }
- guideOpen.onclick=()=>run(openGuideTracking);
  async function select(value){stopProgressMotion();loadSequence++;clearTimeout(clockTimer);selected=value;try{sessionStorage.setItem('rc-project-tab',value);}catch{}layout();if(value!=='pricing')await load();}
  tabs.onclick=e=>{const b=e.target.closest('[data-tab]');if(b)run(()=>select(b.dataset.tab));};
  tabs.onkeydown=e=>{const all=[...tabs.children],i=all.indexOf(document.activeElement);if(i<0)return;const n=e.key==='ArrowRight'?(i+1)%3:e.key==='ArrowLeft'?(i+2)%3:e.key==='Home'?0:e.key==='End'?2:null;if(n!==null){e.preventDefault();all[n].focus();run(()=>select(all[n].dataset.tab));}};

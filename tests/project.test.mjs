@@ -219,3 +219,11 @@ test('Attached jacks remain visible when only one panel has been completed',()=>
  for(const side of [0,1])assert.equal(projectPartStatus({kind:'jack',panel:0,side},data).assembled,true);
  assert.equal(projectPartStatus({kind:'jack',panel:7,side:0},data).assembled,false);
 });
+
+test('Saving a checkpoint count reconciles its percentage even when count is unchanged',()=>{
+ const data=projectDefaultTracking(),design={height:120,floor:'charcoal'};
+ data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2};
+ const next=projectSetAssemblyCounts(data,data.assembly,design,'jacksAttached');
+ assert.equal(projectGuideStagePercent(next,17,design),13);
+ assert.equal(next.assembly.jacksBuilt,4);
+});

@@ -84,16 +84,16 @@ export function projectAssembly(input={}) {
  return out;
 }
 // Exact inventory is authoritative when the user explicitly saves counts. Percent edits never invent counts.
-export function projectSetAssemblyCounts(input,counts,design){
+export function projectSetAssemblyCounts(input,counts,design,forceKey=null){
  const previous=projectAssembly(input.assembly),assembly=projectAssembly(counts);let data=structuredClone(input);data.assembly=assembly;
  const apply=(stages,percent)=>{for(const stage of stages)data=projectSetGuideStage(data,stage,percent,design);};
- if(assembly.panelsCompleted!==null&&assembly.panelsCompleted!==previous.panelsCompleted){
+ if(assembly.panelsCompleted!==null&&(assembly.panelsCompleted!==previous.panelsCompleted||forceKey==='panelsCompleted')){
   const percent=Math.round(assembly.panelsCompleted/8*100);
   if(projectStepPercent(data,'walls-1')<percent)apply([1,2,3,4,5,6,7,...(design.height===120?[8]:[]),9],percent);
   apply([10,...(design.height===120?[11]:[]),12],percent);
  }
- if(assembly.jacksBuilt!==null&&assembly.jacksBuilt!==previous.jacksBuilt)apply([13,14,15,16],Math.round(assembly.jacksBuilt/16*100));
- if(assembly.jacksAttached!==null&&assembly.jacksAttached!==previous.jacksAttached)apply([17],Math.round(assembly.jacksAttached/16*100));
+ if(assembly.jacksBuilt!==null&&(assembly.jacksBuilt!==previous.jacksBuilt||forceKey==='jacksBuilt'))apply([13,14,15,16],Math.round(assembly.jacksBuilt/16*100));
+ if(assembly.jacksAttached!==null&&(assembly.jacksAttached!==previous.jacksAttached||forceKey==='jacksAttached'))apply([17],Math.round(assembly.jacksAttached/16*100));
  return data;
 }
 export function projectStepPercent(data,id){for(const s of data?.stages||[]){const step=s.steps.find(t=>t.id===id);if(step)return step.percent;}return 0;}

@@ -35,7 +35,7 @@ ${colorField('wall')}</section>
 <div class="field"><label class="field-label" for="platform-side"><span>From side walls</span><output for="platform-side"></output></label><input id="platform-side" data-platform-gap="side" type="range" min="0" max="48" step="1" value="12" aria-label="Platform distance from the side walls, flush to 4 feet"></div>
 ${colorField('platform')}</div></section>
 <section class="design-group" aria-labelledby="floor-heading"><div class="group-head"><h3 id="floor-heading">Floor</h3><span id="floor-meta"></span></div>
-<div class="field"><span class="field-label">Finish</span>${choice('data-floor','Floor finish',[['none','None'],['wood','Oak','Laminate'],['charcoal','Painted','Plywood']])}</div>
+<div class="field"><span class="field-label">Finish</span>${choice('data-floor','Floor finish',[['none','None'],['wood','Oak','Laminate'],['charcoal','Painted','2-layer plywood + skim']])}</div>
 <p class="hint" id="floor-note"></p>
 <div data-floor-painted>${colorField('floor')}</div></section>
 </div>`;
@@ -44,7 +44,7 @@ ${colorField('platform')}</div></section>
  const angleText=()=>S.platformShape==='square'?'Square':S.platformAngle===S.angle?`Angled · matches walls`:`Angled · ${S.platformAngle}°`;
  function summary(){
   const plan=S.platformShape!=='none'?platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle):null,gaps=S.platformBack===S.platformSide?`${gapText(S.platformBack).toLowerCase()} from walls`:`${gapText(S.platformBack).toLowerCase()} back · ${gapText(S.platformSide).toLowerCase()} sides`;
-  const rows=[['Walls',`${S.height/12}′ tall · ${S.angle}° wings`,S.wallColor],['Platform',plan?`${angleText()} · ${gaps} · ${plan.deckArea.toFixed(0)} sq ft`:'None',plan&&S.platformColor],['Floor',S.floor==='none'?'None':`${S.floor==='wood'?'Oak laminate':'Painted plywood'}${plan?' · under the platform':''}`,S.floor==='charcoal'?S.floorColor:S.floor==='wood'?'oak':null]];
+  const rows=[['Walls',`${S.height/12}′ tall · ${S.angle}° wings`,S.wallColor],['Platform',plan?`${angleText()} · ${gaps} · ${plan.deckArea.toFixed(0)} sq ft`:'None',plan&&S.platformColor],['Floor',S.floor==='none'?'None':`${S.floor==='wood'?'Oak laminate':'Painted double-layer plywood + skim'}${plan?' · under the platform':''}`,S.floor==='charcoal'?S.floorColor:S.floor==='wood'?'oak':null]];
   q('#design-summary').replaceChildren(...rows.map(([k,v,c])=>{const li=document.createElement('li'),dot=document.createElement('span'),t=document.createElement('strong'),d=document.createElement('span');dot.className='dot'+(c==='oak'?' oak':'')+(c?'':' empty');if(c&&c!=='oak')dot.style.background=c;t.textContent=k;d.textContent=v+(c&&c!=='oak'?` · ${colorName(c)}`:'');li.append(dot,t,d);return li;}));
   q('#design-line').textContent=designLine(S);
   q('#walls-meta').textContent=`${S.height/12}′ × 4′ panels · 16′ back wall`;

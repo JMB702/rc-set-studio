@@ -10,7 +10,7 @@ function normalize(input) {
   const elementId=input.elementId??null,elementLabel=input.elementLabel??null;
   if((elementId===null)!==(elementLabel===null)||elementId!==null&&(typeof elementId!=='string'||elementId.length>240||!elementId||typeof elementLabel!=='string'||!elementLabel.trim()||elementLabel.length>240)) throw Error('Invalid element attachment.');
   const c=input.context;
-  if(!c||![96,120].includes(c.height)||!Number.isFinite(c.angle)||c.angle<0||c.angle>90||!['none','wood','charcoal','platform'].includes(c.floor)||!['finished','build'].includes(c.mode)||!Number.isInteger(c.step)||c.step<0||c.step>40) throw Error('Invalid set configuration.');
+  if(!c||![96,120].includes(c.height)||!Number.isFinite(c.angle)||c.angle<0||c.angle>90||!['none','wood','charcoal','platform'].includes(c.floor)||!['finished','build'].includes(c.mode)||!Number.isInteger(c.step)||c.step<0||c.step>42) throw Error('Invalid set configuration.');
   if(c.floorColor!==undefined&&(typeof c.floorColor!=='string'||!/^#[0-9a-f]{6}$/i.test(c.floorColor)))throw Error('Invalid floor color.');
   if(c.wallColor!==undefined&&(typeof c.wallColor!=='string'||!/^#[0-9a-f]{6}$/i.test(c.wallColor)))throw Error('Invalid wall color.');
   if(c.figures!==undefined&&!['podcast','rap'].includes(c.figures)||c.figureScale!==undefined&&(!Number.isFinite(c.figureScale)||c.figureScale<.8||c.figureScale>1.25))throw Error('Invalid scale figures.');

@@ -1,0 +1,25 @@
+PLYWOOD FLOOR FINISH RESEARCH — October 10, 2026
+Scope: permanent, secured plywood overlay; user requires a seamless, durable walking surface.
+
+CURRENT LIST
+The painted-floor list contains sanded plywood, BEHR 436 primer, BEHR Porch & Patio paint, and an unselected seam-repair allowance. No verified seamless floor assembly is specified. Ordinary joint compound is listed for the separate platform, not this floor. Do not delete platform or wall supplies as if they were floor items.
+
+FINDINGS
+ARDEX Feather Finish is a substrate preparation underlayment. Its technical sheet excludes use as a wear surface. It is not a substitute for a walking-surface system.
+https://www.ardexamericas.com/wp-content/uploads/2018/05/ARDEX-Feather-Finish-Technical-Data-1.pdf
+
+Liquid Rubber's polyurethane deck system explicitly includes plywood and indoor utility/basement floors. Its reinforced seam treatment uses its primer and 4-inch geotextile. However, the manufacturer says the fabric stays visible. The caulk-only alternative trades away reinforcement and carries greater cracking risk. This does not meet an invisible-seam requirement. Allow 48–72 hours to light walking and 5–7 days before furniture. Home Depot lists Smooth Stone Gray 1 gallon, item 330283135; price needs a fresh local-store check before ordering.
+https://shopliquidrubber.com/pages/project/decks-and-balconies-sealing
+https://www.homedepot.com/p/330283135
+
+Westcoat ALX Interior is an actual interior floor topping system for plywood. Its specification calls for at least 3/4-inch exterior-grade or CDX tongue-and-groove plywood, blocked and fastened, and a suitable dry substrate. The proposed overlay must be checked against those requirements; permanent attachment alone is insufficient. The reinforced build uses WP-40 seam membrane, WP-25 or WP-30 lath and WP-10 staples, modified cement layers, then the specified finish and sealers. This is a professional-use system. No Home Depot listing or local price was verified. An installer/distributor quote is needed; do not invent quantities or substitute unrelated primer/paint. A continuous finish is not a guarantee against movement or installation defects.
+https://www.westcoat.com/systems/alx-interior/
+https://www.westcoat.com/wp-content/uploads/2017/11/alx-interior-waterproofing-wp-system-specification-westcoat.pdf
+
+DECISION PENDING
+User confirmed the floor stays assembled and secured. Asked whether to pursue the professional seamless system or accept visible reinforcing bands with a DIY coating. Do not silently label the existing patch-and-paint proposal crack-proof, or erase the material-selection condition before a compatible system is chosen. Reconcile guide, floor pricing rows, sources, design basis and visualization together after selection.
+
+USER DECISION (supersedes DECISION PENDING above)
+Selected two plywood layers with staggered joints, floor-rated cement skim, and paint only, without epoxy/polyurethane; occasional patching/repainting accepted. Implemented as two 23/32-inch layers and a planning 1/16-inch SKIM FLOOR coat. This is not a manufacturer-verified wear system. The FAQ allows participation in an epoxy/polyurethane or similar wear system, not ordinary paint-only certification. Primer pairing and retail bag yield/prices remain pending.
+https://images.thdstatic.com/catalog/pdfImages/be/be3a9d8c-bd91-4d32-b26f-95f7c4f90419.pdf
+https://www.ctscement.com/assets/doc/datasheets/SKIM_FLOOR_Datasheet_DS_224_EN.pdf

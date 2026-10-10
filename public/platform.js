@@ -184,3 +184,16 @@ export function platformCuts(plan){const groups=new Map(),add=(part,len,note)=>{
  for(const m of plan.modules){m.rims.forEach(r=>add('Rim',r.length,'2×4 on edge; follow the module outline at angled corners'));m.joists.forEach(j=>add('Joist',j.length,'2×4 on edge, 16″ centers'));m.legs.forEach(l=>add(l.onSill?'Leg on sill':'Leg',l.length,'2×4 upright under the deck'));m.sills.forEach(s=>add('Sill',s.length,'2×4 laid flat under the fascia'));}
  return [...groups.values()].sort((a,b)=>a.part.localeCompare(b.part)||b.length-a.length);}
 export const inches=v=>{const w=Math.floor(v+1e-9),f=Math.round((v-w)*16);if(f===16)return `${w+1}″`;if(!f)return `${w}″`;let n=f,d=16;while(n%2===0){n/=2;d/=2;}return `${w?w+' ':''}${n}/${d}″`;};
+
+// Illustrative 4 × 8 floor sheet layout, clipped to the existing footprint.
+// Half-sheet offset in the front row keeps four sheet corners from meeting.
+export function floorSheetPlan(angle,layer=0){
+ const outline=footprint(angle),min=Math.min(...outline.map(p=>p[0])),max=Math.max(...outline.map(p=>p[0])),pieces=[];
+ const onBoundary=(a,b)=>outline.some((c,i)=>{const d=outline[(i+1)%outline.length],dx=d[0]-c[0],dz=d[1]-c[1];return [a,b].every(p=>Math.abs(dx*(p[1]-c[1])-dz*(p[0]-c[0]))<.001);});
+ for(let row=0;row<(layer?3:2);row++)for(let x=min-(layer?24+(row%2)*48:row*48);x<max-.001;x+=96){
+  const z=row*48-(layer?24:0),poly=clipHalf(clipHalf(clipHalf(clipHalf(outline,1,0,x),-1,0,-x-96),0,1,z),0,-1,-z-48);
+  if(poly.length<3||Math.abs(area(poly))<.01)continue;
+  pieces.push({poly,row,x,z,seamEdges:poly.flatMap((a,i)=>{const b=poly[(i+1)%poly.length];return onBoundary(a,b)?[]:[[...a,...b]];})});
+ }
+ return {outline,pieces};
+}

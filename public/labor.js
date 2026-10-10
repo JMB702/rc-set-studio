@@ -32,13 +32,13 @@ export function laborTasks(d){
  add('wallFinish','28',`Dress, prime and paint the walls · ${wallArea} sq ft`,(tall?2:1.5)+wallArea/150+wallArea*2/200,'Seams and corners, one primer coat, two finish coats');
  if(floorType!=='none'){const area=floorArea(d.angle);
   if(floorType==='wood')add('floor','23–27',`Lay the oak laminate floor · ${area.toFixed(0)} sq ft`,1+area*.06+1.5,'Footprint, underlay, click-lock rows at about 17 sq ft per person-hour, trim');
-  else{const sheets=Math.ceil(area*1.1/32);add('floor','23–27',`Lay and paint the plywood floor · ${area.toFixed(0)} sq ft`,1+sheets*.5+2+area*3/200+1.5,`Footprint, ${sheets} sheets, seams, primer, two finish coats, trim`);}
+  else{const sheets=2*Math.ceil(area*1.1/32);add('floor','23–27, 42',`Build and paint the double-layer plywood floor · ${area.toFixed(0)} sq ft`,1+sheets*.5+2+area/60+area*3/200+1.5,`Footprint, ${sheets} sheets in two bonded layers, cement skim, primer, two paint coats, trim; planning labor, excludes cure time and future touch-ups`);}
  }
  if(platformShape!=='none'){const pl=platformPlan(d.angle,d.platformBack??12,d.platformSide??12,platformShape==='square'?90:Math.max(d.angle,d.platformAngle??d.angle)),c=pl.counts,ft=v=>v/12;
   add('platformFrame','30–31',`Cut and frame the platform · ${c.modules} modules`,.5+pl.lumberLengths.length*.06+c.modules,`${pl.lumberLengths.length} cuts, ${c.modules} module frames`);
   add('platformLegs','32–33','Legs, sills, then set and join the modules',c.legs*.15+c.sills*.1+c.modules*.35,`${c.legs} legs, ${c.sills} sills`);
   add('platformDeck','34–35','Deck and fascia',pl.deckSheets*.6+pl.deckScrews*.005+ft(pl.fasciaLength)*.12,`${pl.decks.length} deck pieces from ${pl.deckSheets} sheets, ${ft(pl.fasciaLength).toFixed(0)} ft of fascia`);
-  add('platformFinish','36–37',`Tape, skim, prime and paint the platform · ${pl.finishArea.toFixed(0)} sq ft`,ft(pl.tapeLength+pl.beadLength)*.04+pl.finishArea*.03+pl.finishArea*3/120,'Two skim coats with sanding, one primer coat, two finish coats');
+  add('platformFinish','36–37',`Tape, skim, prime and paint the platform · ${pl.finishArea.toFixed(0)} sq ft`,ft(pl.tapeLength+pl.beadLength)*.04+pl.finishArea*.03+pl.finishArea*3/120,'Deck cement skim and scenic fascia finishing, primer, two paint coats; excludes curing and future touch-ups');
  }
  return tasks;
 }

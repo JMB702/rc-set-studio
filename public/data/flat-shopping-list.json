@@ -337,7 +337,7 @@
       },
       {
         "id": "platformCompound",
-        "name": "ProForm Quick-Set Lite 45-minute setting-type joint compound \u00b7 18 lb bag",
+        "name": "ProForm Quick-Set Lite 45-minute setting-type joint compound (vertical fascia only) \u00b7 18 lb bag",
         "unitPriceCents": 1325,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/202564422",
@@ -396,5 +396,5 @@
       }
     ]
   },
-  "designRevision": "2026-10-10-long-platform-fascia"
+  "designRevision": "2026-10-10-platform-cement-skim"
 }

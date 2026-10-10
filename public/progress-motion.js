@@ -12,8 +12,8 @@ export function mountProgressMotion(hero,host,aside){
   holder.style.top=top+'px';mini.style.width=rect.width+'px';mini.style.height=rect.height+'px';caption.style.width=rect.width-102+'px';legend.style.left=lr.left-rect.left+'px';legend.style.top=lr.top-rect.top+'px';legend.style.width=lr.width+'px';
   let native=!reduced&&typeof ScrollTimeline==='function'&&CSS.supports('animation-range-start','1px');let timeline=native?new ScrollTimeline({source,axis:'block'}):null;
   const tracks=new Map(),add=(el,style,offset)=>{if(!tracks.has(el))tracks.set(el,[]);tracks.get(el).push({...style,offset});},translate=(x,y)=>`translate3d(${x}px,${y}px,0)`;
-  for(let j=0;j<=40;j++){const raw=j/40,t=raw*raw*(3-2*raw),mix=(a,b)=>a+(b-a)*t,collapse=Math.max(0,(t-.42)/.58),rise=Math.max(0,Math.min(1,(t-.6)/.4)),lift=rise*rise*(3-2*rise),below=mix(rr.top-rect.top,10)+mix(rr.width,64)+mix(-3,8);
-   add(bg,{transform:`scaleY(${(rect.height+(84-rect.height)*collapse)/rect.height})`},raw);add(bg.firstElementChild,{opacity:t},raw);
+  for(let j=0;j<=40;j++){const raw=j/40,t=raw*raw*(3-2*raw),mix=(a,b)=>a+(b-a)*t,collapse=Math.max(0,Math.min(1,(t-.42)/.58)),rise=Math.max(0,Math.min(1,(t-.6)/.4)),lift=rise*rise*(3-2*rise),below=mix(rr.top-rect.top,10)+mix(rr.width,64)+mix(-3,8);
+   add(bg,{clipPath:`inset(0px 0px ${(rect.height-84)*collapse}px 0px round 18px)`},raw);add(bg.firstElementChild,{opacity:t},raw);
    add(ring,{transform:translate(mix(rr.left-rect.left,14),mix(rr.top-rect.top,10))+` scale(${mix(1,64/rr.width)})`},raw);
    add(ring.querySelector('svg'),{transform:`rotate(${reduced?0:t*36}deg)`},raw);add(ring.querySelector('strong'),{transform:`scale(${mix(1,79/61)})`},raw);add(ring.querySelector('div>span'),{opacity:1-t},raw);
    add(caption,{transform:translate(mix(51,90)+4*t*(1-t)*Math.min(90,rect.width*.25),below+(15-below)*lift)+` scale(${1-.25*4*t*(1-t)})`},raw);add(caption.querySelector('p'),{transform:translate(0,-9*t)},raw);

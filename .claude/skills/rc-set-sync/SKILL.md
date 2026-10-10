@@ -118,3 +118,5 @@ Build navigation uses one collapsed `#guide-jump` disclosure containing the curr
 Count checkpoint steps retain the prior assembly through `visualStage`, hide construction prose and percentage controls, and stop auto-mark-next. They add navigation steps only, not tracker milestones or progress weight. Keep stable original stage IDs and saved-stage restoration intact.
 
 Ballast attachment is checkpoint 41 after stage 20: one assembly per panel, max 8, limited by attached jack pairs. `assembly.ballastAttached` is nullable for older records; older clients must preserve it when omitted. Counts update existing stages 18–20, not a new weighted milestone. Workspace restore accepts stage 41.
+
+Painted-plywood floor guide stages 23–25 share `floorSheetPlan()` from platform.js. Stage 23 shows the outline, 24 animates individually clipped sheets with staggered joints (replay supported; reduced motion shows the assembled floor), and 25 uses identical UVs/material tints with compound on internal edges. This is an illustrative placement layout, not a purchasing cut optimization; quantities and pricing remain unchanged.

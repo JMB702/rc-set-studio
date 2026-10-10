@@ -42,6 +42,28 @@
         96
       ],
       "notes": "Pale low-contrast gray-beige lauan approximation. Lighting, framing, pencil lines and sheet edges intentionally omitted."
+    },
+    {
+      "file": "platform-compound.webp",
+      "source": "OpenAI image generation, 2026-10-10",
+      "license": "AI-generated project asset",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "bytes": 528458,
+      "notes": "Neutral gray seam compound appearance; illustrative, not evidence of a traffic-rated product."
+    },
+    {
+      "file": "platform-plywood.webp",
+      "source": "OpenAI image generation, 2026-10-10",
+      "license": "AI-generated project asset",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "bytes": 129960,
+      "notes": "Raw pine plywood appearance for the platform deck; 48 by 96 inch mapping."
     }
   ]
 }

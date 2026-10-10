@@ -5,8 +5,9 @@ import {jackLayout} from './jack-layout.js';
 import {jackAttachment} from './jack-attachment.js';
 export const inch=.0254;
 export const design=h=>({h,w:48,railDepth:h===120?2.5:1.5,...jackLayout(h),stileDepth:h===120?5.5:3.5,jackStart:h===120?3.75:1.75,...jackAttachment(h)});
-const loader=new T.TextureLoader(),pine=loader.load('assets/pine-framing.webp'),oak=loader.load('assets/oak-floor.webp'),lauan=loader.load('assets/lauan-plywood.webp');for(let m of [pine,oak,lauan]){m.colorSpace=T.SRGBColorSpace;m.wrapS=m.wrapT=T.RepeatWrapping;m.anisotropy=4;}
-export const mats={wood:new T.MeshStandardMaterial({map:pine,color:0xdfc7a6,roughness:.83}),ply:new T.MeshStandardMaterial({map:lauan,color:0xffffff,roughness:.96}),charcoal:new T.MeshStandardMaterial({color:0x34383b,roughness:.88}),metal:new T.MeshStandardMaterial({color:0x899393,roughness:.4,metalness:.65}),bag:new T.MeshStandardMaterial({color:0x8c7555,roughness:1}),strap:new T.MeshStandardMaterial({color:0x242e31}),highlight:new T.MeshStandardMaterial({color:0xb2e46d,emissive:0x416a15,emissiveIntensity:.14}),floor:new T.MeshStandardMaterial({map:oak,color:0xc6ae8a,roughness:.84}),floorGray:new T.MeshStandardMaterial({color:0x3c4041,roughness:.94}),platform:new T.MeshStandardMaterial({color:0x34383b,roughness:.9})};
+const loader=new T.TextureLoader(),pine=loader.load('assets/pine-framing.webp'),oak=loader.load('assets/oak-floor.webp'),lauan=loader.load('assets/lauan-plywood.webp'),deckPly=loader.load('assets/platform-plywood.webp'),compound=loader.load('assets/platform-compound.webp');for(let m of [pine,oak,lauan,deckPly,compound]){m.colorSpace=T.SRGBColorSpace;m.wrapS=m.wrapT=T.RepeatWrapping;m.anisotropy=4;}
+compound.repeat.set(2,4);
+export const mats={platformWood:new T.MeshStandardMaterial({map:deckPly,color:0xffffff,roughness:.95}),compound:new T.MeshStandardMaterial({map:compound,color:0xffffff,roughness:1}),wood:new T.MeshStandardMaterial({map:pine,color:0xdfc7a6,roughness:.83}),ply:new T.MeshStandardMaterial({map:lauan,color:0xffffff,roughness:.96}),charcoal:new T.MeshStandardMaterial({color:0x34383b,roughness:.88}),metal:new T.MeshStandardMaterial({color:0x899393,roughness:.4,metalness:.65}),bag:new T.MeshStandardMaterial({color:0x8c7555,roughness:1}),strap:new T.MeshStandardMaterial({color:0x242e31}),highlight:new T.MeshStandardMaterial({color:0xb2e46d,emissive:0x416a15,emissiveIntensity:.14}),floor:new T.MeshStandardMaterial({map:oak,color:0xc6ae8a,roughness:.84}),floorGray:new T.MeshStandardMaterial({color:0x3c4041,roughness:.94}),platform:new T.MeshStandardMaterial({color:0x34383b,roughness:.9})};
 export function grain(g,dims,seed=0){let p=g.attributes.position,uv=g.attributes.uv,axis=dims.indexOf(Math.max(...dims));for(let i=0;i<p.count;i++){let a=[p.getX(i),p.getY(i),p.getZ(i)];uv.setXY(i,a[axis]/(inch*48)+seed*.17,(a[(axis+1)%3]+a[(axis+2)%3])/(inch*12)+seed*.113);}return g;}
 // Plywood grain stays vertical on full sheets and the wide upper extension.
 export function panelGrain(g){const p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,p.getX(i)/(48*inch),p.getY(i)/(96*inch));return g;}
@@ -49,7 +50,7 @@ let g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttrib
 export function dispose(r){r?.traverse(o=>{o.geometry?.dispose();if(o.material&&!Object.values(mats).includes(o.material))o.material.dispose()});r?.parent?.remove(r);}
 // Raised platform. Footprint polygons are [x, z] in inches; extrude them between two heights.
 export function slab(pg,y0,y1){const shape=new T.Shape(pg.map(([x,z])=>new T.Vector2(x*inch,z*inch)));const g=new T.ExtrudeGeometry(shape,{depth:(y1-y0)*inch,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(0,y1*inch,0);g.computeBoundingBox();const s=g.boundingBox.getSize(new T.Vector3());return grain(g,[s.x/inch,s.y/inch,s.z/inch],pg.length);}
-function slabMesh(G,id,pg,y0,y1,mat,step){return mesh(G,id,slab(pg,y0,y1),mat,step);}
+function slabMesh(G,id,pg,y0,y1,mat,step){const g=slab(pg,y0,y1);if(step===34||step===35){const p=g.attributes.position,n=g.attributes.normal,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,Math.abs(n.getY(i))>.5?p.getZ(i)/(48*inch):(p.getX(i)-p.getZ(i))/(48*inch),Math.abs(n.getY(i))>.5?p.getX(i)/(96*inch):p.getY(i)/(96*inch));}return mesh(G,id,g,mat,step);}
 // The finished platform reads as one plastered block in its own color.
 export function platformFloor(a,back,side,pa=a){const plan=platformPlan(a,back,side,pa),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan);parts.userData.progressOnly=true;parts.visible=false;root.add(parts);root.userData.area=plan.deckArea;root.userData.plan=plan;return root;}
 // Every framing part, each tagged with the Build guide stage that adds it (30–37).
@@ -60,8 +61,8 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
   for(const j of m.joists)slabMesh(G,'Platform joist',j.poly,rimBottom,legLength,'wood',31).userData.cutLength=j.length;
   for(const l of m.legs)slabMesh(G,l.onSill?'Platform leg on sill':'Platform leg',l.poly,legLength-l.length,legLength,'wood',32).userData.cutLength=l.length;
   for(const s of m.sills)slabMesh(G,'Platform sill',s.poly,0,PLATFORM.sill,'wood',32).userData.cutLength=s.length;
-  slabMesh(G,'Platform deck',m.poly,legLength,PLATFORM.height,'ply',34);
+  slabMesh(G,'Platform deck',m.poly,legLength,PLATFORM.height,'platformWood',34);
   for(const f of m.fascia)slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35);
-  for(const o of G.children.slice(first))o.userData.progress={kind:'platform',stage:o.userData.step,module:moduleIndex,total:plan.modules.length};
+  for(const o of G.children.slice(first))o.userData.progress={kind:'platform',stage:o.userData.step,module:moduleIndex,total:plan.modules.length,seamEdges:m.edges.map(e=>[...e.A,...e.B])};
  }
  G.userData.plan=plan;return G;}

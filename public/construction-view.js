@@ -1,3 +1,4 @@
+import {applyPlatformSeamTexture} from './platform-finish.js';
 import * as THREE from 'three';
 import {mats} from './model.js';
 import {projectPartStatus,projectUpgradeTracking} from './project-model.js';
@@ -19,12 +20,14 @@ export function installConstructionView(api){
  window.addEventListener('studio-view-changed',()=>{toggle.hidden=api.state.mode==='cameras';status.hidden=api.state.mode==='cameras';});
  const baseMode=api.setMode;api.setMode=m=>{const result=baseMode(m);sync();return result;};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>api.setMode(b.dataset.mode));
  function inheritedPanel(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
- function finishMaterial(base,part,result){const ghost=!result.assembled,finish=result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish);if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();materials.set(key,m);}
+ function finishMaterial(base,part,result){const ghost=!result.assembled,finish=result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish)+(finish==='seams'&&!ghost?':'+JSON.stringify(part.seamEdges||[]):'');if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();if(!ghost&&finish==='seams')applyPlatformSeamTexture(m,part,mats.compound.map);materials.set(key,m);}
   const oldMap=m.map,oldTransparent=m.transparent;m.copy(base);
   if(ghost){m.color.set('#858585');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.26,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
+  else if(part.kind==='platform'&&part.stage>=34&&(finish==='raw'||finish==='seams')){const wood=part.stage===34?mats.platformWood:mats.ply;m.map=wood.map;m.color.copy(wood.color);}
   else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){m.color.copy(mats.ply.color);m.map=mats.ply.map;}
   else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
-  else if(finish==='primer'||finish==='skim'){m.map=null;m.color.set(finish==='primer'?'#e3e0d8':'#cfcbc0');}
+  else if(finish==='skim'){m.map=mats.compound.map;m.color.setRGB(1.4,1.4,1.4);m.roughness=1;}
+  else if(finish==='primer'){m.map=null;m.color.set('#e3e0d8');}
   if(oldMap!==m.map||oldTransparent!==m.transparent)m.needsUpdate=true;
   return m;
  }

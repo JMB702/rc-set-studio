@@ -80,13 +80,13 @@ export function projectPartStatus(part,data) {
   const i=part.module??0,n=part.total??1;
   const frame=unit('platform-frame',i,n),legs=unit('platform-legs',i,n),joined=unit('platform-join',i,n),deck=unit('platform-deck',i,n),fascia=unit('platform-fascia',i,n);
   const assembled=frame&&legs&&joined&&(part.stage>=34?deck:true)&&(part.stage>=35?fascia:true);
-  const surface=part.stage>=34,skim=deck&&fascia&&unit('platform-skim',i,n),primer=skim&&unit('platform-prime',i,n),paint=primer&&unit('platform-paint',i,n);
-  return {assembled,finish:surface?(paint?'paint':primer?'primer':skim?'skim':'raw'):'raw'};
+  const surface=part.stage>=34,seams=deck&&fascia&&unit('platform-seams',i,n),skim=seams&&unit('platform-skim',i,n),primer=skim&&unit('platform-prime',i,n),paint=primer&&unit('platform-paint',i,n);
+  return {assembled,finish:surface?(paint?'paint':primer?'primer':skim?'skim':seams?'seams':'raw'):'raw'};
  }
  return {assembled:false};
 }
 export function projectUpgradePlatform(input) {
- const stage=input.stages.find(s=>s.id==='platform');if(!stage||stage.steps.some(t=>t.id==='platform-frame'))return input;
+ const stage=input.stages.find(s=>s.id==='platform');if(!stage||stage.steps.some(t=>t.id==='platform-frame'))return projectUpgradePlatformSeams(input);
  const legacy=['platform-0','platform-1','platform-2','platform-3'];if(!legacy.every(id=>stage.steps.some(t=>t.id===id)))return input;
  const groups={
   'platform-0':[['platform-cut','Lay out and number modules'],['platform-frame','Cut and assemble module frames']],
@@ -95,7 +95,7 @@ export function projectUpgradePlatform(input) {
   'platform-3':[['platform-skim','Tape, skim and sand'],['platform-prime','Prime the platform'],['platform-paint','Paint the platform']],
  };
  const data=structuredClone(input),target=data.stages.find(s=>s.id==='platform');
- target.steps=target.steps.flatMap(t=>groups[t.id]?groups[t.id].map(([id,name],i)=>({id,name,percent:t.percent,notes:i===0?t.notes:[]})): [t]);return data;
+ target.steps=target.steps.flatMap(t=>groups[t.id]?groups[t.id].map(([id,name],i)=>({id,name,percent:t.percent,notes:i===0?t.notes:[]})): [t]);return projectUpgradePlatformSeams(data);
 }
 
 export function projectGuideGroups(design={}) {
@@ -107,7 +107,7 @@ export function projectGuideGroups(design={}) {
  };
  if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
  if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-3':[26,27]});
- if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':[33],'platform-deck':[34],'platform-fascia':[35],'platform-skim':[36],'platform-prime':[37],'platform-paint':[37]});
+ if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':[33],'platform-deck':[34],'platform-fascia':[35],'platform-seams':[36],'platform-skim':[36],'platform-prime':[37],'platform-paint':[37]});
  return groups;
 }
 export function projectGuideKey(stage,design){return stage<=12?`panel:${design.height===96?96:120}:${stage}`:stage<=20?`jack:${design.height===96?96:120}:${stage}`:stage>=23&&stage<=27?`floor:${design.floor}:${stage}`:`set:${stage}`;}
@@ -139,4 +139,12 @@ export function projectReconcileGuideChecks(previous,next){
  const checks={...(next.guideChecks||{})};
  for(const height of [96,120])for(const floor of ['wood','charcoal']){const design={height,floor,platformShape:'square'};for(const [id,stages]of Object.entries(projectGuideGroups(design)))if(changed.has(id))for(const stage of stages)delete checks[projectGuideKey(stage,design)];}
  return {...next,guideChecks:checks};
+}
+
+export function projectUpgradePlatformSeams(input){
+ const platform=input.stages.find(s=>s.id==='platform'),skim=platform?.steps.find(s=>s.id==='platform-skim');
+ if(!skim||platform.steps.some(s=>s.id==='platform-seams'))return input;
+ const data=structuredClone(input),stage=data.stages.find(s=>s.id==='platform'),i=stage.steps.findIndex(s=>s.id==='platform-skim');
+ stage.steps.splice(i,0,{id:'platform-seams',name:'Patch seams and corners',percent:skim.percent,notes:[]});
+ if(stage.steps[i+1].name==='Tape, skim and sand')stage.steps[i+1].name='Skim and sand the full surface';return data;
 }

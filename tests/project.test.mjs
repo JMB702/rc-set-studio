@@ -18,7 +18,7 @@ test('Reject overlapping shifts, future times, duplicate records and removal of 
  const e={id:'a',vendor:'Lumber',amountCents:3200,date:'2026-10-09',note:'',receiptId:'receipt'};assert.throws(()=>projectValidate('finance',{...d,expenses:[e,{...e,id:'b'}]},now),/already recorded/);
 });
 test('Production starts walls, finishing, floor, platform; progress includes partial steps and survives reorder',()=>{
- const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint','Floor','Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:24});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:24});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
+ const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint','Floor','Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:25});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:25});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
 });
 test('Receipt extraction distinguishes total from subtotal, savings, tender and card numbers',()=>{
  const r=projectParseReceipt('LOCAL HARDWARE\n10/09/2026\nSUBTOTAL 100.00\nTAX 7.00\nTOTAL $107.00\nCASH 120.00\nCHANGE 13.00\nTOTAL SAVINGS 10.00');assert.equal(r.amountCents,10700);assert.equal(r.date,'2026-10-09');assert.equal(r.taxCents,700);assert.equal(r.warning,'');
@@ -102,11 +102,11 @@ test('Platform parts require joined modules; deck, fascia and finish follow asse
  const frame={kind:'platform',stage:31,total:8,module:0};assert.equal(projectPartStatus(frame,data).assembled,false);
  set('platform-join',25);assert.equal(projectPartStatus(frame,data).assembled,true);assert.equal(projectPartStatus({...frame,module:2},data).assembled,false);
  assert.equal(projectPartStatus({...frame,stage:34},data).assembled,false);set('platform-deck',100);assert.equal(projectPartStatus({...frame,stage:34},data).assembled,true);
- set('platform-paint',100);assert.equal(projectPartStatus({...frame,stage:34},data).finish,'raw');set('platform-fascia',100);set('platform-skim',100);set('platform-prime',100);assert.equal(projectPartStatus({...frame,stage:35},data).finish,'paint');
+ set('platform-paint',100);assert.equal(projectPartStatus({...frame,stage:34},data).finish,'raw');set('platform-fascia',100);set('platform-seams',100);set('platform-skim',100);set('platform-prime',100);assert.equal(projectPartStatus({...frame,stage:35},data).finish,'paint');
 });
 test('Platform stage upgrade keeps all notes and respects custom order and removed steps',()=>{
  const data={stages:[{id:'platform',name:'Platform',notes:[],steps:[3,1,0,2].map(i=>({id:'platform-'+i,name:'Legacy '+i,percent:i*20,notes:[{id:'note-'+i,text:'keep',at:1}]}))}]};
- const next=projectUpgradePlatform(data);assert.equal(next.stages[0].steps.length,9);assert.equal(next.stages[0].steps[0].id,'platform-skim');assert.equal(next.stages[0].steps[0].percent,60);assert.equal(next.stages[0].steps.flatMap(s=>s.notes).length,4);assert.equal(projectUpgradePlatform(next),next);
+ const next=projectUpgradePlatform(data);assert.equal(next.stages[0].steps.length,10);assert.equal(next.stages[0].steps[0].id,'platform-seams');assert.equal(next.stages[0].steps[0].percent,60);assert.equal(next.stages[0].steps.flatMap(s=>s.notes).length,4);assert.equal(projectUpgradePlatform(next),next);
  data.stages[0].steps.pop();assert.equal(projectUpgradePlatform(data),data);
 });
 
@@ -131,4 +131,13 @@ test('Older open tabs cannot erase assembly counts or guide completion when savi
  const r=rig(),first=await (await r.call('tracking')).json();first.data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2};first.data.guideChecks={'panel:120:0':true};first.data.stages[0].steps[0].percent=100;
  const saved=await (await r.call('tracking','PUT',first)).json();const older=structuredClone(saved);delete older.data.assembly;delete older.data.guideChecks;older.data.stages[0].name='Wall production';
  const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,first.data.assembly);assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
+});
+test('Patched platform seams are a separate finish before full skim, primer and paint',()=>{
+ const data=projectDefaultTracking(),steps=data.stages.find(s=>s.id==='platform').steps;
+ for(const t of steps)t.percent=['platform-skim','platform-prime','platform-paint'].includes(t.id)?0:100;
+ const part={kind:'platform',stage:34,module:0,total:8};assert.equal(projectPartStatus(part,data).finish,'seams');
+ steps.find(t=>t.id==='platform-seams').percent=0;assert.equal(projectPartStatus(part,data).finish,'raw');
+ steps.find(t=>t.id==='platform-seams').percent=100;steps.find(t=>t.id==='platform-skim').percent=100;assert.equal(projectPartStatus(part,data).finish,'skim');
+ steps.find(t=>t.id==='platform-prime').percent=100;assert.equal(projectPartStatus(part,data).finish,'primer');
+ steps.find(t=>t.id==='platform-paint').percent=100;assert.equal(projectPartStatus(part,data).finish,'paint');
 });

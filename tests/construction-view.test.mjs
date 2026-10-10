@@ -9,7 +9,8 @@ const utils=fs.readFileSync(new URL('../public/vendor/BufferGeometryUtils.js',im
 let source=fs.readFileSync(new URL('../public/model.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./vendor/BufferGeometryUtils.js'",JSON.stringify(moduleURL(utils)));
 for(const name of ['platform.js','jack-attachment.js','jack-layout.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
 const modelURL=moduleURL(source),load=T.TextureLoader.prototype.load;T.TextureLoader.prototype.load=()=>new T.Texture();const model=await import(modelURL);T.TextureLoader.prototype.load=load;
-const viewSource=fs.readFileSync(new URL('../public/construction-view.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./model.js'",JSON.stringify(modelURL)).replace("'./project-model.js'",JSON.stringify(url('project-model.js')));
+const finishSource=fs.readFileSync(new URL('../public/platform-finish.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('vendor/three.module.js')));
+const viewSource=fs.readFileSync(new URL('../public/construction-view.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./model.js'",JSON.stringify(modelURL)).replace("'./project-model.js'",JSON.stringify(url('project-model.js'))).replace("'./platform-finish.js'",JSON.stringify(moduleURL(finishSource)));
 const {installConstructionView}=await import(moduleURL(viewSource));
 const data={...projectDefaultTracking(),assembly:{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2}};
 function panelIndex(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
@@ -28,4 +29,10 @@ test('Progress materials are temporary, the toggle restores the model, and camer
  toggle.onclick();const woodData=structuredClone(data);woodData.stages.find(s=>s.id==='floor').steps.forEach(s=>s.percent=100);window.dispatchEvent(new CustomEvent('project-tracking-changed',{detail:woodData}));api.state.floor='wood';const floor=model.floorMesh(45,'wood');scene.add(floor);scene.onBeforeRender();assert.equal(floor.children[0].material.map,model.mats.floor.map);scene.onAfterRender();model.dispose(floor);
  api.state.mode='cameras';assert.equal(api.constructionView.completed,true);scene.onBeforeRender();for(const [o,base] of before)assert.equal(o.material,base.material);scene.onAfterRender();
  }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(root);model.dispose(platform);Object.assign(globalThis,originals);}
+});
+test('Every deck and fascia keeps all module edges for compound wrap and uses raw deck plywood',()=>{
+ for(const angle of [30,45,90]){const platform=model.platformFloor(angle,12,12,angle),parts=platform.children.find(o=>o.userData.progressOnly),plan=platform.userData.plan;
+  for(const o of parts.children){if(o.userData.step<34)continue;const part=o.userData.progress;assert.equal(part.seamEdges.length,plan.modules[part.module].edges.length);assert.ok(part.seamEdges.length<=8);for(const edge of part.seamEdges)assert.ok(edge.every(Number.isFinite));if(o.userData.step===34)assert.equal(o.material,model.mats.platformWood);}
+  model.dispose(platform);
+ }
 });

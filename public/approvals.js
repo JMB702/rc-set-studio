@@ -45,10 +45,30 @@ export function installApprovals(api){
  q('#approve-cancel-edit').onclick=cancelEdit;
  function choose(a){api.configure({...a.design});if(a.estimate)api.restoreLabor(a.estimate);}
  function list(){q('#approvals-count').textContent=approvals.length?`(${approvals.length})`:'';q('#approvals').hidden=!approvals.length;
-  q('#approvals-list').replaceChildren(...approvals.map((a,i)=>{const li=document.createElement('li'),b=document.createElement('button'),head=document.createElement('span'),who=document.createElement('strong'),small=document.createElement('small');b.type='button';b.className='approval';b.dataset.id=a.id;who.textContent=a.name;head.append(who,document.createTextNode(' · '+when(a.createdAt)));if(i===0){const badge=document.createElement('em');badge.className='badge';badge.textContent='Default';head.append(' ',badge);}if(a.updatedAt)head.append(document.createTextNode(' · Edited '+when(a.updatedAt)));small.textContent=detail(a.design);b.append(dots(a.design),head,small);b.onclick=()=>{cancelEdit();choose(a);};
-   const note=document.createElement('p');note.className='approval-estimate';note.textContent=a.estimate?`Saved estimate: ${a.estimate.hours} hrs on site · ${a.estimate.personHours} person-hours · crew ${a.estimate.crew} · ${money(a.estimate.totalCents)}${a.estimate.laborCents===null?' · labor not priced':''}${a.estimate.pending?' · materials partly unpriced':''}`:'No labor estimate was recorded with this older approval.';
-   const edit=document.createElement('button');edit.type='button';edit.className='approval-edit';edit.textContent='Edit approval';edit.setAttribute('aria-label','Edit approval by '+a.name);edit.onclick=()=>{cancelEdit();beforeEdit={design:structuredClone(S),labor:api.captureLabor()};editing=a;choose(a);api.setMode('finished');status();q('#approve-button').scrollIntoView({block:'center'});};li.append(b,note,edit);return li;}));status();
+  q('#approvals-list').replaceChildren(...approvals.map((a,i)=>{
+   const li=document.createElement('li'),row=document.createElement('div'),toggle=document.createElement('button'),body=document.createElement('div'),name=document.createElement('strong'),date=document.createElement('small');
+   row.className='approval-row';toggle.type='button';toggle.className='approval-toggle';toggle.dataset.id=a.id;toggle.setAttribute('aria-expanded','false');body.id='approval-detail-'+a.id;toggle.setAttribute('aria-controls',body.id);body.className='approval-breakdown';body.hidden=true;
+   name.textContent=a.name;date.textContent=when(a.createdAt);toggle.append(name,date);if(i===0){const badge=document.createElement('span');badge.className='badge';badge.textContent='Default';name.append(' ',badge);}
+   toggle.onclick=()=>{body.hidden=!body.hidden;toggle.setAttribute('aria-expanded',String(!body.hidden));};
+   const edit=document.createElement('button');edit.type='button';edit.className='approval-edit';edit.textContent='Edit';edit.setAttribute('aria-label','Edit approval by '+a.name);edit.onclick=()=>{cancelEdit();beforeEdit={design:structuredClone(S),labor:api.captureLabor()};editing=a;choose(a);api.setMode('finished');status();};row.append(toggle,edit);
+   function section(title,fields){const h=document.createElement('h4'),dl=document.createElement('dl');h.textContent=title;for(const [label,value]of fields){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=label;dd.textContent=value;dl.append(dt,dd);}body.append(h,dl);}
+   const d=a.design;section('Design',[
+    ['Walls',`${d.height/12}′ tall · ${d.angle}° wings`],['Wall color',colorName(d.wallColor)],
+    ['Platform',d.platformShape==='none'?'None':`${d.platformShape==='square'?'Square':'Angled'} · 10″ high`],
+    ...(d.platformShape==='none'?[]:[['Platform gaps',`${d.platformBack}″ back · ${d.platformSide}″ sides`],['Platform color',colorName(d.platformColor)]]),
+    ['Floor',d.floor==='none'?'None':d.floor==='wood'?'Oak laminate':'Painted plywood'],...(d.floor==='charcoal'?[['Floor color',colorName(d.floorColor)]]:[])
+   ]);
+   if(a.estimate){const e=a.estimate;section('Saved estimate',[
+    ['Materials',money(e.materialsCents)],['Labor',e.laborCents===null?'Not priced':money(e.laborCents)],
+    ...(e.taxCents!==undefined?[['Estimated tax',money(e.taxCents)]]:[]),['Total',money(e.totalCents)],
+    ['Crew',`${e.crew} people`],['Time on site',`${e.hours} hours`],['Person-hours',String(e.personHours)],
+    ...(e.shoppingHours?[['Shopping',`${e.shoppingHours} hours`]]:[]),...(e.pending?[['Unpriced items',String(e.pending)]]:[])
+   ]);}else{const note=document.createElement('p');note.textContent='No saved cost estimate.';body.append(note);}
+   if(a.updatedAt){const updated=document.createElement('p');updated.className='approval-updated';updated.textContent='Edited '+when(a.updatedAt);body.append(updated);}
+   const loadButton=document.createElement('button');loadButton.type='button';loadButton.className='approval-load';loadButton.textContent='Load this design';loadButton.onclick=()=>{cancelEdit();choose(a);};body.append(loadButton);li.append(row,body);return li;
+  }));status();
  }
+
  async function load(){try{const r=await fetch('/api/approvals');const response=await r.json();if(!r.ok)throw Error(response.error);approvals=response.approvals;loaded=true;const latest=approvals[0];if(latest){const untouched=!api.hasRestoredSession&&S.mode==='finished'&&key(S)===key(defaultDesign);Object.assign(defaultDesign,latest.design);if(untouched){api.configure({...latest.design});if(latest.estimate&&JSON.stringify(api.captureLabor())===initialLabor)api.restoreLabor(latest.estimate);}}list();}catch{loaded=true;q('#approve-status').textContent='Approvals are unavailable right now.';}}
  function open(){const name=editing?editing.name:rememberedName()||q('#comment-name')?.value.trim()||'';q('#approve-title').textContent=editing?'Edit approval':'Approve this design';q('#approve-confirm').textContent=editing?'Save changes':'Approve';q('#approve-confirm').disabled=!data;
   q('#approve-description').textContent=editing?(editing.id===approvals[0]?.id?'Save changes to this approval and its default design.':'Save changes to this earlier approval; the current default stays the newest approval.'):'Everyone who opens the site will start from it, and it is listed under Approved designs.';

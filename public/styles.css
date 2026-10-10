@@ -659,3 +659,16 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .approval-dock-actions .approve-button{min-width:0;flex:1}
 .approval-dock-visible .controls{padding-bottom:calc(var(--approval-dock-height,132px) + 24px)}
 @media(min-width:851px){body:not(.building) .viewport{height:calc(100dvh - var(--visible-header-height,86px));min-height:0}}
+
+#approvals-list>li{padding:0;border:1px solid #dbe1da;border-radius:8px;background:#fff;overflow:hidden}
+.approval-row{display:flex;align-items:center;gap:8px;padding:6px 8px}
+.approval-toggle{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;background:transparent;padding:6px;min-height:50px;color:var(--ink)}
+.approval-toggle strong{font-size:14px;overflow-wrap:anywhere}.approval-toggle small{font-size:12px;color:var(--muted)}
+.approval-toggle[aria-expanded=true]{color:#34592c}
+.approval-row .approval-edit{flex-shrink:0;margin:0;min-width:48px;min-height:44px;padding:8px 12px;font-size:13px}
+.approval-breakdown{padding:0 14px 14px;border-top:1px solid var(--line)}
+.approval-breakdown h4{font-size:13px;margin:16px 0 8px}
+.approval-breakdown dl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:9px 14px;font-size:12px;line-height:1.45;margin:0}
+.approval-breakdown dt{color:var(--muted)}.approval-breakdown dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.approval-breakdown .approval-updated{font-size:11px;color:var(--muted);margin:14px 0}
+.approval-load{width:100%;min-height:44px;margin-top:16px;border-radius:6px;background:#eaf2e2;color:#34502b;font-size:13px;font-weight:600}

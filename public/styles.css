@@ -658,3 +658,4 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .approval-dock-actions{display:flex;gap:10px;align-items:center}
 .approval-dock-actions .approve-button{min-width:0;flex:1}
 .approval-dock-visible .controls{padding-bottom:calc(var(--approval-dock-height,132px) + 24px)}
+@media(min-width:851px){body:not(.building) .viewport{height:calc(100dvh - var(--visible-header-height,86px));min-height:0}}

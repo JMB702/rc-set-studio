@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {calculate} from '../public/shopping-calc.js';
-import {floorArea,priceRows,summary,pricingBudget} from '../public/pricing-calc.js';
+import {floorArea,priceRows,summary,pricingBudget,materialTax} from '../public/pricing-calc.js';
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url)));
 test('Floor quantities follow actual outline, including angled wings',()=>{
  for(const angle of [0,15,45,75,90]){
@@ -115,7 +115,12 @@ test('Burn-down budget uses full-set pricing, custom additions, exclusions and l
  const full=priceRows(data,{...configuration,scope:'set'}),removed=full.find(r=>r.subtotalCents>0);
  configuration.excluded=[removed.id];configuration.customItems=[{id:'custom-budget',title:'Additional material',quantity:2,unitPriceCents:2500,description:'',link:''}];
  const result=pricingBudget(data,configuration,{costCents:300000,unrated:0});
- assert.equal(result.materialsCents,summary(full).subtotal-removed.subtotalCents+5000);assert.equal(result.totalCents,result.materialsCents+300000);assert.ok(result.pending>0);
- assert.equal(pricingBudget(data,{...configuration,scope:'floor'},{costCents:0,unrated:0}).totalCents,result.materialsCents);
+ assert.equal(result.materialsCents,summary(full).subtotal-removed.subtotalCents+5000);assert.equal(result.totalCents,result.materialsCents+result.taxCents+300000);assert.ok(result.pending>0);
+ assert.equal(pricingBudget(data,{...configuration,scope:'floor'},{costCents:0,unrated:0}).totalCents,result.materialsCents+result.taxCents);
  assert.equal(pricingBudget(data,configuration,{costCents:null,unrated:2}).laborCents,null);
+});
+
+test('Tax estimates include known materials and exclude custom charges and pending amounts',()=>{
+ assert.equal(materialTax([{subtotalCents:10000},{subtotalCents:null},{subtotalCents:5000,custom:true}]),700);
+ assert.equal(materialTax([{subtotalCents:261992}]),18339);assert.equal(materialTax([]),0);
 });

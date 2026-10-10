@@ -21,7 +21,7 @@ test('Older saves with floor "platform" estimate as an angled platform with no f
 });
 test('The default crew is two people and hours are person-hours split across the crew',()=>{
  assert.equal(LABOR.crew,2);
- const two=laborEstimate(base);assert.equal(two.crew,2);assert.equal(two.hours,Math.ceil(two.personHours/2*2)/2);
+ const two=laborEstimate(base);assert.equal(two.crew,2);assert.equal(two.hours,Math.ceil((two.personHours-two.shoppingHours)/2*2)/2);
  assert.ok(laborEstimate(base,1).hours>two.hours*2,'one person is slowed by the two-person lifts');
  assert.ok(laborEstimate(base,4).hours<two.hours&&laborEstimate(base,4).hours>two.hours/2,'extra people help less than the first two');
  assert.equal(crewFactor(0),crewFactor(1));assert.equal(crewFactor(99),crewFactor(LABOR.maxCrew));
@@ -32,4 +32,10 @@ test('Each person has their own rate; people without one are left out of the cos
  assert.deepEqual(laborCost(10,[4500,3000]),{costCents:75000,crewRateCents:7500,unrated:0});
  assert.deepEqual(laborCost(10,[4500,null]),{costCents:45000,crewRateCents:4500,unrated:1});
  assert.equal(laborCost(57.5,[4500,3000]).costCents,431250);
+});
+
+test('Shopping keeps reported time separate from remaining allowance and does not scale with crew size',()=>{
+ const one=laborEstimate(base,1),two=laborEstimate(base,2);assert.equal(one.shoppingHours,8.5);assert.equal(two.shoppingHours,8.5);
+ assert.equal(two.tasks.find(t=>t.id==='shoppingDone').personHours,3.5);assert.equal(two.tasks.find(t=>t.id==='shoppingRemaining').personHours,5);
+ assert.doesNotMatch(two.tasks.find(t=>t.id==='setup').name,/pickup/i);
 });

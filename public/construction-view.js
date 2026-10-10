@@ -24,7 +24,8 @@ export function installConstructionView(api){
   const oldMap=m.map,oldTransparent=m.transparent;m.copy(base);
   if(ghost){m.color.set('#858585');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.26,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
   else if(part.kind==='platform'&&part.stage>=34&&(finish==='raw'||finish==='seams')){const wood=part.stage===34?mats.platformWood:mats.ply;m.map=wood.map;m.color.copy(wood.color);}
-  else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){m.color.copy(mats.ply.color);m.map=mats.ply.map;}
+  else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.ply;m.color.copy(raw.color);m.map=raw.map;}
+  else if(finish==='seams'&&part.kind==='wallSkin'){m.color.set(0xffffff);m.map=(api.state.height===120?mats.wallSeams10:mats.wallSeams8).map;m.roughness=1;}
   else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
   else if(finish==='skim'){m.map=mats.compound.map;m.color.setRGB(1.4,1.4,1.4);m.roughness=1;}
   else if(finish==='primer'){m.map=null;m.color.set('#e3e0d8');}
@@ -38,7 +39,7 @@ export function installConstructionView(api){
   api.scene.traverseVisible(o=>{if(!o.isMesh||!o.material||Array.isArray(o.material)||o.userData.guideDecoration)return;let part=o.userData.progress;
    if(!part&&o.name==='Floor')part={kind:'floor'};
    if(!part)return;part={...part,panel:part.panel??inheritedPanel(o)};
-   const result=projectPartStatus(part,tracking),base=o.material;if(o.userData.guideMaterial&&result.assembled)return;
+   const preview=o.userData.wallFinishPreview&&api.state.mode==='pricing',result=preview?{assembled:true,finish:o.userData.wallFinishPreview}:projectPartStatus(part,tracking),base=o.material;if(o.userData.guideMaterial&&result.assembled)return;
    restored.push([o,'material',base],[o,'castShadow',o.castShadow],[o,'receiveShadow',o.receiveShadow]);o.material=finishMaterial(base,part,result);if(!result.assembled)o.castShadow=o.receiveShadow=false;
   });
  };

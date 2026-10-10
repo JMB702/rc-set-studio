@@ -73,7 +73,7 @@ export function projectPartStatus(part,data) {
  if(part.kind==='panel')return {assembled:wall};
  if(part.kind==='jack')return {assembled:attached};
  if(part.kind==='bracing')return {assembled:wall&&panel*2+1<(counts.jacksAttached??0)&&percent('walls-4')===100};
- if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':'raw'};
+ if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':unit('wall-finishing-1',panel,8)||unit('wall-finishing-2',panel,8)?'seams':'raw'};
  if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':'raw'};
  if(part.kind==='trim')return {assembled:percent('floor-3')===100&&wall};
  if(part.kind==='platform'){

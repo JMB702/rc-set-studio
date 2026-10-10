@@ -1,3 +1,4 @@
+import {installProject} from './project.js';
 import {cameraPolarLimit} from './camera-state.js';
 import {readWorkspace} from './workspace-state.js';
 import {installWorkspaceSession} from './workspace-session.js';
@@ -72,3 +73,5 @@ import {installCameraPositions} from './camera-positions.js';
 installCameraPositions(window.__studio);
 
 installWorkspaceSession(window.__studio,savedWorkspace);
+
+installProject(window.__studio);

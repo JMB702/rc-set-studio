@@ -1,6 +1,6 @@
 // Approvals retain their design and reviewed estimate. Editing keeps the original creation order.
 import {defaultDesign,designLine,colorName} from './design.js';
-import {normalizeDesign,normalizeApprovalEstimate} from './pricing-config.js';
+import {normalizeDesign,normalizeApprovalEstimate,approvalMatchesDesign} from './pricing-config.js';
 import {mountLabor,costSummary} from './labor.js';
 import {money} from './pricing-calc.js';
 const builtIn=normalizeDesign(defaultDesign),key=d=>JSON.stringify(normalizeDesign(d));
@@ -23,7 +23,7 @@ export function installApprovals(api){
  q('#approve-labor .labor-rates legend').after(tip);tip.querySelector('button').onclick=()=>{tip.hidden=true;};
  q('#approve-labor .labor-rates').addEventListener('change',()=>{tip.hidden=true;});
  function reminder(){tip.querySelector('p').textContent='Keep everyone working in the crew count. Enter paid rates; use $0 for labor already covered. Blank means not priced.';tip.hidden=false;}
- function currentEstimate(){const c=costSummary(data,S),l=c.labor;return normalizeApprovalEstimate({crew:l.crew,hours:l.hours,defaultHours:l.defaultHours,personHours:l.personHours,rates:l.rates,materialsCents:c.materialsCents,pending:c.pending});}
+ function currentEstimate(){const c=costSummary(data,S),l=c.labor;return normalizeApprovalEstimate({crew:l.crew,hours:l.hours,defaultHours:l.defaultHours,personHours:l.personHours,rates:l.rates,materialsCents:c.materialsCents,pending:c.pending,deckLayoutRevision:'paired-v1'});}
  function costs(){if(!dialog.open)return;if(!data){q('#approve-materials').textContent='Loading…';return;}
   const c=costSummary(data,S),l=c.labor;q('#approve-materials').textContent=money(c.materialsCents);q('#approve-labor-note').textContent=`${l.hours} hrs · crew of ${l.crew}`;q('#approve-labor-total').textContent=l.costCents==null?'No rates set':money(l.costCents);q('#approve-total').textContent=money(c.totalCents);
   const note=[c.pending?`${c.pending} material items still unpriced`:'',l.costCents==null?'labor not priced':l.unrated?`${l.unrated} ${l.unrated===1?'person':'people'} without a rate`:'','before tax & delivery'].filter(Boolean).join(' · ').replace(/^./,x=>x.toUpperCase());q('#approve-total-note').textContent=note;q('#approve-cost .approve-total').dataset.note=note;
@@ -31,10 +31,10 @@ export function installApprovals(api){
  async function loadData(){if(data)return;try{const r=await fetch('./data/flat-shopping-list.json');if(!r.ok)throw Error();data=await r.json();costs();q('#approve-confirm').disabled=false;}catch{q('#approve-materials').textContent='Unavailable';q('#approve-error').textContent='The estimate could not load. Close and reopen to retry.';}}
  function changedDraft(){if(!saving)draftId=crypto.randomUUID();}
  window.addEventListener('labor-changed',()=>{changedDraft();costs();});q('#approve-name').addEventListener('input',changedDraft);
- function status(){const current=key(S),latest=approvals[0];q('#approve-cancel-edit').hidden=!editing;q('#approve-button').textContent=editing?'Review approval changes':'Approve this design';
-  q('#approve-status').textContent=editing?`Editing ${editing.name}'s approval. Adjust the design above, then review the name and labor estimate.${editing.estimate?'':' This older approval has no saved labor estimate; current rates are shown.'}`:!loaded?'':latest?(key(latest.design)===current?`This is the approved design, approved by ${latest.name} on ${when(latest.createdAt)}.`:approvals.some(a=>key(a.design)===current)?'This is an earlier approved design. Approve it again to make it the default.':`Changed from the approved design (${latest.name}, ${when(latest.createdAt)}).`):'No design has been approved yet.';
-  q('#approve-button').disabled=!editing&&!!latest&&key(latest.design)===current;
-  for(const b of document.querySelectorAll('#approvals-list button[data-id]'))b.setAttribute('aria-current',key(approvals.find(a=>a.id===b.dataset.id).design)===current?'true':'false');
+ function status(){const latest=approvals[0];q('#approve-cancel-edit').hidden=!editing;q('#approve-button').textContent=editing?'Review approval changes':'Approve this design';
+  q('#approve-status').textContent=editing?`Editing ${editing.name}'s approval. Adjust the design above, then review the name and labor estimate.${editing.estimate?'':' This older approval has no saved labor estimate; current rates are shown.'}`:!loaded?'':latest?(approvalMatchesDesign(latest,S)?`This is the approved design, approved by ${latest.name} on ${when(latest.createdAt)}.`:approvals.some(a=>approvalMatchesDesign(a,S))?'This is an earlier approved design. Approve it again to make it the default.':`Changed from the approved design (${latest.name}, ${when(latest.createdAt)}).`):'No design has been approved yet.';
+  q('#approve-button').disabled=!editing&&!!latest&&approvalMatchesDesign(latest,S);
+  for(const b of document.querySelectorAll('#approvals-list button[data-id]'))b.setAttribute('aria-current',approvalMatchesDesign(approvals.find(a=>a.id===b.dataset.id),S)?'true':'false');
  }
  function cancelEdit(){if(!editing)return;const previous=beforeEdit;editing=null;beforeEdit=null;if(previous){api.configure(previous.design);api.restoreLabor(previous.labor);}status();}
  q('#approve-cancel-edit').onclick=cancelEdit;

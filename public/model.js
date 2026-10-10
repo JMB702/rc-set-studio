@@ -61,8 +61,8 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
   for(const j of m.joists)slabMesh(G,'Platform joist',j.poly,rimBottom,legLength,'wood',31).userData.cutLength=j.length;
   for(const l of m.legs)slabMesh(G,l.onSill?'Platform leg on sill':'Platform leg',l.poly,legLength-l.length,legLength,'wood',32).userData.cutLength=l.length;
   for(const s of m.sills)slabMesh(G,'Platform sill',s.poly,0,PLATFORM.sill,'wood',32).userData.cutLength=s.length;
-  slabMesh(G,'Platform deck',m.poly,legLength,PLATFORM.height,'platformWood',34);
   for(const f of m.fascia)slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35);
-  for(const o of G.children.slice(first))o.userData.progress={kind:'platform',stage:o.userData.step,module:moduleIndex,total:plan.modules.length,seamEdges:m.edges.map(e=>[...e.A,...e.B])};
+  for(const o of G.children.slice(first))o.userData.progress={kind:'platform',stage:o.userData.step,module:moduleIndex,total:plan.modules.length,deckIndex:plan.decks.findIndex(d=>d.moduleIndices.includes(moduleIndex)),deckTotal:plan.decks.length,seamEdges:m.edges.map(e=>[...e.A,...e.B])};
  }
+ for(const [deckIndex,d] of plan.decks.entries()){const o=slabMesh(G,'Platform deck',d.poly,legLength,PLATFORM.height,'platformWood',34);o.userData.deckId=d.id;o.userData.progress={kind:'platform',stage:34,module:d.moduleIndices[0],members:d.moduleIndices,total:plan.modules.length,deckIndex,deckTotal:plan.decks.length,seamEdges:d.edges.map(e=>[...e.A,...e.B])};}
  G.userData.plan=plan;return G;}

@@ -50,6 +50,9 @@ export function normalizeApprovalEstimate(input){
  const rates=input.rates.map(r=>{if(r===null)return null;n(r,'hourly rate',10000000);if(!Number.isInteger(r))throw Error('Rates must be whole cents.');return r;});
  const materialsCents=n(input.materialsCents,'material total'),pending=n(input.pending,'pending materials',10000);
  if(!Number.isInteger(materialsCents)||!Number.isInteger(pending))throw Error('Invalid material total.');
+ if(input.deckLayoutRevision!==undefined&&input.deckLayoutRevision!=='paired-v1')throw Error('Invalid deck layout revision.');
  const priced=rates.filter(r=>r!==null),laborCents=priced.length?Math.round(hours*priced.reduce((s,r)=>s+r,0)):null;
- return {crew,hours,defaultHours,personHours,rates,materialsCents,pending,laborCents,totalCents:materialsCents+(laborCents??0)};
+ return {...(input.deckLayoutRevision?{deckLayoutRevision:input.deckLayoutRevision}:{}),crew,hours,defaultHours,personHours,rates,materialsCents,pending,laborCents,totalCents:materialsCents+(laborCents??0)};
 }
+
+export function approvalMatchesDesign(approval,design){return JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design))&&(normalizeDesign(design).platformShape==='none'||approval.estimate?.deckLayoutRevision==='paired-v1');}

@@ -53,7 +53,7 @@ test('Platform keeps its gaps from the back and side walls at every angle',()=>{
   assert.ok(plan.deckArea>0);
  }
 });
-test('Platform modules tile the outline and none is larger than a half sheet',()=>{
+test('Platform frames tile the outline independently of larger deck sheets',()=>{
  for(const angle of [0,45,90]){const plan=platformPlan(angle,12,12);
   assert.ok(Math.abs(plan.modules.reduce((s,m)=>s+m.area,0)/144-plan.deckArea)<1e-6);
   const outline=Math.abs(plan.outline.reduce((s,p,i)=>{const q=plan.outline[(i+1)%plan.outline.length];return s+p[0]*q[1]-q[0]*p[1]},0))/2/144;

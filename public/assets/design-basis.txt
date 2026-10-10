@@ -110,10 +110,16 @@ butted pinwheel style; joists front-to-back at 16 centers. Legs: one in
 every corner plus intermediates so no rim spans more than 48. Leg 9.422
 (9 7/16) to the deck underside; 7.922 (7 15/16) where it stands on a sill.
 Sills: 2x4 laid flat under every fascia edge. Deck: Plytanium 19/32 BC
-sanded plywood, actual 0.578 x 47.938 x 95.938; a 48 module's deck lands
-up to 3/32 short, filled by the skim coat. Decks screwed (#8x2.5 at 6 on
-rims, 12 on joists), not glued, so the platform can come apart. Module
-seams: #9x3 screws through adjoining rims, about every 12, both sides.
+sanded plywood, actual 0.578 x 47.938 x 95.938. Pair adjacent frame cells
+within each row into larger deck pieces up to one 4x8 sheet, long direction
+across the front-to-back joists. Default square: 4 decks over 8 frames,
+4 sheets. Default 45-degree angled: 7 decks over 13 frames, 7 sheets.
+The cut plan centers undersized stock over supporting rims, at most 3/64
+allowance per edge; scribe angled boundaries to the joined frames.
+Decks screwed (#8x2.5 at 6 around deck perimeters, 12 on interior rims and
+joists), not glued. Remove spanning decks BEFORE separating the frames.
+Frame seams retain #9x3 screws through adjoining rims, about every 12,
+both sides. Tape follows deck-piece seams, not hidden frame joints.
 Fascia: 0.106 lauan, 10 tall, glued and stapled to rims, legs and sills.
 Finish: vinyl corner bead on top edges and outside corners, mesh tape on
 deck seams and fascia joints, setting-type compound skim, sand, KILZ 2

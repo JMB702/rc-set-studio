@@ -42,8 +42,8 @@ function pricedPanel(height){const root=panel(height),bins=new Map();
 // The platform's framing, deck and fascia, merged per material and tagged with the rows they price.
 function pricedPlatform(plan){const root=new T.Group(),parts=platformParts(plan),bins=new Map();
  const finish=['platformTape','platformCompound','platformPrimer','platformPaint'],tag=name=>/deck/.test(name)?['platformDeck','platformDeckScrews',...finish]:/fascia/.test(name)?['platformSkin','platformStaples','platformGlue','platformBead',...finish]:['platformLumber','platformFrameScrews'];
- for(const o of [...parts.children]){const ids=tag(o.name),key=ids[0]+JSON.stringify(o.userData.progress),bin=bins.get(key)||{ids,material:o.material,progress:o.userData.progress,geometries:[]};bin.geometries.push(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone());bins.set(key,bin);o.geometry.dispose();}
- for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(x=>x.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0];m.userData.progress=bin.progress;m.castShadow=m.receiveShadow=true;root.add(m);}
+ for(const o of [...parts.children]){const ids=tag(o.name),key=ids[0]+JSON.stringify(o.userData.progress),bin=bins.get(key)||{ids,material:o.material,progress:o.userData.progress,deckId:o.userData.deckId,geometries:[]};bin.geometries.push(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone());bins.set(key,bin);o.geometry.dispose();}
+ for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(x=>x.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0];m.userData.progress=bin.progress;m.userData.deckId=bin.deckId;m.castShadow=m.receiveShadow=true;root.add(m);}
  return root;}
 export function installPricing(api){
  const host=$('#pricing-controls'),baseMode=api.setMode,S=api.state;

@@ -29,7 +29,7 @@ export function stepFasteners(stage,height,floor,cfg={}){
   if(stage===31)return [item('#9 × 3″ star-drive flat-head wood screws',`Two per rim corner joint and two at each joist end. ${c.rims*2+c.joists*4} planned for all platform frames.`,'platformFrameScrews',c.rims*2+c.joists*4)];
   if(stage===32)return [item('#9 × 3″ star-drive flat-head wood screws',`Four per leg through the rims, two per sill, plus two per leg resting on a sill. ${c.legs*4+c.sills*2+c.sillLegs*2} planned for the whole platform.`,'platformFrameScrews',c.legs*4+c.sills*2+c.sillLegs*2)];
   if(stage===33)return [item('#9 × 3″ star-drive flat-head wood screws','Join shared rims from inside the frames, about 12″ apart overall, staggered from both sides. Use the module seam allowance in the Pricing guide.','platformFrameScrews',p.frameScrews-(c.rims*2+c.joists*4+c.legs*4+c.sills*2+c.sillLegs*2))];
-  if(stage===34)return [item('#8 × 2½″ flat-head wood screws',`Every 6″ on deck rims and 12″ on joists. ${p.deckScrews} planned for the whole platform. Heads slightly recessed; do not glue the decks.`,'platformDeckScrews',p.deckScrews)];
+  if(stage===34)return [item('#8 × 2½″ flat-head wood screws',`Every 6″ around each larger deck perimeter and 12″ on interior rims and joists. ${p.deckScrews} planned for the whole platform. Heads slightly recessed; do not glue. Remove each spanning deck before separating its frames.`,'platformDeckScrews',p.deckScrews)];
   if(stage===35)return [item('½″ long, 18-gauge, ¼″ narrow-crown staples',`About 4″ apart into the rims, sills and legs. ${p.staples} planned for all fascia.`,'platformStaples',p.staples),item('Titebond III wood glue','Glue the fascia-to-frame contact surfaces.','platformGlue')];
   return none('Follow the step instructions.');
 }

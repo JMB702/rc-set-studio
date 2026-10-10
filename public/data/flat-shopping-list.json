@@ -311,7 +311,7 @@
     "availability": "$34.98 online listing checked Oct 5 \u00b7 #6319 price and stock unverified. Two coats on front wall faces at 350 sq ft/gallon; primer priced separately."
   },
   "platform": {
-    "note": "10-inch platform floor option. Products below were observed Oct 6, 2026 with E Bradenton #6319 selected. The platform also reuses the 2\u00d74 stud, lauan skin, SPAX #8 \u00d7 2\u00bd in screws, staples, Titebond III and neoprene sheet listed in products (Oct 5 prices).",
+    "note": "10-inch platform floor option. Products below were observed Oct 6, 2026 with E Bradenton #6319 selected. The platform also reuses the 2\u00d74 stud, lauan skin, SPAX #8 \u00d7 2\u00bd in screws, staples, Titebond III and neoprene sheet listed in products (Oct 5 prices). Larger deck pieces span adjacent frames; sheet layouts, deck screw counts and seam tape are calculated from platformPlan(). Frames separate only after spanning decks are removed.",
     "products": [
       {
         "id": "platformDeck",
@@ -396,5 +396,5 @@
       }
     ]
   },
-  "designRevision": "2026-10-08-full-length-jack-uprights"
+  "designRevision": "2026-10-10-larger-platform-decks"
 }

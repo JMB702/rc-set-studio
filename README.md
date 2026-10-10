@@ -83,3 +83,10 @@ Each Build guide step has a shared **Mark this step done** checkbox. Checked ins
 
 
 Platform finishing has separate raw plywood, patched-seam, full skim, primer and painted appearances. Generated pine-plywood and neutral compound textures are recorded in `texture-provenance.json`. Seam bands use each module's actual polygon edges and wrap across the top perimeter, vertical fascia corners and lower edges; they follow both angled and square layouts. Their visual width and light-gray color are illustrative, not a product specification or an approval for foot traffic. Existing completed skim work initializes the new seam-patching milestone at the same progress. Guide step 36 covers patching and full skim together; edit the separate milestones to show the intermediate seam-only stage.
+
+
+### Larger platform decks
+
+Decks are planned independently of the small support frames. Adjacent frames within each row share a larger 19/32-inch plywood deck where a 4×8 sheet permits it, with face grain running across the joists. At 45° wall angles and 12-inch gaps, the square platform uses **4 deck pieces over 8 frames from 4 sheets**; the angled platform uses **7 pieces over 13 frames from 7 sheets**. Each deck has a stable label, supporting-frame list, cut-blank dimensions and sheet assignment in the Build guide cut list. Actual undersized stock is centered on the supporting rims; the model and cut plan include the small edge allowance. Stock nesting allows a 1/8-inch saw kerf and does not rotate blanks across the grain.
+
+Remove the spanning decks before separating frames. Deck screws are counted at 6-inch perimeter spacing and 12-inch spacing on interior rims and joists. Frame joining screws remain unchanged. Mesh tape and visible top seams now follow plywood-piece boundaries; fascia retains its own joints. Finishing and labor estimates use the revised seam and screw totals. A spanning deck stays gray until all of its supporting frames are assembled and the deck is attached. Existing approval records are preserved; platform approvals need review for the larger-deck revision.

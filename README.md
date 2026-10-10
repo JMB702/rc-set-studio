@@ -102,3 +102,9 @@ Cut lengths, stock packing, staples and joint tape follow these pieces; no botto
 Project tracking omits the decorative heading, manual refresh and assembly-count card (stored counts remain intact). Visible viewers check shared tracking revisions every three seconds, retry after connection failures and refresh on focus. Polls pause during edits, dialogs, saves and drags; stale responses are discarded. The progress hero contracts into a sticky summary on scroll, below the mobile 3D preview. No material or pricing changes.
 
 Explore/Pricing page loads use a 1.5-second opening camera move after workspace restoration: slightly closer and straight on, easing to an angled full-set fit. Bounds include floor, jacks and figures; fitting considers horizontal/vertical FOV and viewport aspect. Resizing refits until interaction; pointer, wheel or keyboard input cancels the intro. Reduced motion settles immediately. Build and saved camera-position views retain their existing restoration behavior.
+
+### Shipping from Claude Code
+
+Tell Claude **“Ship changes”** or invoke **`/ship`**. Claude runs `npm run ship`, which uses the installed, signed-in Codex CLI and Sites plugin to integrate completed changes, validate, merge to main, publish, and verify production. `npm run ship:check` performs a read-only connector/access check. The CLI must be on PATH and signed into the same ChatGPT account that owns the Site; Sites must remain enabled.
+
+No API key or Sites token is stored in this repository. Release transcripts are discarded, while a credential-free receipt is saved to ignored `output/releases/last-release.json`. A shared Git lock prevents simultaneous releases from linked worktrees. Code releases preserve production progress, receipts, hours and PIN. Automatic approval review still applies; blocked releases return failure, not a success claim.

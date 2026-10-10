@@ -35,9 +35,9 @@ npm run quote            # Pricing guide subtotals; paste before and after into 
 
 ## Ground rules
 
-- Never push to `main`. Fork, branch, open a pull request: `gh pr create --repo JMB702/rc-set-studio --fill`.
+- During ordinary edits, do not push to `main`. Branch and open a pull request: `gh pr create --repo JMB702/rc-set-studio --fill`.
 - Do not commit `node_modules/`, `dist/`, `.wrangler/`, or `output/`.
-- Do not touch `.openai/` (production hosting). Do not deploy.
+- During ordinary edits, preserve `.openai/` and do not deploy. When Jeff explicitly asks to ship/publish/deploy, use `npm run ship` (see `.claude/skills/ship/SKILL.md`); this authorizes the release worker to merge verified PRs into main and publish the existing Site.
 - Never invent prices, stock or products. Unverified prices stay "pending" (see the skill).
 - This is a scenic prototype, not a structural design. Do not add load, wind or code-compliance claims.
 - `public/pricing-config.js` is inlined into the Worker by `scripts/build.mjs`: keep it plain `export function` declarations with no imports.

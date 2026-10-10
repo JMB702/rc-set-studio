@@ -100,4 +100,4 @@ Fork, branch, commit, `gh pr create --repo JMB702/rc-set-studio --fill`. Never p
 - the `npm run quote` **before and after** numbers;
 - which Build guide steps and Pricing guide rows you updated, or why none needed it.
 
-Never touch `.openai/` (production hosting config) or deploy anything.
+For ordinary edits, preserve `.openai/` and do not deploy. An explicit user shipping request overrides this default: follow `.claude/skills/ship/SKILL.md` and run `npm run ship`. The release worker can merge verified work into main and publish the existing Site.

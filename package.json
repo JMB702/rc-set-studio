@@ -13,7 +13,9 @@
     "check": "npm test",
     "sync:shopping": "node scripts/sync-shopping-list.mjs",
     "quote": "node scripts/quote.mjs",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "ship": "node scripts/ship-from-claude.mjs",
+    "ship:check": "node scripts/ship-from-claude.mjs --check"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2"

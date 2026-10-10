@@ -21,7 +21,7 @@ export function installConstructionView(api){
  function inheritedPanel(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
  function finishMaterial(base,part,result){const ghost=!result.assembled,finish=result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish);if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();materials.set(key,m);}
   const oldMap=m.map,oldTransparent=m.transparent;m.copy(base);
-  if(ghost){m.color.set('#929c96');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.16,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
+  if(ghost){m.color.set('#858585');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.26,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
   else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){m.color.copy(mats.ply.color);m.map=mats.ply.map;}
   else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
   else if(finish==='primer'||finish==='skim'){m.map=null;m.color.set(finish==='primer'?'#e3e0d8':'#cfcbc0');}

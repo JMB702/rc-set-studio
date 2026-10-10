@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {normalizeApprovalEstimate} from '../public/pricing-config.js';
+import {normalizeApprovalEstimate,approvalSettingsMatch} from '../public/pricing-config.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
 const helper=fs.readFileSync(new URL('../public/pricing-config.js',import.meta.url),'utf8').replaceAll('export function ','function '),worker=fs.readFileSync(new URL('../worker/index.js',import.meta.url),'utf8');
 const api=(await import('data:text/javascript;base64,'+Buffer.from('const assets={};\n'+helper+'\n'+worker).toString('base64'))).default;
@@ -11,8 +11,8 @@ const ids=['43d6ed9a-6b19-498f-870c-a9e272ce1b01','43d6ed9a-6b19-498f-870c-a9e27
 function database(){const rows=new Map();return {rows,DB:{prepare(sql){let a;return {bind(...args){a=args;return this;},async run(){if(sql.startsWith('INSERT')){if(!rows.has(a[0]))rows.set(a[0],{id:a[0],name:a[1],design:a[2],created_at:a[3],estimate:a[4],revision:0});return {meta:{changes:1}};}const r=rows.get(a[4]);if(!r||r.revision!==a[5])return {meta:{changes:0}};Object.assign(r,{name:a[0],design:a[1],estimate:a[2],updated_at:a[3],revision:r.revision+1});return {meta:{changes:1}};},async first(){return rows.get(a[0])||null;},async all(){return {results:[...rows.values()].sort((a,b)=>b.created_at-a.created_at||b.id.localeCompare(a.id))};}}}}};}
 function request(method,body,origin='https://example.com'){return new Request('https://example.com/api/approvals',{method,headers:{'Content-Type':'application/json',Origin:origin},...(body?{body:JSON.stringify(body)}:{})});}
 test('Two working people with one covered rate keep all hours and only charge the paid person',()=>{
- const two=laborEstimate(design,2),one=laborEstimate(design,1);assert.equal(two.personHours,120.3);assert.equal(two.hours,60.5);assert.equal(one.personHours,two.personHours);assert.ok(one.hours>two.hours*2);
- const covered=laborCost(two.hours,[5000,0]),blank=laborCost(two.hours,[5000,null]);assert.equal(covered.costCents,302500);assert.equal(blank.costCents,covered.costCents);assert.equal(covered.unrated,0);assert.equal(blank.unrated,1);
+ const two=laborEstimate(design,2),one=laborEstimate(design,1);assert.equal(two.personHours,126.8);assert.equal(two.hours,59.5);assert.equal(one.personHours,two.personHours);assert.ok(one.hours>two.hours*2);
+ const covered=laborCost(two.hours,[5000,0]),blank=laborCost(two.hours,[5000,null]);assert.equal(covered.costCents,297500);assert.equal(blank.costCents,covered.costCents);assert.equal(covered.unrated,0);assert.equal(blank.unrated,1);
 });
 test('Recorded labor distinguishes zero from unknown and derives its own totals',()=>{
  const e=normalizeApprovalEstimate({...estimate,totalCents:1,laborCents:1});assert.equal(e.laborCents,287500);assert.equal(e.totalCents,561151);assert.deepEqual(e.rates,[5000,0]);assert.equal(normalizeApprovalEstimate(null),null);
@@ -29,4 +29,16 @@ test('Edits retain id and creation order, save the estimate, and prevent stale o
  assert.equal((await api.fetch(request('PATCH',{...payload,revision:1},'https://other.example'),env)).status,403);
  assert.equal((await api.fetch(request('PATCH',{...payload,revision:1,estimate:{...estimate,crew:0}}),env)).status,400);
  assert.equal((await api.fetch(request('PATCH',{...payload,id:'43d6ed9a-6b19-498f-870c-a9e272ce1b03'}),env)).status,404);
+});
+
+test('New approval estimates preserve one-person shopping and tax without altering old approvals',()=>{
+ const saved=normalizeApprovalEstimate({...estimate,shoppingHours:8.5,shoppingRateCents:5000,taxCents:19156});
+ assert.equal(saved.laborCents,287500+42500);assert.equal(saved.totalCents,273651+19156+287500+42500);
+ assert.equal(normalizeApprovalEstimate(estimate).shoppingHours,0);assert.equal(normalizeApprovalEstimate(estimate).taxCents,0);
+});
+
+test('Approval action compares settings even when latest approval predates estimate metadata',()=>{
+ const latest={design,estimate:null};assert.equal(approvalSettingsMatch(latest,{...design,mode:'finished'}),true);
+ for(const patch of [{angle:60},{height:96},{floor:'wood'},{platformBack:24},{wallColor:'#000000'}])assert.equal(approvalSettingsMatch(latest,{...design,...patch}),false);
+ assert.equal(approvalSettingsMatch(undefined,design),false);
 });

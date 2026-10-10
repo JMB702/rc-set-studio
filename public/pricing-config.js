@@ -51,8 +51,11 @@ export function normalizeApprovalEstimate(input){
  const materialsCents=n(input.materialsCents,'material total'),pending=n(input.pending,'pending materials',10000);
  if(!Number.isInteger(materialsCents)||!Number.isInteger(pending))throw Error('Invalid material total.');
  if(input.deckLayoutRevision!==undefined&&input.deckLayoutRevision!=='paired-v1')throw Error('Invalid deck layout revision.');
- const priced=rates.filter(r=>r!==null),laborCents=priced.length?Math.round(hours*priced.reduce((s,r)=>s+r,0)):null;
- return {...(input.deckLayoutRevision?{deckLayoutRevision:input.deckLayoutRevision}:{}),crew,hours,defaultHours,personHours,rates,materialsCents,pending,laborCents,totalCents:materialsCents+(laborCents??0)};
+ const shoppingHours=n(input.shoppingHours??0,'shopping hours',10000),shoppingRateCents=input.shoppingRateCents==null?null:n(input.shoppingRateCents,'shopping rate',10000000),taxCents=n(input.taxCents??0,'estimated tax');if(!Number.isInteger(taxCents)||shoppingRateCents!==null&&!Number.isInteger(shoppingRateCents))throw Error('Use whole cents for tax and shopping rate.');
+ const priced=rates.filter(r=>r!==null),laborCents=priced.length||shoppingRateCents!==null?Math.round(hours*priced.reduce((s,r)=>s+r,0)+shoppingHours*(shoppingRateCents??0)):null;
+ return {...(input.deckLayoutRevision?{deckLayoutRevision:input.deckLayoutRevision}:{}),crew,hours,defaultHours,personHours,rates,shoppingHours,shoppingRateCents,taxCents,materialsCents,pending,laborCents,totalCents:materialsCents+taxCents+(laborCents??0)};
 }
 
+// UI equality follows saved settings; estimate-format revisions do not change those settings.
+export function approvalSettingsMatch(approval,design){return !!approval&&JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design));}
 export function approvalMatchesDesign(approval,design){return JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design))&&(normalizeDesign(design).platformShape==='none'||approval.estimate?.deckLayoutRevision==='paired-v1');}

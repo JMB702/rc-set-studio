@@ -609,3 +609,8 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 #guide-batch-count{width:70px;min-height:46px;font:inherit;font-size:18px;text-align:center;border:1px solid #b7c9a9;border-radius:6px}
 .guide-batch-entry button{margin-left:auto;padding:10px 14px;border-radius:7px;background:#263e30;color:white;font-size:14px}
 #guide-batch [role=status]:empty{display:none}
+
+.batch-checkpoint #step-fasteners,.batch-checkpoint #step-description,.batch-checkpoint #step-actions,.batch-checkpoint .step-part-card,.batch-checkpoint #step-check,.batch-checkpoint #step-detail,.batch-checkpoint #guide-completion{display:none!important}
+.batch-checkpoint #guide-batch{margin:12px 0 18px}
+.batch-checkpoint #guide-batch h3{display:none}
+.batch-checkpoint #guide-batch p{margin:0 0 14px}

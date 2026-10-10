@@ -14,7 +14,9 @@ export function wallSeamCoverage(x,y,height,panel){
 }
 export function makeWallAtlas(image,{height=120,seams=false,tile=256}={}){
  const canvas=document.createElement('canvas');canvas.width=tile*8;canvas.height=tile*2.5;const ctx=canvas.getContext('2d');
- const swatch=document.createElement('canvas');swatch.width=tile;swatch.height=tile*2;swatch.getContext('2d').drawImage(image,0,0,tile,tile*2);
+ const swatch=document.createElement('canvas');swatch.width=tile;swatch.height=tile*2;const wood=swatch.getContext('2d');wood.drawImage(image,0,0,tile,tile*2);
+ // Warm and slightly darken only the veneer; filler is composited afterward and stays off-white.
+ wood.globalCompositeOperation='multiply';wood.fillStyle='#f5edd6';wood.fillRect(0,0,tile,tile*2);
  for(let panel=0;panel<8;panel++)for(const upper of [false,true]){
   const v=sheetVariation(panel,upper),top=upper?0:tile*.5,h=upper?tile*.5:tile*2;
   ctx.save();ctx.beginPath();ctx.rect(panel*tile,top,tile,h);ctx.clip();

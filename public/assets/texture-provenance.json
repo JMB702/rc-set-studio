@@ -49,7 +49,8 @@
     "variation": "Stable offsets and subtle tones for sixteen lower/upper sheet appearances; veneer stays vertical.",
     "finish": "Geometry-aligned, feathered off-white seam bands composed over the original lauan texture; no external photograph is redistributed.",
     "research": "public/assets/wall-finish-notes.txt",
-    "notes": "Illustrative appearance only; unchanged material quantities and unresolved seam product specifications."
+    "notes": "Illustrative appearance only; unchanged material quantities and unresolved seam product specifications.",
+    "woodTone": "Warm yellow-beige #f5edd6 multiply on the veneer before variation and seam compositing; darker than the pale source, lighter than the jack framing. Filler, primer and paint remain unchanged."
   },
   "framingAppearance": {
     "material": "Pine texture with neutral white albedo multiplier (removed the dark amber tint), matte roughness 0.9.",

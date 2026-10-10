@@ -248,7 +248,7 @@ nav{flex-shrink:0}.price-scopes{display:flex;gap:5px;margin:16px 0}.price-scopes
 /* Approvals: the Approve button, the approved-designs list and the name dialog */
 .design-approve{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
 .approve-button{width:100%;min-height:50px;border-radius:9px;background:var(--ink);color:#fff;font-size:15px;font-weight:650}
-.approve-button:disabled{opacity:1;background:#e1e9db;color:#3b4a47;cursor:default}
+.approve-button:disabled{opacity:1;background:#e5e5e5;color:#929292;border:1px solid #d5d5d5;box-shadow:none;cursor:not-allowed}
 .design-approve #approve-status{margin-top:10px}
 #approvals{margin-top:14px}
 #approvals>summary{font-size:14px;font-weight:600;min-height:40px}

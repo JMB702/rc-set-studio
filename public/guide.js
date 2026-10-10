@@ -132,7 +132,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   api.orbit.minDistance=focused?.35:.8;api.orbit.maxDistance=Math.max(22,distance*2);api.camera.far=Math.max(60,distance*3);api.camera.updateProjectionMatrix();api.camera.lookAt(center);api.orbit.update();api.orbit.enableDamping=true;api.invalidate();
  }
  function highlight(o,holder){
-  if(!o.userData.fastener){outlinePiece(o);const mat=o.material.clone();mat.color.lerp(new T.Color('#c4e698'),.45);o.material=mat;}
+  if(!o.userData.fastener){outlinePiece(o);if(o.material!==mats.gusset){const mat=o.material.clone();mat.color.lerp(new T.Color('#c4e698'),.45);o.material=mat;}}
   const offset=new T.Vector3(0,0,.10);o.position.copy(offset);animation.push({o,offset});
   if(o.userData.fastener){o.geometry.computeBoundingBox();const marker=new T.Mesh(new T.SphereGeometry(.012,8,5),mats.highlight);marker.userData.guideDecoration=true;marker.position.copy(o.geometry.boundingBox.getCenter(new T.Vector3()));holder.add(marker);}
  }

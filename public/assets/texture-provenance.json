@@ -55,5 +55,9 @@
     "material": "Pine texture with neutral white albedo multiplier (removed the dark amber tint), matte roughness 0.9.",
     "mapping": "Rectangular boards use their long axis; diagonal jack braces use along-brace and across-brace projections in diagonalGrain().",
     "reference": "User-supplied front and rear photographs of the built flat, October 10, 2026."
+  },
+  "gussetAppearance": {
+    "material": "Lauan texture with warm tone calibrated against the framing map, roughness 0.9.",
+    "notes": "Dedicated triangle material keeps the plywood grain while matching the jack lumber shade. Build-step emphasis uses its green outline without a green face tint."
   }
 }

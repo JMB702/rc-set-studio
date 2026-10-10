@@ -77,44 +77,44 @@ export function installProject(api){
  const rings=data.stages.map((s,i)=>{const length=s.steps.length/p.total*circ,gap=7,done=Math.max(0,length-gap)*projectStagePercent(s)/100;const out=`<circle cx="110" cy="110" r="84" fill="none" stroke="${color(s)}" stroke-opacity=".16" stroke-width="13" stroke-dasharray="${Math.max(0,length-gap)} ${circ}" stroke-dashoffset="${-offset}"/><circle cx="110" cy="110" r="84" fill="none" stroke="${color(s)}" stroke-width="13" stroke-linecap="${done?'round':'butt'}" stroke-dasharray="${done} ${circ}" stroke-dashoffset="${-offset}"/>`;offset+=length;return out;}).join('');
  host.innerHTML=`<p class="pj-error" data-project-error role="alert" hidden></p><div class="pj-progress-hero"><div class="pj-ring"><svg viewBox="0 0 220 220" role="img" aria-label="Project ${p.percent}% complete"><g transform="rotate(-90 110 110)">${rings}</g></svg><div><strong>${p.percent}<span>%</span></strong><span>COMPLETE</span></div></div><div class="pj-progress-caption"><span class="pj-pill">${p.done===p.total?'READY FOR THE SCENE':p.percent?'BUILD IN PROGRESS':'READY TO BUILD'}</span><p>${p.done} of ${p.total} steps complete</p></div><div class="pj-stage-legend">${data.stages.map((s,i)=>`<div><i style="background:${color(s)}"></i><span>${escape(s.name)}</span><b>${projectStagePercent(s)}%</b></div>`).join('')}</div></div>
  <div class="pj-section-head"><h3>Production stages</h3>${button('add-stage','+ Stage','pj-text')}</div><div class="pj-stages">${data.stages.map((s,i)=>`<article class="pj-stage" data-stage="${s.id}" draggable="true"><div class="pj-stage-top"><span class="pj-order" title="Drag to reorder">${String(i+1).padStart(2,'0')}</span><button type="button" class="pj-stage-toggle" data-action="toggle-stage" data-id="${s.id}" aria-expanded="${openStages.has(s.id)}"><strong>${escape(s.name)}</strong><span>${s.steps.filter(t=>t.percent===100).length} / ${s.steps.length} steps</span></button><b class="pj-stage-percent">${projectStagePercent(s)}<small>%</small></b><div class="pj-reorder">${button('stage-up','↑','',`data-id="${s.id}" aria-label="Move ${escape(s.name)} up" ${i===0?'disabled':''}`)}${button('stage-down','↓','',`data-id="${s.id}" aria-label="Move ${escape(s.name)} down" ${i===data.stages.length-1?'disabled':''}`)}</div></div><div class="pj-stage-bar"><i style="width:${projectStagePercent(s)}%;background:${color(s)}"></i></div><div class="pj-stage-body" ${openStages.has(s.id)?'':'hidden'}><div class="pj-stage-tools">${button('edit-stage','Edit progress','pj-text',`data-id="${s.id}"`)}${button('notes',`${s.notes.length?'Notes · '+s.notes.length:'+ Add note'}`,'pj-text',`data-stage-id="${s.id}"`)}</div><ol class="pj-steps">${s.steps.map((t,j)=>`<li data-step="${t.id}" data-stage-id="${s.id}" draggable="true"><div class="pj-step-row"><input type="checkbox" data-check="${t.id}" data-stage-id="${s.id}" aria-label="Complete ${escape(t.name)}" ${t.percent===100?'checked':''}><button type="button" class="pj-step-name ${t.percent===100?'done':''}" data-action="edit-step" data-id="${t.id}" data-stage-id="${s.id}">${escape(t.name)}</button><label class="pj-step-percent"><input type="number" data-percent="${t.id}" data-stage-id="${s.id}" aria-label="${escape(t.name)} percent done" min="0" max="100" step="1" value="${t.percent}"><span>%</span></label></div><div class="pj-step-tools">${button('notes',t.notes.length?`${t.notes.length} ${t.notes.length===1?'note':'notes'}`:'Add note','pj-text',`data-stage-id="${s.id}" data-step-id="${t.id}"`)}<div class="pj-reorder">${button('step-up','↑','',`data-id="${t.id}" data-stage-id="${s.id}" aria-label="Move ${escape(t.name)} up" ${j===0?'disabled':''}`)}${button('step-down','↓','',`data-id="${t.id}" data-stage-id="${s.id}" aria-label="Move ${escape(t.name)} down" ${j===s.steps.length-1?'disabled':''}`)}</div></div></li>`).join('')}</ol>${button('add-step','+ Add step','pj-add-step',`data-stage-id="${s.id}"`)}</div></article>`).join('')}</div>`;
- const mini=host.querySelector('.pj-progress-hero').cloneNode(true);mini.classList.add('pj-progress-mini');mini.hidden=true;mini.setAttribute('aria-hidden','true');host.append(mini);
+ const mini=host.querySelector('.pj-progress-hero').cloneNode(true);mini.classList.add('pj-progress-mini');mini.hidden=true;mini.setAttribute('aria-hidden','true');mini.insertAdjacentHTML('afterbegin','<div class="pj-morph-background"><div></div></div>');host.append(mini);
  syncProgressHeader();
  host.querySelectorAll('[data-percent]').forEach(input=>input.onchange=()=>run(async()=>{const percent=Number(input.value);if(input.value===''||!Number.isInteger(percent)||percent<0||percent>100){error('Progress must be a whole number from 0 to 100.');return;}await mutate('tracking',d=>d.stages.find(s=>s.id===input.dataset.stageId).steps.find(t=>t.id===input.dataset.percent).percent=percent);}));
  host.querySelectorAll('[data-check]').forEach(input=>input.onchange=()=>run(()=>mutate('tracking',d=>d.stages.find(s=>s.id===input.dataset.stageId).steps.find(t=>t.id===input.dataset.check).percent=input.checked?100:0)));
  }
- // The full hero never changes size. A fixed copy cannot affect scroll anchoring.
+ // Read geometry together, before any writes; only transforms/opacity change on scroll.
+ let progressGeometry;
  function syncProgressHeader(){
   const hero=host.querySelector('.pj-progress-hero:not(.pj-progress-mini)'),mini=host.querySelector('.pj-progress-mini');if(!hero||!mini)return;
   if(host.hidden||api.state.mode!=='pricing'){mini.hidden=true;return;}
-  const scrolls=aside.scrollHeight>aside.clientHeight&&/auto|scroll/.test(getComputedStyle(aside).overflowY),viewport=document.querySelector('.viewport');
-  const stickyPreview=matchMedia('(max-width:850px)').matches&&getComputedStyle(viewport).position==='sticky';
-  const top=scrolls?Math.max(0,aside.getBoundingClientRect().top):stickyPreview?Math.max(0,viewport.getBoundingClientRect().bottom):0;
-  const rect=hero.getBoundingClientRect(),bottom=host.getBoundingClientRect().bottom;
-  const raw=Math.max(0,Math.min(1,(top-rect.top)/240)),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,t=reduced?(raw>.5?1:0):raw*raw*(3-2*raw);
-  mini.hidden=raw===0||bottom<=top+84;hero.style.visibility=mini.hidden?'':'hidden';
-  if(mini.hidden)return;
-  const mix=(a,b)=>a+(b-a)*t,color=(a,b)=>'rgb('+a.map((v,i)=>Math.round(mix(v,b[i]))).join(',')+')';
-  mini.style.top=top+'px';mini.style.left=rect.left+'px';mini.style.width=rect.width+'px';const collapse=Math.max(0,(t-.42)/.58);mini.style.height=(rect.height+(84-rect.height)*collapse)+'px';mini.style.borderRadius=mix(18,12)+'px';
-  mini.style.background=color([25,45,41],[34,59,50]);mini.style.color='#f6f9f2';mini.classList.toggle('is-minimized',raw===1);
-  const ring=hero.querySelector('.pj-ring').getBoundingClientRect(),r=mini.querySelector('.pj-ring');
-  r.style.left=mix(ring.left-rect.left,14)+'px';r.style.top=mix(ring.top-rect.top,10)+'px';r.style.transform='scale('+mix(1,64/ring.width)+')';
-  r.querySelector('svg').style.transform='rotate('+(reduced?0:t*36)+'deg)';r.querySelector('strong').style.fontSize=mix(61,79)+'px';
-  r.querySelector('strong span').style.color='inherit';r.querySelector('div>span').style.opacity=1-t;
-  const caption=hero.querySelector('.pj-progress-caption').getBoundingClientRect(),c=mini.querySelector('.pj-progress-caption');
-  // Travel around the shrinking circle before rising into the compact row.
-  const rise=Math.max(0,Math.min(1,(t-.6)/.4)),lift=rise*rise*(3-2*rise),captionLeft=mix(caption.left-rect.left,90)+4*t*(1-t)*Math.min(150,rect.width*.38),below=mix(ring.top-rect.top,10)+mix(ring.width,64)+mix(-3,8);
-  c.style.left=captionLeft+'px';c.style.top=(below+(15-below)*lift)+'px';c.style.width=(rect.width-captionLeft-mix(22,12))+'px';
-  c.querySelector('p').style.marginTop=mix(16,7)+'px';c.querySelector('p').style.color='inherit';c.querySelector('.pj-pill').style.color='inherit';
-  const legend=hero.querySelector('.pj-stage-legend').getBoundingClientRect(),l=mini.querySelector('.pj-stage-legend');l.style.top=legend.top-rect.top+'px';l.style.left=legend.left-rect.left+'px';l.style.width=legend.width+'px';l.style.opacity=1;
-  const rows=[...l.children];rows.forEach((row,i)=>{const start=(rows.length-1-i)*.065,phase=Math.max(0,Math.min(1,(t-start)/.22)),exit=phase*phase*(3-2*phase);row.style.transform=reduced?'none':'translate('+(-exit*(legend.width+30))+'px,'+(-exit*10)+'px)';row.style.opacity=1-exit;});l.style.borderColor='rgba(255,255,255,'+(.1*Math.max(0,1-t*3))+')';
-
+  const rect=hero.getBoundingClientRect(),viewport=document.querySelector('.viewport'),viewRect=viewport.getBoundingClientRect(),hostBottom=host.getBoundingClientRect().bottom;
+  let g=progressGeometry,init=!g||g.mini!==mini||g.width!==rect.width;
+  if(init){const ring=hero.querySelector('.pj-ring').getBoundingClientRect(),caption=hero.querySelector('.pj-progress-caption').getBoundingClientRect(),legend=hero.querySelector('.pj-stage-legend').getBoundingClientRect();
+   g=progressGeometry={mini,width:rect.width,height:rect.height,ringX:ring.left-rect.left,ringY:ring.top-rect.top,ringSize:ring.width,captionY:caption.top-rect.top,legendX:legend.left-rect.left,legendY:legend.top-rect.top,legendWidth:legend.width,scrolls:aside.scrollHeight>aside.clientHeight&&/auto|scroll/.test(getComputedStyle(aside).overflowY),stickyPreview:matchMedia('(max-width:850px)').matches&&getComputedStyle(viewport).position==='sticky',reduced:matchMedia('(prefers-reduced-motion:reduce)').matches,r:mini.querySelector('.pj-ring'),c:mini.querySelector('.pj-progress-caption'),l:mini.querySelector('.pj-stage-legend'),bg:mini.querySelector('.pj-morph-background')};
+   g.svg=g.r.querySelector('svg');g.number=g.r.querySelector('strong');g.label=g.r.querySelector('div>span');g.captionText=g.c.querySelector('p');g.rows=[...g.l.children];
+  }
+  const top=g.scrolls?Math.max(0,aside.getBoundingClientRect().top):g.stickyPreview?Math.max(0,viewRect.bottom):0,raw=Math.max(0,Math.min(1,(top-rect.top)/240)),t=g.reduced?(raw>.5?1:0):raw*raw*(3-2*raw),hidden=raw===0||hostBottom<=top+84;
+  const signature=[raw,top,rect.left,hidden].join('|');if(!init&&signature===g.signature)return;g.signature=signature;
+  // All measurement has finished. No layout reads below this line.
+  mini.hidden=hidden;hero.style.visibility=hidden?'':'hidden';
+  if(init){mini.style.width=g.width+'px';mini.style.height=g.height+'px';g.c.style.width=(g.width-102)+'px';g.l.style.left=g.legendX+'px';g.l.style.top=g.legendY+'px';g.l.style.width=g.legendWidth+'px';}
+  if(hidden)return;
+  const mix=(a,b)=>a+(b-a)*t,translate=(x,y)=>`translate3d(${x}px,${y}px,0)`;
+  mini.style.transform=translate(rect.left,top);const collapse=Math.max(0,(t-.42)/.58);g.bg.style.transform='scaleY('+((g.height+(84-g.height)*collapse)/g.height)+')';g.bg.firstElementChild.style.opacity=t;mini.classList.toggle('is-minimized',raw===1);
+  g.r.style.transform=translate(mix(g.ringX,14),mix(g.ringY,10))+' scale('+mix(1,64/g.ringSize)+')';g.svg.style.transform='rotate('+(g.reduced?0:t*36)+'deg)';g.number.style.transform='scale('+mix(1,79/61)+')';g.label.style.opacity=1-t;
+  const rise=Math.max(0,Math.min(1,(t-.6)/.4)),lift=rise*rise*(3-2*rise),below=mix(g.ringY,10)+mix(g.ringSize,64)+mix(-3,8);
+  // Move the fixed-width caption around the circle, then lift it beside the ring.
+  const captionLeft=mix(51,90)+4*t*(1-t)*Math.min(90,g.width*.25);
+  g.c.style.transform=translate(captionLeft,below+(15-below)*lift)+' scale('+(1-.25*4*t*(1-t))+')';g.captionText.style.transform=translate(0,-9*t);
+  g.l.style.opacity=Math.max(0,1-(t-.38)/.04);
+  g.rows.forEach((row,i)=>{const start=(g.rows.length-1-i)*.065,phase=Math.max(0,Math.min(1,(t-start)/.22)),exit=phase*phase*(3-2*phase);row.style.transform=g.reduced?'none':translate(-exit*(g.legendWidth+30),-exit*10);row.style.opacity=1-exit;});
  }
  let progressFrame=0;
  function scheduleProgressHeader(){if(!progressFrame)progressFrame=requestAnimationFrame(()=>{progressFrame=0;syncProgressHeader();});}
  document.addEventListener('scroll',scheduleProgressHeader,{capture:true,passive:true});
- window.addEventListener('resize',scheduleProgressHeader);
+ window.addEventListener('resize',()=>{progressGeometry=null;scheduleProgressHeader();});
  window.addEventListener('studio-view-changed',scheduleProgressHeader);
- new ResizeObserver(scheduleProgressHeader).observe(document.querySelector('.viewport'));
+ new ResizeObserver(()=>{progressGeometry=null;scheduleProgressHeader();}).observe(document.querySelector('.viewport'));
  let livePending=false,liveGeneration=0;
  async function refreshTracking(){
   if(livePending||document.hidden||selected!=='tracking'||api.state.mode!=='pricing'||busy||dialog.open||dragged||host.contains(document.activeElement)&&document.activeElement.matches('input,textarea,select'))return;

@@ -1,6 +1,6 @@
 // Approvals retain their design and reviewed estimate. Editing keeps the original creation order.
 import {defaultDesign,designLine,colorName} from './design.js';
-import {normalizeDesign,normalizeApprovalEstimate,approvalMatchesDesign} from './pricing-config.js';
+import {normalizeDesign,normalizeApprovalEstimate,approvalSettingsMatch} from './pricing-config.js';
 import {mountLabor,costSummary} from './labor.js';
 import {money} from './pricing-calc.js';
 const builtIn=normalizeDesign(defaultDesign),key=d=>JSON.stringify(normalizeDesign(d));
@@ -12,7 +12,7 @@ export function installApprovals(api){
  const S=api.state,design=document.querySelector('#design');if(!design)return;
  const initialLabor=JSON.stringify(api.captureLabor());
  const box=document.createElement('div');box.className='design-approve';
- box.innerHTML=`<button type="button" id="approve-button" class="approve-button">Approve this design</button><button type="button" id="approve-cancel-edit" hidden>Cancel edit</button><p id="approve-status" class="hint" role="status"></p><details id="approvals"><summary>Approved designs <small id="approvals-count"></small><span>+</span></summary><ol id="approvals-list"></ol></details>`;
+ box.innerHTML=`<button type="button" id="approve-button" class="approve-button" disabled>Approve this design</button><button type="button" id="approve-cancel-edit" hidden>Cancel edit</button><p id="approve-status" class="hint" role="status"></p><details id="approvals"><summary>Approved designs <small id="approvals-count"></small><span>+</span></summary><ol id="approvals-list"></ol></details>`;
  design.append(box);
  const latestSummary=document.createElement('p');latestSummary.className='approval-latest';box.prepend(latestSummary);
  const dock=document.createElement('div');dock.id='approval-dock';dock.setAttribute('aria-label','Design approval');const approvalHistory=box.querySelector('#approvals'),dockActions=document.createElement('div');dockActions.className='approval-dock-actions';dockActions.append(box.querySelector('#approve-cancel-edit'),box.querySelector('#approve-button'));dock.append(dockActions);document.body.append(dock);
@@ -37,9 +37,9 @@ export function installApprovals(api){
  function changedDraft(){if(!saving)draftId=crypto.randomUUID();}
  window.addEventListener('labor-changed',()=>{changedDraft();costs();});q('#approve-name').addEventListener('input',changedDraft);
  function status(){const latest=approvals[0];latestSummary.textContent=latest?`Latest approved design · ${latest.name} · ${when(latest.createdAt)}. ${detail(latest.design)}`:loaded?'No design has been approved yet.':'';q('#approve-cancel-edit').hidden=!editing;q('#approve-button').textContent=editing?'Review approval changes':'Approve this design';
-  q('#approve-status').textContent=editing?`Editing ${editing.name}'s approval. Adjust the design above, then review the name and labor estimate.${editing.estimate?'':' This older approval has no saved labor estimate; current rates are shown.'}`:!loaded?'':latest?(approvalMatchesDesign(latest,S)?`This is the approved design, approved by ${latest.name} on ${when(latest.createdAt)}.`:approvals.some(a=>approvalMatchesDesign(a,S))?'This is an earlier approved design. Approve it again to make it the default.':`Changed from the approved design (${latest.name}, ${when(latest.createdAt)}).`):'No design has been approved yet.';
-  q('#approve-button').disabled=!editing&&!!latest&&approvalMatchesDesign(latest,S);
-  for(const b of document.querySelectorAll('#approvals-list button[data-id]'))b.setAttribute('aria-current',approvalMatchesDesign(approvals.find(a=>a.id===b.dataset.id),S)?'true':'false');
+  q('#approve-status').textContent=editing?`Editing ${editing.name}'s approval. Adjust the design above, then review the name and labor estimate.${editing.estimate?'':' This older approval has no saved labor estimate; current rates are shown.'}`:!loaded?'':latest?(approvalSettingsMatch(latest,S)?`This is the approved design, approved by ${latest.name} on ${when(latest.createdAt)}.`:approvals.some(a=>approvalSettingsMatch(a,S))?'This is an earlier approved design. Approve it again to make it the default.':`Changed from the approved design (${latest.name}, ${when(latest.createdAt)}).`):'No design has been approved yet.';
+  q('#approve-button').disabled=!loaded||(!editing&&approvalSettingsMatch(latest,S));
+  for(const b of document.querySelectorAll('#approvals-list button[data-id]'))b.setAttribute('aria-current',approvalSettingsMatch(approvals.find(a=>a.id===b.dataset.id),S)?'true':'false');
  }
  function cancelEdit(){if(!editing)return;const previous=beforeEdit;editing=null;beforeEdit=null;if(previous){api.configure(previous.design);api.restoreLabor(previous.labor);}status();}
  q('#approve-cancel-edit').onclick=cancelEdit;

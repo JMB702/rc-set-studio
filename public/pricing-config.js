@@ -56,4 +56,6 @@ export function normalizeApprovalEstimate(input){
  return {...(input.deckLayoutRevision?{deckLayoutRevision:input.deckLayoutRevision}:{}),crew,hours,defaultHours,personHours,rates,shoppingHours,shoppingRateCents,taxCents,materialsCents,pending,laborCents,totalCents:materialsCents+taxCents+(laborCents??0)};
 }
 
+// UI equality follows saved settings; estimate-format revisions do not change those settings.
+export function approvalSettingsMatch(approval,design){return !!approval&&JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design));}
 export function approvalMatchesDesign(approval,design){return JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design))&&(normalizeDesign(design).platformShape==='none'||approval.estimate?.deckLayoutRevision==='paired-v1');}

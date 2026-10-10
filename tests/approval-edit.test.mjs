@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {normalizeApprovalEstimate} from '../public/pricing-config.js';
+import {normalizeApprovalEstimate,approvalSettingsMatch} from '../public/pricing-config.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
 const helper=fs.readFileSync(new URL('../public/pricing-config.js',import.meta.url),'utf8').replaceAll('export function ','function '),worker=fs.readFileSync(new URL('../worker/index.js',import.meta.url),'utf8');
 const api=(await import('data:text/javascript;base64,'+Buffer.from('const assets={};\n'+helper+'\n'+worker).toString('base64'))).default;
@@ -35,4 +35,10 @@ test('New approval estimates preserve one-person shopping and tax without alteri
  const saved=normalizeApprovalEstimate({...estimate,shoppingHours:8.5,shoppingRateCents:5000,taxCents:19156});
  assert.equal(saved.laborCents,287500+42500);assert.equal(saved.totalCents,273651+19156+287500+42500);
  assert.equal(normalizeApprovalEstimate(estimate).shoppingHours,0);assert.equal(normalizeApprovalEstimate(estimate).taxCents,0);
+});
+
+test('Approval action compares settings even when latest approval predates estimate metadata',()=>{
+ const latest={design,estimate:null};assert.equal(approvalSettingsMatch(latest,{...design,mode:'finished'}),true);
+ for(const patch of [{angle:60},{height:96},{floor:'wood'},{platformBack:24},{wallColor:'#000000'}])assert.equal(approvalSettingsMatch(latest,{...design,...patch}),false);
+ assert.equal(approvalSettingsMatch(undefined,design),false);
 });

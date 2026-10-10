@@ -89,7 +89,7 @@ test('Production transfer is disabled by default and atomically imports records 
 test('Assembly counts distinguish completed panels, built jacks, attached jacks and partial jacks',()=>{
  const data={...projectDefaultTracking(),assembly:{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2}};
  assert.equal(projectPartStatus({kind:'panel',panel:7},data).assembled,true);
- for(let j=0;j<16;j++)assert.equal(projectPartStatus({kind:'jack',panel:Math.floor(j/2),side:j%2},data).assembled,j<2);
+ for(let j=0;j<16;j++)assert.equal(projectPartStatus({kind:'jack',panel:Math.floor(j/2),side:j%2},data).assembled,Math.floor(j/2)===7);
  assert.equal(projectPartStatus({kind:'panel'},projectDefaultTracking()).assembled,false);
  assert.throws(()=>projectAssembly({...data.assembly,jacksAttached:5}),/cannot exceed/);
  assert.throws(()=>projectAssembly({...data.assembly,jacksPartial:13}),/cannot exceed/);
@@ -151,4 +151,10 @@ test('Legacy completed frame and skin steps color panels without inventing attac
  assert.equal(projectPartStatus({kind:'jack',panel:0,side:0},data).assembled,false);
  data.assembly={panelsCompleted:0};assert.equal(projectPartStatus({kind:'panel'},data).assembled,false);
  delete data.assembly;set('walls-2',99);assert.equal(projectPartStatus({kind:'panel'},data).assembled,false);
+});
+
+test('Attached jacks start at the front right and continue around the perimeter',()=>{
+ const data=projectDefaultTracking();data.assembly={panelsCompleted:8,jacksBuilt:16,jacksAttached:0,jacksPartial:0};
+ const order=[7,6,3,2,1,0,4,5].flatMap(panel=>[{panel,side:1},{panel,side:0}]);
+ for(let count=0;count<=16;count++){data.assembly.jacksAttached=count;for(const [i,part] of order.entries())assert.equal(projectPartStatus({kind:'jack',...part},data).assembled,i<count);}
 });

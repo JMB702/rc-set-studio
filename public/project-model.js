@@ -72,10 +72,12 @@ export function projectPartStatus(part,data) {
  // Legacy tracking has no counts: fully framed and skinned means all panels exist.
  // Partial jack progress cannot tell us how many are actually attached.
  const completedPanels=counts.panelsCompleted??(percent('walls-1')===100&&percent('walls-2')===100?8:0);
- const wall=panel<completedPanels,attached=panel*2+(part.side??0)<(counts.jacksAttached??0)&&wall;
+ // Walk from the right wing's free end, across the back, then out the left wing.
+ const jackPanel=[7,6,3,2,1,0,4,5].indexOf(panel);
+ const wall=panel<completedPanels,attached=jackPanel>=0&&jackPanel*2+(1-(part.side??0))<(counts.jacksAttached??0)&&wall;
  if(part.kind==='panel')return {assembled:wall};
  if(part.kind==='jack')return {assembled:attached};
- if(part.kind==='bracing')return {assembled:wall&&panel*2+1<(counts.jacksAttached??0)&&percent('walls-4')===100};
+ if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&percent('walls-4')===100};
  if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':unit('wall-finishing-1',panel,8)||unit('wall-finishing-2',panel,8)?'seams':'raw'};
  if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':'raw'};
  if(part.kind==='trim')return {assembled:percent('floor-3')===100&&wall};

@@ -16,7 +16,7 @@ const {installConstructionView}=await import(moduleURL(viewSource));
 const data={...projectDefaultTracking(),assembly:{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2}};
 function panelIndex(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
 test('Generated full-set geometry retains separate panels and all 16 independently attachable jacks',()=>{
- for(const height of [96,120]){const root=model.finishedSet(height,45),panels=new Set(),jacks=new Set(),attached=new Set();root.traverse(o=>{if(o.userData.progressPanel!==undefined)panels.add(o.userData.progressPanel);const part=o.userData.progress;if(part?.kind==='jack'){const p=panelIndex(o),j=p*2+part.side;jacks.add(j);if(projectPartStatus({...part,panel:p},data).assembled)attached.add(j);}});assert.equal(panels.size,8);assert.equal(jacks.size,16);assert.deepEqual([...attached].sort(),[0,1]);model.dispose(root);}
+ for(const height of [96,120]){const root=model.finishedSet(height,45),panels=new Set(),jacks=new Set(),attached=new Set();root.traverse(o=>{if(o.userData.progressPanel!==undefined)panels.add(o.userData.progressPanel);const part=o.userData.progress;if(part?.kind==='jack'){const p=panelIndex(o),j=p*2+part.side;jacks.add(j);if(projectPartStatus({...part,panel:p},data).assembled)attached.add(j);}});assert.equal(panels.size,8);assert.equal(jacks.size,16);assert.deepEqual([...attached].sort(),[14,15]);model.dispose(root);}
 });
 test('Progress materials are temporary, the toggle restores the model, and camera positions always bypass shading',async()=>{
  const originals={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch};const nodes=[];

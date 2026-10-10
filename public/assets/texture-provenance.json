@@ -1,7 +1,6 @@
 {
-  "license": "CC0 1.0",
-  "licenseEvidence": "https://polyhaven.com/license",
-  "notes": "Generic appearance textures, not an exact Home Depot product match. Grain runs horizontally (U axis) in both maps. Repeat U along board length; avoid mapping full square across narrow board width. Pine is a conventional lighter color-remapped derivative of coated pine; oak rotated 90 degrees. Both retain source tile boundaries.",
+  "license": "See per-asset provenance",
+  "notes": "Pine and oak are CC0 appearance textures with grain along U. Lauan is a generated appearance approximation based on the user-provided built-panel photo, with fine grain along V. Wall skins use panelGrain() to retain vertical grain at a 48 by 96 inch physical scale, including the 24 inch top extension.",
   "assets": [
     {
       "file": "pine-framing.webp",
@@ -11,7 +10,9 @@
         1024,
         1024
       ],
-      "bytes": 77750
+      "bytes": 77750,
+      "license": "CC0 1.0",
+      "licenseEvidence": "https://polyhaven.com/license"
     },
     {
       "file": "oak-floor.webp",
@@ -21,7 +22,26 @@
         1024,
         1024
       ],
-      "bytes": 100164
+      "bytes": 100164,
+      "license": "CC0 1.0",
+      "licenseEvidence": "https://polyhaven.com/license"
+    },
+    {
+      "file": "lauan-plywood.webp",
+      "source": "OpenAI image generation, 2026-10-09",
+      "reference": "User-supplied photograph of the unpainted built flat",
+      "license": "AI-generated project asset; not a Poly Haven CC0 asset",
+      "dimensions": [
+        887,
+        1774
+      ],
+      "bytes": 185634,
+      "grainDirection": "Vertical / V",
+      "physicalTileInches": [
+        48,
+        96
+      ],
+      "notes": "Pale low-contrast gray-beige lauan approximation. Lighting, framing, pencil lines and sheet edges intentionally omitted."
     }
   ]
 }

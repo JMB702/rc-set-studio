@@ -12,7 +12,7 @@ export function installApprovals(api){
  const S=api.state,design=document.querySelector('#design');if(!design)return;
  const initialLabor=JSON.stringify(api.captureLabor());
  const box=document.createElement('div');box.className='design-approve';
- box.innerHTML=`<button type="button" id="approve-button" class="approve-button">Approve this design</button><button type="button" id="approve-cancel-edit" hidden>Cancel edit</button><p id="approve-status" class="hint" role="status"></p><details id="approvals"><summary>Approved designs <small id="approvals-count"></small><span>+</span></summary><ol id="approvals-list"></ol><p class="hint">Load a design or edit its approval. The newest approval remains the site default.</p></details>`;
+ box.innerHTML=`<button type="button" id="approve-button" class="approve-button">Approve this design</button><button type="button" id="approve-cancel-edit" hidden>Cancel edit</button><p id="approve-status" class="hint" role="status"></p><details id="approvals"><summary>Approved designs <small id="approvals-count"></small><span>+</span></summary><ol id="approvals-list"></ol></details>`;
  design.append(box);
  const latestSummary=document.createElement('p');latestSummary.className='approval-latest';box.prepend(latestSummary);
  const dock=document.createElement('div');dock.id='approval-dock';dock.setAttribute('aria-label','Design approval');const approvalHistory=box.querySelector('#approvals'),dockActions=document.createElement('div');dockActions.className='approval-dock-actions';dockActions.append(box.querySelector('#approve-cancel-edit'),box.querySelector('#approve-button'));dock.append(dockActions);document.body.append(dock);

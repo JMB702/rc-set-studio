@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {calculate} from '../public/shopping-calc.js';
-import {floorArea,priceRows,summary} from '../public/pricing-calc.js';
+import {floorArea,priceRows,summary,pricingBudget} from '../public/pricing-calc.js';
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url)));
 test('Floor quantities follow actual outline, including angled wings',()=>{
  for(const angle of [0,15,45,75,90]){
@@ -108,4 +108,14 @@ test('Platform walking surface uses cement skim while drywall products are fasci
  assert.match(rows.find(r=>r.id==='platformCompound').name,/fascia only/);
  assert.equal(rows.find(r=>r.id==='platformCompound').purchaseQuantity,Math.ceil((plan.finishArea-plan.deckArea)/60));
  assert.equal(rows.find(r=>r.id==='platformDeck').purchaseQuantity,plan.deckSheets);
+});
+
+test('Burn-down budget uses full-set pricing, custom additions, exclusions and labor',()=>{
+ const configuration={scope:'panel',height:120,angle:90,floor:'charcoal',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12,supports:true,ballast:true,finishes:true,excluded:[],customItems:[]};
+ const full=priceRows(data,{...configuration,scope:'set'}),removed=full.find(r=>r.subtotalCents>0);
+ configuration.excluded=[removed.id];configuration.customItems=[{id:'custom-budget',title:'Additional material',quantity:2,unitPriceCents:2500,description:'',link:''}];
+ const result=pricingBudget(data,configuration,{costCents:300000,unrated:0});
+ assert.equal(result.materialsCents,summary(full).subtotal-removed.subtotalCents+5000);assert.equal(result.totalCents,result.materialsCents+300000);assert.ok(result.pending>0);
+ assert.equal(pricingBudget(data,{...configuration,scope:'floor'},{costCents:0,unrated:0}).totalCents,result.materialsCents);
+ assert.equal(pricingBudget(data,configuration,{costCents:null,unrated:2}).laborCents,null);
 });

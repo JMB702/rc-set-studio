@@ -3,7 +3,7 @@ import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 import {panel,floorMesh,platformParts,dispose,inch,mats,splitSkinFaces} from './model.js';
 import {platformPlan} from './platform.js';
 import {defaultDesign} from './design.js';
-import {money,priceRows,summary,floorArea,exportList} from './pricing-calc.js';
+import {money,priceRows,summary,floorArea,exportList,pricingBudget} from './pricing-calc.js';
 import {dollarsToCents,normalizeCustom,normalizeConfiguration,customizeRows,removedPart} from './pricing-config.js';
 import {installPricingSwipe} from './pricing-swipe.js';
 import {costCategory,reviewTotals,estimateCsv} from './pricing-review.js';
@@ -137,6 +137,8 @@ export function installPricing(api){
  function saveCart(save=true){try{const url=new URL(q('#price-cart-link').value);if(url.protocol!=='https:'||!['homedepot.com','www.homedepot.com'].includes(url.hostname)||url.pathname==='/cart'||url.pathname==='/')throw Error();q('#price-open-cart').href=url.href;q('#price-open-cart').hidden=false;q('#price-cart-status').textContent='Home Depot URL saved on this browser. Verify that it opens the intended shared cart.';if(save)localStorage.setItem('rc-shared-hd-cart',url.href);}catch{q('#price-cart-status').textContent='Enter a Home Depot shared-cart URL, not the generic cart page.';q('#price-open-cart').hidden=true;}}
  q('#price-save-cart').onclick=()=>saveCart();try{const link=localStorage.getItem('rc-shared-hd-cart');if(link){q('#price-cart-link').value=link;saveCart(false)}}catch{}
  let down;const canvas=$('#scene');canvas.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);canvas.addEventListener('pointerup',e=>{if(S.mode!=='pricing'||!model||!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5||document.body.classList.contains('picking-comment'))return;const r=canvas.getBoundingClientRect(),ray=new T.Raycaster();ray.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),api.camera);const hits=ray.intersectObject(model,true).filter(h=>h.object.visible&&h.object.userData.pricingIds?.some(id=>rows.some(r=>r.id===id)));const hit=hits.find(h=>h.object.material.opacity===1)||hits[0];if(hit){selected=hit.object.userData.pricingIds.find(id=>rows.some(r=>r.id===id));apply();host.querySelector(`[data-price-item="${selected}"]`)?.scrollIntoView({block:'nearest',behavior:'smooth'});}});
+ api.showProjectPricing=()=>{scope='set';render();};
+ api.projectBudget=()=>data?pricingBudget(data,snapshot(),laborFor(S)):null;
  api.pricingStats=()=>{let opaque=0,ghost=0;model?.traverse(o=>{if(o.isMesh)o.material.opacity===1?opaque++:ghost++});return {scope,floor:S.floor,platformShape:S.platformShape,selected,opaque,ghost,rows:rows.length,...summary(rows)}};
  api.pricingReady=fetch('./data/flat-shopping-list.json').then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{data=d;let draft;try{draft=JSON.parse(localStorage.getItem('rc-pricing-draft-v1'))}catch{}if(draft){try{previousDraft=normalizeConfiguration(draft);q('#price-config-resume').hidden=false;if(api.hasRestoredSession&&S.mode==='pricing')restoreConfiguration(previousDraft);}catch{}}restoring=true;render();restoring=false;loadSavedConfigurations();}).catch(()=>{q('#pricing-total').textContent='Could not load prices. Reload to retry.'});
 }

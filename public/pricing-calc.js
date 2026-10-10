@@ -1,3 +1,4 @@
+import {customizeRows} from './pricing-config.js';
 import {calculate} from './shopping-calc.js';
 import {platformPlan,PLATFORM} from './platform.js';
 export const money=c=>c===null?'Price pending':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
@@ -64,3 +65,9 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
 }
 export function summary(rows){return {subtotal:rows.reduce((s,r)=>s+(r.subtotalCents??0),0),pending:rows.filter(r=>r.subtotalCents===null).length};}
 export function exportList(rows,title){return `${title}\nHome Depot #6319 · 5475 University Pkwy · before tax/delivery\n\n`+rows.map(r=>`${r.purchaseQuantity??'TBD'} × ${r.name}\nUnit: ${money(r.unitPriceCents)} | Line: ${money(r.subtotalCents)}\n${r.availability}\n${r.productUrl}`).join('\n\n');}
+
+// Finance uses the same full-set estimate, regardless of which pricing scope is being viewed.
+export function pricingBudget(data,configuration,labor){
+ const totals=summary(customizeRows(priceRows(data,{...configuration,scope:'set'}),configuration));
+ return {totalCents:totals.subtotal+(labor?.costCents??0),materialsCents:totals.subtotal,laborCents:labor?.costCents??null,pending:totals.pending,unrated:labor?.unrated??0};
+}

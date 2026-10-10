@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
-import {projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
+import {projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectSetAssemblyCounts,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
 const H=3600000,now=Date.now(),shift={id:'shift',personId:'person-1',start:now-1.5*H,end:null,rateCents:2500,note:''};
 test('Live cost changes only at complete hourly boundaries; clock-out includes the exact partial hour',()=>{
  assert.deepEqual(projectShiftCost(shift,now-0.6*H),{hours:0,cents:0});assert.deepEqual(projectShiftCost(shift,now),{hours:1,cents:2500});assert.deepEqual(projectShiftCost(shift,now+0.5*H),{hours:2,cents:5000});assert.deepEqual(projectShiftCost({...shift,end:now},now),{hours:1.5,cents:3750});
@@ -200,4 +200,22 @@ test('Guide percentages round-trip through storage and update project totals',as
  snapshot.data=projectSetGuideStage(snapshot.data,0,70,design);let response=await r.call('tracking','PUT',snapshot);assert.equal(response.status,200);
  const saved=await(await r.call('tracking')).json();assert.equal(projectGuideStagePercent(saved.data,0,design),70);assert.equal(saved.data.stages[0].steps[0].percent,70);assert.equal(projectProgress(saved.data).done,0);
  saved.data=projectSetGuideStage(saved.data,0,true,design);response=await r.call('tracking','PUT',saved);assert.equal(response.status,200);const done=await response.json();assert.equal(projectGuideStagePercent(done.data,0,design),100);assert.equal(projectProgress(done.data).done,1);
+});
+
+test('Exact assembly counts update guide and tracker without inventing attached jacks',()=>{
+ const original=projectDefaultTracking(),design={height:120,floor:'charcoal'};
+ const data=projectSetAssemblyCounts(original,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:1},design);
+ assert.equal(projectGuideStagePercent(data,13,design),25);
+ assert.equal(projectGuideStagePercent(data,17,design),13);
+ assert.equal(projectGuideStagePercent(data,10,design),100);
+ assert.equal(data.stages.flatMap(s=>s.steps).find(s=>s.id==='walls-3').percent,23);
+ assert.equal(original.assembly,undefined);
+ const changed=projectSetGuideStage(data,17,100,design);
+ assert.equal(changed.assembly.jacksAttached,2);
+ assert.throws(()=>projectSetAssemblyCounts(data,{panelsCompleted:1,jacksBuilt:4,jacksAttached:3},design),/Attached jacks/);
+});
+test('Attached jacks remain visible when only one panel has been completed',()=>{
+ const data=projectDefaultTracking();data.assembly={panelsCompleted:1,jacksBuilt:2,jacksAttached:2,jacksPartial:0};
+ for(const side of [0,1])assert.equal(projectPartStatus({kind:'jack',panel:0,side},data).assembled,true);
+ assert.equal(projectPartStatus({kind:'jack',panel:7,side:0},data).assembled,false);
 });

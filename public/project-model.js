@@ -83,6 +83,19 @@ export function projectAssembly(input={}) {
  if((out.jacksBuilt??0)+(out.jacksPartial??0)>16)throw Error('Built and partially built jacks cannot exceed 16.');
  return out;
 }
+// Exact inventory is authoritative when the user explicitly saves counts. Percent edits never invent counts.
+export function projectSetAssemblyCounts(input,counts,design){
+ const previous=projectAssembly(input.assembly),assembly=projectAssembly(counts);let data=structuredClone(input);data.assembly=assembly;
+ const apply=(stages,percent)=>{for(const stage of stages)data=projectSetGuideStage(data,stage,percent,design);};
+ if(assembly.panelsCompleted!==null&&assembly.panelsCompleted!==previous.panelsCompleted){
+  const percent=Math.round(assembly.panelsCompleted/8*100);
+  if(projectStepPercent(data,'walls-1')<percent)apply([1,2,3,4,5,6,7,...(design.height===120?[8]:[]),9],percent);
+  apply([10,...(design.height===120?[11]:[]),12],percent);
+ }
+ if(assembly.jacksBuilt!==null&&assembly.jacksBuilt!==previous.jacksBuilt)apply([13,14,15,16],Math.round(assembly.jacksBuilt/16*100));
+ if(assembly.jacksAttached!==null&&assembly.jacksAttached!==previous.jacksAttached)apply([17],Math.round(assembly.jacksAttached/16*100));
+ return data;
+}
 export function projectStepPercent(data,id){for(const s of data?.stages||[]){const step=s.steps.find(t=>t.id===id);if(step)return step.percent;}return 0;}
 export function projectPartStatus(part,data) {
  const counts=projectAssembly(data?.assembly),percent=id=>projectStepPercent(data,id),panel=part.panel??0;
@@ -91,7 +104,7 @@ export function projectPartStatus(part,data) {
  // Partial jack progress cannot tell us how many are actually attached.
  const completedPanels=counts.panelsCompleted??(percent('walls-1')===100&&percent('walls-2')===100?8:0);
  // Walk from the right wing's free end, across the back, then out the left wing.
- const jackPanel=[7,6,3,2,1,0,4,5].indexOf(panel);
+ const jackPanel=[7,6,3,2,1,0,4,5].filter(index=>index<completedPanels).indexOf(panel);
  const wall=panel<completedPanels,attached=jackPanel>=0&&jackPanel*2+(1-(part.side??0))<(counts.jacksAttached??0)&&wall;
  if(part.kind==='panel')return {assembled:wall};
  if(part.kind==='jack')return {assembled:attached};

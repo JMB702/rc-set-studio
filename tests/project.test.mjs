@@ -27,8 +27,8 @@ test('Receipt extraction distinguishes total from subtotal, savings, tender and 
  assert.match(projectParseReceipt('STORE\nSUBTOTAL 100.00\nTAX 8.00\nTOTAL 107.00').warning,/do not match/);
  assert.equal(projectParseReceipt('STORE\nTOTAL\n$1,234.56').amountCents,123456);
 });
-const model=fs.readFileSync(new URL('../public/project-model.js',import.meta.url),'utf8').replaceAll('export function ','function '),routes=fs.readFileSync(new URL('../worker/project.js',import.meta.url),'utf8');
-const api=(await import('data:text/javascript;base64,'+Buffer.from('const json=(data,status=200,headers={})=>Response.json(data,{status,headers});\n'+model+'\n'+routes+'\nexport {projectAPI,projectPinHash};').toString('base64')));
+const model=fs.readFileSync(new URL('../public/project-model.js',import.meta.url),'utf8').replaceAll('export function ','function '),routes=fs.readFileSync(new URL('../worker/project.js',import.meta.url),'utf8')+'\n'+fs.readFileSync(new URL('../worker/project-transfer.js',import.meta.url),'utf8');
+const api=(await import('data:text/javascript;base64,'+Buffer.from('const json=(data,status=200,headers={})=>Response.json(data,{status,headers});\n'+model+'\n'+routes+'\nexport {projectAPI,projectPinHash,projectTransfer};').toString('base64')));
 function rig(){const sqlite=new DatabaseSync(':memory:');for(const f of fs.readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort())sqlite.exec(fs.readFileSync(new URL('../drizzle/'+f,import.meta.url),'utf8'));const env={DB:{prepare(sql){const stmt=sqlite.prepare(sql);let args=[];return {bind(...values){args=values;return this;},async first(){return stmt.get(...args)||null;},async run(){return {meta:stmt.run(...args)};}};}}};return {sqlite,call:(path,method='GET',body,cookie,origin)=>api.projectAPI(new Request('http://localhost/api/project/'+path,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{}),...(origin?{Origin:origin}:{})},body:body?JSON.stringify(body):undefined}),env)};}
 test('PIN setup, shared sessions, finance/receipt API enforcement, lockout, and logout',async()=>{
  const r=rig();assert.equal((await r.call('finance')).status,401);assert.equal((await r.call('receipts/id')).status,401);
@@ -70,4 +70,18 @@ test('Existing saved trackers upgrade once with an optimistic revision bump',asy
  r.sqlite.prepare('INSERT INTO project_documents (id,content,revision,updated_at) VALUES (?,?,?,?)').run('tracking',JSON.stringify(old),4,Date.now());
  const result=await (await r.call('tracking')).json();assert.equal(result.revision,5);assert.equal(result.data.stages[1].name,'Dress, prime and paint');assert.ok(result.data.stages[1].steps.every(s=>s.percent===30));
  assert.equal((await (await r.call('tracking')).json()).revision,5);
+});
+
+test('Production transfer is disabled by default and atomically imports records and the existing PIN',async()=>{
+ const sqlite=new DatabaseSync(':memory:');for(const f of fs.readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort())sqlite.exec(fs.readFileSync(new URL('../drizzle/'+f,import.meta.url),'utf8'));
+ const DB={prepare(sql){let args=[];return {bind(...v){args=v;return this;},async first(){return sqlite.prepare(sql).get(...args)||null;},exec(){return sqlite.prepare(sql).run(...args);}};},async batch(statements){sqlite.exec('BEGIN');try{statements.forEach(s=>s.exec());sqlite.exec('COMMIT');}catch(e){sqlite.exec('ROLLBACK');throw e;}}};
+ const token='a'.repeat(64),env={DB,PROJECT_TRANSFER_SECRET:JSON.stringify({token,expiresAt:Date.now()+60000})},access={id:'main',salt:crypto.randomUUID(),hash:await api.projectPinHash('1234','salt')},payload={version:1,access,receipts:[],documents:[{id:'finance',content:JSON.stringify(projectDefaultFinance()),revision:6,updated_at:Date.now()},{id:'tracking',content:JSON.stringify(projectDefaultTracking()),revision:11,updated_at:Date.now()}]};
+ const req=(data=payload,bearer=token)=>new Request('https://site.test/api/project/transfer',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+bearer},body:JSON.stringify(data)});
+ assert.equal((await api.projectTransfer(req(),{DB})).status,404);assert.equal((await api.projectTransfer(req(payload,'wrong'),env)).status,404);
+ assert.equal((await api.projectAPI(new Request('https://site.test/api/project/tracking'),env)).status,503);
+ assert.equal((await api.projectTransfer(req(),env)).status,200);assert.equal(sqlite.prepare('SELECT hash FROM project_access').get().hash,access.hash);assert.equal(sqlite.prepare("SELECT revision FROM project_documents WHERE id='finance'").get().revision,6);
+ assert.equal((await api.projectTransfer(req(),env)).status,200);
+ const changed=structuredClone(payload);changed.documents[0].revision=7;assert.equal((await api.projectTransfer(req(changed),env)).status,409);
+ assert.equal((await api.projectTransfer(req(),{DB})).status,404);
+ sqlite.prepare("DELETE FROM project_documents WHERE id='transfer-receipt'").run();assert.equal((await api.projectTransfer(req(),env)).status,409);
 });

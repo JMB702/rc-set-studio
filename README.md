@@ -69,3 +69,5 @@ The Pricing guide sidebar has three tabs: **Pricing guide**, **Project burn-down
 - Both modules reject stale saves from other windows instead of overwriting newer work. Refresh the module before retrying a conflict. Pricing estimates, guide dimensions, quantities, and material prices are unchanged.
 
 `npm start` applies the append-only project migrations locally. Test-only browser fixtures belong in ignored `output/` and must not be copied into production records. The project API/accounting tests are in `tests/project.test.mjs`.
+
+An authorized initial local-to-production transfer can use the server-only `/api/project/transfer` endpoint. It is disabled unless a temporary, expiring `PROJECT_TRANSFER_SECRET` is explicitly provisioned. Imports require an empty project destination, preserve document revisions and the existing salted PIN hash, exclude sessions, and commit atomically. A transfer receipt makes identical retries safe and rejects a different payload. Remove the runtime secret and redeploy after verifying the imported database; never commit snapshots or secret values.

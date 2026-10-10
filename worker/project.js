@@ -5,6 +5,8 @@ async function projectAPI(request,env) {
  const url=new URL(request.url),path=url.pathname.slice('/api/project/'.length),db=env.DB,now=Date.now();
  if(!db)return json({error:'Project storage is unavailable.'},503);
  try {
+  if(path==='transfer')return await projectTransfer(request,env);
+  if(env.PROJECT_TRANSFER_SECRET&&!await db.prepare('SELECT id FROM project_documents WHERE id=?').bind('transfer-receipt').first())return json({error:'Project transfer is in progress. Please try again shortly.'},503);
   if(!['GET','POST','PUT'].includes(request.method))return json({error:'Method not allowed.'},405);
   if(request.method!=='GET'&&(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin||request.headers.get('Sec-Fetch-Site')==='cross-site'))return json({error:'Please save from this site.'},403);
   const token=(request.headers.get('Cookie')||'').match(/(?:^|;\s*)rc_project_session=([a-f0-9-]+)/)?.[1];

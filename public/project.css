@@ -15,12 +15,23 @@ body.project-module #price-total-dock{display:none!important}
 .pj-assembly{border:1px solid #d9e2d2;border-radius:12px;padding:0 15px 17px;margin-top:18px;background:#f1f5ec}.pj-assembly .pj-section-head{margin:12px 0}.pj-assembly-counts{display:grid;grid-template-columns:1fr 1fr;gap:15px}.pj-assembly-counts strong{display:block;font-size:26px;font-weight:600;letter-spacing:-1px}.pj-assembly-counts small{font-size:12px;font-weight:400;letter-spacing:0;color:#84927c}.pj-assembly-counts span{font-size:11px;color:#708265}
 
 /* Scroll-driven copy: the original card reserves stable document space. */
-.pj-progress-mini{position:fixed;z-index:4;box-sizing:border-box;pointer-events:none;overflow:hidden;padding:0;will-change:height}
+.pj-progress-mini{position:fixed;z-index:4;box-sizing:border-box;pointer-events:none;overflow:visible;padding:0;background:none;box-shadow:none;top:0;left:0;contain:layout style;will-change:transform}
 .pj-progress-mini[hidden]{display:none!important}
-.pj-progress-mini .pj-ring{position:absolute;margin:0;transform-origin:top left}
+.pj-progress-mini .pj-ring{position:absolute;top:0;left:0;margin:0;transform-origin:top left;will-change:transform}
 .pj-progress-mini .pj-ring>svg{transform-origin:center}
-.pj-progress-mini .pj-progress-caption,.pj-progress-mini .pj-stage-legend{position:absolute;margin:0}
+.pj-progress-mini .pj-progress-caption,.pj-progress-mini .pj-stage-legend{position:absolute;top:0;left:0;margin:0;will-change:transform,opacity}
 
 .pj-progress-mini::before{content:"";position:absolute;left:6px;top:10px;width:80px;height:64px;background:radial-gradient(ellipse,rgba(207,241,168,.18),rgba(207,241,168,.06) 42%,transparent 72%);opacity:0;transition:opacity .18s ease;pointer-events:none}
 .pj-progress-mini.is-minimized::before{opacity:1}
 .pj-progress-mini .pj-ring,.pj-progress-mini .pj-progress-caption{z-index:1}
+
+.pj-morph-background{position:absolute;inset:0;background:#192d29;border-radius:18px;transform-origin:top;will-change:transform;overflow:hidden}
+.pj-morph-background>div{position:absolute;inset:0;background:#223b32;opacity:0;will-change:opacity}
+.pj-progress-mini .pj-ring strong{transform-origin:center;will-change:transform}
+.pj-progress-mini .pj-stage-legend>div{will-change:transform,opacity}
+.pj-progress-mini .pj-progress-caption p{will-change:transform}
+
+.pj-progress-mini .pj-stage-legend{overflow:hidden}
+.pj-progress-mini .pj-progress-caption{transform-origin:top left}
+.pj-progress-mini::before{z-index:1}
+.pj-progress-mini .pj-ring,.pj-progress-mini .pj-progress-caption{z-index:2}

@@ -100,3 +100,5 @@ Default square layout: 6 side pieces instead of 12. Default angled: 12 instead o
 Cut lengths, stock packing, staples and joint tape follow these pieces; no bottom-edge tape.
 
 Project tracking omits the decorative heading, manual refresh and assembly-count card (stored counts remain intact). Visible viewers check shared tracking revisions every three seconds, retry after connection failures and refresh on focus. Polls pause during edits, dialogs, saves and drags; stale responses are discarded. The progress hero contracts into a sticky summary on scroll, below the mobile 3D preview. No material or pricing changes.
+
+Explore/Pricing page loads use a 1.5-second opening camera move after workspace restoration: slightly closer and straight on, easing to an angled full-set fit. Bounds include floor, jacks and figures; fitting considers horizontal/vertical FOV and viewport aspect. Resizing refits until interaction; pointer, wheel or keyboard input cancels the intro. Reduced motion settles immediately. Build and saved camera-position views retain their existing restoration behavior.

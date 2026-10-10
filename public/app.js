@@ -84,3 +84,6 @@ for(const event of ['selectstart','contextmenu'])document.querySelector('.viewpo
 installConstructionView(window.__studio);
 
 installGuideCompletion(window.__studio);
+
+import {installOpeningView} from './opening-view.js';
+installOpeningView(window.__studio);

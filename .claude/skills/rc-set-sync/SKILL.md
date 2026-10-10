@@ -116,3 +116,5 @@ The viewport progress ring opens the shared tracker in a dialog without changing
 Build navigation uses one collapsed `#guide-jump` disclosure containing the current section/step. `#guide-index` contains both section buttons and the step picker; selecting either closes it through `go()`. Keep this collapsed by default to prioritize instructions on mobile and desktop.
 
 Count checkpoint steps retain the prior assembly through `visualStage`, hide construction prose and percentage controls, and stop auto-mark-next. They add navigation steps only, not tracker milestones or progress weight. Keep stable original stage IDs and saved-stage restoration intact.
+
+Ballast attachment is checkpoint 41 after stage 20: one assembly per panel, max 8, limited by attached jack pairs. `assembly.ballastAttached` is nullable for older records; older clients must preserve it when omitted. Counts update existing stages 18–20, not a new weighted milestone. Workspace restore accepts stage 41.

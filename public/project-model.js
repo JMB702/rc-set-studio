@@ -78,9 +78,10 @@ export function projectParseReceipt(text) {
 }
 
 export function projectAssembly(input={}) {
- const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['jacksPartial',16]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
+ const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['jacksPartial',16],['ballastAttached',8]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
  if((out.jacksAttached??0)>(out.jacksBuilt??0)||(out.jacksAttached??0)>(out.panelsCompleted??0)*2)throw Error('Attached jacks cannot exceed built jacks or two per completed panel.');
  if((out.jacksBuilt??0)+(out.jacksPartial??0)>16)throw Error('Built and partially built jacks cannot exceed 16.');
+ if((out.ballastAttached??0)>Math.floor((out.jacksAttached??0)/2))throw Error('Attach both jacks before counting a ballast assembly.');
  return out;
 }
 // Exact inventory is authoritative when the user explicitly saves counts. Percent edits never invent counts.
@@ -94,6 +95,7 @@ export function projectSetAssemblyCounts(input,counts,design,forceKey=null){
  }
  if(assembly.jacksBuilt!==null&&(assembly.jacksBuilt!==previous.jacksBuilt||forceKey==='jacksBuilt'))apply([13,14,15,16],Math.round(assembly.jacksBuilt/16*100));
  if(assembly.jacksAttached!==null&&(assembly.jacksAttached!==previous.jacksAttached||forceKey==='jacksAttached'))apply([17],Math.round(assembly.jacksAttached/16*100));
+ if(assembly.ballastAttached!==null&&(assembly.ballastAttached!==previous.ballastAttached||forceKey==='ballastAttached'))apply([18,19,20],Math.round(assembly.ballastAttached/8*100));
  return data;
 }
 export function projectStepPercent(data,id){for(const s of data?.stages||[]){const step=s.steps.find(t=>t.id===id);if(step)return step.percent;}return 0;}
@@ -108,7 +110,7 @@ export function projectPartStatus(part,data) {
  const wall=panel<completedPanels,attached=jackPanel>=0&&jackPanel*2+(1-(part.side??0))<(counts.jacksAttached??0)&&wall;
  if(part.kind==='panel')return {assembled:wall};
  if(part.kind==='jack')return {assembled:attached};
- if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&percent('walls-4')===100};
+ if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&(counts.ballastAttached===null?percent('walls-4')===100:jackPanel<counts.ballastAttached)};
  if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':unit('wall-finishing-1',panel,8)||unit('wall-finishing-2',panel,8)?'seams':'raw'};
  if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':'raw'};
  if(part.kind==='trim')return {assembled:percent('floor-3')===100&&wall};

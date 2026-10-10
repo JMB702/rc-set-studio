@@ -94,7 +94,7 @@ test('Assembly counts distinguish completed panels, built jacks, attached jacks 
  assert.throws(()=>projectAssembly({...data.assembly,jacksAttached:5}),/cannot exceed/);
  assert.throws(()=>projectAssembly({...data.assembly,jacksPartial:13}),/cannot exceed/);
  assert.throws(()=>projectAssembly({...data.assembly,panelsCompleted:9}),/Invalid/);
- assert.deepEqual(projectValidate('tracking',data).assembly,data.assembly);
+ assert.deepEqual(projectValidate('tracking',data).assembly,{...data.assembly,ballastAttached:null});
 });
 test('Platform parts require joined modules; deck, fascia and finish follow assembly dependencies',()=>{
  const data=projectDefaultTracking(),set=(id,p)=>data.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent=p;
@@ -130,7 +130,7 @@ test('Guide completion distinguishes floor types and updates combined finishing 
 test('Older open tabs cannot erase assembly counts or guide completion when saving tracker edits',async()=>{
  const r=rig(),first=await (await r.call('tracking')).json();first.data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2};first.data.guideChecks={'panel:120:0':true};first.data.stages[0].steps[0].percent=100;
  const saved=await (await r.call('tracking','PUT',first)).json();const older=structuredClone(saved);delete older.data.assembly;delete older.data.guideChecks;older.data.stages[0].name='Wall production';
- const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,first.data.assembly);assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
+ const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,{...first.data.assembly,ballastAttached:null});assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
 });
 test('Patched platform seams are a separate finish before full skim, primer and paint',()=>{
  const data=projectDefaultTracking(),steps=data.stages.flatMap(s=>s.steps);
@@ -226,4 +226,19 @@ test('Saving a checkpoint count reconciles its percentage even when count is unc
  const next=projectSetAssemblyCounts(data,data.assembly,design,'jacksAttached');
  assert.equal(projectGuideStagePercent(next,17,design),13);
  assert.equal(next.assembly.jacksBuilt,4);
+});
+
+test('Ballast counts require attached jack pairs and update the existing milestone',()=>{
+ const data=projectDefaultTracking(),design={height:120,floor:'charcoal'};
+ const counts={panelsCompleted:8,jacksBuilt:8,jacksAttached:6,jacksPartial:0,ballastAttached:3};
+ const result=projectSetAssemblyCounts(data,counts,design,'ballastAttached');
+ for(const stage of [18,19,20])assert.equal(projectGuideStagePercent(result,stage,design),38);
+ assert.equal(projectPartStatus({kind:'bracing',panel:7},result).assembled,true);
+ assert.throws(()=>projectAssembly({...counts,ballastAttached:4}),/both jacks/);
+ assert.equal(projectAssembly({}).ballastAttached,null);
+});
+test('An older client carrying assembly fields preserves the new ballast count',async()=>{
+ const r=rig(),first=await (await r.call('tracking')).json();first.data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:0,ballastAttached:1};
+ const saved=await (await r.call('tracking','PUT',first)).json();delete saved.data.assembly.ballastAttached;
+ const updated=await (await r.call('tracking','PUT',saved)).json();assert.equal(updated.data.assembly.ballastAttached,1);
 });

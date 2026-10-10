@@ -46,12 +46,12 @@ items.push([28,'Dress and paint the walls','Once the configuration is fixed, dre
 const platform=floor==='platform'||cfg.platformShape&&cfg.platformShape!=='none';if(floor!=='wood'&&floor!=='charcoal')items=items.filter(([stage])=>stage<23||stage>27);
 if(platform)items.push(...platformSteps(platformPlan(cfg.angle??45,cfg.platformBack??PLATFORM.gap,cfg.platformSide??PLATFORM.gap,cfg.platformAngle),floor==='wood'||floor==='charcoal'));
 return items.map(([stage,title,description,spec,view])=>({stage,title,description,spec,view,section:sectionOf(stage,floor),...stepHelp(stage,floor),fasteners:stepFasteners(stage,h,floor,cfg)})).sort((a,b)=>sectionIndex(a.section)-sectionIndex(b.section)).flatMap(step=>{
- const checkpoint={12:[38,'Record completed wall panels'],16:[39,'Record completed jacks'],17:[40,'Record attached jacks']}[step.stage];
+ const checkpoint={12:[38,'Record completed wall panels'],16:[39,'Record completed jacks'],17:[40,'Record attached jacks'],20:[41,'Record attached ballast assemblies']}[step.stage];
  return checkpoint?[step,{...step,stage:checkpoint[0],visualStage:step.stage,checkpoint:true,title:checkpoint[1],phase:'Batch progress',fasteners:[],description:'Update your completed count before continuing.',spec:'',check:''}]:[step];});}
 // The guide is split into sections a builder can jump between. Stages keep their numbers; only the order changes.
-// Stages 30–37 are platform construction; 38–40 are flat-build count checkpoints.
+// Stages 30–37 are platform construction; 38–41 are flat-build count checkpoints.
 export const sections=[{id:'flat',label:'Flat build',sub:'Wall panels + jacks'},{id:'floor',label:'Floor build',sub:'Floor overlay'},{id:'platform',label:'Platform build',sub:'Raised platform'},{id:'assembly',label:'Full assembly',sub:'Stand, join + finish'}];
-export function sectionOf(stage,floor){return stage<=20||stage>=38&&stage<=40?'flat':stage>=30&&stage<38?'platform':stage>=23&&stage<=26||stage===27&&floor!=='wood'?'floor':'assembly';}
+export function sectionOf(stage,floor){return stage<=20||stage>=38&&stage<=41?'flat':stage>=30&&stage<38?'platform':stage>=23&&stage<=26||stage===27&&floor!=='wood'?'floor':'assembly';}
 const sectionIndex=id=>sections.findIndex(s=>s.id===id);
 // Platform build: stages 30–37. Quantities follow the current wall angle and gaps.
 function platformSteps(p,onFloor){const c=p.counts,ft=v=>(v/12).toFixed(1)+' ft',gap=v=>v?inches(v):'flush',sheets=p.fasciaSheets;return [

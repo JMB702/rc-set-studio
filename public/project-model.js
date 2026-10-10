@@ -77,9 +77,9 @@ export function projectPartStatus(part,data) {
  if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':'raw'};
  if(part.kind==='trim')return {assembled:percent('floor-3')===100&&wall};
  if(part.kind==='platform'){
-  if(part.members?.length){const states=part.members.map(module=>projectPartStatus({...part,module,members:null},data)),finishes=['raw','seams','skim','primer','paint'];return {assembled:states.every(s=>s.assembled),finish:finishes[Math.min(...states.map(s=>finishes.indexOf(s.finish)))]};}
+  if(part.members?.length){const states=part.members.map((module,index)=>projectPartStatus({...part,module,deckIndex:part.deckIndices?.[index]??part.deckIndex,members:null},data)),finishes=['raw','seams','skim','primer','paint'];return {assembled:states.every(s=>s.assembled),finish:finishes[Math.min(...states.map(s=>finishes.indexOf(s.finish)))]};}
   const i=part.module??0,n=part.total??1;
-  const frame=unit('platform-frame',i,n),legs=unit('platform-legs',i,n),joined=unit('platform-join',i,n),deck=unit('platform-deck',part.deckIndex??i,part.deckTotal??n),fascia=unit('platform-fascia',i,n);
+  const frame=unit('platform-frame',i,n),legs=unit('platform-legs',i,n),joined=unit('platform-join',i,n),deck=unit('platform-deck',part.deckIndex??i,part.deckTotal??n),fascia=part.fasciaIndices?part.fasciaIndices.every(index=>unit('platform-fascia',index,part.fasciaTotal)):unit('platform-fascia',part.fasciaIndex??i,part.fasciaTotal??n);
   const assembled=frame&&legs&&joined&&(part.stage>=34?deck:true)&&(part.stage>=35?fascia:true);
   const surface=part.stage>=34,seams=deck&&fascia&&unit('platform-seams',part.deckIndex??i,part.deckTotal??n),skim=seams&&unit('platform-skim',part.deckIndex??i,part.deckTotal??n),primer=skim&&unit('platform-prime',part.deckIndex??i,part.deckTotal??n),paint=primer&&unit('platform-paint',part.deckIndex??i,part.deckTotal??n);
   return {assembled,finish:surface?(paint?'paint':primer?'primer':skim?'skim':seams?'seams':'raw'):'raw'};

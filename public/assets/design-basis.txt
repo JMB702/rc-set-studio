@@ -117,7 +117,7 @@ across the front-to-back joists. Default square: 4 decks over 8 frames,
 The cut plan centers undersized stock over supporting rims, at most 3/64
 allowance per edge; scribe angled boundaries to the joined frames.
 Decks screwed (#8x2.5 at 6 around deck perimeters, 12 on interior rims and
-joists), not glued. Remove spanning decks BEFORE separating the frames.
+joists), not glued. Remove spanning decks and fascia BEFORE separating the frames.
 Frame seams retain #9x3 screws through adjoining rims, about every 12,
 both sides. Tape follows deck-piece seams, not hidden frame joints.
 Fascia: 0.106 lauan, 10 tall, glued and stapled to rims, legs and sills.
@@ -134,3 +134,9 @@ Cut-list selection highlights matching visible parts in their current positions.
 It does not move parts, replace the assembly or reframe the camera. Click the
 row again, press Escape or close the cut list to clear the highlight. Frame-side-up and skin-side-up
 bench steps keep the panel top at the same far end; turn it over sideways.
+
+Platform fascia uses long strips cut along 8-foot lauan sheets, spanning frames.
+Measure the actual floor-to-deck height (about 10 inches) and trim to fit.
+Butt joints land on existing legs; corner ends include a trim allowance.
+Default square layout: 6 side pieces instead of 12. Default angled: 12 instead of 19.
+Cut lengths, stock packing, staples and joint tape follow these pieces; no bottom-edge tape.

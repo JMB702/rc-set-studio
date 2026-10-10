@@ -639,4 +639,7 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 [data-load-percent]{font-style:normal;font-variant-numeric:tabular-nums}
 [data-load-arc]{transition:none!important}
 
-.pj-finance-actions{display:flex;justify-content:flex-end;margin:0 0 10px}
+.pj-spend-hero{position:relative}
+.pj-spend-hero .pj-spend-lock{position:absolute;top:12px;right:12px;display:grid;place-items:center;width:44px;height:44px;min-height:44px;color:#d4e4cd;background:transparent;border:1px solid #ffffff30;border-radius:50%;padding:0}
+.pj-spend-hero .pj-spend-lock:hover{background:#ffffff12}
+.pj-spend-hero .pj-overline{display:block;padding-right:48px}

@@ -43,3 +43,5 @@ body.project-module #price-total-dock{display:none!important}
 .pj-progress-marker{position:absolute;top:80px;left:0;width:1px;height:1px}
 .pj-progress-mini::before{display:none}
 .pj-morph-bloom{position:absolute;z-index:1;left:6px;top:10px;width:80px;height:64px;background:radial-gradient(ellipse,rgba(207,241,168,.18),rgba(207,241,168,.06) 42%,transparent 72%);opacity:0;will-change:opacity}
+
+.pj-production-flow{display:flow-root;will-change:transform}

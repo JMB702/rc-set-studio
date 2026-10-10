@@ -3,7 +3,7 @@ export function mountProgressMotion(hero,host,aside){
  const holder=document.createElement('div');holder.className='pj-progress-holder';hero.before(holder);
  const mini=hero.cloneNode(true);mini.classList.add('pj-progress-mini');mini.setAttribute('aria-hidden','true');mini.insertAdjacentHTML('afterbegin','<div class="pj-morph-background"><div></div></div><div class="pj-morph-bloom"></div>');holder.append(mini);hero.style.visibility='hidden';
  const marker=document.createElement('span');marker.className='pj-progress-marker';hero.append(marker);
- const viewport=document.querySelector('.viewport');let animations=[],observer,signature='',disposed=false;
+ const flow=host.querySelector('.pj-production-flow'),viewport=document.querySelector('.viewport');let animations=[],observer,signature='',disposed=false;
  function setup(){
   if(disposed||host.hidden)return;const rect=hero.getBoundingClientRect();if(!rect.width)return;
   const scrolls=aside.scrollHeight>aside.clientHeight&&/auto|scroll/.test(getComputedStyle(aside).overflowY),mobile=matchMedia('(max-width:850px)').matches,top=scrolls?0:mobile&&getComputedStyle(viewport).position==='sticky'?viewport.getBoundingClientRect().height:0,source=scrolls?aside:document.scrollingElement,start=rect.top+source.scrollTop-(scrolls?aside.getBoundingClientRect().top:top),reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -13,6 +13,8 @@ export function mountProgressMotion(hero,host,aside){
   let native=!reduced&&typeof ScrollTimeline==='function'&&CSS.supports('animation-range-start','1px');let timeline=native?new ScrollTimeline({source,axis:'block'}):null;
   const tracks=new Map(),add=(el,style,offset)=>{if(!tracks.has(el))tracks.set(el,[]);tracks.get(el).push({...style,offset});},translate=(x,y)=>`translate3d(${x}px,${y}px,0)`;
   for(let j=0;j<=40;j++){const raw=j/40,t=raw*raw*(3-2*raw),mix=(a,b)=>a+(b-a)*t,collapse=Math.max(0,Math.min(1,(t-.42)/.58)),rise=Math.max(0,Math.min(1,(t-.6)/.4)),lift=rise*rise*(3-2*rise),below=mix(rr.top-rect.top,10)+mix(rr.width,64)+mix(-3,8);
+   // Counter the reserved card space and scroll travel on the same native timeline.
+   if(flow)add(flow,{transform:translate(0,raw*(native?240:80)-(rect.height-84)*collapse)},raw);
    add(bg,{clipPath:`inset(0px 0px ${(rect.height-84)*collapse}px 0px round 18px)`},raw);add(bg.firstElementChild,{opacity:t},raw);
    add(ring,{transform:translate(mix(rr.left-rect.left,14),mix(rr.top-rect.top,10))+` scale(${mix(1,64/rr.width)})`},raw);
    add(ring.querySelector('svg'),{transform:`rotate(${reduced?0:t*36}deg)`},raw);add(ring.querySelector('strong'),{transform:`scale(${mix(1,79/61)})`},raw);add(ring.querySelector('div>span'),{opacity:1-t},raw);

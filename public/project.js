@@ -92,10 +92,10 @@ export function installProject(api){
   if(mini.hidden)return;
   const mix=(a,b)=>a+(b-a)*t,color=(a,b)=>'rgb('+a.map((v,i)=>Math.round(mix(v,b[i]))).join(',')+')';
   mini.style.top=top+'px';mini.style.left=rect.left+'px';mini.style.width=rect.width+'px';mini.style.height=mix(rect.height,84)+'px';mini.style.borderRadius=mix(18,12)+'px';
-  mini.style.background=color([25,45,41],[228,236,226]);mini.style.color=t<.32?'#f6f9f2':'#1b2d29';
+  mini.style.background=color([25,45,41],[34,59,50]);mini.style.color='#f6f9f2';mini.classList.toggle('is-minimized',raw===1);
   const ring=hero.querySelector('.pj-ring').getBoundingClientRect(),r=mini.querySelector('.pj-ring');
   r.style.left=mix(ring.left-rect.left,14)+'px';r.style.top=mix(ring.top-rect.top,10)+'px';r.style.transform='scale('+mix(1,64/ring.width)+')';
-  r.querySelector('svg').style.transform='rotate('+(reduced?0:t*36)+'deg)';r.querySelector('svg').style.filter='brightness('+mix(1,.6)+')';r.querySelector('strong').style.fontSize=mix(61,79)+'px';
+  r.querySelector('svg').style.transform='rotate('+(reduced?0:t*36)+'deg)';r.querySelector('strong').style.fontSize=mix(61,79)+'px';
   r.querySelector('strong span').style.color='inherit';r.querySelector('div>span').style.opacity=1-t;
   const caption=hero.querySelector('.pj-progress-caption').getBoundingClientRect(),c=mini.querySelector('.pj-progress-caption');
   c.style.left=mix(caption.left-rect.left,90)+'px';c.style.top=mix(caption.top-rect.top,15)+'px';c.style.width=mix(caption.width,rect.width-102)+'px';

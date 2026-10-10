@@ -20,3 +20,7 @@ body.project-module #price-total-dock{display:none!important}
 .pj-progress-mini .pj-ring{position:absolute;margin:0;transform-origin:top left}
 .pj-progress-mini .pj-ring>svg{transform-origin:center}
 .pj-progress-mini .pj-progress-caption,.pj-progress-mini .pj-stage-legend{position:absolute;margin:0}
+
+.pj-progress-mini::before{content:"";position:absolute;left:6px;top:10px;width:80px;height:64px;background:radial-gradient(ellipse,rgba(207,241,168,.18),rgba(207,241,168,.06) 42%,transparent 72%);opacity:0;transition:opacity .18s ease;pointer-events:none}
+.pj-progress-mini.is-minimized::before{opacity:1}
+.pj-progress-mini .pj-ring,.pj-progress-mini .pj-progress-caption{z-index:1}

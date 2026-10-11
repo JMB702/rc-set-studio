@@ -765,3 +765,11 @@ body.pricing #design{display:none}
  body.viewport-collapsed .viewport #comment-toggle{bottom:6px;z-index:7}
 }
 @media(max-width:850px){body.viewport-collapsed[data-project-tab=tracking] #viewport-project-progress{visibility:hidden}}
+
+/* Phones: a slimmer approval bar. */
+@media(max-width:850px){
+ #approval-dock{padding:6px 14px calc(6px + env(safe-area-inset-bottom));gap:4px}
+ #approval-dock .approve-button{min-height:42px;font-size:14px;border-radius:8px}
+ #approval-dock #approvals>summary{min-height:34px;font-size:13px}
+ .approval-dock-visible .controls{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+}

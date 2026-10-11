@@ -28,7 +28,6 @@ function ids(name,height){
  if(/Shelf crossbar/.test(name))return ['crossbar'];
  if(/Ballast shelf/.test(name))return ['shelf'];
  if(/Ballast bag/.test(name))return ['bags','sand','tallBallast'];
- if(/strap|Strap/.test(name))return ['straps','tallBallast'];
  return [];
 }
 function pricedPanel(height,appearance=0){const root=panel(height,{appearance}),bins=new Map();

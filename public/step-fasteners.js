@@ -15,7 +15,7 @@ export function stepFasteners(stage,height,floor,cfg={}){
   if(stage===17)return [item('#8 × 1¼″ flat-head wood screws','Six per jack: 12 per panel, driven through the stile into the jack upright. Predrill; keep heads flush. No nails or staples here.','lapScrews',12)];
   if(stage===18)return [item('#8 × 2½″ flat-head wood screws','One at each crossbar/foot crossing: 4 total. Predrill down through the bars into the feet.','barScrews',4)];
   if(stage===19)return [item('#8 × 1″ flat-head wood screws','Six into each shelf crossbar: 12 total. Heads flush.','shortScrews',12)];
-  if(stage===20)return height===120?[item('Ballast from stock','Sandbags and other weight already on hand go on the ballast shelf; nothing to buy. Retain the weight so it cannot slide off the shelf.')]:[item('Cam-buckle straps','Three per panel, around the ballast shelf and crossbars. No additional wood screws in this step.','straps',3)];
+  if(stage===20)return height===120?[item('Ballast from stock','Sandbags and other weight already on hand go on the ballast shelf; nothing to buy. Keep it low and centered on the shelf.')]:none('Set the bags on the shelf between the crossbars. No straps or screws in this step.');
   if(stage===21)return [item('#8 × 1¼″ flat-head wood screws',`${height===120?5:4} per straight seam; ${height===120?25:20} across the full set’s five seams. Clamp faces flush and predrill.`,'lapScrews',height===120?25:20)];
   if(stage===22)return [item('SPAX #8 × 2½″ flat-head wood screws','Through the stile of each flat into the corner 2×4 drop: four per flat, eight per corner, 16 total. Predrill.','barScrews',16)];
   if(stage===23||stage===30)return none('Mark the layout only.');

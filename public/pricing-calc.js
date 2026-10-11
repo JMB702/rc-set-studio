@@ -75,7 +75,6 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  return rows;
 }
 export function summary(rows){return {subtotal:rows.reduce((s,r)=>s+(r.subtotalCents??0),0),pending:rows.filter(r=>r.subtotalCents===null).length};}
-export function exportList(rows,title){return `${title}\nHome Depot #6319 · 5475 University Pkwy · estimated material tax included below; delivery excluded\nEstimated sales tax (7%, priced materials only): ${money(materialTax(rows))}\nMaterials + estimated tax: ${money(summary(rows).subtotal+materialTax(rows))}\n\n`+rows.map(r=>`${r.purchaseQuantity??'TBD'} × ${r.name}\nUnit: ${money(r.unitPriceCents)} | Line: ${money(r.subtotalCents)}\n${r.availability}\n${r.productUrl}`).join('\n\n');}
 
 // Finance uses the same full-set estimate, regardless of which pricing scope is being viewed.
 export function pricingBudget(data,configuration,labor){

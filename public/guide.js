@@ -278,7 +278,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   $('#explore-controls').hidden=m!=='finished';$('#guide-controls').hidden=m!=='build';$('#guide-scene-tools').hidden=m!=='build';$('#step-overlay').hidden=true;
   $('#scene-tag').textContent=m==='finished'?'FINISHED SET':'CONSTRUCTION GUIDE';$('#view-hint').textContent=m==='finished'?'Drag to orbit · pinch to zoom':'Green = this step · drag or pinch to inspect';
   document.querySelectorAll('[data-mode]').forEach(b=>{b.classList.toggle('active',b.dataset.mode===m);b.setAttribute('aria-pressed',b.dataset.mode===m)});
-  if(m==='finished'||m==='cameras'){clear();api.getSet().visible=api.getFloor().visible=true;$('#panel-count').textContent='8 panels';api.orbit.minDistance=1.4;api.orbit.maxDistance=m==='cameras'?45:22;if(!['finished','cameras'].includes(previousMode)){api.view('front');if(m==='finished')requestAnimationFrame(()=>{if(S.mode===m&&!api.cameraAnimating)api.view('front');});}}
+  if(m==='finished'||m==='cameras'){clear();api.getSet().visible=api.getFloor().visible=true;$('#panel-count').textContent='8 panels';api.orbit.minDistance=1.4;api.orbit.maxDistance=m==='cameras'?45:22;if(!['finished','cameras'].includes(previousMode)&&!api.hasTabCamera?.(m))api.view('front');}
   else{display();if(entering){controls.scrollTop=0;window.scrollTo(0,0);}}
  }
  function go(n){S.step=Math.max(0,Math.min(n,all.length-1));display();controls.scrollTop=0;$('#guide-index').hidden=true;$('#guide-jump').setAttribute('aria-expanded','false');$('#step-content').focus({preventScroll:true});}

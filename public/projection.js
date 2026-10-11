@@ -66,29 +66,39 @@ export function supplyProgress(materials){
 // labor: the Pricing guide's labor settings for this design (laborFor()). Hours are person-hours; costs use the
 // Pricing guide crew rates for work still to come and each time entry's own captured rate for work done, so
 // with nothing done or logged the projection equals the estimate.
+// Which labor tasks a tracker milestone's work belongs to: shares by the Build guide stages they have in common.
+export function milestoneTasks(design,tasks){const out={};for(const [id,stages]of Object.entries(projectGuideGroups(design))){const shares={};for(const t of tasks){const own=laborStageNumbers(t.stage),n=stages.filter(x=>own.includes(x)).length;if(n)shares[t.id]=n;}const total=Object.values(shares).reduce((a,b)=>a+b,0);if(total)out[id]=Object.fromEntries(Object.entries(shares).map(([k,v])=>[k,v/total]));}return out;}
+// The stages a time entry worked on: a stage chosen on the entry wins; otherwise the work completed during its hours
+// (tracker progress history), weighted by that work's estimated hours. null when nothing was completed in the window.
+export function shiftStages(shift,{log=[],design,tasks,weights,now=Date.now()}){
+ if(shift.taskId&&tasks.some(t=>t.id===shift.taskId))return {auto:false,shares:{[shift.taskId]:1}};
+ const end=shift.end??now,map=milestoneTasks(design,tasks),hours={};
+ for(const e of log)if(e.at>=shift.start&&e.at<=end&&e.to>e.from&&map[e.step]){const h=(weights[e.step]??1)*(e.to-e.from)/100;for(const [task,share]of Object.entries(map[e.step]))hours[task]=(hours[task]||0)+h*share;}
+ const total=Object.values(hours).reduce((a,b)=>a+b,0);return total?{auto:true,shares:Object.fromEntries(Object.entries(hours).map(([k,v])=>[k,v/total]))}:null;
+}
 export function projectLabor(labor,{design,tracking,shifts=[],supply=0,now=Date.now()}){
  const onSite=labor.tasks.filter(t=>t.stage!=='Shopping'),onSiteHours=onSite.reduce((n,t)=>n+t.personHours,0);
  const scale=labor.defaultHours>0?labor.hours/labor.defaultHours:1;
  const perPersonHour=labor.crewRateCents==null||!onSiteHours?null:labor.hours*labor.crewRateCents/(onSiteHours*scale);
- const shiftHours=s=>projectShiftCost(s,now).hours,known=new Set(labor.tasks.map(t=>t.id));
+ const shiftHours=s=>projectShiftCost(s,now).hours,weights=progressWeights(design),stagesOf=new Map(shifts.map(s=>[s.id,shiftStages(s,{log:tracking?.progressLog||[],design,tasks:labor.tasks,weights,now})])),share=(s,id)=>stagesOf.get(s.id)?.shares[id]??0;
  const tasks=labor.tasks.map(task=>{
   const shopping=task.stage==='Shopping',estimateExact=task.personHours*(shopping?1:scale),estimate=Math.round(estimateExact*10)/10,progress=laborTaskProgress(task,{design,tracking,supplyProgress:supply});
-  const logged=shifts.filter(s=>s.taskId===task.id),loggedHours=logged.reduce((n,s)=>n+shiftHours(s),0);
+  const loggedHours=shifts.reduce((n,s)=>n+shiftHours(s)*share(s,task.id),0);
   // Actual spending comes only from recorded shifts. Shopping already included in logged time must not be synthesized again.
   const reported=false,actual=loggedHours;
   const remaining=estimateExact*(1-progress/100),rate=shopping?labor.shoppingRateCents:perPersonHour;
   return {id:task.id,name:task.name,stage:task.stage,estimate,progress,remainingExact:remaining,actual:Math.round(actual*100)/100,reported,remaining:Math.round(remaining*100)/100,projected:Math.round((actual+remaining)*100)/100,
-   actualCents:logged.reduce((n,s)=>n+projectShiftCost(s,now).cents,0),
+   actualCents:Math.round(shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents*share(s,task.id),0)),
    remainingCents:remaining<=0?0:rate==null?null:Math.round(remaining*rate)};
  });
- const unassigned=shifts.filter(s=>!s.taskId||!known.has(s.taskId)),unassignedHours=unassigned.reduce((n,s)=>n+shiftHours(s),0);
- const sum=key=>tasks.reduce((n,t)=>n+(t[key]??0),0),actualCents=sum('actualCents')+unassigned.reduce((n,s)=>n+projectShiftCost(s,now).cents,0);
+const unassigned=shifts.filter(s=>!stagesOf.get(s.id)),unassignedHours=unassigned.reduce((n,s)=>n+shiftHours(s),0);
+ const sum=key=>tasks.reduce((n,t)=>n+(t[key]??0),0),actualCents=shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents,0); // every entry once, however it splits across stages
  // Tasks without a rate are left out of the cost, as in the estimate, and counted in unpricedTasks. Summing
  // unrounded hours before pricing keeps a fresh projection equal to the estimate to the cent.
  const priced=(shop,rate)=>rate==null?0:Math.round(tasks.filter(t=>(t.stage==='Shopping')===shop).reduce((n,t)=>n+t.remainingExact,0)*rate);
  const remainingCents=priced(false,perPersonHour)+priced(true,labor.shoppingRateCents);
  const actualHours=sum('actual')+unassignedHours,remainingHours=sum('remainingExact');
- return {tasks,unassignedHours:Math.round(unassignedHours*100)/100,unassignedCount:unassigned.length,
+ return {tasks,shiftStages:Object.fromEntries(stagesOf),unassignedHours:Math.round(unassignedHours*100)/100,unassignedCount:unassigned.length,
   estimateHours:Math.round(sum('estimate')*10)/10,actualHours:Math.round(actualHours*100)/100,remainingHours:Math.round(remainingHours*100)/100,projectedHours:Math.round((actualHours+remainingHours)*100)/100,
   estimateCents:labor.costCents,actualCents,remainingCents,unpricedTasks:tasks.filter(t=>t.remainingCents===null).length,projectedCents:actualCents+remainingCents};
 }
@@ -112,9 +122,8 @@ export function projectCost({rows,finance,tracking,design,labor,now=Date.now()})
 export function progressWeights(design,{tracking=null,shifts=null,now=Date.now()}={}){
  const tasks=laborTasks(design).filter(t=>!['All','Shopping'].includes(t.stage)),hoursFor={};
  if(tracking&&shifts){
-  const work=projectLabor({tasks,hours:1,defaultHours:1,crewRateCents:null,shoppingRateCents:null,costCents:null},{design,tracking,shifts,now}).tasks;
-  const unlogged=work.filter(t=>!t.actual),guessed=unlogged.reduce((n,t)=>n+t.estimate*t.progress/100,0),assigned=new Set(work.map(t=>t.id));
-  const loose=shifts.filter(s=>!s.taskId||!assigned.has(s.taskId)).reduce((n,s)=>n+projectShiftCost(s,now).hours,0),scale=guessed&&loose?loose/guessed:1;
+  const result=projectLabor({tasks,hours:1,defaultHours:1,crewRateCents:null,shoppingRateCents:null,costCents:null},{design,tracking,shifts,now}),work=result.tasks;
+  const unlogged=work.filter(t=>!t.actual),guessed=unlogged.reduce((n,t)=>n+t.estimate*t.progress/100,0),loose=result.unassignedHours,scale=guessed&&loose?loose/guessed:1;
   for(const t of work)hoursFor[t.id]=(t.actual||t.estimate*t.progress/100*scale)+t.remainingExact;
  }else for(const t of tasks)hoursFor[t.id]=t.personHours;
  const groups=projectGuideGroups(design),hours={},owners={},weights={};

@@ -5,7 +5,7 @@ import {priceRows} from '../public/pricing-calc.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
 import {customizeRows} from '../public/pricing-config.js';
 import {projectProgress,projectStagePercent,projectDefaultTracking,projectValidate,projectPreserveFinance,projectSetGuideStage,projectSetAssemblyCounts} from '../public/project-model.js';
-import {projectMaterials,projectLabor,projectCost,laborStageNumbers,laborTaskProgress,supplyProgress,progressWeights,WALL_GROUPS} from '../public/projection.js';
+import {shiftStages,projectMaterials,projectLabor,projectCost,laborStageNumbers,laborTaskProgress,supplyProgress,progressWeights,WALL_GROUPS} from '../public/projection.js';
 
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
 const design={height:120,angle:90,floor:'charcoal',platformShape:'square',platformBack:12,platformSide:12,platformAngle:90};
@@ -135,4 +135,17 @@ test('Reported shopping does not inflate actual labor or return as future labor'
  assert.equal(result.actualCents,103167);
  const trip=result.tasks.find(t=>t.id==='shoppingDone');assert.equal(trip.actualCents,0);assert.equal(trip.remainingCents,0);
  assert.equal(projectLabor(labor(),{design,tracking:null,shifts:[],now}).actualCents,0);
+});
+
+test('Time entries take their stages from the work completed during them unless one is chosen',()=>{
+ const l=labor(),t=projectSetAssemblyCounts(projectDefaultTracking(),{panelsCompleted:8,jacksBuilt:4,jacksAttached:2},design),day=Date.UTC(2026,9,9,14);
+ t.progressLog=[{at:day+H,step:'walls-1',from:13,to:100},{at:day+2*H,step:'walls-3',from:0,to:17},{at:day+30*H,step:'walls-4',from:0,to:13}];
+ const shift={id:'a',personId:'person-1',start:day,end:day+10*H,rateCents:5000,note:'',taskId:null},w=progressWeights(design);
+ const st=shiftStages(shift,{log:t.progressLog,design,tasks:l.tasks,weights:w,now});
+ assert.equal(st.auto,true);assert.deepEqual(Object.keys(st.shares).sort(),['boltJacks','frames','jacks'].sort(),'only work inside the hours counts');
+ const frames=w['walls-1']*.87,jacks=w['walls-3']*.17;assert.ok(Math.abs(st.shares.frames-frames/(frames+jacks))<1e-9,'split by the estimated hours of the work done');
+ assert.deepEqual(shiftStages({...shift,taskId:'skins'},{log:t.progressLog,design,tasks:l.tasks,weights:w,now}),{auto:false,shares:{skins:1}},'a chosen stage wins');
+ assert.equal(shiftStages({...shift,start:day+40*H,end:day+41*H},{log:t.progressLog,design,tasks:l.tasks,weights:w,now}),null);
+ const p=projectLabor(l,{design,tracking:t,shifts:[shift],now});assert.equal(p.unassignedHours,0);
+ assert.ok(Math.abs(p.tasks.reduce((n,x)=>n+x.actual,0)-10)<.05,'all ten hours land on stages');assert.equal(p.actualCents,50000);
 });

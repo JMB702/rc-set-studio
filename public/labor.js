@@ -56,84 +56,38 @@ export function laborEstimate(d,crew=LABOR.crew){
 // the people who have a rate; with no rates at all it is not priced.
 export function laborCost(hours,rates){const set=rates.filter(r=>r!=null);return {costCents:set.length?Math.round(hours*set.reduce((s,r)=>s+r,0)):null,crewRateCents:set.length?set.reduce((s,r)=>s+r,0):null,unrated:rates.length-set.length};}
 
-// Labor settings are per viewer and live in this browser only: crew size, a rate for each person, and an
-// optional hours figure that replaces the estimate until it is reset. The adjusted hours remember the
-// estimate they replaced, so changing the design or the crew (a new estimate) goes back to the estimate.
-// Rates are kept for every slot up to the largest crew, so dropping a person and adding them back keeps their rate.
-const KEY='rc_labor',settings={crew:LABOR.crew,rates:Array(LABOR.maxCrew).fill(null),hours:null,hoursFor:null};
-const validRate=v=>Number.isFinite(v)&&v>=0;
-try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved){if(Number.isInteger(saved.crew)&&saved.crew>=1&&saved.crew<=LABOR.maxCrew)settings.crew=saved.crew;
- if(Array.isArray(saved.rates))settings.rates=settings.rates.map((_,i)=>validRate(saved.rates[i])?saved.rates[i]:null);
- if(Number.isFinite(saved.hours)&&saved.hours>0&&Number.isFinite(saved.hoursFor)){settings.hours=saved.hours;settings.hoursFor=saved.hoursFor;}}}catch{}
-function update(patch){Object.assign(settings,patch);try{localStorage.setItem(KEY,JSON.stringify(settings));}catch{}window.dispatchEvent(new Event('labor-changed'));}
-// Everything the UI shows for a design: the estimate, the hours in use, each person's rate and the labor cost.
-export function laborFor(d){const est=laborEstimate(d,settings.crew),adjusted=settings.hours!=null&&settings.hoursFor===est.hours,hours=adjusted?settings.hours:est.hours,rates=settings.rates.slice(0,est.crew);const base=laborCost(hours,rates),shoppingRateCents=rates[0],shoppingCents=shoppingRateCents==null?null:Math.round(est.shoppingHours*shoppingRateCents);return {...est,defaultHours:est.hours,hours,adjusted,rates,...base,shoppingRateCents,shoppingCents,costCents:base.costCents===null&&shoppingCents===null?null:(base.costCents??0)+(shoppingCents??0)};}
-const hoursText=h=>`${h} hr${h===1?'':'s'}`,people=n=>`${n} ${n===1?'person':'people'}`;
+// Labor uses the shared crew from Project burn-down: how many active people work on site and each one's hourly rate,
+// so the estimate and the recorded time use the same numbers. Rates are private: while burn-down is locked the
+// default crew of two estimates the hours and labor is not priced.
+let crewMembers=null;
+export function setLaborCrew(crew){crewMembers=Array.isArray(crew)?crew.filter(c=>!c.archived).map(c=>({name:c.name,rateCents:c.rateCents})).slice(0,LABOR.maxCrew):null;}
+// Everything the UI shows for a design: the estimate, each person's rate and the labor cost. Shopping is one person.
+export function laborFor(d){const crew=crewMembers?.length?crewMembers:null,est=laborEstimate(d,crew?crew.length:LABOR.crew),rates=crew?crew.map(c=>c.rateCents).slice(0,est.crew):Array(est.crew).fill(null),base=laborCost(est.hours,rates),shoppingRateCents=rates[0]??null,shoppingCents=shoppingRateCents==null?null:Math.round(est.shoppingHours*shoppingRateCents);
+ return {...est,defaultHours:est.hours,adjusted:false,rates,people:crew?crew.map(c=>c.name):null,...base,shoppingRateCents,shoppingCents,costCents:base.costCents===null&&shoppingCents===null?null:(base.costCents??0)+(shoppingCents??0)};}
+const hoursText=h=>`${Math.round(h*10)/10} hr${h===1?'':'s'}`;
+export function laborCrewLine(l){return l.people?l.people.map((name,i)=>`${name} ${l.rates[i]==null?'(no rate)':money(l.rates[i])+'/hr'}`).join(' · '):'Unlock Project burn-down to price labor with your crew';}
+export function laborHoursLine(l){return `${hoursText(l.hours)} on site · crew of ${l.crew} · ${hoursText(l.shoppingHours)} shopping`;}
+export function laborTaskList(l){return l.tasks.map(t=>{const li=document.createElement('li'),name=document.createElement('span'),hrs=document.createElement('strong');name.textContent=t.name;hrs.textContent=`${t.personHours} h`;li.append(name,hrs);return li;});}
 
-// Draws the labor controls into `host`. Mounted in the Pricing guide and in the approval dialog; both copies
-// share the settings above and redraw together.
-export function mountLabor(host,api,{prefix='labor'}={}){
- const S=api.state,id=s=>`${prefix}-${s}`;
+// Read-only labor summary for the approval dialog: the shared crew, the hours and how they add up.
+export function mountLabor(host,api){
  host.classList.add('labor');
- host.innerHTML=`<div class="labor-grid">
-<label for="${id('crew')}">People on the crew<span class="labor-stepper"><button type="button" data-step="-1" aria-label="One fewer person">−</button><input id="${id('crew')}" type="number" inputmode="numeric" min="1" max="${LABOR.maxCrew}" step="1"><button type="button" data-step="1" aria-label="One more person">+</button></span></label>
-<label for="${id('hours')}">Hours on site<span class="labor-input"><input id="${id('hours')}" type="number" inputmode="decimal" min="0.5" step="0.5"><span>hrs</span></span></label>
-</div><p class="labor-default"><span data-default></span> <button type="button" class="link-button" data-reset hidden>Reset to estimate</button></p>
-<fieldset class="labor-rates"><legend>Hourly rates</legend><ol data-rates></ol></fieldset>
-<p class="labor-cost"><span>Labor</span><strong data-cost aria-live="polite"></strong></p>
-<details class="labor-tasks"><summary>How the hours add up <span>+</span></summary><ol data-tasks></ol><p class="hint">Planning allowances for experienced carpenters with the tools in the Build guide. Drying and curing time is not labor and is not counted. Adjust the hours if your crew works faster or slower.</p></details>`;
- const q=s=>host.querySelector(s),crew=q('#'+id('crew')),hours=q('#'+id('hours')),list=q('[data-rates]');
- // Commit on change (blur or Enter in a field). Enter would otherwise submit the approval form around it.
- host.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('input')){e.preventDefault();e.target.dispatchEvent(new Event('change'));}});
- crew.onchange=()=>{const n=Math.round(Number(crew.value));update({crew:Number.isFinite(n)?Math.max(1,Math.min(LABOR.maxCrew,n)):LABOR.crew});};
- for(const b of host.querySelectorAll('[data-step]'))b.onclick=()=>update({crew:Math.max(1,Math.min(LABOR.maxCrew,settings.crew+Number(b.dataset.step)))});
- hours.onchange=()=>{const v=Number(hours.value),est=laborFor(S).defaultHours,h=hours.value.trim()===''||!(v>0)?null:Math.round(v*2)/2;update(h===null||h===est?{hours:null,hoursFor:null}:{hours:h,hoursFor:est});};
- q('[data-reset]').onclick=()=>update({hours:null,hoursFor:null});
- // One row per person. Rows are rebuilt only when the crew size changes, so tabbing between rates keeps focus.
- function rows(n){
-  if(list.children.length===n)return;
-  list.replaceChildren(...Array.from({length:n},(_,i)=>{const li=document.createElement('li'),label=document.createElement('label'),wrap=document.createElement('span'),input=document.createElement('input'),line=document.createElement('small');
-   label.htmlFor=input.id=id(`rate-${i+1}`);label.textContent=`Person ${i+1}`;wrap.className='labor-input';input.type='number';input.inputMode='decimal';input.min='0';input.step='1';input.placeholder='—';
-   input.onchange=()=>{const v=Number(input.value),rates=[...settings.rates];rates[i]=input.value.trim()===''||!(v>=0)?null:Math.round(v*100);update({rates});};
-   const dollar=document.createElement('span'),per=document.createElement('span');dollar.textContent='$';per.textContent='/hr';wrap.append(dollar,input,per);li.append(label,wrap,line);return li;}));
- }
- function render(){
-  const l=laborFor(S),active=document.activeElement;
-  if(active!==crew)crew.value=l.crew;if(active!==hours)hours.value=l.hours;
-  rows(l.crew);[...list.children].forEach((li,i)=>{const input=li.querySelector('input'),r=l.rates[i];if(active!==input)input.value=r==null?'':String(r/100);li.querySelector('small').textContent=r==null?'Not priced':r===0?'Already covered':money(Math.round(l.hours*r+(i===0?l.shoppingHours*r:0)));});
-  q('[data-default]').textContent=l.adjusted?`Adjusted from the ${hoursText(l.defaultHours)} estimate.`:'';q('.labor-default').hidden=!l.adjusted;
-  q('[data-reset]').hidden=!l.adjusted;host.classList.toggle('adjusted',l.adjusted);
-  q('[data-cost]').textContent=l.costCents==null?'Add rates to price labor':`${money(l.costCents)} · ${hoursText(l.hours)} × ${money(l.crewRateCents)}/hr crew + ${l.shoppingCents==null?'shopping unpriced':money(l.shoppingCents)+' shopping'}${l.unrated?` · ${people(l.unrated)} without a rate`:''}`;
-  q('[data-tasks]').replaceChildren(...l.tasks.map(t=>{const li=document.createElement('li'),name=document.createElement('span'),hrs=document.createElement('strong'),note=document.createElement('small');name.textContent=t.name;hrs.textContent=`${t.personHours} h`;note.textContent=`${t.stage==='All'?'':`Steps ${t.stage} · `}${t.note}`;li.append(name,hrs,note);return li;}));
- }
+ host.innerHTML=`<p class="labor-crew" data-crew></p><p class="labor-hours" data-hours></p><details class="labor-tasks"><summary>How the hours add up <span>+</span></summary><ol data-tasks></ol></details>`;
+ const q=s=>host.querySelector(s);
+ function render(){const l=laborFor(api.state);q('[data-crew]').textContent=laborCrewLine(l);q('[data-hours]').textContent=laborHoursLine(l);q('[data-tasks]').replaceChildren(...laborTaskList(l));}
  window.addEventListener('labor-changed',render);window.addEventListener('set-configured',render);
  render();return render;
 }
 
-// Materials and labor for the full set, for the approval gate. Materials use the Pricing guide's full-set rows
-// with every inclusion on; removals made in the Pricing guide are not applied here.
+// Materials and labor for the full set, for the approval gate.
 export function costSummary(data,d){
  const rows=priceRows(data,{scope:'set',height:d.height,angle:d.angle,floor:d.floor,platformShape:d.platformShape,platformBack:d.platformBack,platformSide:d.platformSide,platformAngle:d.platformAngle}),m=summary(rows),labor=laborFor(d);
  return {taxCents:materialTax(rows),materialsCents:m.subtotal,pending:m.pending,lines:rows.length,labor,totalCents:m.subtotal+materialTax(rows)+(labor.costCents??0)};
 }
 
 export function installLabor(api){
- const pricing=document.querySelector('#pricing-controls'),anchor=pricing?.querySelector('#price-review');if(!anchor)return;
- const card=document.createElement('section');card.id='labor-estimate';card.setAttribute('aria-labelledby','labor-title');
- card.innerHTML=`<div class="group-head"><h3 id="labor-title">Labor</h3><span>Full set</span></div><div id="labor-body"></div><dl id="price-estimate" aria-live="polite"></dl>`;
- anchor.after(card);mountLabor(card.querySelector('#labor-body'),api,{prefix:'labor'});
- // Materials from the Pricing guide as it stands (removals and added items included) plus labor.
- let materials=null;const out=card.querySelector('#price-estimate');
- function estimate(){
-  card.classList.toggle('has-estimate',materials?.scope==='set');
-  if(!materials){out.replaceChildren();return;}
-  if(materials.scope!=='set'){const p=document.createElement('p');p.className='hint';p.textContent='Labor is estimated for the full set. Choose Full set to add it to the estimate.';out.replaceChildren(p);return;}
-  const l=laborFor(api.state),pending=[materials.pending?`${materials.pending} material items still unpriced`:'',l.costCents==null?'labor not priced':''].filter(Boolean).join(' · ');
-  const row=(k,note,v,cls)=>{const div=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');if(cls)div.className=cls;dt.textContent=k;if(note){const small=document.createElement('small');small.textContent=note;dt.append(small);}dd.textContent=v;div.append(dt,dd);return div;};
-  out.replaceChildren(row('Materials','',money(materials.materialsCents)),row('Sales tax (7%)','',money(materials.taxCents??0)),row('Labor',`${l.hours} hrs · crew of ${l.crew} + ${l.shoppingHours} shopping hrs`,l.costCents==null?'No rates set':money(l.costCents)),row('Total estimate',pending.replace(/^./,x=>x.toUpperCase()),money(materials.materialsCents+(materials.taxCents??0)+(l.costCents??0)),'estimate-total'));
- }
- window.addEventListener('pricing-reviewed',e=>{materials=e.detail;estimate();});window.addEventListener('labor-changed',estimate);window.addEventListener('set-configured',estimate);
- api.labor=()=>laborFor(api.state);api.setLabor=patch=>update(patch);
- api.captureLabor=()=>structuredClone(settings);
- api.restoreLabor=s=>{if(!s)return;const est=laborEstimate(api.state,s.crew);update({crew:s.crew,rates:[...s.rates,...Array(Math.max(0,LABOR.maxCrew-s.rates.length)).fill(null)].slice(0,LABOR.maxCrew),hours:s.hours!=null&&s.hours!==(s.defaultHours??est.hours)?s.hours:null,hoursFor:s.hoursFor??s.defaultHours??est.hours});};
+ window.addEventListener('project-finance-changed',e=>{setLaborCrew(e.detail?.crew??null);window.dispatchEvent(new Event('labor-changed'));});
+ api.labor=()=>laborFor(api.state);
+ // Crew and rates are shared records now, so approvals no longer carry per-browser labor settings to restore.
+ api.captureLabor=()=>null;api.restoreLabor=()=>{};
 }

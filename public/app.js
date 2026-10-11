@@ -1,6 +1,7 @@
 import {installGuideCompletion} from './guide-completion.js';
 import {installConstructionView} from './construction-view.js';
 import {installProject} from './project.js';
+import {installViewportCollapse} from './viewport-collapse.js';
 import {cameraPolarLimit} from './camera-state.js';
 import {readWorkspace} from './workspace-state.js';
 import {installWorkspaceSession} from './workspace-session.js';
@@ -8,7 +9,8 @@ import * as THREE from 'three';import {installDesign} from './design.js';import 
 const $=s=>document.querySelector(s);const savedWorkspace=readWorkspace(defaultDesign);export const state={...defaultDesign,...savedWorkspace?.design,mode:'finished',step:0,clothing:{...defaultClothing(),...savedWorkspace?.design.clothing},platform:(savedWorkspace?.design.platformShape??defaultDesign.platformShape)!=='none'?PLATFORM.height:0};const canvas=$('#scene'),scene=new THREE.Scene();scene.background=new THREE.Color('#e1e6df');let renderer;try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'low-power'});}catch(e){$('#webgl-error').hidden=false;$('#loading').hidden=true;throw e;}
 // Preserve depth precision between the thin wall skin and framing when zoomed out.
 renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.35;const camera=new THREE.PerspectiveCamera(38,1,.1,60),orbit=new OrbitControls(camera,canvas);orbit.enableDamping=true;orbit.dampingFactor=.1;orbit.minDistance=1.4;orbit.maxDistance=22;orbit.maxPolarAngle=cameraPolarLimit(state.mode);scene.add(new THREE.HemisphereLight(0xfff5e5,0x616b5e,2.7));let sun=new THREE.DirectionalLight(0xfffaf1,4);sun.position.set(-3,8,6);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:.1,far:25});sun.shadow.bias=-.001;sun.shadow.normalBias=.025;scene.add(sun);let fill=new THREE.DirectionalLight(0xe4eeff,1.6);fill.position.set(4,4,-5);scene.add(fill);const ground=new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.MeshBasicMaterial({color:0xe1e6df}));ground.rotation.x=-Math.PI/2;ground.position.y=-.034;ground.receiveShadow=true;scene.add(ground);const shadow=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.ShadowMaterial({opacity:.14}));shadow.rotation.x=-Math.PI/2;shadow.position.y=-.032;shadow.receiveShadow=true;scene.add(shadow);
-let set,floor,figures,activeView='front',dirty=true,frames=0,movingUntil=0;export function invalidate(){dirty=true}function resize(){let r=$('#canvas-wrap').getBoundingClientRect();renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();camApply();dirty=true;}new ResizeObserver(resize).observe($('#canvas-wrap'));orbit.addEventListener('change',()=>{dirty=true;movingUntil=performance.now()+350});
+let set,floor,figures,activeView='front',dirty=true,frames=0,movingUntil=0;export function invalidate(){dirty=true}// setSize clears the canvas; draw again before the browser paints, or a scroll that resizes the viewer flashes blank frames.
+function resize(){let r=$('#canvas-wrap').getBoundingClientRect();if(!r.width||!r.height)return;renderer.setSize(r.width,r.height,false);camera.aspect=r.width/r.height;camera.updateProjectionMatrix();camApply();renderer.render(scene,camera);frames++;dirty=false;}new ResizeObserver(resize).observe($('#canvas-wrap'));orbit.addEventListener('change',()=>{dirty=true;movingUntil=performance.now()+350});
 // Floor and platform are independent: the floor covers the footprint wall to wall, the platform sits on it.
 // Shoe trim only finishes a floor's edge at the walls.
 function makeFloor(){const g=new THREE.Group();g.name='Floor and platform';g.userData.area=0;if(state.floor!=='none'){const f=floorMesh(state.angle,state.floor);g.add(f);g.userData.area=f.userData.area;}if(state.platformShape!=='none'){const p=platformFloor(state.angle,state.platformBack,state.platformSide,state.platformAngle);g.add(p);g.userData.platformArea=p.userData.area;}return g;}
@@ -20,7 +22,8 @@ export function renderSet(){window.dispatchEvent(new Event('comment-scene-reset'
 function figureOptions(){const lift=Math.max(0,+state.platform||0);return {scene:state.figures,scale:state.figureScale,lift,depth:lift>0?Math.max(48,(state.platformBack??12)+17):48,ceiling:state.height+30};}
 function placeFigures(){const key=JSON.stringify(figureOptions());if(figures&&figures.userData.key===key){paintFigures(figures,state.clothing);dirty=true;return;}dispose(figures);figures=podcastScene({...figureOptions(),clothing:state.clothing});figures.userData.key=key;set.add(figures);dirty=true;}
 const feet=n=>{const i=Math.round(n);return `${Math.floor(i/12)}′${i%12}″`;};
-export function view(v){activeView=v==='reset'?'front':v;let width=(192+192*Math.cos(state.angle*Math.PI/180))*inch;let d=Math.max(width/(2*Math.tan(BASE_FOV*Math.PI/360)*camera.aspect),4.6)*1.3;d=Math.min(24,d);let target=new THREE.Vector3(0,state.height*inch*.44,.7);orbit.enableDamping=false;orbit.target.copy(target);if(activeView==='front')camera.position.set(d*.09,d*.31,d*.95);if(activeView==='back')camera.position.set(-d*.25,d*.34,-d*.90);if(activeView==='top')camera.position.set(0,d,.71);camera.lookAt(target);orbit.update();orbit.enableDamping=true;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('selected',b.dataset.view===activeView));dirty=true;}
+const VIEW_DIRECTIONS={front:[.32,.23,1],back:[-.32,.3,-1],top:[0,1,.001]};
+export function view(v){activeView=v==='reset'?'front':v;const r=$('#canvas-wrap').getBoundingClientRect(),aspect=r.width>0&&r.height>0?r.width/r.height:camera.aspect,box=new THREE.Box3().setFromObject(set);if(floor?.visible)box.union(new THREE.Box3().setFromObject(floor));const shot=fitSetCamera({min:box.min.toArray(),max:box.max.toArray()},aspect,BASE_FOV,VIEW_DIRECTIONS[activeView]);orbit.enableDamping=false;orbit.maxDistance=Math.max(orbit.maxDistance,shot.distance*1.2);orbit.target.fromArray(shot.target);camera.position.fromArray(shot.position);camera.lookAt(orbit.target);orbit.update();orbit.enableDamping=true;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('selected',b.dataset.view===activeView));dirty=true;}
 
 // Camera overlay (Explore set and Camera positions): a framing rectangle with a crosshair, darkened outside, plus a
 // full-frame (36 x 24 mm) focal length from 14 to 200 mm. The long side of the rectangle spans the
@@ -77,6 +80,7 @@ installCameraPositions(window.__studio);
 installWorkspaceSession(window.__studio,savedWorkspace);
 
 installProject(window.__studio);
+installViewportCollapse();
 
 // Suppress long-press selection/callouts only inside the interactive viewer.
 for(const event of ['selectstart','contextmenu'])document.querySelector('.viewport').addEventListener(event,e=>e.preventDefault());
@@ -85,8 +89,12 @@ installConstructionView(window.__studio);
 
 installGuideCompletion(window.__studio);
 
-import {installOpeningView} from './opening-view.js';
+import {installOpeningView,fitSetCamera} from './opening-view.js';
 installOpeningView(window.__studio);
+
+// Installed last so it wraps every other mode handler: tab switches never move the camera.
+import {installTabCamera} from './tab-camera.js';
+installTabCamera(window.__studio);
 
 // Keep the sticky desktop viewer flush with the screen bottom as the header scrolls away.
 const viewerHeader=document.querySelector('body>header');let viewerSizeFrame=0;

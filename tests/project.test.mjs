@@ -18,7 +18,7 @@ test('Reject overlapping shifts, future times, duplicate records and removal of 
  const e={id:'a',vendor:'Lumber',amountCents:3200,date:'2026-10-09',note:'',receiptId:'receipt'};assert.throws(()=>projectValidate('finance',{...d,expenses:[e,{...e,id:'b'}]},now),/already recorded/);
 });
 test('Production starts walls, finishing, floor, platform; progress includes partial steps and survives reorder',()=>{
- const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:26});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:26});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
+ const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:26,weight:26});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:26,weight:26});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
 });
 test('Receipt extraction distinguishes total from subtotal, savings, tender and card numbers',()=>{
  const r=projectParseReceipt('LOCAL HARDWARE\n10/09/2026\nSUBTOTAL 100.00\nTAX 7.00\nTOTAL $107.00\nCASH 120.00\nCHANGE 13.00\nTOTAL SAVINGS 10.00');assert.equal(r.amountCents,10700);assert.equal(r.date,'2026-10-09');assert.equal(r.taxCents,700);assert.equal(r.warning,'');
@@ -214,7 +214,7 @@ test('Exact assembly counts update guide and tracker without inventing attached 
  assert.equal(projectGuideStagePercent(data,13,design),25);
  assert.equal(projectGuideStagePercent(data,17,design),13);
  assert.equal(projectGuideStagePercent(data,10,design),100);
- assert.equal(data.stages.flatMap(s=>s.steps).find(s=>s.id==='walls-3').percent,23);
+ assert.equal(data.stages.flatMap(s=>s.steps).find(s=>s.id==='walls-3').percent,21,'building a pair weighs twice attaching it');
  assert.equal(original.assembly,undefined);
  const changed=projectSetGuideStage(data,17,100,design);
  assert.equal(changed.assembly.jacksAttached,2);
@@ -273,6 +273,6 @@ test('Finance API stores receipt line items and work stages, and an older window
 test('Loading syncs counted milestones to the counts once and is then stable',()=>{
  const data=projectDefaultTracking();data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2,ballastAttached:1};for(const t of data.stages[0].steps)t.percent=100;
  const next=projectUpgradeTracking(data),pct=id=>next.stages.flatMap(s=>s.steps).find(t=>t.id===id).percent;
- assert.equal(pct('walls-1'),100);assert.equal(pct('walls-2'),100);assert.equal(pct('walls-3'),23);assert.equal(pct('walls-4'),13);assert.equal(pct('walls-0'),100,'uncounted steps keep their checkbox');
+ assert.equal(pct('walls-1'),100);assert.equal(pct('walls-2'),100);assert.equal(pct('walls-3'),21);assert.equal(pct('walls-4'),13);assert.equal(pct('walls-0'),100,'uncounted steps keep their checkbox');
  assert.equal(projectUpgradeTracking(next),next);assert.equal(projectUpgradeTracking(projectDefaultTracking()).stages[0].steps[1].percent,0,'no counts, nothing synced');
 });

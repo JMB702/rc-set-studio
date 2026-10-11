@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import {priceRows} from '../public/pricing-calc.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
 import {customizeRows} from '../public/pricing-config.js';
-import {projectDefaultTracking,projectValidate,projectPreserveFinance,projectSetGuideStage,projectSetAssemblyCounts} from '../public/project-model.js';
-import {projectMaterials,projectLabor,projectCost,laborStageNumbers,laborTaskProgress,supplyProgress,WALL_GROUPS} from '../public/projection.js';
+import {projectProgress,projectStagePercent,projectDefaultTracking,projectValidate,projectPreserveFinance,projectSetGuideStage,projectSetAssemblyCounts} from '../public/project-model.js';
+import {projectMaterials,projectLabor,projectCost,laborStageNumbers,laborTaskProgress,supplyProgress,progressWeights,WALL_GROUPS} from '../public/projection.js';
 
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
 const design={height:120,angle:90,floor:'charcoal',platformShape:'square',platformBack:12,platformSide:12,platformAngle:90};
@@ -105,4 +105,25 @@ test('A locked-in quote becomes the baseline; the live estimate is still reporte
  const l=labor(),p=projectCost({rows,finance:{budgetCents:569890,expenses:[],shifts:[]},tracking:null,design,labor:l,now});
  assert.equal(p.quoteCents,569890);assert.equal(p.baselineCents,569890);assert.equal(p.varianceCents,p.projectedCents-569890);assert.equal(p.estimateVarianceCents,0);
  assert.equal(projectCost({rows,finance:{budgetCents:null,expenses:[],shifts:[]},tracking:null,design,labor:l,now}).baselineCents,p.estimateCents);
+});
+
+test('Progress is weighted by estimated hours, not step count',()=>{
+ const w=progressWeights(design),sum=Object.values(w).reduce((a,b)=>a+b,0),est=labor().tasks.filter(t=>!['All','Shopping'].includes(t.stage)).reduce((n,t)=>n+t.personHours,0);
+ assert.ok(Math.abs(sum-est)<.01,'every on-site hour lands on a milestone');assert.equal(w['walls-3'],18,'jack build + attach hours');
+ const t=projectDefaultTracking();t.stages.find(s=>s.id==='walls').steps.find(s=>s.id==='walls-3').percent=100;
+ const heavy=projectProgress(t,w).percent;const light=structuredClone(projectDefaultTracking());light.stages.find(s=>s.id==='walls').steps.find(s=>s.id==='walls-4').percent=100;
+ assert.ok(heavy>projectProgress(light,w).percent,'an 18-hour step moves progress more than a 3.6-hour one');assert.equal(projectProgress(t).percent,projectProgress(light).percent,'unweighted they are equal');
+ const walls=t.stages.find(s=>s.id==='walls');assert.equal(projectStagePercent(walls,w),Math.round(1800/(7.2+8+6+18+3.6+5)));
+ const custom=structuredClone(t);custom.stages[0].steps.push({id:'mine',name:'Custom',percent:0,notes:[]});assert.ok(projectProgress(custom,w).percent<heavy,'custom steps weigh an average step');
+});
+
+test('Weights use logged hours for done work and the estimate for what is left',()=>{
+ let tr=projectSetAssemblyCounts(projectDefaultTracking(),{panelsCompleted:8,jacksBuilt:0,jacksAttached:0,jacksPartial:0,ballastAttached:0},design);
+ const est=progressWeights(design),shift=(taskId,h)=>({id:'s'+taskId+h,personId:'person-1',start:now-h*H,end:now,rateCents:0,note:'',taskId});
+ const logged=progressWeights(design,{tracking:tr,shifts:[shift('frames',30)],now});
+ assert.ok(Math.abs(logged['walls-1']-30)<1e-9,'frames are done: they weigh the 30 hours it actually took, not the 8-hour estimate');
+ assert.equal(logged['walls-3'],est['walls-3'],'jacks not started: still the estimate');
+ const loose=progressWeights(design,{tracking:tr,shifts:[shift(null,13.2)],now});
+ assert.ok(Math.abs(loose['walls-1']+loose['walls-2']-13.2)<.01,'unassigned hours stand in for the done work that has none (frames + skins)');assert.ok(Math.abs(loose['walls-1']/loose['walls-2']-8/6)<.01,'split by their estimates');
+ assert.deepEqual(progressWeights(design,{tracking:tr,shifts:null}),est,'locked burn-down: estimate only');
 });

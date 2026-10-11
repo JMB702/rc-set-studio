@@ -46,8 +46,12 @@ export function projectUpgradeFloorLayersOnly(input){
  if(floor){const skim=floor.steps.find(t=>t.id==='floor-1'&&t.name==='Prepare underlayment / cement skim');if(skim){floor.steps=floor.steps.filter(t=>t!==skim);floor.steps.push(skim);}}
  return data;
 }
-export function projectStagePercent(stage){return stage.steps.length?Math.round(stage.steps.reduce((n,s)=>n+s.percent,0)/stage.steps.length):0;}
-export function projectProgress(data){const steps=data.stages.flatMap(s=>s.steps);return {percent:steps.length?Math.round(steps.reduce((n,s)=>n+s.percent,0)/steps.length):0,done:steps.filter(s=>s.percent===100).length,total:steps.length};}
+// weights: optional {stepId: person-hours} from the labor estimate, so a step counts by how long it takes rather than
+// equally. Steps without a weight (custom steps, other designs) count as an average step.
+export function projectStepWeight(weights,id){if(!weights)return 1;const values=Object.values(weights).filter(v=>v>0);return weights[id]??(values.length?values.reduce((a,b)=>a+b,0)/values.length:1);}
+export function projectStageWeight(stage,weights){return stage.steps.reduce((n,t)=>n+projectStepWeight(weights,t.id),0);}
+export function projectStagePercent(stage,weights){const total=projectStageWeight(stage,weights);return total?Math.round(stage.steps.reduce((n,t)=>n+t.percent*projectStepWeight(weights,t.id),0)/total):0;}
+export function projectProgress(data,weights){const steps=data.stages.flatMap(s=>s.steps),total=steps.reduce((n,t)=>n+projectStepWeight(weights,t.id),0);return {percent:total?Math.round(steps.reduce((n,t)=>n+t.percent*projectStepWeight(weights,t.id),0)/total):0,done:steps.filter(s=>s.percent===100).length,total:steps.length,weight:total};}
 export function projectShiftCost(shift,now=Date.now()) {
  const elapsed=Math.max(0,(shift.end??now)-shift.start);
  const hours=shift.end===null?Math.floor(elapsed/3600000):elapsed/3600000;
@@ -175,7 +179,7 @@ export function projectCountUnits(design={}){const groups=projectGuideGroups({..
 export function projectCountMilestones(){return ['walls-1','walls-2','walls-3','walls-4'];}
 // Counted milestone percentages straight from the counts (the same for every wall height). Unchanged input is returned as is.
 export function projectSyncCounts(input){
- const c=projectAssembly(input.assembly),pct=(v,max)=>Math.round(v/max*100),jacks=c.jacksBuilt===null&&c.jacksAttached===null?null:Math.round(((c.jacksBuilt??0)/16*100*4+(c.jacksAttached??0)/16*100)/5);
+ const c=projectAssembly(input.assembly),pct=(v,max)=>Math.round(v/max*100),jacks=c.jacksBuilt===null&&c.jacksAttached===null?null:Math.round(((c.jacksBuilt??0)/16*100*2+(c.jacksAttached??0)/16*100)/3);
  const target={'walls-1':c.panelsCompleted===null?null:pct(c.panelsCompleted,8),'walls-2':c.panelsCompleted===null?null:pct(c.panelsCompleted,8),'walls-3':jacks,'walls-4':c.ballastAttached===null?null:pct(c.ballastAttached,8)};
  if(!input.stages.some(s=>s.steps.some(t=>target[t.id]!=null&&t.percent!==target[t.id])))return input;
  const data=structuredClone(input);for(const s of data.stages)for(const t of s.steps)if(target[t.id]!=null)t.percent=target[t.id];return data;

@@ -6,7 +6,8 @@
 // are its estimate scaled by how much of that work the Project tracker says is left.
 // Pure functions, no DOM: the Pricing guide, Project burn-down and tests all use them directly.
 import {materialTax} from './pricing-calc.js';
-import {projectGuideStagePercent,projectProgress,projectShiftCost} from './project-model.js';
+import {projectGuideStagePercent,projectGuideGroups,projectProgress,projectShiftCost} from './project-model.js';
+import {laborTasks} from './labor.js';
 
 // Shopping-list groups bought on the wall-panel trip; everything else is the "remaining supplies" shopping.
 export const WALL_GROUPS=['panel','supports'];
@@ -52,7 +53,7 @@ export function laborTaskProgress(task,{design,tracking,supplyProgress=0}){
  if(task.id==='shoppingDone')return 100;
  if(task.id==='shoppingRemaining')return supplyProgress;
  if(!tracking)return 0;
- if(task.stage==='All')return projectProgress(tracking).percent;
+ if(task.stage==='All')return projectProgress(tracking,progressWeights(design)).percent;
  const stages=laborStageNumbers(task.stage);
  return stages.length?Math.round(stages.reduce((n,s)=>n+projectGuideStagePercent(tracking,s,design),0)/stages.length):0;
 }
@@ -101,4 +102,24 @@ export function projectCost({rows,finance,tracking,design,labor,now=Date.now()})
  const estimateCents=materials.estimateCents+(labor.costCents??0),spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents+work.remainingCents;
  const quoteCents=finance?.budgetCents??null,baselineCents=quoteCents??estimateCents;
  return {materials,labor:work,estimateCents,quoteCents,baselineCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-baselineCents,estimateVarianceCents:spentCents+toGoCents-estimateCents};
+}
+
+// How long each tracker milestone takes, in person-hours: the hours actually logged for work already done, plus the
+// estimate for what is left. Done work with no time logged against its stage takes its share of the unassigned
+// logged hours (or its estimate when nothing is logged). Each labor task's hours are spread over its Build guide
+// stages; a stage shared by several milestones splits them. Feeds projectProgress()/projectStagePercent().
+// Without tracking and shifts (burn-down locked), it falls back to the estimate alone.
+export function progressWeights(design,{tracking=null,shifts=null,now=Date.now()}={}){
+ const tasks=laborTasks(design).filter(t=>!['All','Shopping'].includes(t.stage)),hoursFor={};
+ if(tracking&&shifts){
+  const work=projectLabor({tasks,hours:1,defaultHours:1,crewRateCents:null,shoppingRateCents:null,costCents:null},{design,tracking,shifts,now}).tasks;
+  const unlogged=work.filter(t=>!t.actual),guessed=unlogged.reduce((n,t)=>n+t.estimate*t.progress/100,0),assigned=new Set(work.map(t=>t.id));
+  const loose=shifts.filter(s=>!s.taskId||!assigned.has(s.taskId)).reduce((n,s)=>n+projectShiftCost(s,now).hours,0),scale=guessed&&loose?loose/guessed:1;
+  for(const t of work)hoursFor[t.id]=(t.actual||t.estimate*t.progress/100*scale)+t.remainingExact;
+ }else for(const t of tasks)hoursFor[t.id]=t.personHours;
+ const groups=projectGuideGroups(design),hours={},owners={},weights={};
+ for(const t of tasks){const stages=laborStageNumbers(t.stage);for(const n of stages)hours[n]=(hours[n]||0)+hoursFor[t.id]/stages.length;}
+ for(const [id,stages]of Object.entries(groups))for(const n of stages)(owners[n]??=[]).push(id);
+ for(const [n,h]of Object.entries(hours))for(const id of owners[n]||[])weights[id]=(weights[id]||0)+h/owners[n].length;
+ return weights;
 }

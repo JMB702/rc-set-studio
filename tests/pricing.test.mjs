@@ -19,10 +19,10 @@ test('Straight seam screws share the support screw pack',()=>{
  const rows=priceRows(data,{scope:'set',height:96,angle:45,floor:'wood',supports:true,ballast:true});
  const screws=rows.filter(r=>r.id==='lapScrews');assert.equal(screws.length,1);assert.equal(screws[0].needed,180);assert.equal(screws[0].purchaseQuantity,2);
 });
-test('Floor-only excludes panel stock; only the venue-dependent fixings stay unpriced',()=>{
+test('Floor-only excludes panel stock and every floor row is priced',()=>{
  const rows=priceRows(data,{scope:'floor',height:120,angle:90,floor:'charcoal'});
  assert.ok(!rows.some(r=>r.id==='board16'));assert.equal(rows.find(r=>r.id==='floorPly').purchaseQuantity,10);
- assert.deepEqual(rows.filter(r=>r.subtotalCents===null).map(r=>r.id),['floorFixings']);assert.equal(rows.find(r=>r.id==='floorPly').subtotalCents,10*5288);
+ assert.deepEqual(rows.filter(r=>r.subtotalCents===null).map(r=>r.id),[]);assert.equal(rows.find(r=>r.id==='vapor').subtotalCents,2*5175);assert.equal(rows.find(r=>r.id==='floorPly').subtotalCents,10*5288);
 });
 test('All scopes and variants use integer packs and Home Depot links',()=>{
  for(const height of [96,120])for(const scope of ['set','panel','floor'])for(const floor of ['wood','charcoal']){
@@ -94,8 +94,8 @@ test('Platform angle turns the sides in independently but never opens wider than
 });
 test('Floor and platform are independent: either, both or neither are priced',()=>{
  const ids=(floor,platformShape)=>priceRows(data,{scope:'floor',height:96,angle:45,floor,platformShape}).map(r=>r.id);
- const both=ids('wood','square');assert.ok(both.includes('laminate')&&both.includes('platformDeck')&&both.includes('floorFixings'));assert.ok(!both.includes('trim'),'no shoe trim in this project');
- assert.ok(!ids('none','angled').includes('floorFixings'),'no floor fixings without a floor');assert.ok(!ids('wood','none').some(id=>id.startsWith('platform')));
+ const both=ids('wood','square');assert.ok(both.includes('laminate')&&both.includes('platformDeck')&&both.includes('vapor'));assert.ok(!both.includes('trim'),'no shoe trim in this project');
+ assert.ok(!ids('none','angled').includes('vapor'),'no underlayment without a floor');assert.ok(!ids('wood','none').some(id=>id.startsWith('platform')));
  assert.equal(ids('none','none').length,0);
  const total=(f,p)=>summary(priceRows(data,{scope:'floor',height:96,angle:45,floor:f,platformShape:p})).subtotal;
  assert.equal(total('wood','square'),total('wood','none')+total('none','square'));
@@ -115,7 +115,7 @@ test('Burn-down budget uses full-set pricing, custom additions, exclusions and l
  const full=priceRows(data,{...configuration,scope:'set'}),removed=full.find(r=>r.subtotalCents>0);
  configuration.excluded=[removed.id];configuration.customItems=[{id:'custom-budget',title:'Additional material',quantity:2,unitPriceCents:2500,description:'',link:''}];
  const result=pricingBudget(data,configuration,{costCents:300000,unrated:0});
- assert.equal(result.materialsCents,summary(full).subtotal-removed.subtotalCents+5000);assert.equal(result.totalCents,result.materialsCents+result.taxCents+300000);assert.ok(result.pending>0);
+ assert.equal(result.materialsCents,summary(full).subtotal-removed.subtotalCents+5000);assert.equal(result.totalCents,result.materialsCents+result.taxCents+300000);assert.equal(result.pending,0,'every full-set row is priced for this design');
  assert.equal(pricingBudget(data,{...configuration,scope:'floor'},{costCents:0,unrated:0}).totalCents,result.materialsCents+result.taxCents);
  assert.equal(pricingBudget(data,configuration,{costCents:null,unrated:2}).laborCents,null);
 });

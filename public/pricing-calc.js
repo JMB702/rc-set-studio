@@ -14,6 +14,8 @@ export function floorRows(data,angle,type){const area=floorArea(angle),waste=are
  rows.push(extra('underlay','TrafficMaster 100 sq ft standard underlayment',Math.ceil(waste/100),3900,'327262533','30 rolls in stock · check substrate and manufacturer requirements'));
  rows.push(extra('vapor','Substrate-dependent vapor barrier',null,null,'https://www.homedepot.com/s/laminate%20vapor%20barrier','Required on applicable substrates; selection and quantity pending'));
  }else{
+ // Loose-laid on the concrete: a felt underlayment with attached vapor barrier keeps moisture out and adds grip.
+ rows.push(extra('vapor','QuietWalk 1.4 mm felt underlayment with attached vapor barrier · 100 sq ft roll',Math.ceil(waste/100),5175,'306837487',`Checked Oct 10 · ship to store #6319 · ${area.toFixed(0)} sq ft + 10% for overlaps; dense felt under the plywood, built-in tape strip at seams`));
  const sheets=2*Math.ceil(waste/32);rows.push(stocked(extra('floorPly','Plytanium 23/32 in BC sanded pine plywood · two layers · 4×8 sheet',sheets,5288,'100061386',`Checked Oct 10 at #6319 · 18 in stock · two layers, each with 10% area waste; offset joints both ways. Verify actual cut yield`),18));
  rows.push(stocked(extra('floorPrimer','BEHR PREMIUM Concrete & Masonry Bonding Primer · gallon',Math.ceil(area/250),2998,'100129649','Checked Oct 10 at #6319 · 19 in stock · one coat over the cured skim at 250 sq ft/gallon; paint-only SKIM FLOOR finish is an unverified scenic compromise'),19));
  rows.push(stocked(extra('floorPaint','BEHR Mined Coal porch & patio paint · gallon',Math.ceil(area*2/300),3998,'302055336','Checked Oct 10 at #6319 · 23 in stock · two coats at 300 sq ft/gallon. No epoxy or polyurethane; touch-ups expected'),23));
@@ -21,7 +23,6 @@ export function floorRows(data,angle,type){const area=floorArea(angle),waste=are
  rows.push(stocked(extra('floorGlue','Loctite PL 400 Subfloor construction adhesive · 28 oz',Math.ceil(area*2*1.1/86),898,'300751977',`Checked Oct 10 at #6319 · 204 in stock · ¼″ serpentine beads 6″ apart across ${area.toFixed(1)} sq ft between layers (~86 ft of bead per tube) + 10%. Separate from wall glue`),204));
  const screw=data.products.find(p=>p.id==='lapScrews');rows.push(stocked(extra('floorLayerScrews','Everbilt #8×1¼ in flat-head wood screws · plywood layers · 100 pack',Math.ceil(area*2.25*1.05/screw.packSize),797,'204275496','Checked Oct 10 at #6319 · 4 packs in stock · 8″ grid through the top layer; 1¼″ stays inside the 1 13/32″ combined thickness'),4));
  }
- rows.push(extra('floorFixings','Floor fixing supplies',null,null,'https://www.homedepot.com/s/flooring%20installation%20supplies','Venue-approved attachment and pack selection pending'));
  return rows;
 }
 // 10″ platform: every quantity comes from the module plan for this angle and these wall gaps.

@@ -24,7 +24,7 @@ export function stepFasteners(stage,height,floor,cfg={}){
   if(stage===27&&floor==='wood')return none('No trim and no fasteners: keep the expansion gap open.');
   if(stage===42)return [item('PL 400 Subfloor adhesive','¼″ serpentine beads about 6″ apart between the layers; set and screw each sheet while the adhesive is open. Do not fasten into the concrete.','floorGlue'),item('#8 × 1¼″ flat-head wood screws','8″ grid through the top layer; heads flush, tips stay within the combined plywood thickness.','floorLayerScrews')];
   if(stage===25&&floor==='charcoal')return [item('Rapid Set SKIM FLOOR cement underlayment','Thin full-surface cement skim. Follow the product’s preparation and curing directions.','floorSeams')];
-  if(stage===24)return [item('Floor-overlay fastening: specification pending','Use the venue-approved attachment/underlay detail. Do not drive screws into an unapproved existing floor.')];
+  if(stage===24)return [item('Underlayment seam tape','Use the underlayment’s built-in overlap and tape strip. The floor is loose-laid: no fasteners into the concrete.','vapor')];
   if(stage===25||stage===26||stage===27||stage===28||stage===37)return none('This is a surface preparation or coating step. Use the filler, seam fabric, primer or paint specified in the instructions.');
   if(stage===36)return [item('Rapid Set SKIM FLOOR · deck','Cement skim on the single-layer, frame-supported plywood walking surface.','platformDeckSkim'),item('Scenic joint materials · fascia only','Mesh tape, setting compound and vertical corner bead stay off the deck. Follow the selected bead’s attachment method.')];
   const p=platformPlan(cfg.angle??45,cfg.platformBack??12,cfg.platformSide??12,cfg.platformAngle),c=p.counts;

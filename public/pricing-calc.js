@@ -21,8 +21,7 @@ export function floorRows(data,angle,type){const area=floorArea(angle),waste=are
  rows.push(stocked(extra('floorGlue','Loctite PL 400 Subfloor construction adhesive · 28 oz',Math.ceil(area*2*1.1/86),898,'300751977',`Checked Oct 10 at #6319 · 204 in stock · ¼″ serpentine beads 6″ apart across ${area.toFixed(1)} sq ft between layers (~86 ft of bead per tube) + 10%. Separate from wall glue`),204));
  const screw=data.products.find(p=>p.id==='lapScrews');rows.push(stocked(extra('floorLayerScrews','Everbilt #8×1¼ in flat-head wood screws · plywood layers · 100 pack',Math.ceil(area*2.25*1.05/screw.packSize),797,'204275496','Checked Oct 10 at #6319 · 4 packs in stock · 8″ grid through the top layer; 1¼″ stays inside the 1 13/32″ combined thickness'),4));
  }
- rows.push(stocked(extra('trim','Royal Mouldings PVC shoe moulding · 8 ft · paint to match the floor',5,678,'100042052','Checked Oct 10 at #6319 · 106 in stock · 32 ft along walls + 10% cutting allowance'),106));
- rows.push(extra('floorFixings','Floor / trim fixing supplies',null,null,'https://www.homedepot.com/s/flooring%20installation%20supplies','Venue-approved attachment and pack selection pending'));
+ rows.push(extra('floorFixings','Floor fixing supplies',null,null,'https://www.homedepot.com/s/flooring%20installation%20supplies','Venue-approved attachment and pack selection pending'));
  return rows;
 }
 // 10″ platform: every quantity comes from the module plan for this angle and these wall gaps.
@@ -61,10 +60,11 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  if(scope==='set'){
  const p=data.products.find(p=>p.id==='lapScrews'),existing=rows.find(r=>r.id==='lapScrews'),needed=5*(height===120?5:4);
  if(existing){existing.needed+=needed;existing.purchaseQuantity=Math.ceil(existing.needed/p.packSize);existing.subtotalCents=existing.purchaseQuantity*p.unitPriceCents;}else rows.push({...p,needed,purchaseQuantity:Math.ceil(needed/p.packSize),subtotalCents:Math.ceil(needed/p.packSize)*p.unitPriceCents});
- rows.push(extra('corners','Two screw-fixed wing-corner connection assemblies',2,null,'https://www.homedepot.com/s/wood%20corner%20brace','Screw-fixed corner detail and quantities need scenic-shop review; no threaded through-fasteners specified','connections'));
+ // Each wing corner: a 2×4 drop stood in the inside corner, screwed to both flats with the jack box's SPAX screws.
+ const stud=data.products.find(p=>p.id==='crossbar');rows.push({...extra('corners','2×4×96 in stud · wing-corner drop',2,stud.unitPriceCents,stud.productUrl,`One per wing corner, screwed to both flats · ${stud.availability} · checked ${stud.checkedDate}`,'connections'),observedStock:stud.observedStock});
+ const bar=rows.find(r=>r.id==='barScrews'),cornerScrews=16;if(bar){bar.needed+=cornerScrews;bar.purchaseQuantity=Math.ceil(bar.needed/bar.packSize);bar.subtotalCents=bar.purchaseQuantity*bar.unitPriceCents;}
  }
  if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle));}
- if(height===120&&scope!=='floor'&&supports&&ballast)rows.push(extra('tallBallast','10′ panel ballast and retention supplies',null,null,'https://www.homedepot.com/p/301980932','Ballast mass and retention design pending','ballast'));
  return rows;
 }
 export function summary(rows){return {subtotal:rows.reduce((s,r)=>s+(r.subtotalCents??0),0),pending:rows.filter(r=>r.subtotalCents===null).length};}

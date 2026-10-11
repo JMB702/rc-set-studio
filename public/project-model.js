@@ -133,7 +133,6 @@ export function projectPartStatus(part,data) {
  if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&(counts.ballastAttached===null?percent('walls-4')===100:jackPanel<counts.ballastAttached)};
  if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':unit('wall-finishing-1',panel,8)||unit('wall-finishing-2',panel,8)?'seams':'raw'};
  if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':percent('floor-upper')===100&&percent('floor-1')===100?'skim':'raw'};
- if(part.kind==='trim')return {assembled:percent('floor-3')===100&&wall};
  if(part.kind==='platform'){
   if(part.members?.length){const states=part.members.map((module,index)=>projectPartStatus({...part,module,deckIndex:part.deckIndices?.[index]??part.deckIndex,members:null},data)),finishes=['raw','seams','skim','primer','paint'];return {assembled:states.every(s=>s.assembled),finish:finishes[Math.min(...states.map(s=>finishes.indexOf(s.finish)))]};}
   const i=part.module??0,n=part.total??1;

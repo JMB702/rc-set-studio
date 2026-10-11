@@ -94,8 +94,8 @@ test('Platform angle turns the sides in independently but never opens wider than
 });
 test('Floor and platform are independent: either, both or neither are priced',()=>{
  const ids=(floor,platformShape)=>priceRows(data,{scope:'floor',height:96,angle:45,floor,platformShape}).map(r=>r.id);
- const both=ids('wood','square');assert.ok(both.includes('laminate')&&both.includes('platformDeck')&&both.includes('trim'));
- assert.ok(!ids('none','angled').includes('trim'),'no shoe trim without a floor');assert.ok(!ids('wood','none').some(id=>id.startsWith('platform')));
+ const both=ids('wood','square');assert.ok(both.includes('laminate')&&both.includes('platformDeck')&&both.includes('floorFixings'));assert.ok(!both.includes('trim'),'no shoe trim in this project');
+ assert.ok(!ids('none','angled').includes('floorFixings'),'no floor fixings without a floor');assert.ok(!ids('wood','none').some(id=>id.startsWith('platform')));
  assert.equal(ids('none','none').length,0);
  const total=(f,p)=>summary(priceRows(data,{scope:'floor',height:96,angle:45,floor:f,platformShape:p})).subtotal;
  assert.equal(total('wood','square'),total('wood','none')+total('none','square'));

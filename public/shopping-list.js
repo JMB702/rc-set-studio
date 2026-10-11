@@ -13,7 +13,7 @@ if(host){
   const support=q('#shop-supports').checked,ballast=q('#shop-ballast').checked;
   q('#shop-ballast').disabled=!support||key==='10x4';
   const rows=calculate(data,key,n,support,ballast),total=rows.reduce((s,p)=>s+p.subtotalCents,0);
-  q('#shop-status').textContent=`${n} × ${key==='8x4'?'8×4':'10×4'} panels${support?' with jacks and shelves':''}.${key==='10x4'&&support?' 10′ ballast and retention quantities still need design; this subtotal excludes them.':' Prototype materials; verify construction and stability before use.'}`;
+  q('#shop-status').textContent=`${n} × ${key==='8x4'?'8×4':'10×4'} panels${support?' with jacks and shelves':''}.${key==='10x4'&&support?' 10′ ballast uses sandbags and weight already on hand; nothing to buy.':' Prototype materials; verify construction and stability before use.'}`;
   q('#shop-rows').replaceChildren(...rows.map(p=>{
    const tr=document.createElement('tr'),qty=document.createElement('td'),name=document.createElement('td'),cost=document.createElement('td'),a=document.createElement('a'),meta=document.createElement('small');
    qty.textContent=p.purchaseQuantity;a.textContent=p.name;a.href=p.productUrl;a.target='_blank';a.rel='noopener';

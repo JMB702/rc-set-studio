@@ -10,5 +10,5 @@ test('Platform fastening steps reconcile with existing plan quantities at each a
 });
 test('Every stage has fastener guidance; layout steps and unresolved fixings are explicit',()=>{
  for(const h of [96,120])for(const floor of ['none','wood','charcoal'])for(const stage of [...Array(29).keys(),30,31,32,33,34,35,36,37,42]){const items=stepFasteners(stage,h,floor);assert.ok(items.length);for(const item of items){assert.ok(item.title);assert.ok(item.note);if(item.productId)assert.ok([...data.products,...data.platform.products].some(p=>p.id===item.productId)||['platformDeckScrews','platformStaples','platformGlue','floorSeams','floorGlue','floorLayerScrews','platformDeckSkim'].includes(item.productId));}}
- assert.match(stepFasteners(3,120,'charcoal')[0].note,/Dry-fit/);assert.match(stepFasteners(22,120,'charcoal')[0].title,/pending/);assert.match(stepFasteners(24,120,'charcoal')[0].title,/pending/);assert.match(stepFasteners(25,120,'wood')[0].note,/Do not nail or screw/);
+ assert.match(stepFasteners(3,120,'charcoal')[0].note,/Dry-fit/);assert.equal(stepFasteners(22,120,'charcoal')[0].quantity,16);assert.match(stepFasteners(24,120,'charcoal')[0].title,/pending/);assert.match(stepFasteners(25,120,'wood')[0].note,/Do not nail or screw/);
 });

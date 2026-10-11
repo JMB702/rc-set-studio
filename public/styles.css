@@ -746,3 +746,6 @@ body.pricing #design{display:none}
 .price-item-more .price-row-note{display:block}
 .price-group .price-item.selected{background:#eef4e9}
 #price-materials #price-add-open{background:transparent;color:#2f4637;border:1px dashed #b8c8b0;min-height:44px;margin:4px 0 0;width:100%;font-size:13px;font-weight:600}
+
+.price-subhead{margin:14px 0 8px;font-size:12px;font-weight:600;color:#52635b;letter-spacing:.2px}
+.price-labor-tasks li span small{display:block;font-size:11px;color:var(--muted);font-weight:400}

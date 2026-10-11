@@ -73,9 +73,9 @@ The Pricing guide sidebar has three tabs: **Pricing guide**, **Project burn-down
 An authorized initial local-to-production transfer can use the server-only `/api/project/transfer` endpoint. It is disabled unless a temporary, expiring `PROJECT_TRANSFER_SECRET` is explicitly provisioned. Imports require an empty project destination, preserve document revisions and the existing salted PIN hash, exclude sessions, and commit atomically. A transfer receipt makes identical retries safe and rejects a different payload. Remove the runtime secret and redeploy after verifying the imported database; never commit snapshots or secret values.
 
 
-### Pricing guide
+### Pricing breakdown
 
-The Pricing guide is the plan: a one-line design summary (edit the design in Explore), an **Estimate** box (materials with estimated 7% tax, labor, total), **Materials** grouped by part of the set with subtotals and every item's quantity × unit price, a *Bought* tag on purchased rows and Details for cut needs and the store link, **Labor** (crew, hours on site, shopping, hours by stage) and **More** (spreadsheet and print exports). Add item adds custom costs. Labor uses the Project burn-down crew and rates (shared); while burn-down is locked, hours show without a dollar amount. Actual spending, the quote and the projection live in Project burn-down. Saved pricing configurations, item removal, scope switching and the shared-cart tools were removed.
+Cost & Tracking has three tabs, in order: **Project tracking**, **Project burn-down**, **Pricing breakdown**. The Pricing breakdown itemizes the same projected total Burn-down shows: a one-line design summary (edit the design in Explore); a **Projected cost** box (materials bought + still to buy with estimated tax, labor logged + still to come); **Materials** as the purchases made so far, then what is still to buy grouped by part of the set with each item's quantity × unit price and Details; **Labor** with the crew, hours logged and still to come, and hours by stage; and **More** (spreadsheet and print exports). Add item adds custom costs. Labor uses the Burn-down crew and rates. While Burn-down is locked there are no actuals, so the tab shows the plain estimate from list prices and the labor plan.
 
 ### Cost projection
 

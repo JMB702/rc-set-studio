@@ -26,7 +26,7 @@ function row(id,part){
 }
 // Collapsed, a card is one row: silhouette, name and what they're wearing. Open, it shows the swatches.
 function card(id,i){
- return `<details class="wear-card" data-person="${id}"><summary>${silhouette(id)}<div class="wear-title"><strong>${figurePeople[id].label}</strong><small class="wear-outfit"></small><small>${sides[i]} from the front</small></div><span class="wear-toggle" aria-hidden="true">+</span></summary><div class="wear-body">${row(id,'shirt')}${row(id,'pants')}<button type="button" class="wear-reset">Reset to original</button></div></details>`;
+ return `<details class="wear-card" data-person="${id}"><summary>${silhouette(id)}<div class="wear-title"><strong>${figurePeople[id].label}</strong><small class="wear-outfit"></small></div><span class="wear-toggle" aria-hidden="true">+</span></summary><div class="wear-body">${row(id,'shirt')}${row(id,'pants')}<button type="button" class="wear-reset">Reset to original</button></div></details>`;
 }
 
 export function installClothing(api){

@@ -8,8 +8,6 @@ export function installCameraPositions(api) {
 <p id="camera-status" role="status" aria-live="polite"></p>
 <div class="camera-heading"><h2>Saved angles</h2><button id="camera-refresh" type="button">Refresh</button></div>
 <div id="camera-shot-list" role="group" aria-label="Saved camera positions"></div>
-<p id="camera-save-hint" class="hint">Tap an angle to select it. Change the view, lens, frame or name, then Update selected. Save as new keeps a separate angle. Drag to orbit (upward to lower the camera), pinch to zoom, or use two fingers to pan.</p>
-<p class="hint">Camera positions are saved on this website across devices.</p>
 <dialog id="camera-delete-dialog" aria-labelledby="camera-delete-title" aria-describedby="camera-delete-description"><h2 id="camera-delete-title">Delete camera position?</h2><p id="camera-delete-description"></p><p class="hint">This removes the saved angle across devices. You can restore it later under Deleted angles.</p><div class="dialog-actions"><button type="button" id="camera-delete-cancel" autofocus>Cancel</button><button type="button" id="camera-delete-confirm">Delete position</button></div></dialog>
 <details id="camera-deleted" hidden><summary>Deleted angles <span>+</span></summary><div id="camera-deleted-list"></div></details>`;
   let positions=[],deleted=[],selected=null,busy=false,attempt=null,loadVersion=0,rowMessage=null,pendingDelete=null;
@@ -18,12 +16,12 @@ export function installCameraPositions(api) {
   function buttons(){
     const moving=!!api.cameraAnimating,dirty=changed();
     $('#camera-save').disabled=busy||moving;$('#camera-update').disabled=busy||moving||!selected||!dirty;name.disabled=busy;
-    $('#camera-selection').textContent=selected?'Selected: '+selected.name+(moving?' · Moving…':dirty?' · Unsaved changes':' · No changes to save'):'Frame and name a new angle, or select one below.';
+    $('#camera-selection').textContent=selected?'Selected: '+selected.name+(moving?' · Moving…':dirty?' · Unsaved changes':' · No changes to save'):'';
   }
   function action(label,aria,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-label',aria);b.disabled=busy;b.onclick=fn;return b;}
   function render(){
     const list=$('#camera-shot-list');list.replaceChildren();
-    if(!positions.length){const p=document.createElement('p');p.className='camera-empty';p.textContent='No saved angles yet. Frame and name your first shot above.';list.append(p);}
+    if(!positions.length){const p=document.createElement('p');p.className='camera-empty';p.textContent='No saved angles yet.';list.append(p);}
     for(const p of positions){
       const row=document.createElement('article'),b=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('span'),actions=document.createElement('div');
       row.className='camera-shot-row';b.type='button';b.className='camera-shot';b.setAttribute('aria-pressed',p.id===selected?.id);title.textContent=p.name;meta.textContent=`${Math.round(p.shot.mm)} mm · ${p.shot.ratio}`;b.append(title,meta);b.onclick=()=>select(p);b.disabled=busy;

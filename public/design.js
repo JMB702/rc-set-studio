@@ -36,7 +36,7 @@ ${colorField('wall')}</section>
 ${colorField('platform')}</div></section>
 <section class="design-group" aria-labelledby="floor-heading"><div class="group-head"><h3 id="floor-heading">Floor</h3><span id="floor-meta"></span></div>
 <div class="field"><span class="field-label">Finish</span>${choice('data-floor','Floor finish',[['none','None'],['wood','Oak','Laminate'],['charcoal','Painted','2-layer plywood + skim']])}</div>
-<p class="hint" id="floor-note"></p>
+
 <div data-floor-painted>${colorField('floor')}</div></section>
 </div>`;
  const q=s=>host.querySelector(s),all=s=>host.querySelectorAll(s);
@@ -62,7 +62,6 @@ ${colorField('platform')}</div></section>
   q('#platform-angle-note').textContent=S.platformAngle===S.angle?`Turn it further in than the ${S.angle}° walls for a squarer platform. It can never open wider than the walls.`:`${S.platformAngle-S.angle}° further in than the walls. Bringing the walls in pushes it in too.`;
   for(const i of all('[data-platform-gap]')){const v=S[i.dataset.platformGap==='back'?'platformBack':'platformSide'];if(document.activeElement!==i)i.value=v;host.querySelector(`output[for="${i.id}"]`).textContent=gapText(v);}
   q('[data-floor-painted]').hidden=S.floor!=='charcoal';
-  q('#floor-note').textContent=S.floor==='none'?(on?'The platform stands on the existing floor.':'The walls stand on the existing floor.'):(on?'Covers the whole 8′-deep footprint, wall to wall. The platform sits on top of it.':'Covers the 8′-deep footprint between the walls.');
   for(const f of all('.color-field')){const c=S[surfaces[f.dataset.surface].key];f.querySelector('output').textContent=colorName(c);let match=false;for(const b of f.querySelectorAll('.swatch[data-color]')){const p=b.dataset.color===c;match||=p;b.setAttribute('aria-pressed',p);}const custom=f.querySelector('.swatch.custom');custom.classList.toggle('picked',!match);custom.style.setProperty('--c',match?'':c);syncWheel(f);}
   summary();applyColors();
  }

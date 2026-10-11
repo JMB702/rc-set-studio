@@ -1,11 +1,13 @@
-// On phones the pinned 3D view collapses as you scroll: it is sticky at a negative offset, so it slides up until only
+// On phones, in Cost & Tracking, the pinned 3D view collapses as you scroll: it is sticky at a negative offset, so it slides up until only
 // a strip remains, without resizing anything (no layout jumps). The progress ring moves into that strip. Pinned
 // summaries below use --viewport-strip as their top offset.
 export const STRIP=56;
 export function installViewportCollapse(){
  const vp=document.querySelector('.viewport'),root=document.documentElement;let queued=false;
  function sync(){queued=false;
-  const pinned=matchMedia('(max-width:850px)').matches&&getComputedStyle(vp).position==='sticky'&&vp.offsetHeight>STRIP+40;
+  // Only Cost & Tracking collapses. Explore and Camera positions keep the whole view on screen: you watch the set
+  // change while working the controls below it.
+  const pinned=matchMedia('(max-width:850px)').matches&&document.body.classList.contains('pricing')&&getComputedStyle(vp).position==='sticky'&&vp.offsetHeight>STRIP+40;
   if(!pinned){vp.style.removeProperty('top');root.style.setProperty('--viewport-strip','0px');document.body.classList.remove('viewport-collapsed');window.dispatchEvent(new Event('viewport-strip-changed'));return;}
   const offset=STRIP-vp.offsetHeight;vp.style.top=offset+'px';root.style.setProperty('--viewport-strip',STRIP+'px');
   const collapsed=vp.getBoundingClientRect().top<=offset+1;

@@ -70,10 +70,20 @@ export function projectValidate(kind,input,now=Date.now()) {
  const receipts=input.expenses.map(e=>e.receiptId).filter(Boolean);if(new Set(receipts).size!==receipts.length)fail('This receipt is already recorded. Edit the existing entry.');
  if(!unique(input.expenses)||!unique(input.crew)||!unique(input.shifts))fail('Duplicate entry IDs.');
  for(const e of input.expenses)if(!id(e.id)||!str(e.vendor)||!e.vendor.trim()||!money(e.amountCents,true)||!str(e.note,2000)||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)||Number.isNaN(Date.parse(e.date))||(e.receiptId!==null&&!id(e.receiptId)))fail('Check the material entry, date and amount.');
+ // Receipt line items link a purchase to shopping-list rows by materialId; null means not on the list.
+ const item=i=>i&&typeof i==='object'&&id(i.id)&&(i.materialId===null||id(i.materialId))&&str(i.description)&&(i.materialId!==null||i.description.trim())&&(i.quantity===null||Number.isFinite(i.quantity)&&i.quantity>0&&i.quantity<=100000)&&(i.amountCents===null||money(i.amountCents,true))&&typeof i.complete==='boolean'&&typeof i.substitute==='boolean'&&str(i.note,500);
+ for(const e of input.expenses)if(e.items!==undefined&&(!list(e.items,200)||!unique(e.items)||!e.items.every(item)))fail('Check the receipt line items: each needs a shopping-list item or a description.');
  for(const c of input.crew)if(!id(c.id)||!str(c.name,80)||!c.name.trim()||!money(c.rateCents)||typeof c.archived!=='boolean')fail('Check the crew name and hourly rate.');
- for(const s of input.shifts){const c=input.crew.find(c=>c.id===s.personId);if(!id(s.id)||!c||!money(s.rateCents)||!str(s.note,2000)||!Number.isSafeInteger(s.start)||s.start<0||s.start>now+60000||s.end!==null&&(!Number.isSafeInteger(s.end)||s.end<s.start||s.end>now+60000)||s.end===null&&c.archived)fail('Check the shift times. Clock out before removing a person.');}
+ for(const s of input.shifts){const c=input.crew.find(c=>c.id===s.personId);if(!id(s.id)||!c||(s.taskId!=null&&!id(s.taskId))||!money(s.rateCents)||!str(s.note,2000)||!Number.isSafeInteger(s.start)||s.start<0||s.start>now+60000||s.end!==null&&(!Number.isSafeInteger(s.end)||s.end<s.start||s.end>now+60000)||s.end===null&&c.archived)fail('Check the shift times. Clock out before removing a person.');}
  for(const c of input.crew){const shifts=input.shifts.filter(s=>s.personId===c.id).sort((a,b)=>a.start-b.start);for(let i=1;i<shifts.length;i++)if(shifts[i-1].end===null||shifts[i].start<shifts[i-1].end)fail(`${c.name} has overlapping shifts. Correct the times first.`);}
- return {budgetCents:input.budgetCents,expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note}))};
+ return {budgetCents:input.budgetCents,expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId,items:(e.items||[]).map(i=>({id:i.id,materialId:i.materialId,description:i.description.trim(),quantity:i.quantity===null?null:Math.round(i.quantity*100)/100,amountCents:i.amountCents,complete:i.materialId!==null&&i.complete,substitute:i.materialId!==null&&i.substitute,note:i.note.trim()}))})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note,taskId:s.taskId??null}))};
+}
+// A window opened before line items and work stages existed saves expenses and shifts without those
+// fields. Carry them over from the stored record instead of erasing them.
+export function projectPreserveFinance(previous,next){
+ if(!next||!Array.isArray(next.expenses)||!Array.isArray(next.shifts))return next;
+ const expenses=new Map((previous?.expenses||[]).map(e=>[e.id,e])),shifts=new Map((previous?.shifts||[]).map(s=>[s.id,s]));
+ return {...next,expenses:next.expenses.map(e=>e&&typeof e==='object'&&!Object.hasOwn(e,'items')?{...e,items:expenses.get(e.id)?.items||[]}:e),shifts:next.shifts.map(s=>s&&typeof s==='object'&&!Object.hasOwn(s,'taskId')?{...s,taskId:shifts.get(s.id)?.taskId??null}:s)};
 }
 // Prefer a labelled total, never a card number, tendered cash, savings or subtotal.
 export function projectParseReceipt(text) {

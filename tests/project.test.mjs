@@ -250,3 +250,16 @@ test('Double-layer floor migration preserves old completion and notes but starts
  assert.equal(upper.percent,0);assert.deepEqual(upgraded.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-2'),lower);assert.equal(projectUpgradeTracking(upgraded),upgraded);
  const saved=projectSetGuideStage(upgraded,42,50,{height:120,floor:'charcoal'});assert.equal(saved.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-upper').percent,50);assert.equal(projectGuideStagePercent(saved,24,{height:120,floor:'charcoal'}),100);
 });
+
+test('Finance API stores receipt line items and work stages, and an older window cannot erase them',async()=>{
+ const r=rig(),setup=await r.call('access','POST',{action:'setup',pin:'2580'}),cookie=setup.headers.get('set-cookie').split(';')[0];
+ const d=await (await r.call('finance','GET',null,cookie)).json();
+ d.data.expenses=[{id:'expense-a',vendor:'Home Depot',date:'2026-10-09',amountCents:146200,note:'',receiptId:null,items:[{id:'line-a',materialId:'board16',description:'',quantity:null,amountCents:null,complete:true,substitute:false,note:''}]}];
+ d.data.shifts=[{id:'shift-a',personId:'person-1',start:Date.now()-H,end:Date.now(),rateCents:0,note:'',taskId:'frames'}];
+ const saved=await (await r.call('finance','PUT',d,cookie)).json();assert.equal(saved.data.expenses[0].items[0].materialId,'board16');assert.equal(saved.data.shifts[0].taskId,'frames');
+ // A tab loaded before this release sends records without the new fields.
+ const old={revision:saved.revision,data:{...saved.data,expenses:saved.data.expenses.map(({items,...e})=>({...e,note:'edited'})),shifts:saved.data.shifts.map(({taskId,...s})=>s)}};
+ const after=await (await r.call('finance','PUT',old,cookie)).json();assert.equal(after.data.expenses[0].note,'edited');assert.deepEqual(after.data.expenses[0].items,saved.data.expenses[0].items);assert.equal(after.data.shifts[0].taskId,'frames');
+ const bad={revision:after.revision,data:{...after.data,expenses:[{...after.data.expenses[0],items:[{id:'x',materialId:null,description:'',quantity:null,amountCents:null,complete:false,substitute:false,note:''}]}]}};
+ assert.equal((await r.call('finance','PUT',bad,cookie)).status,400);
+});

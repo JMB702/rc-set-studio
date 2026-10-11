@@ -672,3 +672,20 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .approval-breakdown dt{color:var(--muted)}.approval-breakdown dd{margin:0;text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .approval-breakdown .approval-updated{font-size:11px;color:var(--muted);margin:14px 0}
 .approval-load{width:100%;min-height:44px;margin-top:16px;border-radius:6px;background:#eaf2e2;color:#34502b;font-size:13px;font-weight:600}
+
+/* Cost projection in the Pricing guide: actual spending plus the estimate for what is still to come. */
+#price-projection{margin:14px 0 0;padding:14px;border:1px solid #cfdcc8;border-radius:9px;background:#f4f7f1}
+#price-projection:empty{display:none}
+#price-projection .group-head{margin-bottom:8px}
+#price-projection .hint{margin:0}
+#price-projection dl{display:grid;gap:7px;margin:0}
+#price-projection dl div{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#price-projection dt{font-size:14px;font-weight:600}
+#price-projection dt small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+#price-projection dd{margin:0;font-size:15px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.projection-variance{margin:8px 0 0;font-size:12px;font-weight:600;color:#4f7a3f}
+.projection-variance.over{color:#9c5341}
+.projection-warning{margin:10px 0 0;padding:9px 11px;border-radius:7px;background:#f5eedd;border:1px solid #e8dbb9;color:#7b5f22;font-size:12px;line-height:1.45}
+.price-purchase{display:block;font-size:12px;font-weight:600;color:#4f7a3f;margin:2px 0 4px}
+.price-purchase[data-status=partial]{color:#8a6a24}
+.price-item[data-purchase=bought] .price-line-math{text-decoration:line-through;text-decoration-color:#9aaa94}

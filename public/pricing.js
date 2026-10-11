@@ -45,7 +45,7 @@ function pricedPlatform(plan){const root=new T.Group(),parts=platformParts(plan)
  return root;}
 export function installPricing(api){
  // The Pricing guide is the plan: what the set costs to build, materials and labor, item by item. Actual spending,
- // the quote and the projection live in Project burn-down; only a Bought tag on purchased rows crosses over.
+ // the quote and the projection live in Cost projection; only a Bought tag on purchased rows crosses over.
  const host=$('#pricing-controls'),baseMode=api.setMode,S=api.state,scope='set',excluded=[];
  let data,model,rows=[],selected=null,pricingCamera='front',customItems=[],restoring=false;
  // Shared project records: finance is null while the burn-down PIN is locked.
@@ -76,7 +76,7 @@ export function installPricing(api){
    q('#price-labor-person-hours').textContent=hrs(w.projectedHours);
    q('#price-labor-tasks').replaceChildren(...w.tasks.map(t=>{const li=document.createElement('li'),name=document.createElement('span'),h=document.createElement('strong'),small=document.createElement('small');name.textContent=t.name;small.textContent=`estimate ${t.estimate} · logged ${Math.round(t.actual*10)/10} · left ${Math.round(t.remaining*10)/10}`;name.append(small);h.textContent=`${Math.round(t.projected*10)/10} h`;li.append(name,h);return li;}),...(w.unassignedHours?[(()=>{const li=document.createElement('li'),name=document.createElement('span'),h=document.createElement('strong');name.textContent='Logged with no stage';h.textContent=`${Math.round(w.unassignedHours*10)/10} h`;li.append(name,h);return li;})()]:[]));
   }else{q('#price-estimate-title').textContent='Estimate';
-   q('#price-estimate-rows').replaceChildren(row('Materials',`${money(e.sub)} + ${money(e.tax)} est. tax (7%)`,money(e.materials)),row('Labor',`${Math.round(l.personHours*10)/10} person-hours`,l.costCents==null?'Not priced':money(l.costCents)),row('Total estimate','Unlock Project burn-down to include what has been spent',money(e.total),'estimate-total'));
+   q('#price-estimate-rows').replaceChildren(row('Materials',`${money(e.sub)} + ${money(e.tax)} est. tax (7%)`,money(e.materials)),row('Labor',`${Math.round(l.personHours*10)/10} person-hours`,l.costCents==null?'Not priced':money(l.costCents)),row('Total estimate','Unlock Cost projection to include what has been spent',money(e.total),'estimate-total'));
    q('#price-materials-total').textContent=`${money(e.sub)} + tax`;
    q('#price-labor-total').textContent=l.costCents==null?'Not priced':money(l.costCents);q('#price-labor-crew').textContent=laborCrewLine(l);q('#price-labor-hours').textContent=laborHoursLine(l);q('#price-labor-person-hours').textContent=`${Math.round(l.personHours*10)/10} h`;q('#price-labor-tasks').replaceChildren(...laborTaskList(l));}
   window.dispatchEvent(new CustomEvent('pricing-reviewed',{detail:{scope,materialsCents:e.sub,taxCents:e.tax,priced:rows.filter(r=>r.subtotalCents!==null).length,pending:rows.filter(r=>r.subtotalCents===null).length}}));

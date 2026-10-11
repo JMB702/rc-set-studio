@@ -56,7 +56,7 @@ export function laborEstimate(d,crew=LABOR.crew){
 // the people who have a rate; with no rates at all it is not priced.
 export function laborCost(hours,rates){const set=rates.filter(r=>r!=null);return {costCents:set.length?Math.round(hours*set.reduce((s,r)=>s+r,0)):null,crewRateCents:set.length?set.reduce((s,r)=>s+r,0):null,unrated:rates.length-set.length};}
 
-// Labor uses the shared crew from Project burn-down: how many active people work on site and each one's hourly rate,
+// Labor uses the shared crew from Cost projection: how many active people work on site and each one's hourly rate,
 // so the estimate and the recorded time use the same numbers. Rates are private: while burn-down is locked the
 // default crew of two estimates the hours and labor is not priced.
 let crewMembers=null;
@@ -65,7 +65,7 @@ export function setLaborCrew(crew){crewMembers=Array.isArray(crew)?crew.filter(c
 export function laborFor(d){const crew=crewMembers?.length?crewMembers:null,est=laborEstimate(d,crew?crew.length:LABOR.crew),rates=crew?crew.map(c=>c.rateCents).slice(0,est.crew):Array(est.crew).fill(null),base=laborCost(est.hours,rates),shoppingRateCents=rates[0]??null,shoppingCents=shoppingRateCents==null?null:Math.round(est.shoppingHours*shoppingRateCents);
  return {...est,defaultHours:est.hours,adjusted:false,rates,people:crew?crew.map(c=>c.name):null,...base,shoppingRateCents,shoppingCents,costCents:base.costCents===null&&shoppingCents===null?null:(base.costCents??0)+(shoppingCents??0)};}
 const hoursText=h=>`${Math.round(h*10)/10} hr${h===1?'':'s'}`;
-export function laborCrewLine(l){return l.people?l.people.map((name,i)=>`${name} ${l.rates[i]==null?'(no rate)':money(l.rates[i])+'/hr'}`).join(' · '):'Unlock Project burn-down to price labor with your crew';}
+export function laborCrewLine(l){return l.people?l.people.map((name,i)=>`${name} ${l.rates[i]==null?'(no rate)':money(l.rates[i])+'/hr'}`).join(' · '):'Unlock Cost projection to price labor with your crew';}
 export function laborHoursLine(l){return `${hoursText(l.hours)} on site · crew of ${l.crew} · ${hoursText(l.shoppingHours)} shopping`;}
 export function laborTaskList(l){return l.tasks.map(t=>{const li=document.createElement('li'),name=document.createElement('span'),hrs=document.createElement('strong');name.textContent=t.name;hrs.textContent=`${t.personHours} h`;li.append(name,hrs);return li;});}
 

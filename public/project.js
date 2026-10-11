@@ -17,7 +17,7 @@ const noteField=value=>`<label class="pj-field"><span>Note <small>optional</smal
 export function installProject(api){
  const aside=document.querySelector('.controls'),tabs=document.createElement('div'),host=document.createElement('section');
  tabs.id='project-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label','Project tools');
- tabs.innerHTML=[['tracking','Project tracking'],['finance','Project burn-down'],['pricing','Pricing breakdown']].map(([id,label])=>`<button type="button" id="project-tab-${id}" role="tab" data-tab="${id}" aria-controls="${id==='pricing'?'pricing-controls':'project-panel'}" aria-selected="${id==='tracking'}" tabindex="${id==='tracking'?0:-1}">${label}</button>`).join('');
+ tabs.innerHTML=[['tracking','Project tracking'],['finance','Cost projection'],['pricing','Pricing breakdown']].map(([id,label])=>`<button type="button" id="project-tab-${id}" role="tab" data-tab="${id}" aria-controls="${id==='pricing'?'pricing-controls':'project-panel'}" aria-selected="${id==='tracking'}" tabindex="${id==='tracking'?0:-1}">${label}</button>`).join('');
  host.id='project-panel';host.className='pj';host.setAttribute('role','tabpanel');aside.prepend(tabs);tabs.after(host);
  const guideDialog=document.createElement('dialog');guideDialog.id='guide-tracker-dialog';guideDialog.className='pj';guideDialog.setAttribute('aria-labelledby','guide-tracker-title');guideDialog.innerHTML='<div class="guide-tracker-head"><h2 id="guide-tracker-title">Progress & notes</h2><button type="button" aria-label="Close progress and return to instructions">×</button></div><p class="guide-tracker-context"></p>';document.body.append(guideDialog);
  guideDialog.querySelector('button').onclick=()=>guideDialog.close();
@@ -256,7 +256,7 @@ export function installProject(api){
  api.showProjectFinance=()=>{if(api.state.mode!=='pricing')api.setMode('pricing');run(()=>select('finance'));tabs.scrollIntoView({block:'start',behavior:'smooth'});};
  // Page API for agents (the receipt-reconcile skill) working in an unlocked browser. It saves through the same
  // revision-checked path as the forms, so anything an agent records here can be reviewed and edited in the UI.
- const ensureFinance=async()=>{const status=await request('access');access=status;if(!status.unlocked)throw Error('Project burn-down is locked. Ask Jeff to enter the project PIN in this browser.');const result=await request('finance');if(result.revision!==records.finance?.revision)records.finance=result;publishFinance();return records.finance.data;};
+ const ensureFinance=async()=>{const status=await request('access');access=status;if(!status.unlocked)throw Error('Cost projection is locked. Ask Jeff to enter the project PIN in this browser.');const result=await request('finance');if(result.revision!==records.finance?.revision)records.finance=result;publishFinance();return records.finance.data;};
  const lineItem=i=>{const materialId=i.materialId??null;return {id:i.id||crypto.randomUUID(),materialId,description:String(i.description??'').trim(),quantity:i.quantity??null,amountCents:i.amountCents??null,complete:!!materialId&&!!i.complete,substitute:!!materialId&&!!i.substitute,note:String(i.note??'').trim()};};
  api.project={
   status:async()=>{const status=await request('access');return {...status,expenses:status.unlocked?(await ensureFinance()).expenses.length:null};},

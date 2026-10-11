@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {priceRows} from '../public/pricing-calc.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
 import {customizeRows} from '../public/pricing-config.js';
-import {projectDefaultTracking,projectValidate,projectPreserveFinance,projectSetGuideStage} from '../public/project-model.js';
+import {projectDefaultTracking,projectValidate,projectPreserveFinance,projectSetGuideStage,projectSetAssemblyCounts} from '../public/project-model.js';
 import {projectMaterials,projectLabor,projectCost,laborStageNumbers,laborTaskProgress,supplyProgress,WALL_GROUPS} from '../public/projection.js';
 
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
@@ -72,7 +72,7 @@ test('Hours: logged time is actual, the tracker sets what is left, unassigned ti
  assert.equal(p.tasks.find(x=>x.id==='shoppingDone').actual,3.5);
  const logged=projectLabor(l,{design,tracking:t,shifts:[{...shifts[0],taskId:'shoppingDone',start:now-2*H}],now}).tasks.find(x=>x.id==='shoppingDone');assert.equal(logged.actual,2);assert.equal(logged.reported,false);
  // A finished stage has nothing left, however long it took.
- let done=projectDefaultTracking();for(const stage of [13,14,15,16])done=projectSetGuideStage(done,stage,100,design);assert.equal(projectLabor(l,{design,tracking:done,shifts,now}).tasks.find(x=>x.id==='jacks').projected,6);
+ let done=projectSetAssemblyCounts(projectDefaultTracking(),{panelsCompleted:8,jacksBuilt:16,jacksAttached:0,jacksPartial:0},design);assert.equal(projectLabor(l,{design,tracking:done,shifts,now}).tasks.find(x=>x.id==='jacks').projected,6);
 });
 
 test('Remaining-supplies shopping progresses as non-wall rows are bought',()=>{

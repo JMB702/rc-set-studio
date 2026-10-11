@@ -276,3 +276,11 @@ test('Loading syncs counted milestones to the counts once and is then stable',()
  assert.equal(pct('walls-1'),100);assert.equal(pct('walls-2'),100);assert.equal(pct('walls-3'),21);assert.equal(pct('walls-4'),13);assert.equal(pct('walls-0'),100,'uncounted steps keep their checkbox');
  assert.equal(projectUpgradeTracking(next),next);assert.equal(projectUpgradeTracking(projectDefaultTracking()).stages[0].steps[1].percent,0,'no counts, nothing synced');
 });
+
+test('The jack step is named Build jacks; a separate attach step is folded back with its notes',()=>{
+ const old=projectDefaultTracking(),walls=old.stages.find(s=>s.id==='walls'),jacks=walls.steps.find(t=>t.id==='walls-3');jacks.name='Build and attach jacks';
+ walls.steps.splice(walls.steps.indexOf(jacks)+1,0,{id:'walls-attach',name:'Attach jacks to walls',percent:0,notes:[{id:'n',text:'keep',at:1}]});
+ const next=projectUpgradeTracking(old),w=next.stages.find(s=>s.id==='walls');
+ assert.equal(w.steps.find(t=>t.id==='walls-3').name,'Build jacks');assert.ok(!w.steps.some(t=>t.id==='walls-attach'));assert.equal(w.steps.find(t=>t.id==='walls-3').notes[0].text,'keep');
+ assert.equal(projectUpgradeTracking(next),next);
+});

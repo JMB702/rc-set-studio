@@ -109,12 +109,12 @@ test('A locked-in quote becomes the baseline; the live estimate is still reporte
 
 test('Progress is weighted by estimated hours, not step count',()=>{
  const w=progressWeights(design),sum=Object.values(w).reduce((a,b)=>a+b,0),est=labor().tasks.filter(t=>!['All','Shopping'].includes(t.stage)).reduce((n,t)=>n+t.personHours,0);
- assert.ok(Math.abs(sum-est)<.01,'every on-site hour lands on a milestone');assert.equal(w['walls-3'],18,'jack build + attach hours');
+ assert.ok(Math.abs(sum-est)<.01,'every on-site hour lands on a milestone');assert.equal(w['walls-3'],18,'building and attaching 16 jacks');
  const t=projectDefaultTracking();t.stages.find(s=>s.id==='walls').steps.find(s=>s.id==='walls-3').percent=100;
  const heavy=projectProgress(t,w).percent;const light=structuredClone(projectDefaultTracking());light.stages.find(s=>s.id==='walls').steps.find(s=>s.id==='walls-4').percent=100;
  assert.ok(heavy>projectProgress(light,w).percent,'an 18-hour step moves progress more than a 3.6-hour one');assert.equal(projectProgress(t).percent,projectProgress(light).percent,'unweighted they are equal');
  const walls=t.stages.find(s=>s.id==='walls');assert.equal(projectStagePercent(walls,w),Math.round(1800/(7.2+8+6+18+3.6+5)));
- const custom=structuredClone(t);custom.stages[0].steps.push({id:'mine',name:'Custom',percent:0,notes:[]});assert.ok(projectProgress(custom,w).percent<heavy,'custom steps weigh an average step');
+ const custom=structuredClone(t);custom.stages[0].steps.push({id:'mine',name:'Custom',percent:0,notes:[]});const avg=Object.values(w).reduce((a,b)=>a+b,0)/Object.values(w).length;assert.ok(Math.abs(projectProgress(custom,w).weight-projectProgress(t,w).weight-avg)<1e-9,'custom steps weigh an average step');
 });
 
 test('Weights use logged hours for done work and the estimate for what is left',()=>{

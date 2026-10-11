@@ -36,7 +36,16 @@ export function projectSeparateFinishing(input){
  return projectUpgradeFloorLayers(data);
 }
 // Every upgrade pass ends by bringing counted milestones in line with the counts.
-export function projectUpgradeFloorLayers(input){return projectSyncCounts(projectUpgradeFloorLayersOnly(input));}
+export function projectUpgradeFloorLayers(input){return projectSyncCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input)));}
+// The jack step is "Build jacks"; its built and attached counters both sit under it. A short-lived separate
+// "Attach jacks to walls" step (walls-attach) is folded back in, keeping its notes.
+export function projectRenameJackStep(input){
+ const steps=input.stages.flatMap(s=>s.steps);if(!steps.some(t=>t.id==='walls-attach'||t.id==='walls-3'&&t.name==='Build and attach jacks'))return input;
+ const data=structuredClone(input),all=data.stages.flatMap(s=>s.steps),jacks=all.find(t=>t.id==='walls-3'),extra=all.find(t=>t.id==='walls-attach');
+ if(jacks&&jacks.name==='Build and attach jacks')jacks.name='Build jacks';
+ if(extra){if(jacks)jacks.notes.push(...extra.notes);for(const s of data.stages)s.steps=s.steps.filter(t=>t.id!=='walls-attach');}
+ return data;
+}
 export function projectUpgradeFloorLayersOnly(input){
  if(input.floorAssemblyVersion===1&&!input.stages.some(s=>s.steps.some(t=>t.id==='floor-1'&&t.name==='Prepare the base'||t.id==='floor-2'&&t.name==='Lay the flooring'||t.id==='floor-3'&&t.name==='Finish and trim')))return input;
  const data=structuredClone(input);data.floorAssemblyVersion=1;

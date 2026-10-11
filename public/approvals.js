@@ -22,10 +22,6 @@ export function installApprovals(api){
  document.body.append(dialog);
  const q=s=>document.querySelector(s);let approvals=[],draftId=crypto.randomUUID(),loaded=false,data=null,editing=null,beforeEdit=null,saving=false;
  mountLabor(q('#approve-labor'),api,{prefix:'approve-labor'});
- const tip=document.createElement('div');tip.className='rate-reminder';tip.setAttribute('role','note');tip.innerHTML='<p></p><button type="button" aria-label="Dismiss reminder">×</button>';
- q('#approve-labor .labor-rates legend').after(tip);tip.querySelector('button').onclick=()=>{tip.hidden=true;};
- q('#approve-labor .labor-rates').addEventListener('change',()=>{tip.hidden=true;});
- function reminder(){tip.querySelector('p').textContent='Keep everyone working in the crew count. Enter paid rates; use $0 for labor already covered. Blank means not priced.';tip.hidden=false;}
  function currentEstimate(){const c=costSummary(data,S),l=c.labor;return normalizeApprovalEstimate({crew:l.crew,hours:l.hours,defaultHours:l.defaultHours,personHours:l.personHours,rates:l.rates,materialsCents:c.materialsCents,taxCents:c.taxCents,shoppingHours:l.shoppingHours,shoppingRateCents:l.shoppingRateCents,pending:c.pending,deckLayoutRevision:'paired-v1'});}
  function costs(){if(!dialog.open)return;if(!data){q('#approve-materials').textContent='Loading…';return;}
   const c=costSummary(data,S),l=c.labor;q('#approve-materials').textContent=money(c.materialsCents+c.taxCents);q('#approve-labor-note').textContent=`${l.hours} hrs · crew of ${l.crew} + ${l.shoppingHours} shopping hrs`;q('#approve-labor-total').textContent=l.costCents==null?'No rates set':money(l.costCents);q('#approve-total').textContent=money(c.totalCents);
@@ -72,7 +68,7 @@ export function installApprovals(api){
   q('#approve-description').textContent=editing?(editing.id===approvals[0]?.id?'Save changes to this approval and its default design.':'Save changes to this earlier approval; the current default stays the newest approval.'):'Everyone who opens the site will start from it, and it is listed under Approved designs.';
   q('#approve-summary').replaceChildren(...[['Walls',`${S.height/12}′ tall · ${S.angle}° wings · ${colorName(S.wallColor)}`],['Platform',S.platformShape==='none'?'None':`${S.platformShape==='square'?'Square':'Angled'} · ${S.platformBack}″ back · ${S.platformSide}″ sides · ${colorName(S.platformColor)}`],['Floor',S.floor==='none'?'None':S.floor==='wood'?'Oak laminate':`Painted plywood · ${colorName(S.floorColor)}`]].map(([k,v])=>{const li=document.createElement('li'),t=document.createElement('strong'),d=document.createElement('span');t.textContent=k;d.textContent=v;li.append(document.createElement('span'),t,d);return li;}));
   q('#approve-name').value=name;q('#approve-as-name').textContent=name;q('#approve-as').hidden=!!editing||!name;q('#approve-name-field').hidden=!editing&&!!name;q('#approve-error').textContent='';q('#approve-line').textContent=`${designLine(S)} · ${colorName(S.wallColor)} walls`;
-  dialog.showModal();reminder();costs();loadData();q('#approve-name').focus();
+  dialog.showModal();costs();loadData();q('#approve-name').focus();
  }
  q('#approve-not-me').onclick=()=>{q('#approve-as').hidden=true;q('#approve-name-field').hidden=false;q('#approve-name').value='';q('#approve-name').focus();};q('#approve-button').onclick=open;
  dialog.addEventListener('close',()=>{if(!saving)cancelEdit();});

@@ -700,3 +700,49 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 
 /* The counters under a counted step sit in their own tinted card. */
 .pj-step-counts{margin:8px 0 4px;padding:6px 12px;background:#f1f5ec;border:1px solid #dbe5d3;border-radius:10px}
+
+/* Pricing guide: the plan. One-line design, an estimate box, materials by group, labor. */
+body.pricing #design{display:none}
+.price-design{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;margin:0 0 16px;font-size:13px;color:#43524c}
+.price-design .link-button{margin:0;font-size:12px}
+#price-estimate-card{padding:16px;border:1px solid #cfdcc8;border-radius:10px;background:#f4f7f1;margin:0 0 22px}
+#price-estimate-card h3{margin:0 0 10px;font-size:16px}
+#price-estimate-rows{display:grid;gap:8px;margin:0}
+#price-estimate-rows div{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+#price-estimate-rows dt{font-size:14px;font-weight:600}
+#price-estimate-rows dt small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+#price-estimate-rows dd{margin:0;font-size:15px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+#price-estimate-rows .estimate-total{padding-top:8px;border-top:1px solid #d3dccd}
+#price-estimate-rows .estimate-total dd{font-size:22px;letter-spacing:-.4px}
+#price-materials,#price-labor{margin:0 0 22px}
+#price-materials .group-head,#price-labor .group-head{margin-bottom:8px}
+#price-materials-total,#price-labor-total{font-weight:600;font-variant-numeric:tabular-nums}
+.price-group{border:1px solid var(--line);border-radius:9px;background:#fff;margin:0 0 8px;padding:0 12px}
+.price-group>summary{min-height:48px;font-size:14px;font-weight:600}
+.price-group>summary>span:first-child{display:flex;flex-direction:column;font-size:14px;font-weight:600}
+.price-group>summary small{font-size:11px;font-weight:400;color:var(--muted)}
+.price-group>summary .price-group-total{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.price-group[open]>summary span{transform:none}
+.price-group .price-item{border-left:0;border-right:0;border-radius:0;margin:0;border-top:1px solid #eef1ec}
+.price-labor-crew,.price-labor-hours{margin:0 0 6px;font-size:13px;color:#43524c}
+.price-labor-tasks{list-style:none;margin:0;padding:0 0 8px}
+.price-labor-tasks li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-top:1px solid #eef1ec;font-size:13px}
+.price-labor-tasks strong{font-variant-numeric:tabular-nums}
+.price-more{margin:0 0 20px}
+.price-remove-custom{background:transparent;color:#9c5341;font-size:12px;padding:0;min-height:32px}
+
+.price-group .price-item{padding:0;background:transparent;overflow:visible}
+.price-group .price-item-inner{padding:10px 0;transform:none!important;background:transparent}
+.price-group .price-item-inner>button{display:flex;justify-content:space-between;align-items:baseline;gap:12px;width:100%;padding:0;min-height:0;background:transparent;text-align:left;font-size:13px}
+.price-group .price-item-inner>button strong{font-size:13px;font-weight:600;line-height:1.35}
+.price-group .price-item-inner>button span{font-size:13px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.price-item-meta{display:flex;align-items:center;gap:8px;margin-top:3px}
+.price-group .price-line-math{margin:0;font-size:12px;color:var(--muted);text-decoration:none!important}
+.price-group .price-purchase{margin:0;font-size:11px;padding:1px 7px;border-radius:999px;background:#e5efdc;color:#3f6b45}
+.price-group .price-purchase[data-status=partial]{background:#f5eedd;color:#8a6a24}
+.price-group .price-line-details{margin-left:auto;padding:0;min-height:24px;background:transparent;font-size:12px;color:#456449}
+.price-item-more{display:none;margin-top:6px;font-size:12px;line-height:1.5;color:#52635b}
+.price-item.show-details .price-item-more{display:grid;gap:4px}
+.price-item-more .price-row-note{display:block}
+.price-group .price-item.selected{background:#eef4e9}
+#price-materials #price-add-open{background:transparent;color:#2f4637;border:1px dashed #b8c8b0;min-height:44px;margin:4px 0 0;width:100%;font-size:13px;font-weight:600}

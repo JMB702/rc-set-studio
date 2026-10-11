@@ -251,6 +251,9 @@ nav{flex-shrink:0}.price-scopes{display:flex;gap:5px;margin:16px 0}.price-scopes
 .approve-button:disabled{opacity:1;background:#e5e5e5;color:#929292;border:1px solid #d5d5d5;box-shadow:none;cursor:not-allowed}
 .design-approve #approve-status{margin-top:10px}
 #approvals{margin-top:14px}
+/* The approval block already draws one divider; the list sits right under it without its own. */
+.design-approve{padding-top:6px}
+.design-approve>#approvals{margin-top:0;border-top:0}
 #approvals>summary{font-size:14px;font-weight:600;min-height:40px}
 #approvals-list{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:8px}
 .approval{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;row-gap:3px;align-items:center;text-align:left;padding:10px 12px;border:1px solid #dbe1da;border-radius:8px;background:#fff;color:var(--ink);font-size:14px}

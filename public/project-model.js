@@ -104,9 +104,8 @@ export function projectParseReceipt(text) {
 }
 
 export function projectAssembly(input={}) {
- const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['jacksPartial',16],['ballastAttached',8]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
+ const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['ballastAttached',8]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
  if((out.jacksAttached??0)>(out.jacksBuilt??0)||(out.jacksAttached??0)>(out.panelsCompleted??0)*2)throw Error('Attached jacks cannot exceed built jacks or two per completed panel.');
- if((out.jacksBuilt??0)+(out.jacksPartial??0)>16)throw Error('Built and partially built jacks cannot exceed 16.');
  if((out.ballastAttached??0)>Math.floor((out.jacksAttached??0)/2))throw Error('Attach both jacks before counting a ballast assembly.');
  return out;
 }
@@ -197,7 +196,6 @@ export function projectGuideStageDone(data,stage,design){const saved=data?.guide
 export function projectCreditUnit(assembly,key,amount){const a={...projectAssembly(assembly)},at=k=>a[k]??0;a[key]=Math.max(at(key),amount);
  if(key==='ballastAttached')a.jacksAttached=Math.max(at('jacksAttached'),a.ballastAttached*2);
  if(['ballastAttached','jacksAttached'].includes(key)){a.jacksBuilt=Math.max(at('jacksBuilt'),a.jacksAttached);a.panelsCompleted=Math.max(at('panelsCompleted'),Math.ceil(a.jacksAttached/2));}
- if(a.jacksBuilt!==null&&a.jacksPartial!==null&&a.jacksBuilt+a.jacksPartial>16)a.jacksPartial=16-a.jacksBuilt;
  return projectAssembly(a);}
 export function projectSetGuideStage(input,stage,done,design){
  const groups=projectGuideGroups(design),affected=Object.entries(groups).filter(([,stages])=>stages.includes(stage));

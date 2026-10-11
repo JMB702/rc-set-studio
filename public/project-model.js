@@ -113,9 +113,10 @@ export function projectParseReceipt(text) {
 }
 
 export function projectAssembly(input={}) {
- const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['ballastAttached',8]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
+ const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['ballastAttached',8],['wallsJoined',8],['anglesSet',2]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
  if((out.jacksAttached??0)>(out.jacksBuilt??0)||(out.jacksAttached??0)>(out.panelsCompleted??0)*2)throw Error('Attached jacks cannot exceed built jacks or two per completed panel.');
  if((out.ballastAttached??0)>Math.floor((out.jacksAttached??0)/2))throw Error('Attach both jacks before counting a ballast assembly.');
+ if((out.wallsJoined??0)>(out.panelsCompleted??0))throw Error('Joined walls cannot exceed completed panels.');
  return out;
 }
 // Exact inventory is authoritative when the user explicitly saves counts. Percent edits never invent counts.
@@ -183,12 +184,15 @@ export function projectCountUnits(design={}){const groups=projectGuideGroups({..
  {key:'jacksBuilt',max:16,per:2,stages:[13,14,15,16]},
  {key:'jacksAttached',max:16,per:2,stages:[17]},
  {key:'ballastAttached',max:8,per:1,stages:[18,19,20]},
+ // Joining and angle-setting happen once for the whole set, so finishing the guide steps credits nothing.
+ {key:'wallsJoined',max:8,per:0,stages:[21]},
+ {key:'anglesSet',max:2,per:0,stages:[22]},
 ];}
-export function projectCountMilestones(){return ['walls-1','walls-2','walls-3','walls-4'];}
+export function projectCountMilestones(){return ['walls-1','walls-2','walls-3','walls-4','walls-5'];}
 // Counted milestone percentages straight from the counts (the same for every wall height). Unchanged input is returned as is.
 export function projectSyncCounts(input){
  const c=projectAssembly(input.assembly),pct=(v,max)=>Math.round(v/max*100),jacks=c.jacksBuilt===null&&c.jacksAttached===null?null:Math.round(((c.jacksBuilt??0)/16*100*2+(c.jacksAttached??0)/16*100)/3);
- const target={'walls-1':c.panelsCompleted===null?null:pct(c.panelsCompleted,8),'walls-2':c.panelsCompleted===null?null:pct(c.panelsCompleted,8),'walls-3':jacks,'walls-4':c.ballastAttached===null?null:pct(c.ballastAttached,8)};
+ const target={'walls-1':c.panelsCompleted===null?null:pct(c.panelsCompleted,8),'walls-2':c.panelsCompleted===null?null:pct(c.panelsCompleted,8),'walls-3':jacks,'walls-4':c.ballastAttached===null?null:pct(c.ballastAttached,8),'walls-5':c.wallsJoined===null&&c.anglesSet===null?null:Math.round(((c.wallsJoined??0)/8*100+(c.anglesSet??0)/2*100)/2)};
  if(!input.stages.some(s=>s.steps.some(t=>target[t.id]!=null&&t.percent!==target[t.id])))return input;
  const data=structuredClone(input);for(const s of data.stages)for(const t of s.steps)if(target[t.id]!=null)t.percent=target[t.id];return data;
 }
@@ -213,7 +217,7 @@ export function projectSetGuideStage(input,stage,done,design){
  for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStagePercent(input,number,design);}
  data.guideChecks[projectGuideKey(stage,design)]=done;
  const unit=projectCountUnits(design).find(u=>u.stages.includes(stage));
- if(unit&&done&&done!==0&&unit.stages.every(n=>projectGuideStageDone(data,n,design)))data.assembly=projectCreditUnit(data.assembly,unit.key,unit.per);
+ if(unit?.per&&done&&done!==0&&unit.stages.every(n=>projectGuideStageDone(data,n,design)))data.assembly=projectCreditUnit(data.assembly,unit.key,unit.per);
  if(unit)for(const id of projectCountMilestones())if(!affected.some(([a])=>a===id)&&groups[id])affected.push([id,groups[id]]);
  for(const [id,stages]of affected){let row=data.stages.flatMap(s=>s.steps).find(t=>t.id===id);
   if(!row&&done){const defaults=projectDefaultTracking(),source=defaults.stages.find(s=>s.steps.some(t=>t.id===id));if(source){let parent=data.stages.find(s=>s.id===source.id);if(!parent){parent={id:source.id,name:source.name,notes:[],steps:[]};data.stages.push(parent);}row=structuredClone(source.steps.find(t=>t.id===id));parent.steps.push(row);}}

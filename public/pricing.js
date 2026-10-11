@@ -80,7 +80,7 @@ export function installPricing(api){
   list.append(row('Spent so far',`Materials ${money(m.spentCents)} · labor ${money(l.actualCents)} for ${hrs(l.actualHours)}`,money(p.spentCents)),
    row('Still to buy',`${m.counts.remaining+m.counts.partial} items + est. tax${m.pending?` · ${m.pending} still unpriced`:''}`,money(m.remainingCents+m.remainingTaxCents)),
    row('Labor to go',`${hrs(l.remainingHours)} left of ${hrs(l.projectedHours)} projected${l.unpricedTasks?' · tasks without a rate not priced':''}`,money(l.remainingCents)),
-   row('Projected total',p.quoteCents===null?`Estimate ${money(p.estimateCents)}`:`Quoted ${money(p.quoteCents)} · current estimate ${money(p.estimateCents)}`,money(p.projectedCents),'estimate-total'));
+   row('Projected total',p.quoteCents===null?`Estimate ${money(p.estimateCents)}`:`Quoted ${money(p.quoteCents)}`,money(p.projectedCents),'estimate-total'));
   card.append(list);
   const variance=document.createElement('p');variance.className='projection-variance'+(p.varianceCents>0?' over':'');variance.textContent=p.varianceCents===0?'On the estimate':`${money(Math.abs(p.varianceCents))} ${p.varianceCents>0?'over':'under'} the ${p.quoteCents===null?'estimate':'quote'}`;card.append(variance);
   if(m.coveredEstimateCents){const bought=document.createElement('p');bought.className='hint';bought.textContent=`Purchases so far: ${money(m.spentCents)} paid for items the list estimated at ${money(m.coveredEstimateCents)} with tax.`;card.append(bought);}

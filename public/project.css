@@ -121,3 +121,5 @@ body.project-module .controls>:not(#project-tabs):not(#project-panel){display:no
 .pj-row b{flex-shrink:0;font-size:13px;font-variant-numeric:tabular-nums;color:#1b2d29}
 .pj-empty-line{margin:0;padding:14px;font-size:12px;color:#839080}
 @media(max-width:850px){#project-tabs{box-shadow:0 0 0 10px #fafbf8}}
+.pj-row-total{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid #dce4da;background:#f4f7f1;font-size:13px;font-weight:600;color:#2a3f35}
+.pj-row-total b{font-variant-numeric:tabular-nums}

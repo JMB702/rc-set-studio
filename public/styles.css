@@ -755,3 +755,13 @@ body.pricing #design{display:none}
 #price-estimate-card,.pj-spend-hero{position:sticky;top:var(--pj-sticky-top,0px);z-index:4}
 #price-estimate-card{box-shadow:0 -10px 0 0 #fafbf8,0 10px 18px -12px #1720243d}
 .pj-spend-hero{box-shadow:0 -10px 0 0 #fafbf8,0 8px 25px #20352a09}
+
+/* Phones: once the 3D view has collapsed to its strip, shade the strip and keep the progress ring readable in it. */
+@media(max-width:850px){
+ body.viewport-collapsed .viewport::after{content:'';position:absolute;left:0;right:0;bottom:0;height:56px;background:#e9ede8f2;border-bottom:1px solid #d5ddd6;pointer-events:none;z-index:5}
+ body.viewport-collapsed #viewport-project-progress{top:auto;bottom:6px;left:12px;width:44px;height:44px;min-height:44px;z-index:7}
+ body.viewport-collapsed #viewport-project-progress span{font-size:14px;letter-spacing:-.4px}
+ body.viewport-collapsed #viewport-project-progress small{font-size:8px}
+ body.viewport-collapsed .viewport #comment-toggle{bottom:6px;z-index:7}
+}
+@media(max-width:850px){body.viewport-collapsed[data-project-tab=tracking] #viewport-project-progress{visibility:hidden}}

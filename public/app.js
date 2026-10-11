@@ -1,6 +1,7 @@
 import {installGuideCompletion} from './guide-completion.js';
 import {installConstructionView} from './construction-view.js';
 import {installProject} from './project.js';
+import {installViewportCollapse} from './viewport-collapse.js';
 import {cameraPolarLimit} from './camera-state.js';
 import {readWorkspace} from './workspace-state.js';
 import {installWorkspaceSession} from './workspace-session.js';
@@ -77,6 +78,7 @@ installCameraPositions(window.__studio);
 installWorkspaceSession(window.__studio,savedWorkspace);
 
 installProject(window.__studio);
+installViewportCollapse();
 
 // Suppress long-press selection/callouts only inside the interactive viewer.
 for(const event of ['selectstart','contextmenu'])document.querySelector('.viewport').addEventListener(event,e=>e.preventDefault());

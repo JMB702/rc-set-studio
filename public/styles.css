@@ -582,16 +582,12 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .guide-tracker-head button{min-width:44px;font-size:26px;background:transparent}
 .guide-tracker-context{font-size:14px;color:#63736a;margin:14px 0}
 #guide-tracker-dialog .pj-progress-hero{display:none}
-.pj-assembly{margin:18px 0;border:1px solid #d5e0cd;border-radius:10px;padding:0 12px;background:#f1f5ed}
-.pj-assembly summary{font-weight:650}
-.pj-assembly p{font-size:12px;line-height:1.5;color:#526458}
 .pj-count-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #dce3d6;font-size:14px;font-weight:600}
 .pj-count-row small{display:block;font-size:11px;font-weight:400;color:#617267}
 .pj-count-input{display:flex;gap:4px;align-items:center;flex-shrink:0}
 .pj-count-input button{width:44px;min-height:44px;font-size:22px;border:1px solid #c9d6c0;border-radius:7px;background:white;color:#293e31}
 .pj-count-input input{width:52px;min-height:44px;font:inherit;font-size:16px;text-align:center;border:1px solid #c9d6c0;border-radius:6px;background:white;appearance:textfield}
 .pj-count-input input::-webkit-inner-spin-button{appearance:none}
-.pj-assembly button[type=submit]{width:100%;margin:14px 0 0}
 @media(max-width:380px){.pj-count-row{font-size:12px}.pj-count-input{gap:2px}.pj-count-input input{width:42px}.pj-count-input button{width:40px}}
 
 /* One disclosure keeps section and step navigation out of the instructions. */
@@ -691,3 +687,7 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .price-purchase{display:block;font-size:12px;font-weight:600;color:#4f7a3f;margin:2px 0 4px}
 .price-purchase[data-status=partial]{color:#8a6a24}
 .price-item[data-purchase=bought] .price-line-math{text-decoration:line-through;text-decoration-color:#9aaa94}
+
+/* Assembly counters sit under the tracker step they measure. */
+.pj-step-counts{margin:4px 0 6px 38px}
+.pj-step-counts .pj-count-row{border-bottom:0;padding:4px 0;font-size:13px}

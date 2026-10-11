@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
-import {projectSyncCounts,projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectSetAssemblyCounts,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
+import {projectStampProgress,projectSyncCounts,projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectSetAssemblyCounts,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
 const H=3600000,now=Date.now(),shift={id:'shift',personId:'person-1',start:now-1.5*H,end:null,rateCents:2500,note:''};
 test('Live cost changes only at complete hourly boundaries; clock-out includes the exact partial hour',()=>{
  assert.deepEqual(projectShiftCost(shift,now-0.6*H),{hours:0,cents:0});assert.deepEqual(projectShiftCost(shift,now),{hours:1,cents:2500});assert.deepEqual(projectShiftCost(shift,now+0.5*H),{hours:2,cents:5000});assert.deepEqual(projectShiftCost({...shift,end:now},now),{hours:1.5,cents:3750});
@@ -314,4 +314,20 @@ test('Joining walls and setting angles are counted: 8 walls, 2 angles',()=>{
  d=projectSetAssemblyCounts(d,{...d.assembly,wallsJoined:8,anglesSet:2},design);assert.equal(pct(d),100);
  assert.throws(()=>projectAssembly({panelsCompleted:3,wallsJoined:4}),/Joined walls/);assert.throws(()=>projectAssembly({anglesSet:3}),/Invalid/);
  const checked=projectSetGuideStage(projectSetGuideStage(base,21,true,design),22,true,design);assert.equal(checked.assembly?.wallsJoined??null,null,'the guide never invents join counts');
+});
+
+test('Progress going up is time-stamped; reaching 100% stamps completion once; older clients keep history',async()=>{
+ const t0=Date.UTC(2026,9,9,15),prev=projectDefaultTracking(),next=structuredClone(prev);next.stages[0].steps[0].percent=100;next.stages[0].steps[1].percent=40;
+ const stamped=projectStampProgress(prev,next,t0);
+ assert.deepEqual(stamped.progressLog,[{at:t0,step:'walls-0',from:0,to:100},{at:t0,step:'walls-1',from:0,to:40}]);
+ assert.equal(stamped.stages[0].steps[0].completedAt,t0);assert.equal(stamped.stages[0].steps[1].completedAt,null);
+ const later=structuredClone(stamped);delete later.progressLog;later.stages[0].steps.forEach(t=>delete t.completedAt);later.stages[0].steps[1].percent=100;
+ const again=projectStampProgress(stamped,later,t0+3600000);
+ assert.equal(again.stages[0].steps[0].completedAt,t0,'an existing stamp is kept');assert.equal(again.stages[0].steps[1].completedAt,t0+3600000);assert.equal(again.progressLog.length,3);
+ const back=structuredClone(again);back.stages[0].steps[0].completedAt=t0-86400000;back.progressLog[0].at=t0-86400000;
+ const edited=projectStampProgress(again,back,t0+7200000);assert.equal(edited.stages[0].steps[0].completedAt,t0-86400000,'backdating is allowed');assert.equal(edited.progressLog[0].at,t0-86400000);
+ const undone=structuredClone(edited);undone.stages[0].steps[0].percent=0;assert.equal(projectStampProgress(edited,undone,t0).stages[0].steps[0].completedAt,null);
+ projectValidate('tracking',edited,t0+7200000);
+ const r=rig(),snap=await(await r.call('tracking')).json();snap.data.stages[0].steps[0].percent=100;const saved=await(await r.call('tracking','PUT',snap)).json();
+ assert.equal(saved.data.progressLog.length,1);assert.ok(saved.data.stages[0].steps[0].completedAt>0,'the server stamps saves from every screen');
 });

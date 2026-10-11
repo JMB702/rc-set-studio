@@ -77,8 +77,9 @@ export function projectValidate(kind,input,now=Date.now()) {
  if(!input||typeof input!=='object')fail('Invalid project data.');
  if(kind==='tracking') {
   if(!list(input.stages,30)||!input.stages.length||!unique(input.stages))fail('Keep 1–30 production stages.');
-  for(const s of input.stages){if(!id(s.id)||!str(s.name)||!s.name.trim()||!notes(s.notes)||!list(s.steps,100)||!s.steps.length||!unique(s.steps))fail('Invalid stage or notes.');for(const t of s.steps)if(!id(t.id)||!str(t.name)||!t.name.trim()||!Number.isInteger(t.percent)||t.percent<0||t.percent>100||!notes(t.notes))fail('Each step needs a name and progress from 0–100%.');}
-  return {floorAssemblyVersion:input.floorAssemblyVersion===1?1:0,assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes}))}))};
+  for(const s of input.stages){if(!id(s.id)||!str(s.name)||!s.name.trim()||!notes(s.notes)||!list(s.steps,100)||!s.steps.length||!unique(s.steps))fail('Invalid stage or notes.');for(const t of s.steps)if(!id(t.id)||!str(t.name)||!t.name.trim()||!Number.isInteger(t.percent)||t.percent<0||t.percent>100||!notes(t.notes)||(t.completedAt!=null&&(!Number.isSafeInteger(t.completedAt)||t.completedAt<0||t.completedAt>now+60000)))fail('Each step needs a name and progress from 0–100%.');}
+  if(input.progressLog!==undefined&&(!list(input.progressLog,5000)||!input.progressLog.every(e=>e&&Number.isSafeInteger(e.at)&&e.at>=0&&e.at<=now+60000&&id(e.step)&&[e.from,e.to].every(v=>Number.isInteger(v)&&v>=0&&v<=100))))fail('Invalid progress history.');
+  return {floorAssemblyVersion:input.floorAssemblyVersion===1?1:0,assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),progressLog:(input.progressLog||[]).map(e=>({at:e.at,step:e.step,from:e.from,to:e.to})),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes,completedAt:t.completedAt??null}))}))};
  }
  if(kind!=='finance')fail('Unknown project module.');
  if(input.budgetCents!==null&&!money(input.budgetCents)||!list(input.expenses,5000)||!list(input.crew,100)||!list(input.shifts,10000))fail('Invalid project totals or too many entries.');
@@ -92,6 +93,17 @@ export function projectValidate(kind,input,now=Date.now()) {
  for(const s of input.shifts){const c=input.crew.find(c=>c.id===s.personId);if(!id(s.id)||!c||(s.taskId!=null&&!id(s.taskId))||!money(s.rateCents)||!str(s.note,2000)||!Number.isSafeInteger(s.start)||s.start<0||s.start>now+60000||s.end!==null&&(!Number.isSafeInteger(s.end)||s.end<s.start||s.end>now+60000)||s.end===null&&c.archived)fail('Check the shift times. Clock out before removing a person.');}
  for(const c of input.crew){const shifts=input.shifts.filter(s=>s.personId===c.id).sort((a,b)=>a.start-b.start);for(let i=1;i<shifts.length;i++)if(shifts[i-1].end===null||shifts[i].start<shifts[i-1].end)fail(`${c.name} has overlapping shifts. Correct the times first.`);}
  return {budgetCents:input.budgetCents,expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId,items:(e.items||[]).map(i=>({id:i.id,materialId:i.materialId,description:i.description.trim(),quantity:i.quantity===null?null:Math.round(i.quantity*100)/100,amountCents:i.amountCents,complete:i.materialId!==null&&i.complete,substitute:i.materialId!==null&&i.substitute,note:i.note.trim()}))})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note,taskId:s.taskId??null}))};
+}
+// Work history. When a tracker step's progress goes up, the server records when and by how much (progressLog), and a
+// step that reaches 100% is stamped completedAt unless it already has a time. Hours are matched to the work completed
+// during them. A client may send an edited log or completedAt (to backdate work); older clients that omit them keep the
+// stored values. Dropping below 100% clears completedAt.
+export function projectStampProgress(previous,next,now){
+ const before=new Map((previous?.stages||[]).flatMap(s=>s.steps).map(t=>[t.id,t])),log=(Array.isArray(next.progressLog)?next.progressLog:previous?.progressLog||[]).slice();
+ const stages=next.stages.map(s=>({...s,steps:s.steps.map(t=>{const was=before.get(t.id),from=was?.percent??0,stamped=Object.hasOwn(t,'completedAt')?t.completedAt:was?.completedAt??null;
+  if(t.percent>from)log.push({at:now,step:t.id,from,to:t.percent});
+  return {...t,completedAt:t.percent===100?(stamped??now):null};})}));
+ return {...next,stages,progressLog:log.slice(-5000)};
 }
 // A window opened before line items and work stages existed saves expenses and shifts without those
 // fields. Carry them over from the stored record instead of erasing them.

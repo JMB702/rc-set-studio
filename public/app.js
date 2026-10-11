@@ -21,7 +21,8 @@ export function renderSet(){window.dispatchEvent(new Event('comment-scene-reset'
 function figureOptions(){const lift=Math.max(0,+state.platform||0);return {scene:state.figures,scale:state.figureScale,lift,depth:lift>0?Math.max(48,(state.platformBack??12)+17):48,ceiling:state.height+30};}
 function placeFigures(){const key=JSON.stringify(figureOptions());if(figures&&figures.userData.key===key){paintFigures(figures,state.clothing);dirty=true;return;}dispose(figures);figures=podcastScene({...figureOptions(),clothing:state.clothing});figures.userData.key=key;set.add(figures);dirty=true;}
 const feet=n=>{const i=Math.round(n);return `${Math.floor(i/12)}′${i%12}″`;};
-export function view(v){activeView=v==='reset'?'front':v;let width=(192+192*Math.cos(state.angle*Math.PI/180))*inch;let d=Math.max(width/(2*Math.tan(BASE_FOV*Math.PI/360)*camera.aspect),4.6)*1.3;d=Math.min(24,d);let target=new THREE.Vector3(0,state.height*inch*.44,.7);orbit.enableDamping=false;orbit.target.copy(target);if(activeView==='front')camera.position.set(d*.09,d*.31,d*.95);if(activeView==='back')camera.position.set(-d*.25,d*.34,-d*.90);if(activeView==='top')camera.position.set(0,d,.71);camera.lookAt(target);orbit.update();orbit.enableDamping=true;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('selected',b.dataset.view===activeView));dirty=true;}
+const VIEW_DIRECTIONS={front:[.32,.23,1],back:[-.32,.3,-1],top:[0,1,.001]};
+export function view(v){activeView=v==='reset'?'front':v;const r=$('#canvas-wrap').getBoundingClientRect(),aspect=r.width>0&&r.height>0?r.width/r.height:camera.aspect,box=new THREE.Box3().setFromObject(set);if(floor?.visible)box.union(new THREE.Box3().setFromObject(floor));const shot=fitSetCamera({min:box.min.toArray(),max:box.max.toArray()},aspect,BASE_FOV,VIEW_DIRECTIONS[activeView]);orbit.enableDamping=false;orbit.maxDistance=Math.max(orbit.maxDistance,shot.distance*1.2);orbit.target.fromArray(shot.target);camera.position.fromArray(shot.position);camera.lookAt(orbit.target);orbit.update();orbit.enableDamping=true;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('selected',b.dataset.view===activeView));dirty=true;}
 
 // Camera overlay (Explore set and Camera positions): a framing rectangle with a crosshair, darkened outside, plus a
 // full-frame (36 x 24 mm) focal length from 14 to 200 mm. The long side of the rectangle spans the
@@ -87,8 +88,12 @@ installConstructionView(window.__studio);
 
 installGuideCompletion(window.__studio);
 
-import {installOpeningView} from './opening-view.js';
+import {installOpeningView,fitSetCamera} from './opening-view.js';
 installOpeningView(window.__studio);
+
+// Installed last so it wraps every other mode handler: tab switches never move the camera.
+import {installTabCamera} from './tab-camera.js';
+installTabCamera(window.__studio);
 
 // Keep the sticky desktop viewer flush with the screen bottom as the header scrolls away.
 const viewerHeader=document.querySelector('body>header');let viewerSizeFrame=0;

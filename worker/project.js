@@ -62,6 +62,11 @@ async function projectAPI(request,env) {
    return r?json({id:r.id,filename:r.filename,pages:JSON.parse(r.pages)}):json({error:'Receipt not found.'},404);
   }
   if(!['finance','tracking'].includes(path))return json({error:'Not found.'},404);
+  // Release diagnostics must not initialize or upgrade saved project progress.
+  if(path==='tracking'&&request.method==='GET'&&url.searchParams.get('readOnly')==='1'){
+   const stored=await db.prepare('SELECT * FROM project_documents WHERE id=?').bind(path).first();
+   return json({data:stored?JSON.parse(stored.content):null,revision:stored?.revision??null});
+  }
   const initial=path==='finance'?projectDefaultFinance():projectDefaultTracking();
   await db.prepare('INSERT INTO project_documents (id,content,updated_at) VALUES (?,?,?) ON CONFLICT(id) DO NOTHING').bind(path,JSON.stringify(initial),now).run();
   let row=await db.prepare('SELECT * FROM project_documents WHERE id=?').bind(path).first();

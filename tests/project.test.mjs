@@ -30,6 +30,17 @@ test('Receipt extraction distinguishes total from subtotal, savings, tender and 
 const model=fs.readFileSync(new URL('../public/project-model.js',import.meta.url),'utf8').replaceAll('export function ','function '),routes=fs.readFileSync(new URL('../worker/project.js',import.meta.url),'utf8')+'\n'+fs.readFileSync(new URL('../worker/project-transfer.js',import.meta.url),'utf8');
 const api=(await import('data:text/javascript;base64,'+Buffer.from('const json=(data,status=200,headers={})=>Response.json(data,{status,headers});\n'+model+'\n'+routes+'\nexport {projectAPI,projectPinHash,projectTransfer};').toString('base64')));
 function rig(){const sqlite=new DatabaseSync(':memory:');for(const f of fs.readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort())sqlite.exec(fs.readFileSync(new URL('../drizzle/'+f,import.meta.url),'utf8'));const env={DB:{prepare(sql){const stmt=sqlite.prepare(sql);let args=[];return {bind(...values){args=values;return this;},async first(){return stmt.get(...args)||null;},async run(){return {meta:stmt.run(...args)};}};}}};return {sqlite,call:(path,method='GET',body,cookie,origin)=>api.projectAPI(new Request('http://localhost/api/project/'+path,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{}),...(origin?{Origin:origin}:{})},body:body?JSON.stringify(body):undefined}),env)};}
+test('Read-only tracking diagnostics never initialize or upgrade saved progress',async()=>{
+ const r=rig();
+ assert.deepEqual(await (await r.call('tracking?readOnly=1')).json(),{data:null,revision:null});
+ assert.equal(r.sqlite.prepare('SELECT count(*) AS n FROM project_documents').get().n,0);
+ const content=JSON.stringify({stages:[{id:'walls',name:'Walls',notes:[],steps:[{id:'walls-1',name:'Legacy work',percent:37,notes:['Keep this']}]}]});
+ r.sqlite.prepare('INSERT INTO project_documents (id,content,revision,updated_at) VALUES (?,?,?,?)').run('tracking',content,7,123);
+ assert.deepEqual(await (await r.call('tracking?readOnly=1')).json(),{data:JSON.parse(content),revision:7});
+ const saved=r.sqlite.prepare('SELECT content,revision,updated_at FROM project_documents WHERE id=?').get('tracking');
+ assert.equal(saved.content,content);assert.equal(saved.revision,7);assert.equal(saved.updated_at,123);
+ assert.equal((await r.call('finance?readOnly=1')).status,401);
+});
 test('PIN setup, shared sessions, finance/receipt API enforcement, lockout, and logout',async()=>{
  const r=rig();assert.equal((await r.call('finance')).status,401);assert.equal((await r.call('receipts/id')).status,401);
  assert.deepEqual(await (await r.call('access')).json(),{configured:false,unlocked:false});

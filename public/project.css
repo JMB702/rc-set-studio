@@ -90,3 +90,34 @@ body.project-module .controls>:not(#project-tabs):not(#project-panel){display:no
 .project-dialog [data-item-action=attach]{margin-top:12px;width:100%}
 .pj-plan[open]>summary span,.pj-hours[open]>summary span,.pj-item[open]>summary span,.pj-item[open]>summary span small{transform:none}
 .pj-budget-actions{display:flex;flex-direction:column;align-items:flex-end;flex-shrink:0}
+
+/* Burn-down, compact: a short pinned hero, one-line crew rows, tap-to-edit purchase and time rows. */
+.pj-hero-compact{padding:18px 20px 16px}
+.pj-hero-compact>strong{margin:6px 0 4px;font-size:clamp(30px,3.2vw,40px)}
+.pj-hero-quote{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 12px;font-size:12px;color:#c7d6cb}
+.pj-hero-quote button{flex-shrink:0;background:transparent;color:#d5f3b7;font-size:12px;min-height:28px;padding:0;text-decoration:underline;text-underline-offset:3px}
+.pj-hero-compact .pj-spend-track{margin:0 0 10px}
+.pj-hero-split{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:#c7d6cb}
+.pj-hero-split span{display:flex;align-items:center;gap:6px}
+.pj-hero-split b{color:#fff;font-size:14px;font-variant-numeric:tabular-nums}
+.pj-head-actions{display:flex;align-items:center;gap:4px}
+.pj-head-actions svg,.pj-text svg{width:14px;height:14px;vertical-align:-2px}
+.pj-chip{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:0 12px;border-radius:999px;background:#284638;color:#f7fff0;font-size:12px;font-weight:600}
+.pj-crew-list{border:1px solid #dce4da;border-radius:12px;background:#fff;overflow:hidden}
+.pj-crew-row{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-top:1px solid #eef1ea}
+.pj-crew-row:first-child{border-top:0}
+.pj-crew-row.on{background:#f3f8ee}
+.pj-crew-name{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;background:transparent;padding:4px 0;min-height:40px;text-align:left}
+.pj-crew-name strong{font-size:14px;color:#1b2d29}
+.pj-crew-name small{font-size:11px;color:#7d8c7d;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.pj-crew-row .pj-clock-in,.pj-crew-row .pj-clock-out{min-height:36px;padding:0 12px;flex-shrink:0}
+.pj-crew-row svg{width:15px}
+.pj-rows{border:1px solid #dce4da;border-radius:12px;background:#fff;overflow:hidden}
+.pj-row{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:10px 14px;min-height:52px;background:transparent;border-top:1px solid #eef1ea;text-align:left;border-radius:0}
+.pj-row:first-child{border-top:0}
+.pj-row>span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pj-row strong{font-size:13px;font-weight:600;color:#1b2d29}
+.pj-row small{font-size:11px;color:#7a867e;font-weight:400;line-height:1.4}
+.pj-row b{flex-shrink:0;font-size:13px;font-variant-numeric:tabular-nums;color:#1b2d29}
+.pj-empty-line{margin:0;padding:14px;font-size:12px;color:#839080}
+@media(max-width:850px){#project-tabs{box-shadow:0 0 0 10px #fafbf8}}

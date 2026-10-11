@@ -752,9 +752,9 @@ body.pricing #design{display:none}
 
 /* The cost summary on Pricing breakdown and Burn-down stays at the top while the lists scroll under it. On a phone
    it sits just below the pinned 3D view (--pj-sticky-top, set from the view's height). */
-#price-estimate-card,.pj-spend-hero{position:sticky;top:var(--pj-sticky-top,0px);z-index:4}
-#price-estimate-card{box-shadow:0 -10px 0 0 #fafbf8,0 10px 18px -12px #1720243d}
-.pj-spend-hero{box-shadow:0 -10px 0 0 #fafbf8,0 8px 25px #20352a09}
+/* A page-coloured holder is what pins, so nothing shows past the boxes' rounded corners. */
+.pj-sticky{position:sticky;top:var(--pj-sticky-top,0px);z-index:4;background:#fafbf8;padding-top:10px;margin-top:-10px}
+#price-estimate-card{box-shadow:0 10px 18px -12px #1720243d}
 
 /* Phones: once the 3D view has collapsed to its strip, shade the strip and keep the progress ring readable in it. */
 @media(max-width:850px){

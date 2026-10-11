@@ -57,13 +57,14 @@ test('Estimated tax applies to catalog rows still to buy, never to added costs',
 test('Labor stages parse Build guide ranges, and task progress follows the tracker',()=>{
  assert.deepEqual(laborStageNumbers('1–9'),[1,2,3,4,5,6,7,8,9]);assert.deepEqual(laborStageNumbers('23–27, 42'),[23,24,25,26,27,42]);assert.deepEqual(laborStageNumbers('All'),[]);assert.deepEqual(laborStageNumbers('17'),[17]);
  let t=projectDefaultTracking();for(const stage of [13,14])t=projectSetGuideStage(t,stage,100,design);
- const jacks=labor().tasks.find(x=>x.id==='jacks');assert.equal(laborTaskProgress(jacks,{design,tracking:t}),50);
+ const jacks=labor().tasks.find(x=>x.id==='jacks');assert.equal(laborTaskProgress(jacks,{design,tracking:t}),0,'steps alone are not jacks');
+ t=projectSetAssemblyCounts(t,{panelsCompleted:8,jacksBuilt:8},design);assert.equal(laborTaskProgress(jacks,{design,tracking:t}),50,'8 of 16 built');
  assert.equal(laborTaskProgress(labor().tasks.find(x=>x.id==='shoppingDone'),{design,tracking:null}),100);
  assert.equal(laborTaskProgress(jacks,{design,tracking:null}),0);
 });
 
 test('Hours: logged time is actual, the tracker sets what is left, unassigned time still counts',()=>{
- let t=projectDefaultTracking();for(const stage of [13,14,15,16])t=projectSetGuideStage(t,stage,50,design);
+ let t=projectSetAssemblyCounts(projectDefaultTracking(),{panelsCompleted:8,jacksBuilt:8},design);
  const l=labor(),shifts=[{id:'a',personId:'person-1',start:now-6*H,end:now,rateCents:5000,note:'',taskId:'jacks'},{id:'b',personId:'person-2',start:now-2*H,end:now,rateCents:0,note:'',taskId:null}];
  const p=projectLabor(l,{design,tracking:t,shifts,now}),jacks=p.tasks.find(x=>x.id==='jacks'),estimate=l.tasks.find(x=>x.id==='jacks').personHours;
  assert.equal(jacks.actual,6);assert.equal(jacks.progress,50);assert.equal(jacks.remaining,estimate/2);assert.equal(jacks.projected,6+estimate/2);assert.equal(jacks.actualCents,30000);

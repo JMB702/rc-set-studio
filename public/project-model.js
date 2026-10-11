@@ -36,7 +36,7 @@ export function projectSeparateFinishing(input){
  return projectUpgradeFloorLayers(data);
 }
 // Every upgrade pass ends by bringing counted milestones in line with the counts.
-export function projectUpgradeFloorLayers(input){return projectSyncCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input)));}
+export function projectUpgradeFloorLayers(input){return projectSyncCounts(projectClearFinishedPasses(projectRenameJackStep(projectUpgradeFloorLayersOnly(input))));}
 // The jack step is "Build jacks"; its built and attached counters both sit under it. A short-lived separate
 // "Attach jacks to walls" step (walls-attach) is folded back in, keeping its notes.
 export function projectRenameJackStep(input){
@@ -199,31 +199,40 @@ export function projectSyncCounts(input){
 export function projectGuideStagePercent(data,stage,design){
  const unit=projectCountUnits(design).find(u=>u.stages.includes(stage)),count=unit?projectAssembly(data?.assembly)[unit.key]:null;
  if(count!==null&&count!==undefined)return Math.round(count/unit.max*100);
- const key=projectGuideKey(stage,design),saved=data.guideChecks?.[key];
+ const key=projectGuideKey(stage,design),saved=unit?undefined:data.guideChecks?.[key];
  if(saved!==undefined)return typeof saved==='boolean'?(saved?100:0):saved;
  const groups=Object.entries(projectGuideGroups(design)).filter(([,stages])=>stages.includes(stage));
  return groups.length?Math.round(groups.reduce((sum,[id])=>sum+projectStepPercent(data,id),0)/groups.length):0;
 }
 export function projectGuideStageDone(data,stage,design){const saved=data?.guideChecks?.[projectGuideKey(stage,design)];if(saved!==undefined&&projectCountUnits(design).some(u=>u.stages.includes(stage)))return saved===true||saved===100;return projectGuideStagePercent(data,stage,design)===100;}
-// Credit a finished walkthrough unit, keeping the counts consistent with each other (attached ≤ built, two per panel).
-export function projectCreditUnit(assembly,key,amount){const a={...projectAssembly(assembly)},at=k=>a[k]??0;a[key]=Math.max(at(key),amount);
+// One pass through a unit's Build guide steps builds one more of it. Adds that amount (capped at the total) and keeps
+// the counts consistent with each other: attached jacks need built jacks and a panel per pair; ballast needs both jacks.
+export function projectAddUnit(assembly,key,amount,max){const a={...projectAssembly(assembly)},at=k=>a[k]??0;a[key]=Math.min(max,at(key)+amount);
  if(key==='ballastAttached')a.jacksAttached=Math.max(at('jacksAttached'),a.ballastAttached*2);
  if(['ballastAttached','jacksAttached'].includes(key)){a.jacksBuilt=Math.max(at('jacksBuilt'),a.jacksAttached);a.panelsCompleted=Math.max(at('panelsCompleted'),Math.ceil(a.jacksAttached/2));}
  return projectAssembly(a);}
+// Walkthrough checks of a counted unit cover only the unit being built now. Older records kept every step checked after
+// crediting the first unit; clear those finished passes once so a re-check cannot count them again.
+export function projectClearFinishedPasses(input){
+ const checks=input.guideChecks||{},done=key=>checks[key]===true||checks[key]===100,clear=[];
+ for(const height of [96,120]){const design={height,floor:'none'};for(const unit of projectCountUnits(design))if(unit.per){const keys=unit.stages.map(n=>projectGuideKey(n,design));if(keys.every(done))clear.push(...keys);}}
+ if(!clear.length)return input;const data=structuredClone(input);for(const key of clear)delete data.guideChecks[key];return data;
+}
 export function projectSetGuideStage(input,stage,done,design){
  const groups=projectGuideGroups(design),affected=Object.entries(groups).filter(([,stages])=>stages.includes(stage));
  if(!affected.length||(typeof done!=='boolean'&&(!Number.isInteger(done)||done<0||done>100)))throw Error('This guide step is not part of the current design.');
  const data=structuredClone(projectUpgradeTracking(input));data.guideChecks=projectGuideChecks(data.guideChecks||{});
- for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStagePercent(input,number,design);}
+ const counted=new Set(projectCountUnits(design).flatMap(u=>u.stages));
+ for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!counted.has(number)&&!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStagePercent(input,number,design);}
  data.guideChecks[projectGuideKey(stage,design)]=done;
  const unit=projectCountUnits(design).find(u=>u.stages.includes(stage));
- if(unit?.per&&done&&done!==0&&unit.stages.every(n=>projectGuideStageDone(data,n,design)))data.assembly=projectCreditUnit(data.assembly,unit.key,unit.per);
+ if(unit?.per&&(done===true||done===100)&&unit.stages.every(n=>projectGuideStageDone(data,n,design))){data.assembly=projectAddUnit(data.assembly,unit.key,unit.per,unit.max);for(const n of unit.stages)delete data.guideChecks[projectGuideKey(n,design)];}
  if(unit)for(const id of projectCountMilestones())if(!affected.some(([a])=>a===id)&&groups[id])affected.push([id,groups[id]]);
  for(const [id,stages]of affected){let row=data.stages.flatMap(s=>s.steps).find(t=>t.id===id);
   if(!row&&done){const defaults=projectDefaultTracking(),source=defaults.stages.find(s=>s.steps.some(t=>t.id===id));if(source){let parent=data.stages.find(s=>s.id===source.id);if(!parent){parent={id:source.id,name:source.name,notes:[],steps:[]};data.stages.push(parent);}row=structuredClone(source.steps.find(t=>t.id===id));parent.steps.push(row);}}
-  if(row)row.percent=Math.round(stages.reduce((sum,number)=>sum+projectGuideStagePercent(data,number,design),0)/stages.length);
+  if(row&&!projectCountMilestones().includes(id))row.percent=Math.round(stages.reduce((sum,number)=>sum+projectGuideStagePercent(data,number,design),0)/stages.length);
  }
- return data;
+ return projectSyncCounts(data);
 }
 // A direct tracker percentage edit supersedes earlier checkbox detail for that milestone.
 export function projectReconcileGuideChecks(previous,next){

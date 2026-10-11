@@ -58,20 +58,12 @@ export function installPricing(api){
 <section id="price-labor" aria-labelledby="price-labor-title"><div class="group-head"><h3 id="price-labor-title">Labor</h3><span id="price-labor-total"></span></div><p class="price-labor-crew" id="price-labor-crew"></p><p class="price-labor-hours" id="price-labor-hours"></p><details class="price-group"><summary><span>Hours by stage</span><span class="price-group-total" id="price-labor-person-hours"></span></summary><ol class="price-labor-tasks" id="price-labor-tasks"></ol></details></section>
 <details class="price-more"><summary>More <span>+</span></summary><div class="price-export"><button id="price-csv">Download spreadsheet (CSV)</button><button id="price-print">Print / save PDF</button></div></details>`;
  const q=s=>host.querySelector(s);
- const dock=document.createElement('aside');dock.id='price-total-dock';dock.setAttribute('aria-label','Estimate total');dock.innerHTML='<div><span id="price-dock-label">Total estimate</span><strong id="price-dock-total">Loading…</strong></div><div class="price-dock-actions"><button id="price-dock-review" aria-label="Show the estimate">Summary</button></div>';document.body.append(dock);
- const controlsPanel=document.querySelector('.controls');
- function alignTotalDock(){const mobile=matchMedia('(max-width:850px)').matches,rect=controlsPanel.getBoundingClientRect();dock.style.left=(mobile?0:rect.left)+'px';dock.style.width=(mobile?document.documentElement.clientWidth:rect.width)+'px';dock.style.right='auto';}
- new ResizeObserver(alignTotalDock).observe(controlsPanel);window.addEventListener('resize',alignTotalDock);window.addEventListener('studio-view-changed',alignTotalDock);alignTotalDock();
  const previewToggle=document.createElement('button');previewToggle.id='price-preview-toggle';previewToggle.type='button';previewToggle.textContent='Hide 3D preview';previewToggle.setAttribute('aria-expanded','true');document.querySelector('.viewport').append(previewToggle);previewToggle.onclick=()=>{const hidden=document.body.classList.toggle('price-preview-hidden');previewToggle.textContent=hidden?'Show 3D preview':'Hide 3D preview';previewToggle.setAttribute('aria-expanded',String(!hidden));if(!hidden)requestAnimationFrame(()=>requestAnimationFrame(()=>fit()));};
  const report=document.createElement('section');report.id='price-print-report';document.body.append(report);
- dock.querySelector('#price-dock-review').onclick=()=>q('#price-estimate-card').scrollIntoView({block:'start',behavior:'smooth'});
  q('#price-design-edit').onclick=()=>api.setMode('finished');
  const designText=()=>[`${S.height/12}′ walls`,`${S.angle}° wings`,S.platformShape==='none'?'no platform':`${S.platformShape} platform`,S.floor==='none'?'no floor':S.floor==='wood'?'oak floor':'painted floor'].join(' · ');
  const groupOf=r=>r.custom?'custom':r.group||'other',groupOrder=Object.keys(GROUP_LABELS);
  function estimate(){const sub=summary(rows).subtotal,tax=materialTax(rows),labor=laborFor(S);return {sub,tax,materials:sub+tax,labor,total:sub+tax+(labor.costCents??0)};}
- // Bottom bar: the plan's total here, the projection on the burn-down and tracking tabs.
- function updateDock(){const onProject=document.body.classList.contains('project-module'),p=api.projection(),e=data?estimate():null;
-  dock.querySelector('#price-dock-label').textContent=p?'Projected total':'Total estimate';dock.querySelector('#price-dock-total').textContent=p?money(p.projectedCents):e?money(e.total):'Loading…';dock.querySelector('.price-dock-actions').hidden=onProject;}
  // With burn-down unlocked the breakdown itemizes the projected total: what was paid and logged, plus the estimate for
  // what is left. Locked, there are no actuals, so it shows the plain estimate.
  function showReview(){if(!data)return;const e=estimate(),l=e.labor,p=api.projection(),hrs=h=>`${Math.round(h*10)/10} hrs`;
@@ -87,7 +79,6 @@ export function installPricing(api){
    q('#price-estimate-rows').replaceChildren(row('Materials',`${money(e.sub)} + ${money(e.tax)} est. tax (7%)`,money(e.materials)),row('Labor',`${Math.round(l.personHours*10)/10} person-hours`,l.costCents==null?'Not priced':money(l.costCents)),row('Total estimate','Unlock Project burn-down to include what has been spent',money(e.total),'estimate-total'));
    q('#price-materials-total').textContent=`${money(e.sub)} + tax`;
    q('#price-labor-total').textContent=l.costCents==null?'Not priced':money(l.costCents);q('#price-labor-crew').textContent=laborCrewLine(l);q('#price-labor-hours').textContent=laborHoursLine(l);q('#price-labor-person-hours').textContent=`${Math.round(l.personHours*10)/10} h`;q('#price-labor-tasks').replaceChildren(...laborTaskList(l));}
-  updateDock();
   window.dispatchEvent(new CustomEvent('pricing-reviewed',{detail:{scope,materialsCents:e.sub,taxCents:e.tax,priced:rows.filter(r=>r.subtotalCents!==null).length,pending:rows.filter(r=>r.subtotalCents===null).length}}));
  }
  function purchaseNote(status){if(!status||status.status==='remaining')return '';const sub=status.substitute?' · substitute':'';
@@ -158,7 +149,7 @@ export function installPricing(api){
  api.setMode=mode;api.pricingView=fit;document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>mode(b.dataset.mode));
  window.addEventListener('surface-color-changed',()=>{persistDraft();if(S.mode==='pricing')apply()});
  window.addEventListener('set-configured',()=>{render();if(S.mode==='pricing')fit()});
- window.addEventListener('labor-changed',()=>{if(data)showReview();});window.addEventListener('project-tab-changed',updateDock);
+ window.addEventListener('labor-changed',()=>{if(data)showReview();});
  let down;const canvas=$('#scene');canvas.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);canvas.addEventListener('pointerup',e=>{if(S.mode!=='pricing'||!model||!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5||document.body.classList.contains('picking-comment'))return;const r=canvas.getBoundingClientRect(),ray=new T.Raycaster();ray.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),api.camera);const hits=ray.intersectObject(model,true).filter(h=>h.object.visible&&h.object.userData.pricingIds?.some(id=>rows.some(r=>r.id===id)));const hit=hits.find(h=>h.object.material.opacity===1)||hits[0];if(hit){selected=hit.object.userData.pricingIds.find(id=>rows.some(r=>r.id===id));const box=host.querySelector(`[data-price-item="${selected}"]`)?.closest('details');if(box)box.open=true;apply();host.querySelector(`[data-price-item="${selected}"]`)?.scrollIntoView({block:'nearest',behavior:'smooth'});}});
  api.showProjectPricing=()=>render();
  api.projectBudget=()=>data?pricingBudget(data,snapshot(),laborFor(S)):null;
@@ -166,7 +157,7 @@ export function installPricing(api){
  api.projectRows=()=>{if(!data)return [];const c=snapshot();return customizeRows(priceRows(data,{...c,scope:'set'}),c);};
  api.projection=()=>data&&finance?projectCost({rows:api.projectRows(),finance,tracking,design:S,labor:laborFor(S)}):null;
  window.addEventListener('project-finance-changed',e=>{finance=e.detail;if(data)render(false);});
- for(const type of ['project-tracking-loaded','project-tracking-changed'])window.addEventListener(type,e=>{tracking=e.detail;if(data&&finance)updateDock();});
+ for(const type of ['project-tracking-loaded','project-tracking-changed'])window.addEventListener(type,e=>{tracking=e.detail;if(data&&finance)showReview();});
  api.pricingStats=()=>{let opaque=0,ghost=0;model?.traverse(o=>{if(o.isMesh)o.material.opacity===1?opaque++:ghost++});return {scope,floor:S.floor,platformShape:S.platformShape,selected,opaque,ghost,rows:rows.length,...summary(rows)}};
  api.pricingReady=fetch('./data/flat-shopping-list.json').then(r=>{if(!r.ok)throw Error();return r.json()}).then(d=>{data=d;try{const draft=normalizeConfiguration(JSON.parse(localStorage.getItem('rc-pricing-draft-v1')));customItems=draft.customItems;}catch{}restoring=true;render();restoring=false;}).catch(()=>{q('#price-estimate-rows').textContent='Could not load prices. Reload to retry.'});
 }

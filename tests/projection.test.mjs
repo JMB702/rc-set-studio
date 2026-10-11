@@ -46,7 +46,7 @@ test('Unlinked purchases are flagged; partial quantities leave the rest to buy; 
  // Buying the planned quantity completes a row even without the checkbox.
  assert.equal(projectMaterials(rows,[expense([item('board14',{quantity:board.purchaseQuantity,complete:false})])]).plan.find(x=>x.row.id==='board14').status,'bought');
  // A partial purchase of a row with no price leaves its remainder unpriced rather than zero.
- const ply=projectMaterials(rows,[expense([item('floorPly',{quantity:4,complete:false})])]).plan.find(x=>x.row.id==='floorPly');assert.equal(ply.status,'partial');assert.equal(ply.remainingCents,null);
+ const ply=projectMaterials(rows,[expense([item('floorFixings',{quantity:4,complete:false})])]).plan.find(x=>x.row.id==='floorFixings');assert.equal(ply.status,'partial');assert.equal(ply.remainingCents,null);
 });
 
 test('Estimated tax applies to catalog rows still to buy, never to added costs',()=>{

@@ -19,10 +19,10 @@ test('Straight seam screws share the support screw pack',()=>{
  const rows=priceRows(data,{scope:'set',height:96,angle:45,floor:'wood',supports:true,ballast:true});
  const screws=rows.filter(r=>r.id==='lapScrews');assert.equal(screws.length,1);assert.equal(screws[0].needed,180);assert.equal(screws[0].purchaseQuantity,2);
 });
-test('Floor-only excludes panel stock and preserves unresolved costs',()=>{
+test('Floor-only excludes panel stock; only the venue-dependent fixings stay unpriced',()=>{
  const rows=priceRows(data,{scope:'floor',height:120,angle:90,floor:'charcoal'});
  assert.ok(!rows.some(r=>r.id==='board16'));assert.equal(rows.find(r=>r.id==='floorPly').purchaseQuantity,10);
- assert.ok(summary(rows).pending>0);assert.ok(rows.every(r=>r.subtotalCents===null));
+ assert.deepEqual(rows.filter(r=>r.subtotalCents===null).map(r=>r.id),['floorFixings']);assert.equal(rows.find(r=>r.id==='floorPly').subtotalCents,10*5288);
 });
 test('All scopes and variants use integer packs and Home Depot links',()=>{
  for(const height of [96,120])for(const scope of ['set','panel','floor'])for(const floor of ['wood','charcoal']){
@@ -77,7 +77,7 @@ test('Platform pricing follows angle and gaps, uses observed prices only, and re
  const rows=priceRows(data,{scope:'set',height:96,angle:45,floor:'none',platformShape:'angled'}),ids=rows.map(r=>r.id);
  for(const id of ['laminate','floorPly','trim','floorFixings'])assert.ok(!ids.includes(id),id);
  for(const id of ['platformLumber','platformDeck','platformFrameScrews','platformDeckScrews','platformSkin','platformCompound','platformPrimer','platformPaint'])assert.ok(ids.includes(id),id);
- const platform=platformRows(data,45);assert.deepEqual(platform.filter(r=>r.subtotalCents===null).map(r=>r.id),['platformDeckSkim','platformDeckPrimer']);assert.ok(platform.filter(r=>r.subtotalCents!==null).every(r=>Number.isInteger(r.subtotalCents)&&r.purchaseQuantity>0&&r.productUrl.startsWith('https://www.homedepot.com/')));
+ const platform=platformRows(data,45);assert.deepEqual(platform.filter(r=>r.subtotalCents===null).map(r=>r.id),[]);assert.ok(platform.filter(r=>r.subtotalCents!==null).every(r=>Number.isInteger(r.subtotalCents)&&r.purchaseQuantity>0&&r.productUrl.startsWith('https://www.homedepot.com/')));
  const total=a=>summary(platformRows(data,a,12,12)).subtotal;assert.ok(total(0)>total(45)&&total(45)>total(90));
  assert.ok(summary(platformRows(data,45,48,48)).subtotal<summary(platformRows(data,45,0,0)).subtotal);
  assert.equal(platformRows(data,45).find(r=>r.id==='platformLumber').unitPriceCents,data.products.find(p=>p.id==='crossbar').unitPriceCents);

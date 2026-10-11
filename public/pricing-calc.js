@@ -4,20 +4,24 @@ import {platformPlan,PLATFORM} from './platform.js';
 export const money=c=>c===null?'Price pending':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
 export function floorArea(angle){const c=Math.cos(angle*Math.PI/180),s=Math.sin(angle*Math.PI/180);return 128+128*c-64*c*s;}
 function extra(id,name,qty,price,url,note,group='floor'){return {id,name,purchaseQuantity:qty,unitPriceCents:price,subtotalCents:price===null||qty===null?null:price*qty,productUrl:url.startsWith('http')?url:'https://www.homedepot.com/p/'+url,availability:note,group,needed:qty,packSize:1};}
+// Rapid Set SKIM FLOOR: the data sheet gives about 134 sq ft at 1/16 inch per 20 lb; the 35 lb retail bag scales to ~234.
+const SKIM_SQFT_PER_BAG=234;
+// Prices observed for Home Depot #6319 (5475 University Pkwy) on Oct 10, 2026, with that store selected.
+function stocked(row,stock){return {...row,observedStock:stock};}
 export function floorRows(data,angle,type){const area=floorArea(angle),waste=area*1.1,rows=[];
  if(type==='wood'){
  rows.push(extra('laminate','TrafficMaster Gladstone Oak · 24.24 sq ft case',Math.ceil(waste/24.24),2399,'203315038','Observed Oct 5 at #6319 · out of stock'));
  rows.push(extra('underlay','TrafficMaster 100 sq ft standard underlayment',Math.ceil(waste/100),3900,'327262533','30 rolls in stock · check substrate and manufacturer requirements'));
  rows.push(extra('vapor','Substrate-dependent vapor barrier',null,null,'https://www.homedepot.com/s/laminate%20vapor%20barrier','Required on applicable substrates; selection and quantity pending'));
  }else{
- rows.push(extra('floorPly','23/32 in plywood · two layers · 4×8 sheet',2*Math.ceil(waste/32),null,'100000837','Two layers, each with 10% area waste; offset joints both ways. Verify actual cut yield'));
- rows.push(extra('floorPrimer','Cement-skim-compatible floor primer · selection pending',null,null,'https://www.homedepot.com/s/concrete%20floor%20primer','Select with floor paint; paint-only SKIM FLOOR finish is an unverified scenic compromise'));
- rows.push(extra('floorPaint','BEHR Mined Coal porch & patio paint · gallon',Math.ceil(area*2/300),null,'302055336','Two-coat planning allowance at 300 sq ft/gallon; compatibility over selected skim/primer unverified. No epoxy or polyurethane; touch-ups expected'));
- rows.push(extra('floorSeams','Rapid Set SKIM FLOOR · full-surface cement skim',null,null,'313474246',`Plan ${Math.ceil(area*1.1/134)} × 20-lb equivalents at 1/16 inch including 10% allowance. Manufacturer TDS says 20 lb; retail listing says 35 lb—verify pack yield and price before buying`));
- rows.push(extra('floorGlue','Full-spread plywood laminating adhesive',null,null,'https://www.homedepot.com/s/plywood%20wood%20glue',`Bond ${area.toFixed(1)} sq ft between layers; select spread rate and pack quantity. Separate from wall glue`));
- rows.push(extra('floorLayerScrews','Plywood layer screws · pack selection pending',null,null,'https://www.homedepot.com/s/wood%20screws%201%201%2F4','Clamp upper layer to lower; select fastening schedule and screws that do not protrude through combined thickness'));
+ const sheets=2*Math.ceil(waste/32);rows.push(stocked(extra('floorPly','Plytanium 23/32 in BC sanded pine plywood · two layers · 4×8 sheet',sheets,5288,'100061386',`Checked Oct 10 at #6319 · 18 in stock · two layers, each with 10% area waste; offset joints both ways. Verify actual cut yield`),18));
+ rows.push(stocked(extra('floorPrimer','BEHR PREMIUM Concrete & Masonry Bonding Primer · gallon',Math.ceil(area/250),2998,'100129649','Checked Oct 10 at #6319 · 19 in stock · one coat over the cured skim at 250 sq ft/gallon; paint-only SKIM FLOOR finish is an unverified scenic compromise'),19));
+ rows.push(stocked(extra('floorPaint','BEHR Mined Coal porch & patio paint · gallon',Math.ceil(area*2/300),3998,'302055336','Checked Oct 10 at #6319 · 23 in stock · two coats at 300 sq ft/gallon. No epoxy or polyurethane; touch-ups expected'),23));
+ rows.push(extra('floorSeams','Rapid Set SKIM FLOOR · 35 lb bag · full-surface cement skim',Math.ceil(area*1.1/SKIM_SQFT_PER_BAG),3897,'313474246',`Checked Oct 10 · not stocked at #6319 (order online) · about ${SKIM_SQFT_PER_BAG} sq ft per 35 lb bag at 1/16 inch, scaled from the data sheet's 20 lb figure; 10% allowance`));
+ rows.push(stocked(extra('floorGlue','Loctite PL 400 Subfloor construction adhesive · 28 oz',Math.ceil(area*2*1.1/86),898,'300751977',`Checked Oct 10 at #6319 · 204 in stock · ¼″ serpentine beads 6″ apart across ${area.toFixed(1)} sq ft between layers (~86 ft of bead per tube) + 10%. Separate from wall glue`),204));
+ const screw=data.products.find(p=>p.id==='lapScrews');rows.push(stocked(extra('floorLayerScrews','Everbilt #8×1¼ in flat-head wood screws · plywood layers · 100 pack',Math.ceil(area*2.25*1.05/screw.packSize),797,'204275496','Checked Oct 10 at #6319 · 4 packs in stock · 8″ grid through the top layer; 1¼″ stays inside the 1 13/32″ combined thickness'),4));
  }
- rows.push(extra('trim','Wall-mounted shoe trim · 8 ft lengths',5,null,'https://www.homedepot.com/s/wood%20shoe%20moulding','32 ft along walls + 10% cutting allowance; trim profile pending'));
+ rows.push(stocked(extra('trim','Royal Mouldings PVC shoe moulding · 8 ft · paint to match the floor',5,678,'100042052','Checked Oct 10 at #6319 · 106 in stock · 32 ft along walls + 10% cutting allowance'),106));
  rows.push(extra('floorFixings','Floor / trim fixing supplies',null,null,'https://www.homedepot.com/s/flooring%20installation%20supplies','Venue-approved attachment and pack selection pending'));
  return rows;
 }
@@ -40,8 +44,8 @@ export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,plat
  rows.push(row('platformBead',bead,bead.name,Math.ceil(plan.fasciaCorners*PLATFORM.height*1.1/bead.lengthInches),Math.ceil(plan.fasciaCorners*PLATFORM.height*1.1/bead.lengthInches),`${(plan.fasciaCorners*PLATFORM.height/12).toFixed(0)} ft of vertical fascia corners + 10%`));
  rows.push(row('platformCompound',own('platformCompound'),own('platformCompound').name+' · vertical fascia only',compound,compound,`Scenic fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft at 60 sq ft/bag; not for the walking surface`));
  rows.push(row('platformPrimer',own('platformPrimer'),own('platformPrimer').name,primer,primer,`Fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft, one coat at 300 sq ft/gallon`));
- rows.push(extra('platformDeckSkim','Rapid Set SKIM FLOOR · platform walking surface',null,null,'313474246',`Plan ${Math.ceil(plan.deckArea*1.1/134)} × 20-lb equivalents at 1/16 inch + 10%; verify retail pack size, yield and price`,'platform'));
- rows.push(extra('platformDeckPrimer','Cement-compatible deck primer · selection pending',null,null,'https://www.homedepot.com/s/concrete%20floor%20primer','Same primer selection as painted floor; paint-only cement skim wear system unverified','platform'));
+ rows.push(extra('platformDeckSkim','Rapid Set SKIM FLOOR · 35 lb bag · platform walking surface',Math.ceil(plan.deckArea*1.1/SKIM_SQFT_PER_BAG),3897,'313474246',`Checked Oct 10 · not stocked at #6319 (order online) · ${plan.deckArea.toFixed(0)} sq ft + 10% at about ${SKIM_SQFT_PER_BAG} sq ft per bag, 1/16 inch`,'platform'));
+ rows.push(stocked(extra('platformDeckPrimer','BEHR PREMIUM Concrete & Masonry Bonding Primer · deck · gallon',Math.ceil(plan.deckArea/250),2998,'100129649','Checked Oct 10 at #6319 · 19 in stock (shared with the floor) · one coat over the cured skim at 250 sq ft/gallon; paint-only wear system unverified','platform'),19));
  rows.push(row('platformPaint',own('platformPaint'),own('platformPaint').name,paint,paint,`Two coats over ${finish.toFixed(0)} sq ft, planned at 300 sq ft/gallon`));
  return rows.filter(r=>r.purchaseQuantity!==0);
 }
@@ -51,7 +55,7 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  if(floor==='platform'){floor='none';if(platformShape==='none')platformShape='angled';}if(platformShape==='square')platformAngle=90;
  const key=height===120?'10x4':'8x4',n=scope==='panel'?1:8;let rows=scope==='floor'?[]:calculate(data,key,n,supports,ballast);
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
- rows.push(extra('wallPrimer','Wood-compatible wall primer · gallon',Math.ceil(area/250),null,'https://www.homedepot.com/s/wood%20primer','Planning allowance at 250 sq ft/gallon; product and local price pending','finish'));
+ rows.push(stocked(extra('wallPrimer','KILZ 2 All Purpose primer · walls · gallon',Math.ceil(area/250),2398,'100096395','Checked Oct 10 at #6319 · 152 in stock · one coat at 250 sq ft/gallon','finish'),152));
  const paint=data.wallPaint;rows.push(extra('wallPaint',paint.name,Math.ceil(area*2/paint.coverageSqFtPerGallon),paint.unitPriceCents,paint.productUrl,paint.availability,'finish'));
  rows.push(extra('wallSeams','Scenic wall seam fabric and filler',null,null,'https://www.homedepot.com/s/paintable%20seam%20tape','Finish system / quantity pending; do not bridge moving corners rigidly','finish'));}
  if(scope==='set'){

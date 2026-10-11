@@ -74,11 +74,11 @@ export function projectLabor(labor,{design,tracking,shifts=[],supply=0,now=Date.
  const tasks=labor.tasks.map(task=>{
   const shopping=task.stage==='Shopping',estimateExact=task.personHours*(shopping?1:scale),estimate=Math.round(estimateExact*10)/10,progress=laborTaskProgress(task,{design,tracking,supplyProgress:supply});
   const logged=shifts.filter(s=>s.taskId===task.id),loggedHours=logged.reduce((n,s)=>n+shiftHours(s),0);
-  // The completed wall-panel shopping trip was reported, not clocked; count it until time is logged against it.
-  const reported=task.id==='shoppingDone'&&!logged.length,actual=reported?task.personHours:loggedHours;
+  // Actual spending comes only from recorded shifts. Shopping already included in logged time must not be synthesized again.
+  const reported=false,actual=loggedHours;
   const remaining=estimateExact*(1-progress/100),rate=shopping?labor.shoppingRateCents:perPersonHour;
   return {id:task.id,name:task.name,stage:task.stage,estimate,progress,remainingExact:remaining,actual:Math.round(actual*100)/100,reported,remaining:Math.round(remaining*100)/100,projected:Math.round((actual+remaining)*100)/100,
-   actualCents:reported?(labor.shoppingRateCents==null?null:Math.round(actual*labor.shoppingRateCents)):logged.reduce((n,s)=>n+projectShiftCost(s,now).cents,0),
+   actualCents:logged.reduce((n,s)=>n+projectShiftCost(s,now).cents,0),
    remainingCents:remaining<=0?0:rate==null?null:Math.round(remaining*rate)};
  });
  const unassigned=shifts.filter(s=>!s.taskId||!known.has(s.taskId)),unassignedHours=unassigned.reduce((n,s)=>n+shiftHours(s),0);

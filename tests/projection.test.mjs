@@ -16,12 +16,12 @@ function labor(d=design,{rates=[5000,null],crew=2,hours=null}={}){const est=labo
 const item=(materialId,extra={})=>({id:'i-'+materialId+(extra.id||''),materialId,description:'',quantity:null,amountCents:null,complete:materialId!==null,substitute:false,note:'',...extra});
 const expense=(items,amountCents=10000,id='e1')=>({id,vendor:'Home Depot',date:'2026-10-09',amountCents,note:'',receiptId:null,items});
 
-test('A fresh projection equals the estimate to the cent, for any design, crew, rates or adjusted hours',()=>{
+test('An unlogged completed shopping trip is excluded from projection, across designs and crew rates',()=>{
  for(const d of [design,{...design,height:96,platformShape:'none',floor:'wood',angle:45},{...design,platformShape:'angled',platformAngle:60,angle:45,floor:'none'}])
   for(const options of [{},{rates:[5000,3000]},{rates:[null,null]},{rates:[2500,null,1000],crew:3},{hours:71.5}]){
    const l=labor(d,options),r=priceRows(data,{scope:'set',...d}),p=projectCost({rows:r,finance:{expenses:[],shifts:[]},tracking:projectDefaultTracking(),design:d,labor:l,now});
-   assert.equal(p.projectedCents,p.estimateCents,JSON.stringify({d,options}));assert.equal(p.varianceCents,0);
-   assert.ok(Math.abs(p.labor.projectedHours-((l.personHours-l.shoppingHours)*l.hours/l.defaultHours+l.shoppingHours))<.01);
+   const unloggedShopping=Math.round(3.5*(l.shoppingRateCents??0));assert.equal(p.projectedCents,p.estimateCents-unloggedShopping,JSON.stringify({d,options}));assert.equal(p.varianceCents,0-unloggedShopping);
+   assert.ok(Math.abs(p.labor.projectedHours-((l.personHours-l.shoppingHours)*l.hours/l.defaultHours+l.shoppingHours-3.5))<.01);
   }
 });
 
@@ -67,9 +67,9 @@ test('Hours: logged time is actual, the tracker sets what is left, unassigned ti
  const l=labor(),shifts=[{id:'a',personId:'person-1',start:now-6*H,end:now,rateCents:5000,note:'',taskId:'jacks'},{id:'b',personId:'person-2',start:now-2*H,end:now,rateCents:0,note:'',taskId:null}];
  const p=projectLabor(l,{design,tracking:t,shifts,now}),jacks=p.tasks.find(x=>x.id==='jacks'),estimate=l.tasks.find(x=>x.id==='jacks').personHours;
  assert.equal(jacks.actual,6);assert.equal(jacks.progress,50);assert.equal(jacks.remaining,estimate/2);assert.equal(jacks.projected,6+estimate/2);assert.equal(jacks.actualCents,30000);
- assert.equal(p.unassignedHours,2);assert.equal(p.unassignedCount,1);assert.equal(p.actualCents,30000+17500);
- // The reported wall-panel shopping trip stops being assumed once time is logged against it.
- assert.equal(p.tasks.find(x=>x.id==='shoppingDone').actual,3.5);
+ assert.equal(p.unassignedHours,2);assert.equal(p.unassignedCount,1);assert.equal(p.actualCents,30000);
+ // Shopping is never added on top of logged time; explicit shopping entries count once.
+ assert.equal(p.tasks.find(x=>x.id==='shoppingDone').actual,0);
  const logged=projectLabor(l,{design,tracking:t,shifts:[{...shifts[0],taskId:'shoppingDone',start:now-2*H}],now}).tasks.find(x=>x.id==='shoppingDone');assert.equal(logged.actual,2);assert.equal(logged.reported,false);
  // A finished stage has nothing left, however long it took.
  let done=projectSetAssemblyCounts(projectDefaultTracking(),{panelsCompleted:8,jacksBuilt:16,jacksAttached:0,jacksPartial:0},design);assert.equal(projectLabor(l,{design,tracking:done,shifts,now}).tasks.find(x=>x.id==='jacks').projected,6);
@@ -103,7 +103,7 @@ test('A window from before line items cannot erase them or work stages',()=>{
 
 test('A locked-in quote becomes the baseline; the live estimate is still reported',()=>{
  const l=labor(),p=projectCost({rows,finance:{budgetCents:569890,expenses:[],shifts:[]},tracking:null,design,labor:l,now});
- assert.equal(p.quoteCents,569890);assert.equal(p.baselineCents,569890);assert.equal(p.varianceCents,p.projectedCents-569890);assert.equal(p.estimateVarianceCents,0);
+ assert.equal(p.quoteCents,569890);assert.equal(p.baselineCents,569890);assert.equal(p.varianceCents,p.projectedCents-569890);assert.equal(p.estimateVarianceCents,-17500);
  assert.equal(projectCost({rows,finance:{budgetCents:null,expenses:[],shifts:[]},tracking:null,design,labor:l,now}).baselineCents,p.estimateCents);
 });
 
@@ -126,4 +126,12 @@ test('Weights use logged hours for done work and the estimate for what is left',
  const loose=progressWeights(design,{tracking:tr,shifts:[shift(null,13.2)],now});
  assert.ok(Math.abs(loose['walls-1']+loose['walls-2']-13.2)<.01,'unassigned hours stand in for the done work that has none (frames + skins)');assert.ok(Math.abs(loose['walls-1']/loose['walls-2']-8/6)<.01,'split by their estimates');
  assert.deepEqual(progressWeights(design,{tracking:tr,shifts:null}),est,'locked burn-down: estimate only');
+});
+
+test('Reported shopping does not inflate actual labor or return as future labor',()=>{
+ const shifts=[{id:'actual',personId:'person-1',start:now-(20*60+38)*60000,end:now,rateCents:5000,note:'Includes shopping',taskId:null}];
+ const result=projectLabor(labor(),{design,tracking:projectDefaultTracking(),shifts,now});
+ assert.equal(result.actualCents,103167);
+ const trip=result.tasks.find(t=>t.id==='shoppingDone');assert.equal(trip.actualCents,0);assert.equal(trip.remainingCents,0);
+ assert.equal(projectLabor(labor(),{design,tracking:null,shifts:[],now}).actualCents,0);
 });

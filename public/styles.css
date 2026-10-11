@@ -701,3 +701,8 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .pj-step-counted .pj-step-tools{padding-left:0}
 .pj-step-counts{margin:6px 0 0}
 .pj-step-counted .pj-step-name.done{text-decoration:none;color:#203a2c}
+
+/* Steps that follow a count without their own counters: a check that fills in on its own. */
+.pj-auto-check{display:grid;place-items:center;flex-shrink:0;width:18px;height:18px;border-radius:4px;border:1.5px solid #b9c8b0;background:#fff;color:#fff}
+.pj-auto-check.done{background:#4f7a3f;border-color:#4f7a3f}
+.pj-auto-check svg{width:13px;height:13px;stroke-width:2.6}

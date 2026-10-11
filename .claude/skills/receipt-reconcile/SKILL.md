@@ -1,15 +1,15 @@
 ---
 name: receipt-reconcile
-description: Read an RC Set materials receipt and reconcile it against the shopping list in Project burn-down, so the cost projection uses what was actually paid instead of the estimate. Use when Jeff says "read this receipt", "reconcile the receipt", "log the Home Depot run", "link this purchase", hands over a receipt photo, scan or PDF for set materials, or asks to link an existing purchase (with or without a receipt) to shopping-list items. Matches each receipt line to a shopping-list row, flags substitutions, short or extra quantities and items not on the list, and saves the line items through the same path as the manual form.
+description: Read an RC Set materials receipt and reconcile it against the shopping list in Cost projection, so the cost projection uses what was actually paid instead of the estimate. Use when Jeff says "read this receipt", "reconcile the receipt", "log the Home Depot run", "link this purchase", hands over a receipt photo, scan or PDF for set materials, or asks to link an existing purchase (with or without a receipt) to shopping-list items. Matches each receipt line to a shopping-list row, flags substitutions, short or extra quantities and items not on the list, and saves the line items through the same path as the manual form.
 ---
 
 # Reconcile a receipt against the shopping list
 
-Project burn-down holds every purchase (an *expense*). Each expense can carry **line items**; a line item linked to a shopping-list row (`materialId`) tells the cost projection that row is bought, so its estimate stops counting as "still to buy". The projection is:
+Cost projection holds every purchase (an *expense*). Each expense can carry **line items**; a line item linked to a shopping-list row (`materialId`) tells the cost projection that row is bought, so its estimate stops counting as "still to buy". The projection is:
 
 > **projected total = everything spent so far (receipt totals + logged labor) + estimate for what is still to buy + estimated tax on it + labor still to come**
 
-Everything this skill does, Jeff can do by hand in **Cost & Tracking → Project burn-down → Edit** on a purchase (line items, *Link shopping-list items…*, *Attach receipt*). Use the same path so he can review and correct it afterwards.
+Everything this skill does, Jeff can do by hand in **Cost & Tracking → Cost projection → Edit** on a purchase (line items, *Link shopping-list items…*, *Attach receipt*). Use the same path so he can review and correct it afterwards.
 
 ## Data model (what you write)
 
@@ -42,7 +42,7 @@ A row is **bought** when any linked line has `complete: true`, or the linked qua
 Production finance data is behind Jeff's project PIN. Never ask Jeff for the PIN, never type it, never store it.
 
 1. Open the production site in the built-in browser: `preview_start` with `url: https://rc-set-studio.jerf702.chatgpt.site` (the live URL is also in `output/releases/last-release.json`). Then `__studio.setMode('pricing')`.
-2. `await __studio.project.status()` → `{configured, unlocked, expenses}`. If `unlocked` is false, ask Jeff to open **Project burn-down** in that browser pane and enter his PIN himself (the session lasts 12 hours), then check again.
+2. `await __studio.project.status()` → `{configured, unlocked, expenses}`. If `unlocked` is false, ask Jeff to open **Cost projection** in that browser pane and enter his PIN himself (the session lasts 12 hours), then check again.
 3. `__studio.project.plan()` → the full-set shopping list exactly as the Pricing guide prices it (Jeff's design, removals and added items applied): `{id, name, group, purchaseQuantity, packSize, unitPriceCents, subtotalCents, status}`. `status` is `bought`, `partial` or `remaining`.
 4. `await __studio.project.finance()` → existing expenses. Before creating one, look for the same store + date + total; if it exists, add line items to that entry instead (same `id`). If Jeff already uploaded this receipt with **Upload receipt**, that entry has a `receiptId`; reuse it.
 

@@ -4,7 +4,7 @@
 // items is flagged, because its materials are still counted as to-buy as well.
 // Labor: each time entry names the labor task (stage of work) it went to. The hours still to come for a task
 // are its estimate scaled by how much of that work the Project tracker says is left.
-// Pure functions, no DOM: the Pricing guide, Project burn-down and tests all use them directly.
+// Pure functions, no DOM: the Pricing breakdown, Cost projection and tests all use them directly.
 import {materialTax} from './pricing-calc.js';
 import {projectGuideStagePercent,projectGuideGroups,projectProgress,projectShiftCost} from './project-model.js';
 import {laborTasks} from './labor.js';
@@ -118,7 +118,7 @@ export function projectCost({rows,finance,tracking,design,labor,now=Date.now()})
 // estimate for what is left. Done work with no time logged against its stage takes its share of the unassigned
 // logged hours (or its estimate when nothing is logged). Each labor task's hours are spread over its Build guide
 // stages; a stage shared by several milestones splits them. Feeds projectProgress()/projectStagePercent().
-// Without tracking and shifts (burn-down locked), it falls back to the estimate alone.
+// Without tracking and shifts (Cost projection locked), it falls back to the estimate alone.
 export function progressWeights(design,{tracking=null,shifts=null,now=Date.now()}={}){
  const tasks=laborTasks(design).filter(t=>!['All','Shopping'].includes(t.stage)),hoursFor={};
  if(tracking&&shifts){

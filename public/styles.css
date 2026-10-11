@@ -750,7 +750,7 @@ body.pricing #design{display:none}
 .price-subhead{margin:14px 0 8px;font-size:12px;font-weight:600;color:#52635b;letter-spacing:.2px}
 .price-labor-tasks li span small{display:block;font-size:11px;color:var(--muted);font-weight:400}
 
-/* The cost summary on Pricing breakdown and Burn-down stays at the top while the lists scroll under it. On a phone
+/* The cost summary on Pricing breakdown and Cost projection stays at the top while the lists scroll under it. On a phone
    it sits just below the pinned 3D view (--pj-sticky-top, set from the view's height). */
 /* A page-coloured holder is what pins, so nothing shows past the boxes' rounded corners. */
 .pj-sticky{position:sticky;top:var(--pj-sticky-top,0px);z-index:4;background:#fafbf8;padding-top:10px;margin-top:-10px}

@@ -69,6 +69,9 @@ SHELF
 8ft local depth12 to24;10ft18 to30. Shelf top5.47 above bearing floor.
 Four #8x2.5 screws bar-to-feet;12 #8x1 screws shelf-to-bars.
 Three25lb bags shown per panel are illustrative preliminary ballast only.
+Set bags low and centered on the shelf; straps are not included. The
+10-foot ballast purchase allowance is omitted because ballast is on hand;
+that purchasing decision does not establish adequate ballast mass.
 A prior modest10lbf disturbance calculation is not structural approval.
 Validate connections, sideways stability, tipping, sliding and ballast
 on the real floor, at each layout, before use. No wind, leaning, doors or
@@ -79,23 +82,31 @@ Flush skins and mating stiles. Four #8x1.25 flat-head wood screws per seam
 at12/36/60/84;10ft panels add108. Screw axis0.75 behind skin rear face;
 predrill clearance first stile/pilot second; clamp faces aligned first.
 This set has5 straight seams:3 across back and1 within each wing.
-Corners are variable-angle layout joints; final screw-fixed corner detail
-and quantities require scenic-shop review. This is not a verified hinge.
+Corners are variable-angle layout joints. Each uses one full 2x4x96-inch
+drop with four SPAX #8x2.5 screws into each flat (eight per corner,
+16 per set). Independently brace the wings. This is not a verified hinge.
 
 FINISHES
 Render uses one unbroken charcoal surface per back/wing, including over
-the10ft skin joint. Practical scenic seam fabric and primer/paint need a
-fixed assembly; do not rigid-plaster a movable corner. Refinish after moves.
-Oak floor:glueless click-lock;3/8-inch expansion beneath wall-fixed trim.
+the10ft skin joint. Spot-prime straight seams with KILZ 2, apply FibaTape mesh and ProForm
+Quick-Set Lite setting compound, feather and sand, then prime and paint.
+The two wing corners use paintable caulk; do not rigid-plaster them.
+Keep the assembly fixed and refinish after moves.
+Oak floor:glueless click-lock;3/8-inch expansion gap stays open; no shoe trim.
 Charcoal show floor: two 23/32-inch plywood layers, approximately 1 7/16 inches
-combined, over continuously supporting concrete. Upper joints offset in both
-axes. Full-spread plywood-compatible adhesive and screws join the layers.
+combined, loose-laid on QuietWalk vapor-barrier felt over continuously
+supporting concrete. Tape underlayment seams per its instructions. Upper
+joints offset in both axes. PL 400 adhesive in 1/4-inch serpentine beads
+about 6 inches apart and #8x1.25 screws on an 8-inch grid join the layers;
+never fasten into the concrete.
 Thin Rapid Set SKIM FLOOR cement skim (planning average 1/16 inch), compatible
 cementitious primer, then floor paint. No epoxy or polyurethane wear finish.
 User chose limited performance traffic with patching and repainting accepted.
 Paint alone over this cement underlayment is not a manufacturer-verified wear
-system. Primer compatibility, adhesive/screw schedule and local product prices
-remain pending. The retail skim bag listing and manufacturer TDS differ in size;
+system. The priced primer is BEHR Concrete & Masonry Bonding Primer;
+compatibility of the complete paint-only system remains unverified.
+Prices are recorded in the Pricing guide with their check dates.
+The retail skim bag listing and manufacturer TDS differ in size;
 use verified pack yield when buying. Model finished-floor datum stays at zero.
 The visualization is dimensionally derived, not a structural certification.
 
@@ -133,7 +144,8 @@ paint. No epoxy or polyurethane. User accepts touch-up work; the paint-only
 cement skim system is unverified. On vertical fascia only: mesh tape, scenic
 setting compound, vertical-corner bead, KILZ 2 and matching paint. Do not extend
 the floor skim to vertical lauan or drywall compound onto the deck. Stay assembled
-after finishing; dismantling requires finish repairs. Deck skim/primer prices pending.
+after finishing; dismantling requires finish repairs. Deck skim and BEHR
+Concrete & Masonry Bonding Primer prices are recorded in the Pricing guide.
 19/32 chosen over 3/4 for weight; framing at 16 centers carries the deck.
 The top is walked on, but this is a scenic prototype, not a rated stage
 deck: no load rating is claimed. Test the finish on a mockup; seams can

@@ -14,3 +14,6 @@ Visual implementation:
 Stable, small tone and grain-offset differences distinguish each lower sheet and top extension. Grain remains vertical at the existing physical scale. The unpainted filled-joint state shows matte off-white bands with irregular feathered edges; plywood stays visible between them. The bands follow the five straight joins, both inside corners, and the 8-foot-high sheet join on 10-foot flats. No horizontal sheet join is invented on 8-foot flats. Unexposed backs and free outer wing edges remain raw.
 
 Band width and tool marks are illustrative appearance choices, not construction tolerances. This update does not select a plaster/filler product, change quantities/prices, or claim that ordinary drywall compound is suitable for bare plywood. Existing seam-system specification and preparation requirements still apply.
+
+
+Oct 10, 2026 seam system (walls stay assembled): spot-prime the joints with the wall primer (KILZ 2), then FibaTape self-adhesive mesh and ProForm Quick-Set Lite setting-type compound in two or three feathered coats, sanded, then a full primer coat. The two wing corners get paintable siliconized acrylic caulk, not tape or rigid compound. Prices checked at Home Depot #6319.

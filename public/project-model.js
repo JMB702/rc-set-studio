@@ -35,7 +35,18 @@ export function projectSeparateFinishing(input){
  for(const source of data.stages)for(const step of source.steps)if(step.id==='platform-skim'&&['Tape, skim and sand','Skim and sand the full surface'].includes(step.name)){edit();data.stages.find(s=>s.id===source.id).steps.find(t=>t.id===step.id).name='Cement-skim deck and finish fascia';}
  return projectUpgradeFloorLayers(data);
 }
-export function projectUpgradeFloorLayers(input){
+// Every upgrade pass ends by bringing counted milestones in line with the counts.
+export function projectUpgradeFloorLayers(input){return projectSyncCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input)));}
+// The jack step is "Build jacks"; its built and attached counters both sit under it. A short-lived separate
+// "Attach jacks to walls" step (walls-attach) is folded back in, keeping its notes.
+export function projectRenameJackStep(input){
+ const steps=input.stages.flatMap(s=>s.steps);if(!steps.some(t=>t.id==='walls-attach'||t.id==='walls-3'&&t.name==='Build and attach jacks'))return input;
+ const data=structuredClone(input),all=data.stages.flatMap(s=>s.steps),jacks=all.find(t=>t.id==='walls-3'),extra=all.find(t=>t.id==='walls-attach');
+ if(jacks&&jacks.name==='Build and attach jacks')jacks.name='Build jacks';
+ if(extra){if(jacks)jacks.notes.push(...extra.notes);for(const s of data.stages)s.steps=s.steps.filter(t=>t.id!=='walls-attach');}
+ return data;
+}
+export function projectUpgradeFloorLayersOnly(input){
  if(input.floorAssemblyVersion===1&&!input.stages.some(s=>s.steps.some(t=>t.id==='floor-1'&&t.name==='Prepare the base'||t.id==='floor-2'&&t.name==='Lay the flooring'||t.id==='floor-3'&&t.name==='Finish and trim')))return input;
  const data=structuredClone(input);data.floorAssemblyVersion=1;
  for(const stage of data.stages)for(const step of stage.steps){if(step.id==='floor-1'&&step.name==='Prepare the base')step.name='Prepare underlayment / cement skim';if(step.id==='floor-2'&&step.name==='Lay the flooring')step.name='Lay flooring / lower plywood layer';if(step.id==='floor-3'&&step.name==='Finish and trim')step.name='Prime, paint and trim floor';}
@@ -44,8 +55,12 @@ export function projectUpgradeFloorLayers(input){
  if(floor){const skim=floor.steps.find(t=>t.id==='floor-1'&&t.name==='Prepare underlayment / cement skim');if(skim){floor.steps=floor.steps.filter(t=>t!==skim);floor.steps.push(skim);}}
  return data;
 }
-export function projectStagePercent(stage){return stage.steps.length?Math.round(stage.steps.reduce((n,s)=>n+s.percent,0)/stage.steps.length):0;}
-export function projectProgress(data){const steps=data.stages.flatMap(s=>s.steps);return {percent:steps.length?Math.round(steps.reduce((n,s)=>n+s.percent,0)/steps.length):0,done:steps.filter(s=>s.percent===100).length,total:steps.length};}
+// weights: optional {stepId: person-hours} from the labor estimate, so a step counts by how long it takes rather than
+// equally. Steps without a weight (custom steps, other designs) count as an average step.
+export function projectStepWeight(weights,id){if(!weights)return 1;const values=Object.values(weights).filter(v=>v>0);return weights[id]??(values.length?values.reduce((a,b)=>a+b,0)/values.length:1);}
+export function projectStageWeight(stage,weights){return stage.steps.reduce((n,t)=>n+projectStepWeight(weights,t.id),0);}
+export function projectStagePercent(stage,weights){const total=projectStageWeight(stage,weights);return total?Math.round(stage.steps.reduce((n,t)=>n+t.percent*projectStepWeight(weights,t.id),0)/total):0;}
+export function projectProgress(data,weights){const steps=data.stages.flatMap(s=>s.steps),total=steps.reduce((n,t)=>n+projectStepWeight(weights,t.id),0);return {percent:total?Math.round(steps.reduce((n,t)=>n+t.percent*projectStepWeight(weights,t.id),0)/total):0,done:steps.filter(s=>s.percent===100).length,total:steps.length,weight:total};}
 export function projectShiftCost(shift,now=Date.now()) {
  const elapsed=Math.max(0,(shift.end??now)-shift.start);
  const hours=shift.end===null?Math.floor(elapsed/3600000):elapsed/3600000;
@@ -70,10 +85,20 @@ export function projectValidate(kind,input,now=Date.now()) {
  const receipts=input.expenses.map(e=>e.receiptId).filter(Boolean);if(new Set(receipts).size!==receipts.length)fail('This receipt is already recorded. Edit the existing entry.');
  if(!unique(input.expenses)||!unique(input.crew)||!unique(input.shifts))fail('Duplicate entry IDs.');
  for(const e of input.expenses)if(!id(e.id)||!str(e.vendor)||!e.vendor.trim()||!money(e.amountCents,true)||!str(e.note,2000)||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)||Number.isNaN(Date.parse(e.date))||(e.receiptId!==null&&!id(e.receiptId)))fail('Check the material entry, date and amount.');
+ // Receipt line items link a purchase to shopping-list rows by materialId; null means not on the list.
+ const item=i=>i&&typeof i==='object'&&id(i.id)&&(i.materialId===null||id(i.materialId))&&str(i.description)&&(i.materialId!==null||i.description.trim())&&(i.quantity===null||Number.isFinite(i.quantity)&&i.quantity>0&&i.quantity<=100000)&&(i.amountCents===null||money(i.amountCents,true))&&typeof i.complete==='boolean'&&typeof i.substitute==='boolean'&&str(i.note,500);
+ for(const e of input.expenses)if(e.items!==undefined&&(!list(e.items,200)||!unique(e.items)||!e.items.every(item)))fail('Check the receipt line items: each needs a shopping-list item or a description.');
  for(const c of input.crew)if(!id(c.id)||!str(c.name,80)||!c.name.trim()||!money(c.rateCents)||typeof c.archived!=='boolean')fail('Check the crew name and hourly rate.');
- for(const s of input.shifts){const c=input.crew.find(c=>c.id===s.personId);if(!id(s.id)||!c||!money(s.rateCents)||!str(s.note,2000)||!Number.isSafeInteger(s.start)||s.start<0||s.start>now+60000||s.end!==null&&(!Number.isSafeInteger(s.end)||s.end<s.start||s.end>now+60000)||s.end===null&&c.archived)fail('Check the shift times. Clock out before removing a person.');}
+ for(const s of input.shifts){const c=input.crew.find(c=>c.id===s.personId);if(!id(s.id)||!c||(s.taskId!=null&&!id(s.taskId))||!money(s.rateCents)||!str(s.note,2000)||!Number.isSafeInteger(s.start)||s.start<0||s.start>now+60000||s.end!==null&&(!Number.isSafeInteger(s.end)||s.end<s.start||s.end>now+60000)||s.end===null&&c.archived)fail('Check the shift times. Clock out before removing a person.');}
  for(const c of input.crew){const shifts=input.shifts.filter(s=>s.personId===c.id).sort((a,b)=>a.start-b.start);for(let i=1;i<shifts.length;i++)if(shifts[i-1].end===null||shifts[i].start<shifts[i-1].end)fail(`${c.name} has overlapping shifts. Correct the times first.`);}
- return {budgetCents:input.budgetCents,expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note}))};
+ return {budgetCents:input.budgetCents,expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId,items:(e.items||[]).map(i=>({id:i.id,materialId:i.materialId,description:i.description.trim(),quantity:i.quantity===null?null:Math.round(i.quantity*100)/100,amountCents:i.amountCents,complete:i.materialId!==null&&i.complete,substitute:i.materialId!==null&&i.substitute,note:i.note.trim()}))})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note,taskId:s.taskId??null}))};
+}
+// A window opened before line items and work stages existed saves expenses and shifts without those
+// fields. Carry them over from the stored record instead of erasing them.
+export function projectPreserveFinance(previous,next){
+ if(!next||!Array.isArray(next.expenses)||!Array.isArray(next.shifts))return next;
+ const expenses=new Map((previous?.expenses||[]).map(e=>[e.id,e])),shifts=new Map((previous?.shifts||[]).map(s=>[s.id,s]));
+ return {...next,expenses:next.expenses.map(e=>e&&typeof e==='object'&&!Object.hasOwn(e,'items')?{...e,items:expenses.get(e.id)?.items||[]}:e),shifts:next.shifts.map(s=>s&&typeof s==='object'&&!Object.hasOwn(s,'taskId')?{...s,taskId:shifts.get(s.id)?.taskId??null}:s)};
 }
 // Prefer a labelled total, never a card number, tendered cash, savings or subtotal.
 export function projectParseReceipt(text) {
@@ -88,26 +113,15 @@ export function projectParseReceipt(text) {
 }
 
 export function projectAssembly(input={}) {
- const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['jacksPartial',16],['ballastAttached',8]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
+ const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['ballastAttached',8],['wallsJoined',8],['anglesSet',2]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
  if((out.jacksAttached??0)>(out.jacksBuilt??0)||(out.jacksAttached??0)>(out.panelsCompleted??0)*2)throw Error('Attached jacks cannot exceed built jacks or two per completed panel.');
- if((out.jacksBuilt??0)+(out.jacksPartial??0)>16)throw Error('Built and partially built jacks cannot exceed 16.');
  if((out.ballastAttached??0)>Math.floor((out.jacksAttached??0)/2))throw Error('Attach both jacks before counting a ballast assembly.');
+ if((out.wallsJoined??0)>(out.panelsCompleted??0))throw Error('Joined walls cannot exceed completed panels.');
  return out;
 }
 // Exact inventory is authoritative when the user explicitly saves counts. Percent edits never invent counts.
-export function projectSetAssemblyCounts(input,counts,design,forceKey=null){
- const previous=projectAssembly(input.assembly),assembly=projectAssembly(counts);let data=structuredClone(input);data.assembly=assembly;
- const apply=(stages,percent)=>{for(const stage of stages)data=projectSetGuideStage(data,stage,percent,design);};
- if(assembly.panelsCompleted!==null&&(assembly.panelsCompleted!==previous.panelsCompleted||forceKey==='panelsCompleted')){
-  const percent=Math.round(assembly.panelsCompleted/8*100);
-  if(projectStepPercent(data,'walls-1')<percent)apply([1,2,3,4,5,6,7,...(design.height===120?[8]:[]),9],percent);
-  apply([10,...(design.height===120?[11]:[]),12],percent);
- }
- if(assembly.jacksBuilt!==null&&(assembly.jacksBuilt!==previous.jacksBuilt||forceKey==='jacksBuilt'))apply([13,14,15,16],Math.round(assembly.jacksBuilt/16*100));
- if(assembly.jacksAttached!==null&&(assembly.jacksAttached!==previous.jacksAttached||forceKey==='jacksAttached'))apply([17],Math.round(assembly.jacksAttached/16*100));
- if(assembly.ballastAttached!==null&&(assembly.ballastAttached!==previous.ballastAttached||forceKey==='ballastAttached'))apply([18,19,20],Math.round(assembly.ballastAttached/8*100));
- return data;
-}
+// Exact counts are authoritative. They set the counted milestones and leave the guide's walkthrough checks alone.
+export function projectSetAssemblyCounts(input,counts){const data=structuredClone(input);data.assembly=projectAssembly(counts);return projectSyncCounts(data);}
 export function projectStepPercent(data,id){for(const s of data?.stages||[]){const step=s.steps.find(t=>t.id===id);if(step)return step.percent;}return 0;}
 export function projectPartStatus(part,data) {
  const counts=projectAssembly(data?.assembly),percent=id=>projectStepPercent(data,id),panel=part.panel??0;
@@ -123,7 +137,6 @@ export function projectPartStatus(part,data) {
  if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&(counts.ballastAttached===null?percent('walls-4')===100:jackPanel<counts.ballastAttached)};
  if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':unit('wall-finishing-1',panel,8)||unit('wall-finishing-2',panel,8)?'seams':'raw'};
  if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':percent('floor-upper')===100&&percent('floor-1')===100?'skim':'raw'};
- if(part.kind==='trim')return {assembled:percent('floor-3')===100&&wall};
  if(part.kind==='platform'){
   if(part.members?.length){const states=part.members.map((module,index)=>projectPartStatus({...part,module,deckIndex:part.deckIndices?.[index]??part.deckIndex,members:null},data)),finishes=['raw','seams','skim','primer','paint'];return {assembled:states.every(s=>s.assembled),finish:finishes[Math.min(...states.map(s=>finishes.indexOf(s.finish)))]};}
   const i=part.module??0,n=part.total??1;
@@ -164,19 +177,48 @@ export function projectGuideChecks(input={}) {
  if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length>100)throw Error('Invalid guide completion records.');
  const result={};for(const [key,value] of Object.entries(input)){if(!/^(?:(?:panel|jack):(?:96|120)|floor:(?:wood|charcoal)|set):\d{1,2}$/.test(key)||(typeof value!=='boolean'&&(!Number.isInteger(value)||value<0||value>100)))throw Error('Invalid guide completion record.');result[key]=value;}return result;
 }
+// Wall panels, jacks and ballast are counted, not estimated: their Build guide stages take their percentage from the
+// counts. The guide walks through one unit; checking every step of it credits one unit (two jacks for a pair).
+export function projectCountUnits(design={}){const groups=projectGuideGroups({...design,floor:'none',platformShape:'none'});return [
+ {key:'panelsCompleted',max:8,per:1,stages:[...groups['walls-1'],...groups['walls-2']]},
+ {key:'jacksBuilt',max:16,per:2,stages:[13,14,15,16]},
+ {key:'jacksAttached',max:16,per:2,stages:[17]},
+ {key:'ballastAttached',max:8,per:1,stages:[18,19,20]},
+ // Joining and angle-setting happen once for the whole set, so finishing the guide steps credits nothing.
+ {key:'wallsJoined',max:8,per:0,stages:[21]},
+ {key:'anglesSet',max:2,per:0,stages:[22]},
+];}
+export function projectCountMilestones(){return ['walls-1','walls-2','walls-3','walls-4','walls-5'];}
+// Counted milestone percentages straight from the counts (the same for every wall height). Unchanged input is returned as is.
+export function projectSyncCounts(input){
+ const c=projectAssembly(input.assembly),pct=(v,max)=>Math.round(v/max*100),jacks=c.jacksBuilt===null&&c.jacksAttached===null?null:Math.round(((c.jacksBuilt??0)/16*100*2+(c.jacksAttached??0)/16*100)/3);
+ const target={'walls-1':c.panelsCompleted===null?null:pct(c.panelsCompleted,8),'walls-2':c.panelsCompleted===null?null:pct(c.panelsCompleted,8),'walls-3':jacks,'walls-4':c.ballastAttached===null?null:pct(c.ballastAttached,8),'walls-5':c.wallsJoined===null&&c.anglesSet===null?null:Math.round(((c.wallsJoined??0)/8*100+(c.anglesSet??0)/2*100)/2)};
+ if(!input.stages.some(s=>s.steps.some(t=>target[t.id]!=null&&t.percent!==target[t.id])))return input;
+ const data=structuredClone(input);for(const s of data.stages)for(const t of s.steps)if(target[t.id]!=null)t.percent=target[t.id];return data;
+}
 export function projectGuideStagePercent(data,stage,design){
+ const unit=projectCountUnits(design).find(u=>u.stages.includes(stage)),count=unit?projectAssembly(data?.assembly)[unit.key]:null;
+ if(count!==null&&count!==undefined)return Math.round(count/unit.max*100);
  const key=projectGuideKey(stage,design),saved=data.guideChecks?.[key];
  if(saved!==undefined)return typeof saved==='boolean'?(saved?100:0):saved;
  const groups=Object.entries(projectGuideGroups(design)).filter(([,stages])=>stages.includes(stage));
  return groups.length?Math.round(groups.reduce((sum,[id])=>sum+projectStepPercent(data,id),0)/groups.length):0;
 }
-export function projectGuideStageDone(data,stage,design){return projectGuideStagePercent(data,stage,design)===100;}
+export function projectGuideStageDone(data,stage,design){const saved=data?.guideChecks?.[projectGuideKey(stage,design)];if(saved!==undefined&&projectCountUnits(design).some(u=>u.stages.includes(stage)))return saved===true||saved===100;return projectGuideStagePercent(data,stage,design)===100;}
+// Credit a finished walkthrough unit, keeping the counts consistent with each other (attached ≤ built, two per panel).
+export function projectCreditUnit(assembly,key,amount){const a={...projectAssembly(assembly)},at=k=>a[k]??0;a[key]=Math.max(at(key),amount);
+ if(key==='ballastAttached')a.jacksAttached=Math.max(at('jacksAttached'),a.ballastAttached*2);
+ if(['ballastAttached','jacksAttached'].includes(key)){a.jacksBuilt=Math.max(at('jacksBuilt'),a.jacksAttached);a.panelsCompleted=Math.max(at('panelsCompleted'),Math.ceil(a.jacksAttached/2));}
+ return projectAssembly(a);}
 export function projectSetGuideStage(input,stage,done,design){
  const groups=projectGuideGroups(design),affected=Object.entries(groups).filter(([,stages])=>stages.includes(stage));
  if(!affected.length||(typeof done!=='boolean'&&(!Number.isInteger(done)||done<0||done>100)))throw Error('This guide step is not part of the current design.');
  const data=structuredClone(projectUpgradeTracking(input));data.guideChecks=projectGuideChecks(data.guideChecks||{});
  for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStagePercent(input,number,design);}
  data.guideChecks[projectGuideKey(stage,design)]=done;
+ const unit=projectCountUnits(design).find(u=>u.stages.includes(stage));
+ if(unit?.per&&done&&done!==0&&unit.stages.every(n=>projectGuideStageDone(data,n,design)))data.assembly=projectCreditUnit(data.assembly,unit.key,unit.per);
+ if(unit)for(const id of projectCountMilestones())if(!affected.some(([a])=>a===id)&&groups[id])affected.push([id,groups[id]]);
  for(const [id,stages]of affected){let row=data.stages.flatMap(s=>s.steps).find(t=>t.id===id);
   if(!row&&done){const defaults=projectDefaultTracking(),source=defaults.stages.find(s=>s.steps.some(t=>t.id===id));if(source){let parent=data.stages.find(s=>s.id===source.id);if(!parent){parent={id:source.id,name:source.name,notes:[],steps:[]};data.stages.push(parent);}row=structuredClone(source.steps.find(t=>t.id===id));parent.steps.push(row);}}
   if(row)row.percent=Math.round(stages.reduce((sum,number)=>sum+projectGuideStagePercent(data,number,design),0)/stages.length);
@@ -188,7 +230,7 @@ export function projectReconcileGuideChecks(previous,next){
  if(JSON.stringify(previous.guideChecks||{})!==JSON.stringify(next.guideChecks||{}))return next;
  const changed=new Set(next.stages.flatMap(s=>s.steps).filter(t=>t.percent!==projectStepPercent(previous,t.id)).map(t=>t.id));if(!changed.size)return next;
  const checks={...(next.guideChecks||{})};
- for(const height of [96,120])for(const floor of ['wood','charcoal']){const design={height,floor,platformShape:'square'};for(const [id,stages]of Object.entries(projectGuideGroups(design)))if(changed.has(id))for(const stage of stages)delete checks[projectGuideKey(stage,design)];}
+ for(const height of [96,120])for(const floor of ['wood','charcoal']){const design={height,floor,platformShape:'square'};for(const [id,stages]of Object.entries(projectGuideGroups(design)))if(changed.has(id)&&!projectCountMilestones().includes(id))for(const stage of stages)delete checks[projectGuideKey(stage,design)];}
  return {...next,guideChecks:checks};
 }
 

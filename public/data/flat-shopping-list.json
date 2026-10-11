@@ -212,18 +212,6 @@
       "priceStatus": "observed-with-store-6319-selected",
       "checkedDate": "2026-10-05",
       "observedStock": null
-    },
-    {
-      "id": "straps",
-      "name": "Husky 1 in \u00d7 8 ft lashing straps \u00b7 2 pack",
-      "unitPriceCents": 799,
-      "packSize": 2,
-      "productUrl": "https://www.homedepot.com/p/206802158",
-      "availability": "Ship to store or delivery",
-      "group": "ballast",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": null
     }
   ],
   "notes": [
@@ -259,8 +247,7 @@
       },
       "ballastRequirements": {
         "bags": 3,
-        "sand": 75,
-        "straps": 3
+        "sand": 75
       },
       "cuts": [
         "2 \u00d7 96 in stiles \u00b7 1\u00d74 on edge",

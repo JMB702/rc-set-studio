@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
-import {projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectSetAssemblyCounts,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
+import {projectSyncCounts,projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectSetAssemblyCounts,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
 const H=3600000,now=Date.now(),shift={id:'shift',personId:'person-1',start:now-1.5*H,end:null,rateCents:2500,note:''};
 test('Live cost changes only at complete hourly boundaries; clock-out includes the exact partial hour',()=>{
  assert.deepEqual(projectShiftCost(shift,now-0.6*H),{hours:0,cents:0});assert.deepEqual(projectShiftCost(shift,now),{hours:1,cents:2500});assert.deepEqual(projectShiftCost(shift,now+0.5*H),{hours:2,cents:5000});assert.deepEqual(projectShiftCost({...shift,end:now},now),{hours:1.5,cents:3750});
@@ -18,7 +18,7 @@ test('Reject overlapping shifts, future times, duplicate records and removal of 
  const e={id:'a',vendor:'Lumber',amountCents:3200,date:'2026-10-09',note:'',receiptId:'receipt'};assert.throws(()=>projectValidate('finance',{...d,expenses:[e,{...e,id:'b'}]},now),/already recorded/);
 });
 test('Production starts walls, finishing, floor, platform; progress includes partial steps and survives reorder',()=>{
- const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:26});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:26});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
+ const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:26,weight:26});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:26,weight:26});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
 });
 test('Receipt extraction distinguishes total from subtotal, savings, tender and card numbers',()=>{
  const r=projectParseReceipt('LOCAL HARDWARE\n10/09/2026\nSUBTOTAL 100.00\nTAX 7.00\nTOTAL $107.00\nCASH 120.00\nCHANGE 13.00\nTOTAL SAVINGS 10.00');assert.equal(r.amountCents,10700);assert.equal(r.date,'2026-10-09');assert.equal(r.taxCents,700);assert.equal(r.warning,'');
@@ -86,15 +86,15 @@ test('Production transfer is disabled by default and atomically imports records 
  sqlite.prepare("DELETE FROM project_documents WHERE id='transfer-receipt'").run();assert.equal((await api.projectTransfer(req(),env)).status,409);
 });
 
-test('Assembly counts distinguish completed panels, built jacks, attached jacks and partial jacks',()=>{
+test('Assembly counts distinguish completed panels, built jacks and attached jacks; in-progress jacks are not tracked',()=>{
  const data={...projectDefaultTracking(),assembly:{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2}};
  assert.equal(projectPartStatus({kind:'panel',panel:7},data).assembled,true);
  for(let j=0;j<16;j++)assert.equal(projectPartStatus({kind:'jack',panel:Math.floor(j/2),side:j%2},data).assembled,Math.floor(j/2)===7);
  assert.equal(projectPartStatus({kind:'panel'},projectDefaultTracking()).assembled,false);
  assert.throws(()=>projectAssembly({...data.assembly,jacksAttached:5}),/cannot exceed/);
- assert.throws(()=>projectAssembly({...data.assembly,jacksPartial:13}),/cannot exceed/);
+ assert.equal(projectAssembly({...data.assembly,jacksBuilt:16,jacksAttached:2}).jacksBuilt,16,'a leftover in-progress count never blocks built jacks');assert.equal('jacksPartial' in projectAssembly(data.assembly),false);
  assert.throws(()=>projectAssembly({...data.assembly,panelsCompleted:9}),/Invalid/);
- assert.deepEqual(projectValidate('tracking',data).assembly,{...data.assembly,ballastAttached:null});
+ assert.deepEqual(projectValidate('tracking',data).assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null});
 });
 test('Platform parts require joined modules; deck, fascia and finish follow assembly dependencies',()=>{
  const data=projectDefaultTracking(),set=(id,p)=>data.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent=p;
@@ -110,16 +110,22 @@ test('Platform stage upgrade keeps all notes and respects custom order and remov
  data.stages[0].steps.pop();assert.equal(projectUpgradePlatform(data),data);
 });
 
-test('Guide checkboxes update grouped tracking percentages and preserve counts and notes',()=>{
- const design={height:120,floor:'charcoal',platformShape:'square'},base=projectDefaultTracking();base.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2};base.stages[0].steps[1].notes=[{id:'n',text:'Keep this note',at:1}];
- let next=projectSetGuideStage(base,1,true,design);assert.equal(next.stages[0].steps[1].percent,11);assert.equal(projectGuideStageDone(next,1,design),true);assert.equal(projectGuideStageDone(next,2,design),false);
- for(const stage of [2,3,4,5,6,7,8,9])next=projectSetGuideStage(next,stage,true,design);assert.equal(next.stages[0].steps[1].percent,100);next=projectSetGuideStage(next,4,false,design);assert.equal(next.stages[0].steps[1].percent,89);assert.deepEqual(next.assembly,base.assembly);assert.deepEqual(next.stages[0].steps[1].notes,base.stages[0].steps[1].notes);
- const saved=projectValidate('tracking',next);assert.equal(projectGuideStageDone(saved,4,design),false);
+test('Counted steps follow the counts; finishing one walkthrough credits one unit',()=>{
+ const design={height:120,floor:'charcoal',platformShape:'square'},walls1=d=>d.stages[0].steps[1].percent,base=projectDefaultTracking();base.stages[0].steps[1].notes=[{id:'n',text:'Keep this note',at:1}];
+ base.assembly={panelsCompleted:3,jacksBuilt:null,jacksAttached:null,jacksPartial:null,ballastAttached:null};
+ let next=projectSetGuideStage(base,1,true,design);assert.equal(walls1(next),38,'three of eight panels');assert.equal(projectGuideStageDone(next,1,design),true);assert.equal(projectGuideStageDone(next,2,design),false);
+ const panelStages=[1,2,3,4,5,6,7,8,9,10,11,12];for(const stage of panelStages)next=projectSetGuideStage(next,stage,true,design);assert.equal(next.assembly.panelsCompleted,3,'never lowers a higher count');assert.deepEqual(next.stages[0].steps[1].notes,base.stages[0].steps[1].notes);
+ let fresh=projectDefaultTracking();for(const stage of panelStages)fresh=projectSetGuideStage(fresh,stage,true,design);assert.equal(fresh.assembly.panelsCompleted,1);assert.equal(walls1(fresh),13);
+ for(const stage of [13,14,15,16])fresh=projectSetGuideStage(fresh,stage,true,design);assert.equal(fresh.assembly.jacksBuilt,2,'the guide builds a mirrored pair');
+ fresh=projectSetGuideStage(fresh,17,true,design);assert.equal(fresh.assembly.jacksAttached,2);
+ for(const stage of [18,19,20])fresh=projectSetGuideStage(fresh,stage,true,design);assert.equal(fresh.assembly.ballastAttached,1);
+ assert.equal(projectGuideStagePercent(fresh,13,design),13);projectValidate('tracking',fresh);
 });
-test('Existing completed milestones seed checked guide steps; manual edits supersede checkbox detail',()=>{
- const design={height:120,floor:'charcoal',platformShape:'square'},base=projectDefaultTracking();base.stages[0].steps[1].percent=100;assert.equal(projectGuideStageDone(base,8,design),true);
- const next=projectSetGuideStage(base,8,false,design);assert.equal(next.stages[0].steps[1].percent,89);
- const edited=structuredClone(next);edited.stages[0].steps[1].percent=100;const result=projectReconcileGuideChecks(next,edited);assert.equal(projectGuideStageDone(result,8,design),true);
+test('Uncounted milestones still follow guide checks, and manual edits supersede them',()=>{
+ const design={height:120,floor:'charcoal',platformShape:'square'},base=projectDefaultTracking();base.stages[0].steps[0].percent=100;assert.equal(projectGuideStageDone(base,0,design),true);
+ const next=projectSetGuideStage(base,0,false,design);assert.equal(next.stages[0].steps[0].percent,0);
+ const edited=structuredClone(next);edited.stages[0].steps[0].percent=100;const result=projectReconcileGuideChecks(next,edited);assert.equal(projectGuideStageDone(result,0,design),true);
+ const counted=projectSetAssemblyCounts(next,{panelsCompleted:4},design),moved=structuredClone(counted);assert.deepEqual(projectReconcileGuideChecks(next,moved).guideChecks,counted.guideChecks,'count changes keep walkthrough checks');
 });
 test('Guide completion distinguishes floor types and updates combined finishing instructions',()=>{
  const base=projectDefaultTracking(),wood={height:96,floor:'wood',platformShape:'square'},paint={...wood,floor:'charcoal'};
@@ -130,7 +136,7 @@ test('Guide completion distinguishes floor types and updates combined finishing 
 test('Older open tabs cannot erase assembly counts or guide completion when saving tracker edits',async()=>{
  const r=rig(),first=await (await r.call('tracking')).json();first.data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2};first.data.guideChecks={'panel:120:0':true};first.data.stages[0].steps[0].percent=100;
  const saved=await (await r.call('tracking','PUT',first)).json();const older=structuredClone(saved);delete older.data.assembly;delete older.data.guideChecks;older.data.stages[0].name='Wall production';
- const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,{...first.data.assembly,ballastAttached:null});assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
+ const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null});assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
 });
 test('Patched platform seams are a separate finish before full skim, primer and paint',()=>{
  const data=projectDefaultTracking(),steps=data.stages.flatMap(s=>s.steps);
@@ -170,9 +176,9 @@ test('Separating finishing preserves the exact progress, step IDs, values and no
   old.stages.flatMap(s=>s.steps).forEach((s,i)=>{s.percent=(i*37+seed*13)%101;s.notes=[{id:'n-'+i,text:'Retain '+s.id,at:1}];});
   if(seed===0)old.stages.flatMap(s=>s.steps).forEach((s,i)=>s.percent=i<3?100:i===3?15:0);
   old.assembly={panelsCompleted:3,jacksBuilt:2,jacksAttached:2,jacksPartial:0};old.guideChecks={'set:28':false};
-  const before=structuredClone(old),expected=projectProgress(old),next=projectUpgradeTracking(old);
-  assert.deepEqual(projectProgress(next),expected);if(seed===0)assert.equal(expected.percent,13);
-  const ordered=d=>d.stages.flatMap(s=>s.steps).sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(ordered(next),ordered(old));assert.deepEqual(old,before);
+  const before=structuredClone(old),synced=projectSyncCounts(old),expected=projectProgress(synced),next=projectUpgradeTracking(old);
+  assert.deepEqual(projectProgress(next),expected);
+  const ordered=d=>d.stages.flatMap(s=>s.steps).sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(ordered(next),ordered(synced),'only counted milestones change, to match the counts');assert.deepEqual(old,before);
   assert.deepEqual(next.assembly,old.assembly);assert.deepEqual(next.guideChecks,old.guideChecks);assert.equal(projectUpgradeTracking(next),next);
   assert.deepEqual(next.stages.find(s=>s.id==='platform-finishing').steps.map(s=>s.id),['platform-seams','platform-skim','platform-prime','platform-paint']);
   assert.equal(next.stages.find(s=>s.id==='floor-finishing').steps[0].id,'floor-3');projectValidate('tracking',next);
@@ -208,7 +214,7 @@ test('Exact assembly counts update guide and tracker without inventing attached 
  assert.equal(projectGuideStagePercent(data,13,design),25);
  assert.equal(projectGuideStagePercent(data,17,design),13);
  assert.equal(projectGuideStagePercent(data,10,design),100);
- assert.equal(data.stages.flatMap(s=>s.steps).find(s=>s.id==='walls-3').percent,23);
+ assert.equal(data.stages.flatMap(s=>s.steps).find(s=>s.id==='walls-3').percent,21,'building a pair weighs twice attaching it');
  assert.equal(original.assembly,undefined);
  const changed=projectSetGuideStage(data,17,100,design);
  assert.equal(changed.assembly.jacksAttached,2);
@@ -249,4 +255,41 @@ test('Double-layer floor migration preserves old completion and notes but starts
  const upgraded=projectUpgradeTracking(old),upper=upgraded.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-upper');
  assert.equal(upper.percent,0);assert.deepEqual(upgraded.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-2'),lower);assert.equal(projectUpgradeTracking(upgraded),upgraded);
  const saved=projectSetGuideStage(upgraded,42,50,{height:120,floor:'charcoal'});assert.equal(saved.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-upper').percent,50);assert.equal(projectGuideStagePercent(saved,24,{height:120,floor:'charcoal'}),100);
+});
+
+test('Finance API stores receipt line items and work stages, and an older window cannot erase them',async()=>{
+ const r=rig(),setup=await r.call('access','POST',{action:'setup',pin:'2580'}),cookie=setup.headers.get('set-cookie').split(';')[0];
+ const d=await (await r.call('finance','GET',null,cookie)).json();
+ d.data.expenses=[{id:'expense-a',vendor:'Home Depot',date:'2026-10-09',amountCents:146200,note:'',receiptId:null,items:[{id:'line-a',materialId:'board16',description:'',quantity:null,amountCents:null,complete:true,substitute:false,note:''}]}];
+ d.data.shifts=[{id:'shift-a',personId:'person-1',start:Date.now()-H,end:Date.now(),rateCents:0,note:'',taskId:'frames'}];
+ const saved=await (await r.call('finance','PUT',d,cookie)).json();assert.equal(saved.data.expenses[0].items[0].materialId,'board16');assert.equal(saved.data.shifts[0].taskId,'frames');
+ // A tab loaded before this release sends records without the new fields.
+ const old={revision:saved.revision,data:{...saved.data,expenses:saved.data.expenses.map(({items,...e})=>({...e,note:'edited'})),shifts:saved.data.shifts.map(({taskId,...s})=>s)}};
+ const after=await (await r.call('finance','PUT',old,cookie)).json();assert.equal(after.data.expenses[0].note,'edited');assert.deepEqual(after.data.expenses[0].items,saved.data.expenses[0].items);assert.equal(after.data.shifts[0].taskId,'frames');
+ const bad={revision:after.revision,data:{...after.data,expenses:[{...after.data.expenses[0],items:[{id:'x',materialId:null,description:'',quantity:null,amountCents:null,complete:false,substitute:false,note:''}]}]}};
+ assert.equal((await r.call('finance','PUT',bad,cookie)).status,400);
+});
+
+test('Loading syncs counted milestones to the counts once and is then stable',()=>{
+ const data=projectDefaultTracking();data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2,ballastAttached:1};for(const t of data.stages[0].steps)t.percent=100;
+ const next=projectUpgradeTracking(data),pct=id=>next.stages.flatMap(s=>s.steps).find(t=>t.id===id).percent;
+ assert.equal(pct('walls-1'),100);assert.equal(pct('walls-2'),100);assert.equal(pct('walls-3'),21);assert.equal(pct('walls-4'),13);assert.equal(pct('walls-0'),100,'uncounted steps keep their checkbox');
+ assert.equal(projectUpgradeTracking(next),next);assert.equal(projectUpgradeTracking(projectDefaultTracking()).stages[0].steps[1].percent,0,'no counts, nothing synced');
+});
+
+test('The jack step is named Build jacks; a separate attach step is folded back with its notes',()=>{
+ const old=projectDefaultTracking(),walls=old.stages.find(s=>s.id==='walls'),jacks=walls.steps.find(t=>t.id==='walls-3');jacks.name='Build and attach jacks';
+ walls.steps.splice(walls.steps.indexOf(jacks)+1,0,{id:'walls-attach',name:'Attach jacks to walls',percent:0,notes:[{id:'n',text:'keep',at:1}]});
+ const next=projectUpgradeTracking(old),w=next.stages.find(s=>s.id==='walls');
+ assert.equal(w.steps.find(t=>t.id==='walls-3').name,'Build jacks');assert.ok(!w.steps.some(t=>t.id==='walls-attach'));assert.equal(w.steps.find(t=>t.id==='walls-3').notes[0].text,'keep');
+ assert.equal(projectUpgradeTracking(next),next);
+});
+
+test('Joining walls and setting angles are counted: 8 walls, 2 angles',()=>{
+ const design={height:120,floor:'charcoal',platformShape:'square'},base=projectDefaultTracking(),pct=d=>d.stages.flatMap(s=>s.steps).find(t=>t.id==='walls-5').percent;
+ let d=projectSetAssemblyCounts(base,{panelsCompleted:8,jacksBuilt:16,jacksAttached:16,ballastAttached:8,wallsJoined:4,anglesSet:1},design);
+ assert.equal(pct(d),50);assert.equal(projectGuideStagePercent(d,21,design),50);assert.equal(projectGuideStagePercent(d,22,design),50);
+ d=projectSetAssemblyCounts(d,{...d.assembly,wallsJoined:8,anglesSet:2},design);assert.equal(pct(d),100);
+ assert.throws(()=>projectAssembly({panelsCompleted:3,wallsJoined:4}),/Joined walls/);assert.throws(()=>projectAssembly({anglesSet:3}),/Invalid/);
+ const checked=projectSetGuideStage(projectSetGuideStage(base,21,true,design),22,true,design);assert.equal(checked.assembly?.wallsJoined??null,null,'the guide never invents join counts');
 });

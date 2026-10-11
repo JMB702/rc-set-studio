@@ -31,8 +31,8 @@ export function laborTasks(d){
  add('assemble','21–22','Join the seams and set the wing angles',LABOR.seams*(tall?.5:.4)+LABOR.corners*(tall?1.25:1),`${LABOR.seams} straight seams and ${LABOR.corners} corners, braced while setting the angle`);
  add('wallFinish','28',`Dress, prime and paint the walls · ${wallArea} sq ft`,(tall?2:1.5)+wallArea/150+wallArea*2/200,'Seams and corners, one primer coat, two finish coats');
  if(floorType!=='none'){const area=floorArea(d.angle);
-  if(floorType==='wood')add('floor','23–27',`Lay the oak laminate floor · ${area.toFixed(0)} sq ft`,1+area*.06+1.5,'Footprint, underlay, click-lock rows at about 17 sq ft per person-hour, trim');
-  else{const sheets=2*Math.ceil(area*1.1/32);add('floor','23–27, 42',`Build and paint the double-layer plywood floor · ${area.toFixed(0)} sq ft`,1+sheets*.5+2+area/60+area*3/200+1.5,`Footprint, ${sheets} sheets in two bonded layers, cement skim, primer, two paint coats, trim; planning labor, excludes cure time and future touch-ups`);}
+  if(floorType==='wood')add('floor','23–27',`Lay the oak laminate floor · ${area.toFixed(0)} sq ft`,1+area*.06+1.5,'Footprint, underlay, click-lock rows at about 17 sq ft per person-hour, expansion-gap check and cleanup');
+  else{const sheets=2*Math.ceil(area*1.1/32);add('floor','23–27, 42',`Build and paint the double-layer plywood floor · ${area.toFixed(0)} sq ft`,1+sheets*.5+2+area/60+area*3/200,`Footprint, ${sheets} sheets in two bonded layers, cement skim, primer, two paint coats; planning labor, excludes cure time and future touch-ups`);}
  }
  if(platformShape!=='none'){const pl=platformPlan(d.angle,d.platformBack??12,d.platformSide??12,platformShape==='square'?90:Math.max(d.angle,d.platformAngle??d.angle)),c=pl.counts,ft=v=>v/12;
   add('platformFrame','30–31',`Cut and frame the platform · ${c.modules} modules`,.5+pl.lumberLengths.length*.06+c.modules,`${pl.lumberLengths.length} cuts, ${c.modules} module frames`);
@@ -78,8 +78,8 @@ export function mountLabor(host,api,{prefix='labor'}={}){
  host.innerHTML=`<div class="labor-grid">
 <label for="${id('crew')}">People on the crew<span class="labor-stepper"><button type="button" data-step="-1" aria-label="One fewer person">−</button><input id="${id('crew')}" type="number" inputmode="numeric" min="1" max="${LABOR.maxCrew}" step="1"><button type="button" data-step="1" aria-label="One more person">+</button></span></label>
 <label for="${id('hours')}">Hours on site<span class="labor-input"><input id="${id('hours')}" type="number" inputmode="decimal" min="0.5" step="0.5"><span>hrs</span></span></label>
-</div><p class="labor-shopping">Shopping: <strong>3.5 hours completed + 5 hours remaining</strong> · one person. Priced at Person 1’s rate; separate from hours on site.</p><p class="labor-default"><span data-default></span> <button type="button" class="link-button" data-reset hidden>Reset to estimate</button></p>
-<fieldset class="labor-rates"><legend>Hourly rates <small>$0 = already covered</small></legend><ol data-rates></ol><button type="button" class="link-button" data-same hidden>Copy the first rate to the rest</button></fieldset>
+</div><p class="labor-default"><span data-default></span> <button type="button" class="link-button" data-reset hidden>Reset to estimate</button></p>
+<fieldset class="labor-rates"><legend>Hourly rates</legend><ol data-rates></ol></fieldset>
 <p class="labor-cost"><span>Labor</span><strong data-cost aria-live="polite"></strong></p>
 <details class="labor-tasks"><summary>How the hours add up <span>+</span></summary><ol data-tasks></ol><p class="hint">Planning allowances for experienced carpenters with the tools in the Build guide. Drying and curing time is not labor and is not counted. Adjust the hours if your crew works faster or slower.</p></details>`;
  const q=s=>host.querySelector(s),crew=q('#'+id('crew')),hours=q('#'+id('hours')),list=q('[data-rates]');
@@ -89,7 +89,6 @@ export function mountLabor(host,api,{prefix='labor'}={}){
  for(const b of host.querySelectorAll('[data-step]'))b.onclick=()=>update({crew:Math.max(1,Math.min(LABOR.maxCrew,settings.crew+Number(b.dataset.step)))});
  hours.onchange=()=>{const v=Number(hours.value),est=laborFor(S).defaultHours,h=hours.value.trim()===''||!(v>0)?null:Math.round(v*2)/2;update(h===null||h===est?{hours:null,hoursFor:null}:{hours:h,hoursFor:est});};
  q('[data-reset]').onclick=()=>update({hours:null,hoursFor:null});
- q('[data-same]').onclick=()=>{const first=settings.rates.slice(0,settings.crew).find(r=>r!=null);if(first==null)return;update({rates:settings.rates.map((r,i)=>i<settings.crew&&r==null?first:r)});};
  // One row per person. Rows are rebuilt only when the crew size changes, so tabbing between rates keeps focus.
  function rows(n){
   if(list.children.length===n)return;
@@ -102,9 +101,8 @@ export function mountLabor(host,api,{prefix='labor'}={}){
   const l=laborFor(S),active=document.activeElement;
   if(active!==crew)crew.value=l.crew;if(active!==hours)hours.value=l.hours;
   rows(l.crew);[...list.children].forEach((li,i)=>{const input=li.querySelector('input'),r=l.rates[i];if(active!==input)input.value=r==null?'':String(r/100);li.querySelector('small').textContent=r==null?'Not priced':r===0?'Already covered':money(Math.round(l.hours*r+(i===0?l.shoppingHours*r:0)));});
-  q('[data-default]').textContent=l.adjusted?`Adjusted from the ${hoursText(l.defaultHours)} estimate.`:`Estimate for ${l.crew===2?'two skilled handymen':l.crew===1?'one skilled handyman':`a crew of ${l.crew}`}: ${l.personHours} person-hours total; ${l.hours} crew hours on site + ${l.shoppingHours} one-person shopping hours.`;
+  q('[data-default]').textContent=l.adjusted?`Adjusted from the ${hoursText(l.defaultHours)} estimate.`:'';q('.labor-default').hidden=!l.adjusted;
   q('[data-reset]').hidden=!l.adjusted;host.classList.toggle('adjusted',l.adjusted);
-  q('[data-same]').hidden=!(l.unrated&&l.crewRateCents!=null);
   q('[data-cost]').textContent=l.costCents==null?'Add rates to price labor':`${money(l.costCents)} · ${hoursText(l.hours)} × ${money(l.crewRateCents)}/hr crew + ${l.shoppingCents==null?'shopping unpriced':money(l.shoppingCents)+' shopping'}${l.unrated?` · ${people(l.unrated)} without a rate`:''}`;
   q('[data-tasks]').replaceChildren(...l.tasks.map(t=>{const li=document.createElement('li'),name=document.createElement('span'),hrs=document.createElement('strong'),note=document.createElement('small');name.textContent=t.name;hrs.textContent=`${t.personHours} h`;note.textContent=`${t.stage==='All'?'':`Steps ${t.stage} · `}${t.note}`;li.append(name,hrs,note);return li;}));
  }
@@ -130,9 +128,9 @@ export function installLabor(api){
   card.classList.toggle('has-estimate',materials?.scope==='set');
   if(!materials){out.replaceChildren();return;}
   if(materials.scope!=='set'){const p=document.createElement('p');p.className='hint';p.textContent='Labor is estimated for the full set. Choose Full set to add it to the estimate.';out.replaceChildren(p);return;}
-  const l=laborFor(api.state),pending=[materials.pending?`${materials.pending} material items still unpriced`:'',l.costCents==null?'labor not priced':l.unrated?`${l.unrated} ${l.unrated===1?'person':'people'} without a rate`:'','includes estimated material tax; delivery excluded'].filter(Boolean).join(' · ');
+  const l=laborFor(api.state),pending=[materials.pending?`${materials.pending} material items still unpriced`:'',l.costCents==null?'labor not priced':''].filter(Boolean).join(' · ');
   const row=(k,note,v,cls)=>{const div=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');if(cls)div.className=cls;dt.textContent=k;if(note){const small=document.createElement('small');small.textContent=note;dt.append(small);}dd.textContent=v;div.append(dt,dd);return div;};
-  out.replaceChildren(row('Materials','Full set, as listed below',money(materials.materialsCents)),row('Sales tax','7% on priced materials',money(materials.taxCents??0)),row('Labor',`${l.hours} hrs · crew of ${l.crew} + ${l.shoppingHours} shopping hrs`,l.costCents==null?'No rates set':money(l.costCents)),row('Total estimate',pending.replace(/^./,x=>x.toUpperCase()),money(materials.materialsCents+(materials.taxCents??0)+(l.costCents??0)),'estimate-total'));
+  out.replaceChildren(row('Materials','',money(materials.materialsCents)),row('Sales tax (7%)','',money(materials.taxCents??0)),row('Labor',`${l.hours} hrs · crew of ${l.crew} + ${l.shoppingHours} shopping hrs`,l.costCents==null?'No rates set':money(l.costCents)),row('Total estimate',pending.replace(/^./,x=>x.toUpperCase()),money(materials.materialsCents+(materials.taxCents??0)+(l.costCents??0)),'estimate-total'));
  }
  window.addEventListener('pricing-reviewed',e=>{materials=e.detail;estimate();});window.addEventListener('labor-changed',estimate);window.addEventListener('set-configured',estimate);
  api.labor=()=>laborFor(api.state);api.setLabor=patch=>update(patch);

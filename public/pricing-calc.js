@@ -56,7 +56,13 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
  rows.push(stocked(extra('wallPrimer','KILZ 2 All Purpose primer · walls · gallon',Math.ceil(area/250),2398,'100096395','Checked Oct 10 at #6319 · 152 in stock · one coat at 250 sq ft/gallon','finish'),152));
  const paint=data.wallPaint;rows.push(extra('wallPaint',paint.name,Math.ceil(area*2/paint.coverageSqFtPerGallon),paint.unitPriceCents,paint.productUrl,paint.availability,'finish'));
- rows.push(extra('wallSeams','Scenic wall seam fabric and filler',null,null,'https://www.homedepot.com/s/paintable%20seam%20tape','Finish system / quantity pending; do not bridge moving corners rigidly','finish'));}
+ // Walls stay assembled: mesh tape and setting compound on every flat seam and the 8′ sheet joint on 10′ flats;
+ // the two wing corners can move, so they get paintable caulk instead.
+ const seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),own=id=>data.platform.products.find(p=>p.id===id);
+ if(seamFt){const compound=own('platformCompound'),tape=own('platformTape'),bags=Math.max(1,Math.ceil(seamFt*10/12/60));
+  rows.push(stocked(extra('wallSeams','ProForm Quick-Set Lite setting compound · wall seams · 18 lb bag',bags,compound.unitPriceCents,compound.productUrl,`Checked Oct 10 at #6319 · 264 in stock · ${seamFt} ft of seams, two or three coats feathered about 10″ wide, ~60 sq ft per bag`,'finish'),264));
+  rows.push(stocked(extra('wallSeamTape','FibaTape self-adhesive mesh tape · wall seams · 300 ft roll',Math.ceil(seamFt*1.1/300),tape.unitPriceCents,tape.productUrl,`Checked Oct 10 at #6319 · 71 in stock · ${seamFt} ft of seams + 10%`,'finish'),71));}
+ if(scope==='set')rows.push(stocked(extra('wallCornerCaulk','BEHR Multi-Purpose paintable siliconized acrylic caulk · 10.1 oz',Math.ceil(2*height/12*1.1/25),548,'316993414','Checked Oct 10 at #6319 · 282 in stock · the two wing corners, about 25 ft of ¼″ bead per tube; flexible, not taped','finish'),282));}
  if(scope==='set'){
  const p=data.products.find(p=>p.id==='lapScrews'),existing=rows.find(r=>r.id==='lapScrews'),needed=5*(height===120?5:4);
  if(existing){existing.needed+=needed;existing.purchaseQuantity=Math.ceil(existing.needed/p.packSize);existing.subtotalCents=existing.purchaseQuantity*p.unitPriceCents;}else rows.push({...p,needed,purchaseQuantity:Math.ceil(needed/p.packSize),subtotalCents:Math.ceil(needed/p.packSize)*p.unitPriceCents});

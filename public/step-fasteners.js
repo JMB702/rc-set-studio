@@ -33,5 +33,6 @@ export function stepFasteners(stage,height,floor,cfg={}){
   if(stage===33)return [item('#9 × 3″ star-drive flat-head wood screws','Join shared rims from inside the frames, about 12″ apart overall, staggered from both sides. Use the module seam allowance in the Pricing guide.','platformFrameScrews',p.frameScrews-(c.rims*2+c.joists*4+c.legs*4+c.sills*2+c.sillLegs*2))];
   if(stage===34)return [item('#8 × 2½″ flat-head wood screws',`Every 6″ around each larger deck perimeter and 12″ on interior rims and joists. ${p.deckScrews} planned for the whole platform. Heads slightly recessed; do not glue. Remove each spanning deck before separating its frames.`,'platformDeckScrews',p.deckScrews)];
   if(stage===35)return [item('½″ long, 18-gauge, ¼″ narrow-crown staples',`About 4″ apart into the rims, sills and legs. ${p.staples} planned for all fascia.`,'platformStaples',p.staples),item('Titebond III wood glue','Glue the fascia-to-frame contact surfaces.','platformGlue')];
+  if(stage===28)return [item('Self-adhesive mesh tape + setting compound','Every flat-to-flat seam and the 8′ sheet joint on 10′ flats; spot-prime the joint first so the compound bonds to the lauan.','wallSeams'),item('Paintable acrylic caulk','The two wing corners only; they can move, so no tape or rigid compound there.','wallCornerCaulk')];
   return none('Follow the step instructions.');
 }

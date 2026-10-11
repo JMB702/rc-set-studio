@@ -100,3 +100,9 @@ test('A window from before line items cannot erase them or work stages',()=>{
  // Explicit edits win, including removing every line.
  assert.deepEqual(projectPreserveFinance(previous,{expenses:[{id:'e1',items:[]}],shifts:[{id:'s',taskId:null}]}).expenses[0].items,[]);
 });
+
+test('A locked-in quote becomes the baseline; the live estimate is still reported',()=>{
+ const l=labor(),p=projectCost({rows,finance:{budgetCents:569890,expenses:[],shifts:[]},tracking:null,design,labor:l,now});
+ assert.equal(p.quoteCents,569890);assert.equal(p.baselineCents,569890);assert.equal(p.varianceCents,p.projectedCents-569890);assert.equal(p.estimateVarianceCents,0);
+ assert.equal(projectCost({rows,finance:{budgetCents:null,expenses:[],shifts:[]},tracking:null,design,labor:l,now}).baselineCents,p.estimateCents);
+});

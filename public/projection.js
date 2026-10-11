@@ -93,9 +93,12 @@ export function projectLabor(labor,{design,tracking,shifts=[],supply=0,now=Date.
 }
 
 // Everything together. rows: the full-set shopping list as priced (removals and added costs applied).
+// finance.budgetCents is the quote locked in for the client; when set, the projection is measured against it
+// instead of the live Pricing guide estimate, which keeps moving as prices and the design change.
 export function projectCost({rows,finance,tracking,design,labor,now=Date.now()}){
  const materials=projectMaterials(rows,finance?.expenses||[]);
  const work=projectLabor(labor,{design,tracking,shifts:finance?.shifts||[],supply:supplyProgress(materials),now});
  const estimateCents=materials.estimateCents+(labor.costCents??0),spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents+work.remainingCents;
- return {materials,labor:work,estimateCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-estimateCents};
+ const quoteCents=finance?.budgetCents??null,baselineCents=quoteCents??estimateCents;
+ return {materials,labor:work,estimateCents,quoteCents,baselineCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-baselineCents,estimateVarianceCents:spentCents+toGoCents-estimateCents};
 }

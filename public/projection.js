@@ -11,7 +11,7 @@ import {laborTasks} from './labor.js';
 
 // Shopping-list groups bought on the wall-panel trip; everything else is the "remaining supplies" shopping.
 export const WALL_GROUPS=['panel','supports'];
-export const GROUP_LABELS={panel:'Wall panels',supports:'Jacks and shelf',ballast:'Ballast',finish:'Wall finish',connections:'Connections',floor:'Floor',platform:'Platform',custom:'Added costs'};
+export const GROUP_LABELS={panel:'Wall panels',supports:'Jacks and shelf',ballast:'Ballast',finish:'Wall finish',connections:'Connections',floor:'Floor',floorFinish:'Floor finish',platform:'Platform',platformFinish:'Platform finish',custom:'Added costs'};
 
 // status: 'remaining' (nothing linked), 'partial' (some bought, more needed) or 'bought'.
 export function materialStatus(row,items){

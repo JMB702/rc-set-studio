@@ -39,10 +39,10 @@ export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,plat
  rows.push(pack('platformStaples',shared('staples'),'Grip-Rite ½ in narrow-crown staples · fascia · 1,000 box',plan.staples,'Fascia to rims, sills and legs at about 4″'));
  rows.push(row('platformGlue',shared('glue'),'Titebond III wood glue · fascia · 16 oz bottle',Math.max(1,Math.ceil(plan.fasciaLength/720)),Math.max(1,Math.ceil(plan.fasciaLength/720)),'Planning allowance: one bottle per 60 ft of fascia'));
  const pads=Math.max(1,Math.ceil(plan.padArea*1.15/216));rows.push(row('platformPads',shared('pads'),'⅛ in neoprene sheet · leg and sill pads',pads,pads,`${plan.counts.fullLegs} leg pads + sill pads every 24″, cut from 6×36 in sheets`));
- const tape=own('platformTape'),bead=own('platformBead'),compound=Math.ceil((finish-plan.deckArea)/60),primer=Math.ceil((finish-plan.deckArea)/300),paint=Math.ceil(finish*2/300);
+ const tape=own('platformTape'),bead=own('platformBead'),compound=Math.ceil((finish-plan.deckArea)/150),primer=Math.ceil((finish-plan.deckArea)/300),paint=Math.ceil(finish*2/300);
  rows.push(row('platformTape',tape,tape.name,Math.ceil((plan.tapeLength-plan.deckSeamLength)*1.1/tape.lengthInches),Math.ceil((plan.tapeLength-plan.deckSeamLength)*1.1/tape.lengthInches),`${((plan.tapeLength-plan.deckSeamLength)/12).toFixed(0)} ft of vertical fascia joints + 10%; no drywall tape on deck`));
  rows.push(row('platformBead',bead,bead.name,Math.ceil(plan.fasciaCorners*PLATFORM.height*1.1/bead.lengthInches),Math.ceil(plan.fasciaCorners*PLATFORM.height*1.1/bead.lengthInches),`${(plan.fasciaCorners*PLATFORM.height/12).toFixed(0)} ft of vertical fascia corners + 10%`));
- rows.push(row('platformCompound',own('platformCompound'),own('platformCompound').name+' · vertical fascia only',compound,compound,`Scenic fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft at 60 sq ft/bag; not for the walking surface`));
+ rows.push(row('platformCompound',own('platformCompound'),own('platformCompound').name+' · vertical fascia only',compound,compound,`Scenic fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft; planning 150 sq ft per 4.5-gal premixed pail; not for the walking surface`));
  rows.push(row('platformPrimer',own('platformPrimer'),own('platformPrimer').name,primer,primer,`Fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft, one coat at 300 sq ft/gallon`));
  rows.push(extra('platformDeckSkim','Rapid Set SKIM FLOOR · 35 lb bag · platform walking surface',Math.ceil(plan.deckArea*1.1/SKIM_SQFT_PER_BAG),3897,'313474246',`Checked Oct 10 · not stocked at #6319 (order online) · ${plan.deckArea.toFixed(0)} sq ft + 10% at about ${SKIM_SQFT_PER_BAG} sq ft per bag, 1/16 inch`,'platform'));
  rows.push(stocked(extra('platformDeckPrimer','BEHR PREMIUM Concrete & Masonry Bonding Primer · deck · gallon',Math.ceil(plan.deckArea/250),2998,'100129649','Checked Oct 10 at #6319 · 19 in stock (shared with the floor) · one coat over the cured skim at 250 sq ft/gallon; paint-only wear system unverified','platform'),19));
@@ -57,12 +57,12 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
  rows.push(stocked(extra('wallPrimer','KILZ 2 All Purpose primer · walls · gallon',Math.ceil(area/250),2398,'100096395','Checked Oct 10 at #6319 · 152 in stock · one coat at 250 sq ft/gallon','finish'),152));
  const paint=data.wallPaint;rows.push(extra('wallPaint',paint.name,Math.ceil(area*2/paint.coverageSqFtPerGallon),paint.unitPriceCents,paint.productUrl,paint.availability,'finish'));
- // Walls stay assembled: mesh tape and setting compound on every flat seam and the 8′ sheet joint on 10′ flats;
+ // Walls stay assembled: paper tape and premixed compound on every flat seam and the 8′ sheet joint on 10′ flats;
  // the two wing corners can move, so they get paintable caulk instead.
  const seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),own=id=>data.platform.products.find(p=>p.id===id);
- if(seamFt){const compound=own('platformCompound'),tape=own('platformTape'),bags=Math.max(1,Math.ceil(seamFt*10/12/60));
-  rows.push(stocked(extra('wallSeams','ProForm Quick-Set Lite setting compound · wall seams · 18 lb bag',bags,compound.unitPriceCents,compound.productUrl,`Checked Oct 10 at #6319 · 264 in stock · ${seamFt} ft of seams, two or three coats feathered about 10″ wide, ~60 sq ft per bag`,'finish'),264));
-  rows.push(stocked(extra('wallSeamTape','FibaTape self-adhesive mesh tape · wall seams · 300 ft roll',Math.ceil(seamFt*1.1/300),tape.unitPriceCents,tape.productUrl,`Checked Oct 10 at #6319 · 71 in stock · ${seamFt} ft of seams + 10%`,'finish'),71));}
+ if(seamFt){const compound=own('platformCompound'),tape=own('platformTape'),bags=Math.max(1,Math.ceil(seamFt*10/12/150));
+  rows.push(stocked(extra('wallSeams','USG Sheetrock All Purpose premixed compound · wall seams · 4.5 gal pail',bags,compound.unitPriceCents,compound.productUrl,`Checked Oct 12 at #6319 · 184 in stock · ${seamFt} ft of seams feathered about 10″ wide; planning 150 sq ft/pail for thin coats, not a manufacturer coverage rating`,'finish'),184));
+  rows.push(stocked(extra('wallSeamTape','USG Sheetrock paper joint tape · wall seams · 250 ft roll',Math.ceil(seamFt*1.1/250),tape.unitPriceCents,tape.productUrl,`Checked Oct 12 at #6319 · 107 in stock · ${seamFt} ft of seams + 10%; embed paper in wet compound`,'finish'),107));}
  if(scope==='set')rows.push(stocked(extra('wallCornerCaulk','BEHR Multi-Purpose paintable siliconized acrylic caulk · 10.1 oz',Math.ceil(2*height/12*1.1/25),548,'316993414','Checked Oct 10 at #6319 · 282 in stock · the two wing corners, about 25 ft of ¼″ bead per tube; flexible, not taped','finish'),282));}
  if(scope==='set'){
  const p=data.products.find(p=>p.id==='lapScrews'),existing=rows.find(r=>r.id==='lapScrews'),needed=5*(height===120?5:4);

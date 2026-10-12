@@ -159,6 +159,8 @@ export default {async fetch(request,env) {
   if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});
   const asset=assets[url.pathname==='/'?'/index.html':url.pathname];
   if(!asset)return new Response('Not found',{status:404});
+  const headers={'Content-Type':asset[0],'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff',...(asset[2]?{ETag:asset[2]}:{})};
+  if(asset[2]&&request.headers.get('If-None-Match')?.split(',').some(tag=>tag.trim()==='*'||tag.trim().replace(/^W\//,'')===asset[2]))return new Response(null,{status:304,headers});
   const bytes=Uint8Array.from(atob(asset[1]),c=>c.charCodeAt(0));
-  return new Response(request.method==='HEAD'?null:bytes,{headers:{'Content-Type':asset[0],'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff'}});
+  return new Response(request.method==='HEAD'?null:bytes,{headers});
 }};

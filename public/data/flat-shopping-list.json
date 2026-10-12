@@ -324,26 +324,27 @@
       },
       {
         "id": "platformCompound",
-        "name": "ProForm Quick-Set Lite 45-minute setting-type joint compound (vertical fascia only) \u00b7 18 lb bag",
-        "unitPriceCents": 1325,
+        "name": "USG Sheetrock All Purpose Ready-Mixed Joint Compound \u00b7 4.5 gal pail",
+        "unitPriceCents": 2368,
         "packSize": 1,
-        "productUrl": "https://www.homedepot.com/p/202564422",
-        "availability": "155 in stock \u00b7 aisle 20 / bay 009 \u00b7 listed coverage 325 sq ft is for taping drywall, not a skim coat",
+        "productUrl": "https://www.homedepot.com/p/100321605",
+        "availability": "184 in stock at E Bradenton #6319 \u00b7 checked Oct 12, 2026 \u00b7 premixed, may need stirring; allow each coat to dry",
         "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-06",
-        "observedStock": 155
+        "checkedDate": "2026-10-12",
+        "observedStock": 184,
+        "planningSkimSqFtPerPail": 150
       },
       {
         "id": "platformTape",
-        "name": "FibaTape self-adhesive mesh joint tape \u00b7 1-7/8 in. \u00d7 300 ft roll",
-        "unitPriceCents": 1175,
+        "name": "USG Sheetrock paper drywall joint tape \u00b7 2-1/16 in \u00d7 250 ft roll",
+        "unitPriceCents": 328,
         "packSize": 1,
-        "productUrl": "https://www.homedepot.com/p/100429159",
-        "availability": "81 in stock",
+        "productUrl": "https://www.homedepot.com/p/100321613",
+        "availability": "107 in stock at E Bradenton #6319 \u00b7 checked Oct 12, 2026 \u00b7 embed in wet premixed compound; not self-adhesive",
         "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-06",
-        "observedStock": 81,
-        "lengthInches": 3600
+        "checkedDate": "2026-10-12",
+        "observedStock": 107,
+        "lengthInches": 3000
       },
       {
         "id": "platformBead",
@@ -383,5 +384,5 @@
       }
     ]
   },
-  "designRevision": "2026-10-10-platform-cement-skim"
+  "designRevision": "2026-10-12-premixed-wall-fascia-finish"
 }

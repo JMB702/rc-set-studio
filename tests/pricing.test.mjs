@@ -106,7 +106,7 @@ test('Platform walking surface uses cement skim while drywall products are fasci
  const rows=platformRows(data,45),plan=platformPlan(45,12,12);
  assert.equal(rows.find(r=>r.id==='platformDeckSkim').productUrl,'https://www.homedepot.com/p/313474246');
  assert.match(rows.find(r=>r.id==='platformCompound').name,/fascia only/);
- assert.equal(rows.find(r=>r.id==='platformCompound').purchaseQuantity,Math.ceil((plan.finishArea-plan.deckArea)/60));
+ assert.equal(rows.find(r=>r.id==='platformCompound').purchaseQuantity,Math.ceil((plan.finishArea-plan.deckArea)/150));
  assert.equal(rows.find(r=>r.id==='platformDeck').purchaseQuantity,plan.deckSheets);
 });
 
@@ -137,4 +137,10 @@ test('Floor and platform finishes are separate groups without changing rows or t
   const groups=new Map();for(const row of rows)groups.set(row.group,(groups.get(row.group)||0)+(row.subtotalCents||0));
   assert.equal([...groups.values()].reduce((a,b)=>a+b,0),summary(rows).subtotal);
  }
+});
+test('Wall and fascia finishes use premixed tubs with paper tape while deck skim remains cement',()=>{
+ const rows=priceRows(data,{scope:'set',height:120,angle:90,floor:'charcoal',platformShape:'square'});
+ for(const id of ['wallSeams','platformCompound']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321605');assert.equal(r.purchaseQuantity,1);assert.equal(r.unitPriceCents,2368);}
+ for(const id of ['wallSeamTape','platformTape']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321613');assert.equal(r.purchaseQuantity,1);assert.equal(r.unitPriceCents,328);}
+ for(const id of ['floorSeams','platformDeckSkim'])assert.equal(rows.find(r=>r.id===id).productUrl,'https://www.homedepot.com/p/313474246');
 });

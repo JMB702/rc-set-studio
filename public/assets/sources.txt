@@ -76,3 +76,15 @@ unpriced materials are excluded. This is a purchase-tax planning allowance.
 Shopping: Jeff reported 3.5 one-person hours for walls/jacks. Remaining estimate
 5 one-person hours (3 bulk materials + 2 finishes/follow-ups), not an actual time
 entry. Former setup allowance reduced by 2 hours to remove embedded pickup time.
+
+Oct 12, 2026: wall seams and vertical fascia changed to USG Sheetrock premixed
+all-purpose compound (4.5 gal, $23.68, 184 in stock) and paper joint tape
+(250 ft, $3.28, 107 in stock), observed with E Bradenton #6319 selected.
+https://www.homedepot.com/p/100321605
+https://www.homedepot.com/p/100321613
+https://www.usg.com/content/dam/USG_Marketing_Communications/united_states/product_promotional_materials/finished_assets/matching-joint-compound-with-proper-joint-tape-white-paper-en-usa-J2140.pdf
+Embed paper tape in wet premixed compound, dry fully between coats. This remains
+scenic plywood finishing, not a manufacturer-rated plywood joint system.
+Planning coverage: 150 sq ft thin skim/seam area per pail (allowance, not a rating).
+Current design allocates one pail and one tape roll each to walls and fascia.
+Horizontal cement skim is unchanged and still requires mixing.

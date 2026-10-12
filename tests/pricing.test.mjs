@@ -124,3 +124,17 @@ test('Tax estimates include known materials and exclude custom charges and pendi
  assert.equal(materialTax([{subtotalCents:10000},{subtotalCents:null},{subtotalCents:5000,custom:true}]),700);
  assert.equal(materialTax([{subtotalCents:261992}]),18339);assert.equal(materialTax([]),0);
 });
+
+test('Floor and platform finishes are separate groups without changing rows or totals',()=>{
+ const floorFinish=['floorPrimer','floorPaint','floorSeams'],platformFinish=['platformTape','platformBead','platformCompound','platformPrimer','platformDeckSkim','platformDeckPrimer','platformPaint'];
+ for(const angle of [0,45,90]){
+  const rows=priceRows(data,{scope:'set',height:120,angle,floor:'charcoal',platformShape:'square'});
+  for(const id of floorFinish)assert.equal(rows.find(r=>r.id===id).group,'floorFinish');
+  for(const id of platformFinish){const row=rows.find(r=>r.id===id);if(row)assert.equal(row.group,'platformFinish');}
+  for(const id of ['floorPly','floorGlue','floorLayerScrews'])assert.equal(rows.find(r=>r.id===id).group,'floor');
+  for(const id of ['platformDeck','platformLumber','platformSkin','platformGlue'])assert.equal(rows.find(r=>r.id===id).group,'platform');
+  assert.equal(new Set(rows.map(r=>r.id)).size,rows.length);
+  const groups=new Map();for(const row of rows)groups.set(row.group,(groups.get(row.group)||0)+(row.subtotalCents||0));
+  assert.equal([...groups.values()].reduce((a,b)=>a+b,0),summary(rows).subtotal);
+ }
+});

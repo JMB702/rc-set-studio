@@ -77,6 +77,9 @@ installCutPreview(window.__studio);
 import {installCameraPositions} from './camera-positions.js';
 installCameraPositions(window.__studio);
 
+import {installLighting} from './lighting.js';
+installLighting(window.__studio);
+
 installWorkspaceSession(window.__studio,savedWorkspace);
 
 installProject(window.__studio);

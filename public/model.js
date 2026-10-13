@@ -24,15 +24,22 @@ if(step>=18&&step<=20)o.userData.progress={kind:'bracing'};
 o.castShadow=o.receiveShadow=true;G.add(o);return o;}
 export function box(G,id,x,z,y,w,d,h,mat='wood',step=0){let g=grain(new T.BoxGeometry(w*inch,h*inch,d*inch),[w,h,d],id.length);g.translate((x+w/2)*inch,(y+h/2)*inch,-(z+d/2)*inch);return mesh(G,id,g,mat,step);}
 function prism(G,id,x,w,p,step,mat='wood'){let s=new T.Shape();p.forEach(([z,y],i)=>i?s.lineTo(-z*inch,y*inch):s.moveTo(-z*inch,y*inch));s.closePath();let g=new T.ExtrudeGeometry(s,{depth:w*inch,bevelEnabled:false});g.rotateY(-Math.PI/2);g.translate(x*inch,0,0);if(step===15&&mat==='wood')diagonalGrain(g,p[0][1]-p[1][1],p[1][0]-p[0][0],x);else grain(g,[w,96,48],x);return mesh(G,id,g,mat,step);}
-// A black film-set saddle sandbag: two plump pouches hang from a stitched top seam and splay apart at the bottom like a
-// tent, their bottoms slumped flat on the shelf; a flat webbing handle with a yellow grip crosses the seam. Illustrative bag: 11 in across the shelf, 9 in tall, splayed about 11.4 in so four fill the shelf.
-function sandbag(G,cx,cz,y,step){const w=11,h=9,d=4,tilt=.2,top=y+h*Math.cos(tilt)-.45,at=g=>{g.rotateY(Math.PI/2);g.translate(cx*inch,0,-cz*inch);return g;},soft=(c,e)=>Math.sign(c)*Math.abs(c)**e;
- for(const side of [-1,1]){const g=new T.SphereGeometry(1,24,18),p=g.attributes.position;
-  for(let i=0;i<p.count;i++){const u=soft(p.getX(i),.55),v=soft(p.getY(i),.55),puff=Math.max(0,(1-u**4)*(1-v**4))**.6;p.setXYZ(i,u*w/2*inch,(v-1)*h/2*inch,(1+side*p.getZ(i)*(.15+.85*puff))*side*d/2*inch);}
+// A black film-set saddle sandbag: two plump pouches sewn shut into one flat ridge, splayed apart at the bottom like a tent
+// and slumped flat on the shelf. A flat webbing band covers the ridge; a flat webbing handle runs the ridge, curving up from
+// both ends, its middle wrapped in a yellow grip. A 15 lb bag: 11 in along the ridge, 9 in tall, splayed about 11.4 in.
+function sandbag(G,cx,cz,y,step){const w=11,h=9,d=4.6,tilt=.07,top=y+h*Math.cos(tilt)-.45,at=g=>{g.rotateY(Math.PI/2);g.translate(cx*inch,0,-cz*inch);return g;},soft=(c,e)=>Math.sign(c)*Math.abs(c)**e;
+ for(const side of [-1,1]){const g=new T.SphereGeometry(1,28,20),p=g.attributes.position;
+  // Each pouch bulges from its own center plane, which pinches in to the ridge over the top 40% so both pouch tops meet there.
+  for(let i=0;i<p.count;i++){const u=soft(p.getX(i),.55),v=soft(p.getY(i),.55),puff=Math.max(0,(1-u**4)*(1-v**4))**.6,pinch=Math.min(1,(1-v)/.8)**.7;p.setXYZ(i,u*w/2*(1-.06*Math.max(0,v))*inch,(v-1)*h/2*inch,(1+side*p.getZ(i)*(.15+.85*puff))*pinch*side*d/2*inch);}
   g.rotateX(-side*tilt);g.translate(0,top*inch,0);for(let i=0;i<p.count;i++)p.setY(i,Math.max(p.getY(i),y*inch));g.computeVertexNormals();mesh(G,'Ballast bag',at(g),'bag',step);}
- const seam=new T.CylinderGeometry(.5*inch,.5*inch,w*.62*inch,10);seam.rotateZ(Math.PI/2);seam.scale(1,.7,1);seam.translate(0,(top-.35)*inch,0);mesh(G,'Ballast bag seam',at(seam),'bag',step);
- const strap=new T.TorusGeometry(2.4*inch,.2*inch,6,20,Math.PI);strap.scale(1,1,4);strap.translate(0,(top+.3)*inch,0);mesh(G,'Ballast bag handle',at(strap),'bag',step);
- const grip=new T.CylinderGeometry(.42*inch,.42*inch,2.6*inch,12);grip.rotateZ(Math.PI/2);grip.translate(0,(top+2.7)*inch,0);mesh(G,'Ballast bag grip',at(grip),'bagGrip',step);}
+ // The pouch tops round down toward each end, so the band and handle follow that ridge line instead of running level.
+ const ridge=x=>-(1-(1-Math.min(1,Math.abs(x)/(w/2*.94))**3.64)**(1/3.64))*h/2,strip=(len,thick,width,rise=()=>0,from=-len,to=len)=>{const pts=[];for(let k=0;k<=40;k++){const x=from+(to-from)*k/40;pts.push(new T.Vector2(x,ridge(x)+rise(x)));}const g=new T.ExtrudeGeometry(new T.Shape([...pts.map(q=>new T.Vector2(q.x,q.y+thick)),...pts.reverse()]),{depth:width,bevelEnabled:false});g.translate(0,0,-width/2);g.scale(inch,inch,inch);return g;};
+ const band=strip(w/2*.9,.18,1.6);band.translate(0,(top-.06)*inch,0);mesh(G,'Ballast bag seam',at(band),'bag',step);
+ // Flat 1.5 in webbing running the length of the ridge: it rises in the middle and curves down at both sides, landing flat
+ // on the bag at each end of the ridge where it is sewn on.
+ const L=w/2*.8,H=2.2,web=1.5,lift=x=>.18+H*((1+Math.cos(Math.PI*x/L))/2)**1.3;
+ // The yellow grip is the middle of the same strap, slightly thicker where it is wrapped.
+ const g2=1.3;for(const [from,to,mat,thick] of [[-L,-g2,'bag',.14],[-g2,g2,'bagGrip',.2],[g2,L,'bag',.14]]){const part=strip(L,thick,mat==='bag'?web:web+.1,lift,from,to);part.translate(0,(top-.06)*inch,0);mesh(G,mat==='bag'?'Ballast bag handle':'Ballast bag grip',at(part),mat,step);}}
 function pin(G,id,x,z,y,axis,step,r=.24,l=.06){let g=new T.CylinderGeometry(r*inch,r*inch,l*inch,8);if(axis==='x')g.rotateZ(Math.PI/2);if(axis==='z')g.rotateX(Math.PI/2);g.translate(x*inch,y*inch,-z*inch);let m=mesh(G,id,g,'metal',step);m.userData.fastener=true;return m;}
 export function panel(h=96,{jacks=true,skin=true,appearance=0}={}){let G=new T.Group(),D=design(h);box(G,'Left stile',0,.106,0,.75,D.stileDepth,h,'wood',1);box(G,'Right stile',47.25,.106,0,.75,D.stileDepth,h,'wood',2);box(G,'Bottom rail',.75,.106,0,46.5,D.railDepth,.75,'wood',3);box(G,'Top rail',.75,.106,h-.75,46.5,D.railDepth,.75,'wood',4);
 [24,48,72].forEach((y,i)=>box(G,`Toggle ${y}″`,.75,.106,y-.375,46.5,D.railDepth,.75,'wood',5+i));if(h===120)box(G,'Wide skin-seam backer',.75,.106,94.25,46.5,.75,3.5,'wood',8);

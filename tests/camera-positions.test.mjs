@@ -124,3 +124,9 @@ test('Low camera angles save, update, and round-trip through the camera API',asy
   for(let t=0;t<=1;t+=.1)normalizeCameraShot(interpolateCameraShot(a,lower,t));
  }finally{env.sqlite.close();}
 });
+
+test('Camera API stores and recalls a six-light rig without losing source shape or edge settings',async()=>{
+ const {defaultLightingRig}=await import('../public/lighting-state.js');const lighting=defaultLightingRig();lighting.lights.push(...lighting.lights.map(l=>({...l,id:l.id+'-copy',name:l.name+' copy',type:'spot',edge:0})));
+ const env=database();try{const shot={...a,lighting};let res=await api.fetch(request('POST',{id,name:'Lit master',shot}),env);assert.equal(res.status,201);assert.deepEqual((await res.json()).position.shot,shot);const list=await(await api.fetch(request('GET'),env)).json();assert.deepEqual(list.positions[0].shot.lighting,lighting);const changed=structuredClone(shot);changed.lighting.lights[0].width=.3048;res=await api.fetch(request('PATCH',{id,name:'Lit master',shot:changed,revision:0}),env);assert.equal(res.status,200);assert.deepEqual((await res.json()).position.shot,changed);}finally{env.sqlite.close();}
+});
+test('Recalling a lit camera restores the rig only at the end of the move',()=>{const r=rig();let current={version:1,lights:[]},calls=0;r.api.lighting={get:()=>current,set:v=>{current=v;calls++;}};const to={...b,lighting:{version:1,lights:[]}};r.motion.move(to);r.tick(500);assert.equal(calls,0);r.tick(1000);assert.equal(calls,1);assert.deepEqual(r.motion.snapshot(),to);});

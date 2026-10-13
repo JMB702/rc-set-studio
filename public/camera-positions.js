@@ -12,6 +12,7 @@ export function installCameraPositions(api) {
 <details id="camera-deleted" hidden><summary>Deleted angles <span>+</span></summary><div id="camera-deleted-list"></div></details>`;
   let positions=[],deleted=[],selected=null,busy=false,attempt=null,loadVersion=0,rowMessage=null,pendingDelete=null;
   const motion=createCameraMotion(api),status=$('#camera-status'),name=$('#camera-name');
+  api.cancelCameraMove=motion.stop;
   function changed(){try{return cameraShotChanged(selected,motion.snapshot(),name.value);}catch{return false;}}
   function buttons(){
     const moving=!!api.cameraAnimating,dirty=changed();
@@ -24,7 +25,7 @@ export function installCameraPositions(api) {
     if(!positions.length){const p=document.createElement('p');p.className='camera-empty';p.textContent='No saved angles yet.';list.append(p);}
     for(const p of positions){
       const row=document.createElement('article'),b=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('span'),actions=document.createElement('div');
-      row.className='camera-shot-row';b.type='button';b.className='camera-shot';b.setAttribute('aria-pressed',p.id===selected?.id);title.textContent=p.name;meta.textContent=`${Math.round(p.shot.mm)} mm · ${p.shot.ratio}`;b.append(title,meta);b.onclick=()=>select(p);b.disabled=busy;
+      row.className='camera-shot-row';b.type='button';b.className='camera-shot';b.setAttribute('aria-pressed',p.id===selected?.id);title.textContent=p.name;meta.textContent=`${Math.round(p.shot.mm)} mm · ${p.shot.ratio}${p.shot.lighting?' · '+p.shot.lighting.lights.length+' lights':''}`;b.append(title,meta);b.onclick=()=>select(p);b.disabled=busy;
       actions.className='camera-row-actions';actions.append(action('Edit','Edit '+p.name,()=>select(p,true)),action('Delete','Delete '+p.name,()=>confirmDeletion(p)));row.append(b,actions);if(rowMessage?.id===p.id){const message=document.createElement('p');message.className='camera-row-status';message.setAttribute('role','status');message.textContent=rowMessage.text;row.append(message);}list.append(row);
     }
     $('#camera-deleted').hidden=!deleted.length;
@@ -84,6 +85,7 @@ export function installCameraPositions(api) {
   for(const type of ['pointerdown','wheel','keydown'])api.renderer.domElement.addEventListener(type,interrupt,{capture:true,passive:true});
   lensControls.addEventListener('input',interrupt,{capture:true});lensControls.addEventListener('pointerdown',interrupt,{capture:true});lensControls.addEventListener('keydown',interrupt,{capture:true});
   api.orbit.addEventListener('change',()=>{if(api.state.mode==='cameras')buttons();});
+  window.addEventListener('lighting-changed',buttons);
   window.addEventListener('camera-lens-changed',()=>{if(api.state.mode==='cameras')buttons();});
   const baseMode=api.setMode;
   api.setMode=m=>{

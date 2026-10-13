@@ -1,0 +1,1 @@
+ALTER TABLE `lighting_setups` ADD `is_default` integer DEFAULT 0 NOT NULL;

@@ -52,3 +52,11 @@
 .light-pad output{position:absolute;top:8px;right:10px;font-size:13px;font-weight:650;pointer-events:none}
 .light-strip{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 2px;font-size:10px;color:var(--muted);text-align:center}.light-strip output{font-size:12px;font-weight:650;color:var(--ink);background:#eef2ecd9;border-radius:6px;padding:2px 4px;pointer-events:none;z-index:1}
 @media(max-width:850px){.light-pad,.light-strip{height:160px}}
+.light-head h2{flex:1;min-width:0}
+#shot-lighting-panel .light-remove{display:inline-flex;align-items:center;gap:6px;flex-shrink:0;border-radius:999px;padding:6px 12px;color:#90392e;border-color:#e3cfcb}
+.light-undo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-6px 0 14px;padding:6px 6px 6px 14px;border-radius:10px;background:var(--ink);color:#fff;font-size:13px}
+#shot-lighting-panel .light-undo button{min-height:36px;padding:4px 14px;border:0;border-radius:7px;background:#c7ec9d;color:var(--ink);font-weight:650}
+@media(max-width:400px){#shot-lighting-panel .light-remove span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}#shot-lighting-panel .light-remove{padding:6px 10px}}
+.light-title-wrap{display:flex;align-items:center;gap:4px;flex:1;min-width:0}.light-title-wrap h2{cursor:text;flex:0 1 auto}
+#shot-lighting-panel .light-rename{min-height:36px;min-width:36px;padding:0;border:0;border-radius:8px;display:inline-grid;place-items:center;color:var(--muted);flex-shrink:0}
+.light-title-input{flex:1;min-width:0;font:inherit;font-size:20px;font-weight:700;letter-spacing:-.4px;padding:6px 10px;border:1px solid #6e8f50;border-radius:8px;background:white;color:var(--ink)}

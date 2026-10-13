@@ -17,8 +17,8 @@ export function installLightingSetups(api) {
     if(!setups.length){const p=document.createElement('p');p.className='camera-empty';p.textContent='No saved setups yet. Name this lighting below and save it.';list.append(p);}
     for(const s of setups){
       const row=document.createElement('article'),b=document.createElement('button'),title=document.createElement('strong'),meta=document.createElement('span'),actions=document.createElement('div'),on=s.rig.lights.filter(l=>l.enabled);
-      row.className='camera-shot-row';b.type='button';b.className='camera-shot';b.setAttribute('aria-pressed',s.id===selected?.id);title.textContent=s.name;meta.textContent=on.length?on.map(l=>l.name).join(' · '):'All lights off';b.append(title,meta);b.onclick=()=>apply(s);b.disabled=busy;
-      actions.className='camera-row-actions';actions.append(action('Delete','Delete '+s.name,()=>confirmDeletion(s)));row.append(b,actions);list.append(row);
+      row.className='camera-shot-row';b.type='button';b.className='camera-shot';b.setAttribute('aria-pressed',s.id===selected?.id);title.textContent=s.name;meta.textContent=(s.isDefault?'Default · ':'')+(on.length?on.map(l=>l.name).join(' · '):'All lights off');b.append(title,meta);b.onclick=()=>apply(s);b.disabled=busy;
+      actions.className='camera-row-actions';const star=action(s.isDefault?'Default ✓':'Make default',s.isDefault?'Stop using '+s.name+' as the default lighting':'Use '+s.name+' as the default lighting preview',()=>makeDefault(s,!s.isDefault));star.setAttribute('aria-pressed',!!s.isDefault);star.className='lighting-default';actions.append(star,action('Delete','Delete '+s.name,()=>confirmDeletion(s)));row.append(b,actions);list.append(row);
     }
     $('#lighting-deleted').hidden=!deleted.length;
     $('#lighting-deleted-list').replaceChildren(...deleted.map(s=>{const row=document.createElement('div'),label=document.createElement('span');label.textContent=s.name;row.append(label,action('Restore','Restore '+s.name,()=>removeOrRestore(s,true)));return row;}));
@@ -43,6 +43,13 @@ export function installLightingSetups(api) {
     catch(e){status.textContent=e.message;}
     finally{busy=false;$('#lighting-refresh').disabled=false;render();}
   }
+  // The default setup lights the Lighting preview view in Explore on every device.
+  async function makeDefault(s,on){
+    if(busy)return;busy=true;++loadVersion;render();status.textContent=on?'Setting default…':'Clearing default…';
+    try{const data=await request({method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:s.id,action:'default',value:on})});setups=data.setups;deleted=data.deletedSetups||[];if(selected)selected=setups.find(x=>x.id===selected.id)||selected;
+      status.textContent=on?s.name+' is now the default lighting. Explore uses it for Lighting preview.':'No default lighting setup.';window.dispatchEvent(new Event('lighting-default-changed'));}
+    catch(e){status.textContent=e.message;}finally{busy=false;render();}
+  }
   function confirmDeletion(s){if(busy||deleteDialog.open)return;pendingDelete=s;$('#lighting-delete-description').textContent='Delete “'+s.name+'”?';deleteDialog.showModal();$('#lighting-delete-cancel').focus();}
   $('#lighting-delete-cancel').onclick=()=>deleteDialog.close();
   deleteDialog.addEventListener('close',()=>{pendingDelete=null;});
@@ -52,6 +59,7 @@ export function installLightingSetups(api) {
     try{const data=await request({method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:s.id,revision:s.revision,action:restore?'restore':'delete'})});remember(data.setup);
       if(!restore&&selected?.id===s.id){selected=null;name.value='';attempt=null;}
       status.textContent=restore?'Restored '+s.name+'.':'Deleted '+s.name+'. You can restore it under Deleted setups.';
+      if(s.isDefault)window.dispatchEvent(new Event('lighting-default-changed'));
     }catch(e){status.textContent=e.message;}
     finally{busy=false;$('#lighting-refresh').disabled=false;render();}
   }

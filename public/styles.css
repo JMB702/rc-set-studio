@@ -788,6 +788,7 @@ body.camera-positions main .controls{padding-bottom:180px}
 #lighting-setup-list{display:grid;gap:8px;margin:14px 0}
 #lighting-deleted{margin-top:16px}#lighting-deleted-list>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
 .camera-row-actions button:only-child{color:#90392e}
+#lighting-setup-list .camera-row-actions .lighting-default{color:var(--ink)}#lighting-setup-list .camera-row-actions .lighting-default[aria-pressed=true]{color:#38542c;font-weight:650;background:#eef5e6}
 @media(max-width:850px){
  /* One compact row on phones so the bar does not crowd the controls: name, then Update (only when it applies) and Save. */
  .save-dock{left:0;width:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 16px calc(8px + env(safe-area-inset-bottom))}

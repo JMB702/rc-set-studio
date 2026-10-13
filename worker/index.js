@@ -25,16 +25,16 @@ function commentRow(r){return {id:r.id,name:r.name,body:r.body,elementId:r.eleme
 // Named, revisioned, soft-deletable lists shared across devices. Table and column names are fixed here, never from input.
 const savedLists={
   '/api/camera-positions':{table:'camera_positions',field:'shot',item:'position',items:'positions',deletedItems:'deletedPositions',noun:'camera',label:'Camera position',plural:'Camera positions',maxBytes:4000,validate:v=>normalizeCameraShot(v)},
-  '/api/lighting-setups':{table:'lighting_setups',field:'rig',item:'setup',items:'setups',deletedItems:'deletedSetups',noun:'lighting setup',label:'Lighting setup',plural:'Lighting setups',maxBytes:6000,validate:v=>normalizeLightingRig(v)},
+  '/api/lighting-setups':{table:'lighting_setups',field:'rig',item:'setup',items:'setups',deletedItems:'deletedSetups',noun:'lighting setup',label:'Lighting setup',plural:'Lighting setups',maxBytes:6000,validate:v=>normalizeLightingRig(v),defaultable:true},
 };
 export default {async fetch(request,env) {
   const url=new URL(request.url);
   if(url.pathname.startsWith('/api/project/'))return projectAPI(request,env);
   const saved=savedLists[url.pathname];
   if(saved) {
-    const {table,field,item,items,deletedItems,noun,label,plural,maxBytes,validate}=saved;
+    const {table,field,item,items,deletedItems,noun,label,plural,maxBytes,validate,defaultable}=saved;
     try {
-      const db=database(env),row=r=>({id:r.id,name:r.name,[field]:JSON.parse(r[field]),revision:r.revision,createdAt:r.created_at,updatedAt:r.updated_at,deletedAt:r.deleted_at??null});
+      const db=database(env),row=r=>({id:r.id,name:r.name,[field]:JSON.parse(r[field]),...(defaultable?{isDefault:r.is_default===1&&r.deleted_at===null}:{}),revision:r.revision,createdAt:r.created_at,updatedAt:r.updated_at,deletedAt:r.deleted_at??null});
       if(request.method==='GET') {
         const result=await db.prepare(`SELECT * FROM ${table} ORDER BY created_at DESC,id DESC`).all();
         return json({[items]:result.results.filter(r=>r.deleted_at===null).map(row),[deletedItems]:result.results.filter(r=>r.deleted_at!==null).map(row)});
@@ -45,15 +45,24 @@ export default {async fetch(request,env) {
         const raw=await request.text();if(raw.length>maxBytes)return json({error:label+' is too large.'},413);
         let input,name,value,removing,restoring;
         try {
-          input=JSON.parse(raw);if(input?.action!==undefined&&(request.method!=='POST'||!['delete','restore'].includes(input.action)))throw Error('Invalid '+noun+' action.');removing=request.method==='DELETE'||input?.action==='delete';restoring=request.method==='PATCH'&&input?.restore===true||input?.action==='restore';
+          input=JSON.parse(raw);if(input?.action!==undefined&&(request.method!=='POST'||!['delete','restore',...(defaultable?['default']:[])].includes(input.action)))throw Error('Invalid '+noun+' action.');removing=request.method==='DELETE'||input?.action==='delete';restoring=request.method==='PATCH'&&input?.restore===true||input?.action==='restore';
           if(typeof input?.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid '+noun+' ID.');
           if((request.method!=='POST'||removing||restoring)&&(!Number.isSafeInteger(input.revision)||input.revision<0))throw Error('Invalid '+noun+' revision.');
-          if(!removing&&!restoring){
+          if(!removing&&!restoring&&input.action!=='default'){
             name=typeof input.name==='string'?input.name.trim():'';
             if(!name||name.length>80)throw Error('Enter a '+noun+' name (up to 80 characters).');
             value=JSON.stringify(validate(input[field]));
           }
         }catch(e){return json({error:e.message},400);}
+        // Choosing the default is not a content edit: one statement clears the old default and sets the new one.
+        if(input.action==='default'){
+          const target=await db.prepare(`SELECT * FROM ${table} WHERE id=?`).bind(input.id).first();
+          if(!target||target.deleted_at!==null)return json({error:label+' not found.'},404);
+          const on=input.value!==false?1:0;
+          await db.prepare(`UPDATE ${table} SET is_default=CASE WHEN id=? THEN ? ELSE 0 END WHERE is_default=1 OR id=?`).bind(input.id,on,input.id).run();
+          const result=await db.prepare(`SELECT * FROM ${table} ORDER BY created_at DESC,id DESC`).all();
+          return json({[items]:result.results.filter(r=>r.deleted_at===null).map(row),[deletedItems]:result.results.filter(r=>r.deleted_at!==null).map(row)});
+        }
         const current=await db.prepare(`SELECT * FROM ${table} WHERE id=?`).bind(input.id).first();
         if(removing||restoring){
           if(!current)return json({error:label+' not found.'},404);

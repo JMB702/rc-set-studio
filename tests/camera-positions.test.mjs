@@ -142,6 +142,11 @@ test('Lighting setups save, update, delete and restore across devices like camer
   res=await call('POST',{id:setup,revision:1,action:'delete'});assert.equal(res.status,200);
   let list=await(await call('GET')).json();assert.equal(list.setups.length,0);assert.equal(list.deletedSetups.length,1);
   await call('POST',{id:setup,revision:2,action:'restore'});list=await(await call('GET')).json();assert.equal(list.setups[0].name,'Moody');
+  const other='6c2b3d4e-5f60-4b7c-9d8e-0f1a2b3c4d5e';await call('POST',{id:other,name:'Bright',rig:{version:1,lights:[light('key',150)]}});
+  list=await(await call('POST',{id:setup,action:'default'})).json();assert.deepEqual(list.setups.filter(s=>s.isDefault).map(s=>s.name),['Moody']);
+  list=await(await call('POST',{id:other,action:'default'})).json();assert.deepEqual(list.setups.filter(s=>s.isDefault).map(s=>s.name),['Bright'],'only one default');
+  assert.equal(list.setups.find(s=>s.name==='Bright').revision,0,'choosing the default is not an edit');
+  list=await(await call('POST',{id:other,action:'default',value:false})).json();assert.equal(list.setups.filter(s=>s.isDefault).length,0);
   const camera=await(await api.fetch(request('GET'),env)).json();assert.deepEqual(camera,{positions:[],deletedPositions:[]},'cameras stay separate');
  }finally{env.sqlite.close();}
 });

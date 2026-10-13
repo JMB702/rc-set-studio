@@ -41,6 +41,7 @@ export const lightingSetups = sqliteTable('lighting_setups', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   rig: text('rig').notNull(),
+  isDefault: integer('is_default').notNull().default(0),
   revision: integer('revision').notNull().default(0),
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),

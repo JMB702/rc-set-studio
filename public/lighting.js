@@ -11,9 +11,10 @@ export function installLighting(api){
  const panel=document.createElement('section');panel.id='shot-lighting-panel';panel.hidden=true;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','shot-tab-lighting');host.append(panel);
  const range=(key,label,min,max,step=1)=>`<label class="light-range" for="light-${key}"><span>${label}</span><output id="light-${key}-value" for="light-${key}"></output><input id="light-${key}" data-light-field="${key}" type="range" min="${min}" max="${max}" step="${step}"></label>`;
  panel.innerHTML=`<div class="light-chips" role="group" aria-label="Lights in the rig"><div id="light-chip-list"></div><button id="light-add" type="button" class="light-chip-add">+ Add light</button></div>
+ <div id="light-undo" class="light-undo" role="status" hidden><span></span><button type="button">Undo</button></div>
  <p id="light-none" class="hint">Tap a light to adjust it. Tap it again, or empty space in the view, to deselect.</p>
  <div id="light-editor">
- <div class="light-head"><h2 id="light-title"></h2><button id="light-enabled" class="light-switch" aria-pressed="true"><span aria-hidden="true"></span><b>On</b></button></div>
+ <div class="light-head"><div class="light-title-wrap"><h2 id="light-title" title="Tap to rename"></h2><button id="light-rename" class="light-rename" type="button" aria-label="Rename light"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4ZM13 7l4 4"/></svg></button><input id="light-name" class="light-title-input" maxlength="40" aria-label="Light name" enterkeyhint="done" autocomplete="off" hidden></div><button id="light-remove" class="light-remove" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg><span>Remove</span></button><button id="light-enabled" class="light-switch" aria-pressed="true"><span aria-hidden="true"></span><b>On</b></button></div>
  <div class="light-pads"><div id="light-pad" class="light-pad" tabindex="0" role="group" aria-label="Light position pad. Drag left or right to circle the subject, up or down to raise or lower the light. Arrow keys also work." aria-describedby="light-pad-readout"><span class="light-pad-x" aria-hidden="true">◀ circle subject ▶</span><span class="light-pad-y" aria-hidden="true">▲ higher</span><output id="light-pad-readout"></output></div>
  <div id="light-strip" class="light-strip" tabindex="0" role="group" aria-label="Distance strip. Drag up to move the light farther from the subject, down to bring it closer. Arrow keys also work." aria-describedby="light-strip-readout"><span aria-hidden="true">▲ farther</span><output id="light-strip-readout"></output><span aria-hidden="true">▼ closer</span></div></div>
  ${range('power','Brightness',0,200)}
@@ -29,7 +30,7 @@ export function installLighting(api){
  <details id="light-output"><summary>Color &amp; beam <span>+</span></summary>
  <label class="light-color">Light color<input id="light-color" type="color" value="#fff5e6"></label>
  <div id="light-spot-controls">${range('beam','Beam width',10,120)}${range('edge','Edge softness',0,100)}<div class="light-presets"><button data-light-edge="0">Hard edge</button><button data-light-edge="50">Soft edge</button><button data-light-edge="100">Feathered</button></div></div></details>
- <details id="light-manage"><summary>Manage light <span>+</span></summary><label class="light-name">Name<input id="light-name" maxlength="40"></label><div class="light-actions"><button id="light-duplicate">Duplicate</button><button id="light-remove">Remove light</button></div></details></div>
+ <details id="light-manage"><summary>More <span>+</span></summary><div class="light-actions"><button id="light-duplicate">Duplicate this light</button></div></details></div>
  <div class="light-view-options"><label><input id="light-show-shapes" type="checkbox" checked> Show lights in view</label><button id="light-overview">See whole rig</button><button id="light-return" hidden>Back to shot</button></div>
  <button id="light-reset">Reset to soft three-point</button><p id="light-status" role="status" aria-live="polite"></p><p class="hint">Your current lights stay on this device. Save them as a setup below to use them on any device. Preview is approximate; soft-light shadows are not simulated.</p>
  <div id="light-reset-confirm" hidden><p>Replace your current lights with the soft three-point setup?</p><div class="light-actions"><button id="light-reset-cancel">Cancel</button><button id="light-reset-yes">Replace lights</button></div></div>`;
@@ -44,14 +45,16 @@ export function installLighting(api){
  let nodes=[],saveTimer;
  const flush=()=>{clearTimeout(saveTimer);try{localStorage.setItem(STORAGE,JSON.stringify(rig));}catch{status('Device storage is unavailable. Save a camera position to keep this rig.');}};
  window.addEventListener('pagehide',flush);document.addEventListener('visibilitychange',()=>{if(document.hidden)flush();});
- const active=()=>api.state.mode==='cameras',current=()=>rig.lights.find(l=>l.id===selected);
+ // Outside Camera positions a preview rig (the default saved setup) can light the finished set without touching the edited rig.
+ let preview=null;
+ const active=()=>api.state.mode==='cameras',lit=()=>active()||!!preview,liveRig=()=>active()?rig:preview,current=()=>rig.lights.find(l=>l.id===selected);
  function status(text){$('#light-status').textContent=text;}
  function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(flush,160);window.dispatchEvent(new Event('lighting-changed'));}
  async function initialize(){if(initializing)return initializing;initializing=(async()=>{try{const {RectAreaLightUniformsLib}=await import('./vendor/RectAreaLightUniformsLib.js');RectAreaLightUniformsLib.init();ready=true;rebuild();syncScene();}catch{initializing=null;status('Lighting could not load. Reopen this tab to retry.');}})();return initializing;}
  function rebuild(){
   for(const n of nodes){group.remove(n.area,n.spot,n.target);n.spot.dispose();helpers.remove(n.mesh,n.line);n.mesh.geometry.dispose();n.mesh.material.dispose();n.line.geometry.dispose();n.line.material.dispose();}nodes=[];
-  if(!ready)return;
-  for(const l of rig.lights){
+  if(!ready||!lit()){syncScene();return;}
+  for(const l of liveRig().lights){
    const area=new THREE.RectAreaLight(),spot=new THREE.SpotLight(),target=new THREE.Object3D();spot.target=target;spot.castShadow=true;spot.shadow.mapSize.set(512,512);spot.shadow.bias=-.0002;spot.shadow.normalBias=.015;spot.shadow.camera.near=.05;spot.shadow.camera.far=35;
    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0xffe2a8,side:THREE.DoubleSide,transparent:true,opacity:.7}));mesh.userData.lightId=l.id;
    const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineDashedMaterial({color:0xc7ec9d,dashSize:.09,gapSize:.07,transparent:true,opacity:.8}));
@@ -60,9 +63,9 @@ export function installLighting(api){
   syncScene();
  }
  function syncScene(){
-  group.visible=active()&&ready;helpers.visible=active()&&tab==='lighting'&&$('#light-show-shapes').checked;
-  for(const [light,visible]of originalLights)light.visible=active()&&ready?false:visible;
-  for(const n of nodes){const l=rig.lights.find(l=>l.id===n.id),on=l.enabled;
+  group.visible=lit()&&ready;helpers.visible=active()&&tab==='lighting'&&$('#light-show-shapes').checked;
+  for(const [light,visible]of originalLights)light.visible=lit()&&ready?false:visible;
+  for(const n of nodes){const l=liveRig()?.lights.find(l=>l.id===n.id);if(!l)continue;const on=l.enabled;
    n.area.visible=on&&l.type==='diffuse';n.spot.visible=on&&l.type==='spot';
    n.area.color.set(l.color);n.area.intensity=l.power*.22;n.area.width=l.width;n.area.height=l.height;n.area.position.fromArray(l.position);n.area.lookAt(...l.target);n.area.rotateZ(l.roll*Math.PI/180);
    n.spot.color.set(l.color);n.spot.intensity=l.power*.8;n.spot.distance=35;n.spot.decay=2;n.spot.angle=l.beam*Math.PI/360;n.spot.penumbra=l.edge/100;n.spot.position.fromArray(l.position);n.target.position.fromArray(l.target);
@@ -71,7 +74,7 @@ export function installLighting(api){
   }
   api.invalidate();
  }
- function list(){const host=$('#light-chip-list');host.replaceChildren(...rig.lights.map(l=>{const b=document.createElement('button');b.type='button';b.className='light-chip';b.dataset.lightId=l.id;b.setAttribute('aria-pressed',l.id===selected);b.classList.toggle('off',!l.enabled);const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');b.append(dot,l.name);b.setAttribute('aria-label',l.name+(l.enabled?'':' (off)'));b.onclick=()=>{selected=selected===l.id?null:l.id;locked=false;cancelPick();sync();};return b;}));$('#light-add').disabled=rig.lights.length>=6;host.querySelector('[aria-pressed=true]')?.scrollIntoView({block:'nearest',inline:'nearest'});}
+ function list(){const host=$('#light-chip-list');host.replaceChildren(...rig.lights.map(l=>{const b=document.createElement('button');b.type='button';b.className='light-chip';b.dataset.lightId=l.id;b.setAttribute('aria-pressed',l.id===selected);b.classList.toggle('off',!l.enabled);const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');b.append(dot,l.name);b.setAttribute('aria-label',l.name+(l.enabled?'':' (off)'));b.onclick=()=>{hideUndo();selected=selected===l.id?null:l.id;locked=false;cancelPick();sync();};return b;}));$('#light-add').disabled=rig.lights.length>=6;host.querySelector('[aria-pressed=true]')?.scrollIntoView({block:'nearest',inline:'nearest'});}
  // Readable values: feet and inches for distances, plain directions around the subject.
  const feet=v=>{const t=Math.round(v*12),f=Math.floor(t/12),i=t-f*12;return f?`${f}′${i?` ${i}″`:''}`:`${i}″`;},turn=v=>{const a=Math.round(v),m=Math.abs(a);return m<=5?'Front':m>=175?'Behind':`${m}° ${a>0?'right':'left'}`;};
  const shown={power:v=>Math.round(v)+'%',rotation:turn,aimRotation:turn,elevation:feet,distance:feet,aimHeight:feet,aimDistance:feet,width:v=>Math.round(v)+'″',height:v=>Math.round(v)+'″',roll:v=>Math.round(v)+'°',beam:v=>Math.round(v)+'°',edge:v=>Math.round(v)+'%'};
@@ -79,7 +82,7 @@ export function installLighting(api){
  const subject=()=>api.getFigures()?.position.toArray()??[0,0,48*IN];
  function coordinates(l,key){const id=l.id+':'+key,c=subjectCoordinates(l[key],subject(),angles.get(id)||0);angles.set(id,c.rotation);return c;}
  function sync(){list();const l=current();$('#light-editor').hidden=!l;$('#light-none').hidden=!!l||!rig.lights.length;if(!l){syncScene();return;}
-  $('#light-name').value=l.name;$('#light-title').textContent=/\blight\b/i.test(l.name)?l.name:l.name+' light';$('#light-enabled').querySelector('b').textContent=l.enabled?'On':'Off';$('#light-enabled').setAttribute('aria-pressed',l.enabled);$('#light-enabled').setAttribute('aria-label',(l.enabled?'Turn off ':'Turn on ')+l.name);
+  if($('#light-name').hidden)$('#light-name').value=l.name;$('#light-title').textContent=l.name;$('#light-rename').setAttribute('aria-label','Rename '+l.name);$('#light-enabled').querySelector('b').textContent=l.enabled?'On':'Off';$('#light-enabled').setAttribute('aria-pressed',l.enabled);$('#light-enabled').setAttribute('aria-label',(l.enabled?'Turn off ':'Turn on ')+l.name);
   panel.querySelectorAll('[data-light-type]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lightType===l.type));
   for(const input of panel.querySelectorAll('[data-light-field]')){const k=input.dataset.lightField,m=mapping[k],v=m?coordinates(l,m[0])[m[1]]/m[2]:['width','height'].includes(k)?l[k]/IN:l[k];if(m){input.min=Math.min(+input.min,v);input.max=Math.max(+input.max,v);}input.value=v;$('#light-'+k+'-value').textContent=(shown[k]||(x=>Math.round(x*100)/100))(v);}
   const pos=coordinates(l,'position'),h=pos.height/FT,d=pos.distance/FT;
@@ -94,7 +97,12 @@ export function installLighting(api){
  function selectTab(next){tab=next;try{localStorage.setItem('rc-set-shot-controls',next);}catch{}if(next==='camera'&&overview){restoreShot(overview);overview=null;$('#light-return').hidden=true;}cameraPanel.hidden=next!=='camera';panel.hidden=next!=='lighting';cancelPick();for(const b of tabs.children){const on=b.id==='shot-tab-'+next;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;}syncScene();}
  for(const name of ['camera','lighting'])document.querySelector('#shot-tab-'+name).onclick=()=>selectTab(name);
  tabs.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();selectTab(e.key==='Home'?'camera':e.key==='End'?'lighting':tab==='camera'?'lighting':'camera');document.querySelector('#shot-tab-'+tab).focus();};
- $('#light-name').onchange=e=>edit(l=>l.name=e.target.value.trim());$('#light-enabled').onclick=()=>edit(l=>l.enabled=!l.enabled);
+ // Tap the name (or the pencil) to rename in place. Enter or leaving the field saves; Escape cancels; blank keeps the old name.
+ const nameInput=$('#light-name'),renaming=on=>{nameInput.hidden=!on;$('#light-title').hidden=on;$('#light-rename').hidden=on;};
+ function startRename(){const l=current();if(!l)return;nameInput.value=l.name;renaming(true);nameInput.focus();nameInput.select();}
+ function finishRename(save){if(nameInput.hidden)return;const value=nameInput.value.trim();renaming(false);if(save&&value&&value!==current()?.name)edit(l=>l.name=value);else sync();}
+ $('#light-title').onclick=startRename;$('#light-rename').onclick=startRename;
+ nameInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();finishRename(true);}else if(e.key==='Escape'){e.preventDefault();finishRename(false);}};nameInput.onblur=()=>finishRename(true);$('#light-enabled').onclick=()=>edit(l=>l.enabled=!l.enabled);
  panel.querySelectorAll('[data-light-type]').forEach(b=>b.onclick=()=>edit(l=>l.type=b.dataset.lightType));
  panel.querySelectorAll('[data-light-field]').forEach(input=>input.oninput=()=>edit(l=>{const k=input.dataset.lightField,v=+input.value,m=mapping[k];if(m){const c=coordinates(l,m[0]);c[m[1]]=v*m[2];angles.set(l.id+':'+m[0],c.rotation);l[m[0]]=subjectPoint(c,subject());}else if(['width','height'].includes(k)){const other=k==='width'?'height':'width',ratio=l[other]/l[k];l[k]=v*IN;if(locked){l[other]=l[k]*ratio;if(l[other]<3*IN){l[other]=3*IN;l[k]=l[other]/ratio;}if(l[other]>144*IN){l[other]=144*IN;l[k]=l[other]/ratio;}}}else l[k]=v;}));
  // Trackpads move relative to where the drag starts, like a laptop trackpad, and feed the position sliders.
@@ -109,9 +117,13 @@ export function installLighting(api){
  $('#light-lock').onclick=()=>{locked=!locked;sync();};$('#light-color').oninput=e=>edit(l=>l.color=e.target.value);
  panel.querySelectorAll('[data-light-preset]').forEach(b=>b.onclick=()=>{locked=false;edit(l=>{l.type='diffuse';const [w,h]={softbox:[36,48],strip:[12,48],square:[48,48]}[b.dataset.lightPreset];l.width=w*IN;l.height=h*IN;});});
  panel.querySelectorAll('[data-light-edge]').forEach(b=>b.onclick=()=>edit(l=>l.edge=+b.dataset.lightEdge));
- function add(copy=false){if(rig.lights.length>=6)return;const l=structuredClone(copy&&current()?current():defaultLightingRig().lights[0]);l.id=crypto.randomUUID();l.name=copy?l.name.slice(0,33)+' copy':'Light '+(rig.lights.length+1);l.position[0]=Math.min(6,l.position[0]+.5);selected=l.id;rig.lights.push(l);rebuild();sync();persist();}
+ function add(copy=false){if(rig.lights.length>=6)return;hideUndo();const l=structuredClone(copy&&current()?current():defaultLightingRig().lights[0]);l.id=crypto.randomUUID();l.name=copy?l.name.slice(0,33)+' copy':'Light '+(rig.lights.length+1);l.position[0]=Math.min(6,l.position[0]+.5);selected=l.id;rig.lights.push(l);rebuild();sync();persist();startRename();}
  $('#light-add').onclick=()=>add();$('#light-duplicate').onclick=()=>add(true);
- let removed=null;$('#light-remove').onclick=()=>{removed={light:current(),index:rig.lights.findIndex(l=>l.id===selected)};rig.lights=rig.lights.filter(l=>l.id!==selected);selected=null;cancelPick();rebuild();sync();persist();status('Light removed. ');const undo=document.createElement('button');undo.textContent='Undo';undo.onclick=()=>{if(!removed||rig.lights.length>=6)return;rig.lights.splice(removed.index,0,removed.light);selected=removed.light.id;removed=null;rebuild();sync();persist();status('Light restored.');};$('#light-status').append(undo);};
+ // Removing a light is one tap from its header; Undo appears right under the chips for ten seconds.
+ let removed=null,undoTimer;const undoBar=$('#light-undo'),hideUndo=()=>{clearTimeout(undoTimer);undoBar.hidden=true;removed=null;};
+ $('#light-remove').onclick=()=>{const l=current();if(!l)return;removed={light:l,index:rig.lights.findIndex(x=>x.id===l.id)};rig.lights=rig.lights.filter(x=>x.id!==l.id);selected=null;cancelPick();rebuild();sync();persist();
+  undoBar.querySelector('span').textContent=l.name+' removed';undoBar.hidden=false;clearTimeout(undoTimer);undoTimer=setTimeout(hideUndo,10000);};
+ undoBar.querySelector('button').onclick=()=>{if(!removed||rig.lights.length>=6){hideUndo();return;}rig.lights.splice(removed.index,0,removed.light);selected=removed.light.id;hideUndo();rebuild();sync();persist();};
  $('#light-show-shapes').onchange=syncScene;
  $('#light-reset').onclick=()=>{$('#light-reset-confirm').hidden=false;$('#light-reset-cancel').focus();};$('#light-reset-cancel').onclick=()=>{$('#light-reset-confirm').hidden=true;};$('#light-reset-yes').onclick=()=>{rig=defaultLightingRig();selected=null;locked=false;cancelPick();$('#light-reset-confirm').hidden=true;rebuild();sync();persist();status('Soft three-point setup restored.');};
  const snapshot=()=>({position:api.camera.position.toArray(),target:api.orbit.target.toArray(),lens:api.lens.get()});
@@ -131,8 +143,8 @@ export function installLighting(api){
   const key=picking;edit(l=>{l[key]=[hit.x,key==='position'?l.position[1]:Math.max(0,hit.y),hit.z];});cancelPick();status(key==='position'?'Light placed. Adjust its height above.':'Aim updated.');
  });
  document.addEventListener('keydown',e=>{if(e.key==='Escape')cancelPick();});
- api.lighting={get:()=>structuredClone(rig),set:raw=>{rig=normalizeLightingRig(raw);selected=null;locked=false;cancelPick();rebuild();sync();persist();}};
- const baseMode=api.setMode;api.setMode=m=>{cancelPick();const r=baseMode(m);if(m==='cameras')initialize();syncScene();return r;};
+ api.lighting={preview:async raw=>{preview=raw?normalizeLightingRig(raw):null;if(preview&&!ready)await initialize();rebuild();},get:()=>structuredClone(rig),set:raw=>{rig=normalizeLightingRig(raw);selected=null;locked=false;cancelPick();rebuild();sync();persist();}};
+ const baseMode=api.setMode;api.setMode=m=>{cancelPick();const r=baseMode(m);if(m==='cameras')initialize();rebuild();return r;};
  window.addEventListener('set-configured',sync);
  syncScene();sync();
  try{if(localStorage.getItem('rc-set-shot-controls')==='lighting')selectTab('lighting');}catch{}

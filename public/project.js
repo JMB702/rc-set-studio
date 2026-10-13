@@ -1,7 +1,7 @@
 import {createProgressIntro} from './progress-intro.js';
 import {mountProgressMotion} from './progress-motion.js';
 import {projectTotals,projectShiftCost,projectStagePercent,projectStageWeight,projectProgress,projectAssembly,projectSetAssemblyCounts,projectCountMilestones,projectGuideGroups,projectBuildDesign} from './project-model.js';
-import {designLine} from './design.js';
+import {designLine,defaultDesign} from './design.js';
 import {readProjectReceipt} from './project-receipts.js';
 import {GROUP_LABELS,progressWeights} from './projection.js';
 const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -29,9 +29,9 @@ export function installProject(api){
  const get=kind=>records[kind]?.data;
  // The page head starts the first tracking fetch while modules download; each consumer uses it once.
  // Saved progress is read through the project's build design, not whatever this browser last explored.
- const buildDesign=t=>t?.design?{...api.state,...t.design}:api.state;
+ const buildDesign=t=>({...api.state,...defaultDesign,...(t?.design||{})});
  const currentBuildDesign=()=>{const s=api.state;return projectBuildDesign({height:s.height,angle:Math.round(+s.angle),floor:s.floor,platformShape:s.platformShape,platformAngle:Math.round(+s.platformAngle),platformBack:Math.round(+s.platformBack),platformSide:Math.round(+s.platformSide),wallColor:s.wallColor,platformColor:s.platformColor,floorColor:s.floorColor});};
- function buildDesignNote(data){const saved=data.design,same=saved&&JSON.stringify(saved)===JSON.stringify(currentBuildDesign());return `<div class="pj-build-design"><p>${saved?`Build design: ${escape(designLine(saved))}`:'No build design set. Progress uses this device\'s design.'}</p>${same?'':button('use-design',saved?'Use this device\'s design instead':'Use this device\'s design','pj-text')}</div>`;}
+ function buildDesignNote(data){const saved=data.design,same=saved&&JSON.stringify(saved)===JSON.stringify(currentBuildDesign());return `<div class="pj-build-design"><p>${saved?`Build design: ${escape(designLine(saved))}`:'No build design set. Progress uses the default design.'}</p>${same?'':button('use-design',saved?'Use this device\'s design instead':'Use this device\'s design','pj-text')}</div>`;}
  async function takeEarlyTracking(){return await window.__rcEarlyTracking?.('tracker')??null;}
  async function request(path,method='GET',data){const response=await fetch('/api/project/'+path,{method,headers:data?{'Content-Type':'application/json'}:{},body:data?JSON.stringify(data):undefined,signal:AbortSignal.timeout(30000)});const result=await response.json();if(!response.ok){const error=Error(result.error||'Could not save. Try again.');error.status=response.status;throw error;}return result;}
  function error(message){const node=dialog.open?dialog.querySelector('[data-dialog-error]'):host.querySelector('[data-project-error]');if(node){node.textContent=message;node.hidden=false;}}

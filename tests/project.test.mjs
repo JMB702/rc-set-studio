@@ -344,3 +344,14 @@ test('The build design is saved with tracking and kept by saves that omit it',as
  assert.equal(t.data.design.floor,'charcoal');
  assert.equal((await r.call('tracking','PUT',{data:{...t.data,design:{...design,height:100}},revision:t.revision})).status,400);
 });
+test('Without a saved build design, every device reads progress through the newest approved design',async()=>{
+ const r=rig();let t=await (await r.call('tracking')).json();assert.equal(t.data.design,null,'no approvals: nothing to infer');
+ const design=(height,angle)=>JSON.stringify({height,angle,wallColor:'#34383b',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12,platformColor:'#34383b',floor:'charcoal',floorColor:'#34383b',figures:'rap'});
+ r.sqlite.prepare('INSERT INTO design_approvals (id,name,design,created_at) VALUES (?,?,?,?)').run('a1','Jeff',design(120,45),1);
+ r.sqlite.prepare('INSERT INTO design_approvals (id,name,design,created_at) VALUES (?,?,?,?)').run('a2','Jeff',design(120,90),2);
+ const before=r.sqlite.prepare('SELECT content,revision,updated_at FROM project_documents WHERE id=?').get('tracking');
+ t=await (await r.call('tracking')).json();assert.equal(t.data.design.angle,90,'newest approval');assert.equal(t.data.design.platformShape,'square');
+ assert.deepEqual(r.sqlite.prepare('SELECT content,revision,updated_at FROM project_documents WHERE id=?').get('tracking'),before,'inferring the build design does not write saved progress');
+ const saved={...t.data.design,height:96};t=await (await r.call('tracking','PUT',{data:{...t.data,design:saved},revision:t.revision})).json();
+ t=await (await r.call('tracking')).json();assert.equal(t.data.design.height,96,'a saved build design always wins');
+});

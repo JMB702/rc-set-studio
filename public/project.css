@@ -127,3 +127,9 @@ body.project-module .controls>:not(#project-tabs):not(#project-panel){display:no
 
 .pj-build-design{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;margin:0 0 12px}
 .pj-build-design p{color:#4d5c55;font-size:12px;margin:0}
+/* iOS Safari gives date inputs an intrinsic width, taller box and centred text; keep them in their grid cell like the other fields. */
+.pj-form-grid>*{min-width:0}
+.pj-field input[type=date]{-webkit-appearance:none;appearance:none;display:block;height:46px;line-height:20px;text-align:left}
+.pj-field input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+.pj-item .pj-field input[type=date]{height:42px}
+@media(min-width:391px){.pj-form-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}

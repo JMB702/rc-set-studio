@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {defaultLightingRig,normalizeLightingRig} from './lighting-state.js';
+import {defaultLightingRig,normalizeLightingRig,subjectCoordinates,subjectPoint} from './lighting-state.js';
 
 const STORAGE='rc-set-lighting-v1',FT=.3048,IN=.0254;
 export function installLighting(api){
@@ -15,14 +15,15 @@ export function installLighting(api){
  <div id="light-editor">
  <div class="light-name-row"><input id="light-name" aria-label="Light name" maxlength="40"><button id="light-enabled" aria-pressed="true">On</button></div>
  <div class="light-types" role="group" aria-label="Light type"><button data-light-type="diffuse" aria-pressed="true">Diffuse</button><button data-light-type="spot" aria-pressed="false">Spotlight</button></div>
- <details id="light-placement" open><summary>Position &amp; aim <span>+</span></summary>
- <div class="light-actions"><button id="light-place">Place in scene</button><button id="light-aim">Aim in scene</button></div><p class="hint">Tap a position in the view, or use the sliders. All distances are from the set origin.</p>
- ${range('x','Left / right (ft)',-20,20,.25)}${range('z','Back / front (ft)',-10,25,.25)}${range('y','Height (ft)',.5,16,.25)}
- <details id="light-aim-details"><summary>Fine-tune aim <span>+</span></summary>${range('tx','Aim left / right (ft)',-20,20,.25)}${range('tz','Aim back / front (ft)',-10,25,.25)}${range('ty','Aim height (ft)',0,16,.25)}</details></details>
+ <details id="light-placement" open><summary>Light position <span>+</span></summary>
+ ${range('rotation','Rotation around subject (°)',-180,180)}${range('elevation','Height (ft)',.5,16,.25)}${range('distance','Distance from subject (ft)',.5,30,.25)}
+ <p class="hint">0° in front · 90° right · −90° left · ±180° behind. Distance is across the floor; height is above the subject’s floor.</p>
+ <details id="light-aim-details"><summary>Fine-tune aim <span>+</span></summary>${range('aimRotation','Aim rotation around subject (°)',-180,180)}${range('aimHeight','Aim height (ft)',0,16,.25)}${range('aimDistance','Aim distance from subject (ft)',0,15,.25)}<p class="hint">Move the point the light aims at. Zero distance aims at the subject’s center.</p></details>
+ <div class="light-actions"><button id="light-place">Place in scene</button><button id="light-aim">Aim in scene</button></div></details>
  <details id="light-shape" open><summary>Shape &amp; size <span>+</span></summary>
  <div class="light-presets" role="group" aria-label="Light shape presets"><button data-light-preset="softbox">Softbox</button><button data-light-preset="strip">Strip</button><button data-light-preset="square">Square</button></div>
  ${range('width','Width (in)',3,144)}${range('height','Height (in)',3,144)}
- <div class="light-ratio-row"><span id="light-ratio"></span><button id="light-lock" aria-pressed="false">Lock ratio</button></div>${range('roll','Rotation (°)',-180,180)}
+ <div class="light-ratio-row"><span id="light-ratio"></span><button id="light-lock" aria-pressed="false">Lock ratio</button></div>${range('roll','Shape roll (°)',-180,180)}
  <p class="hint" id="light-size-note"></p></details>
  <details id="light-output" open><summary>Output &amp; edge <span>+</span></summary>${range('power','Intensity (%)',0,200)}
  <label class="light-color">Light color<input id="light-color" type="color" value="#fff5e6"></label>
@@ -70,11 +71,13 @@ export function installLighting(api){
   api.invalidate();
  }
  function list(){const picker=$('#light-picker');picker.replaceChildren(...rig.lights.map(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.name+(l.enabled?'':' · Off');return o;}));picker.value=selected||'';picker.disabled=!rig.lights.length;$('#light-add').disabled=rig.lights.length>=6;}
- const mapping={x:['position',0,FT],y:['position',1,FT],z:['position',2,FT],tx:['target',0,FT],ty:['target',1,FT],tz:['target',2,FT]};
+ const mapping={rotation:['position','rotation',1],elevation:['position','height',FT],distance:['position','distance',FT],aimRotation:['target','rotation',1],aimHeight:['target','height',FT],aimDistance:['target','distance',FT]},angles=new Map();
+ const subject=()=>api.getFigures()?.position.toArray()??[0,0,48*IN];
+ function coordinates(l,key){const id=l.id+':'+key,c=subjectCoordinates(l[key],subject(),angles.get(id)||0);angles.set(id,c.rotation);return c;}
  function sync(){list();const l=current();$('#light-editor').hidden=!l;if(!l){syncScene();return;}
   $('#light-name').value=l.name;$('#light-enabled').textContent=l.enabled?'On':'Off';$('#light-enabled').setAttribute('aria-pressed',l.enabled);
   panel.querySelectorAll('[data-light-type]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lightType===l.type));
-  for(const input of panel.querySelectorAll('[data-light-field]')){const k=input.dataset.lightField,m=mapping[k],v=m?l[m[0]][m[1]]/m[2]:['width','height'].includes(k)?l[k]/IN:l[k];input.value=v;$('#light-'+k+'-value').textContent=Math.round(v*100)/100;}
+  for(const input of panel.querySelectorAll('[data-light-field]')){const k=input.dataset.lightField,m=mapping[k],v=m?coordinates(l,m[0])[m[1]]/m[2]:['width','height'].includes(k)?l[k]/IN:l[k];if(m){input.min=Math.min(+input.min,v);input.max=Math.max(+input.max,v);}input.value=v;$('#light-'+k+'-value').textContent=Math.round(v*100)/100;}
   $('#light-ratio').textContent='Aspect ratio '+(l.width/l.height).toFixed(2)+' : 1';$('#light-lock').setAttribute('aria-pressed',locked);$('#light-lock').textContent=locked?'Ratio locked':'Lock ratio';$('#light-color').value=l.color;$('#light-spot-controls').hidden=l.type!=='spot';$('#light-duplicate').disabled=rig.lights.length>=6;
   $('#light-size-note').textContent=l.type==='diffuse'?'The rectangular surface emits light. Wider shapes create softboxes and narrow shapes create strips.':'Size changes the source marker. Beam angle and edge feather control the spotlight coverage.';
   syncScene();
@@ -88,7 +91,7 @@ export function installLighting(api){
  $('#light-picker').onchange=e=>{selected=e.target.value;locked=false;cancelPick();sync();};
  $('#light-name').onchange=e=>edit(l=>l.name=e.target.value.trim());$('#light-enabled').onclick=()=>edit(l=>l.enabled=!l.enabled);
  panel.querySelectorAll('[data-light-type]').forEach(b=>b.onclick=()=>edit(l=>l.type=b.dataset.lightType));
- panel.querySelectorAll('[data-light-field]').forEach(input=>input.oninput=()=>edit(l=>{const k=input.dataset.lightField,v=+input.value,m=mapping[k];if(m)l[m[0]][m[1]]=v*m[2];else if(['width','height'].includes(k)){const other=k==='width'?'height':'width',ratio=l[other]/l[k];l[k]=v*IN;if(locked){l[other]=l[k]*ratio;if(l[other]<3*IN){l[other]=3*IN;l[k]=l[other]/ratio;}if(l[other]>144*IN){l[other]=144*IN;l[k]=l[other]/ratio;}}}else l[k]=v;}));
+ panel.querySelectorAll('[data-light-field]').forEach(input=>input.oninput=()=>edit(l=>{const k=input.dataset.lightField,v=+input.value,m=mapping[k];if(m){const c=coordinates(l,m[0]);c[m[1]]=v*m[2];angles.set(l.id+':'+m[0],c.rotation);l[m[0]]=subjectPoint(c,subject());}else if(['width','height'].includes(k)){const other=k==='width'?'height':'width',ratio=l[other]/l[k];l[k]=v*IN;if(locked){l[other]=l[k]*ratio;if(l[other]<3*IN){l[other]=3*IN;l[k]=l[other]/ratio;}if(l[other]>144*IN){l[other]=144*IN;l[k]=l[other]/ratio;}}}else l[k]=v;}));
  $('#light-lock').onclick=()=>{locked=!locked;sync();};$('#light-color').oninput=e=>edit(l=>l.color=e.target.value);
  panel.querySelectorAll('[data-light-preset]').forEach(b=>b.onclick=()=>{locked=false;edit(l=>{l.type='diffuse';const [w,h]={softbox:[36,48],strip:[12,48],square:[48,48]}[b.dataset.lightPreset];l.width=w*IN;l.height=h*IN;});});
  panel.querySelectorAll('[data-light-edge]').forEach(b=>b.onclick=()=>edit(l=>l.edge=+b.dataset.lightEdge));
@@ -116,6 +119,7 @@ export function installLighting(api){
  document.addEventListener('keydown',e=>{if(e.key==='Escape')cancelPick();});
  api.lighting={get:()=>structuredClone(rig),set:raw=>{rig=normalizeLightingRig(raw);selected=rig.lights[0]?.id;locked=false;cancelPick();rebuild();sync();persist();}};
  const baseMode=api.setMode;api.setMode=m=>{cancelPick();const r=baseMode(m);if(m==='cameras')initialize();syncScene();return r;};
+ window.addEventListener('set-configured',sync);
  syncScene();sync();
  try{if(localStorage.getItem('rc-set-shot-controls')==='lighting')selectTab('lighting');}catch{}
 }

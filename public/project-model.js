@@ -36,7 +36,7 @@ export function projectSeparateFinishing(input){
  return projectUpgradeFloorLayers(data);
 }
 // Every upgrade pass ends by bringing counted milestones in line with the counts.
-export function projectUpgradeFloorLayers(input){return projectSyncCounts(projectClearFinishedPasses(projectRenameJackStep(projectUpgradeFloorLayersOnly(input))));}
+export function projectUpgradeFloorLayers(input){return projectSyncCounts((projectRenameJackStep(projectUpgradeFloorLayersOnly(input))));}
 // The jack step is "Build jacks"; its built and attached counters both sit under it. A short-lived separate
 // "Attach jacks to walls" step (walls-attach) is folded back in, keeping its notes.
 export function projectRenameJackStep(input){
@@ -70,6 +70,13 @@ export function projectTotals(data,now=Date.now()) {
  const materials=data.expenses.reduce((n,e)=>n+e.amountCents,0),labor=data.shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents,0);
  return {materials,labor,total:materials+labor,remaining:data.budgetCents===null?null:data.budgetCents-materials-labor};
 }
+// The design actually being built. Progress weights and the build-mode model use it on every device; Explore set stays free.
+export function projectBuildDesign(input) {
+ if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Invalid build design.');
+ const hex=v=>{if(typeof v!=='string'||!/^#[0-9a-f]{6}$/i.test(v))throw Error('Invalid build design color.');return v.toLowerCase();},whole=(v,min,max)=>{if(!Number.isInteger(v)||v<min||v>max)throw Error('Invalid build design.');return v;};
+ if(![96,120].includes(input.height)||!['none','wood','charcoal'].includes(input.floor)||!['none','angled','square'].includes(input.platformShape))throw Error('Invalid build design.');
+ return {height:input.height,angle:whole(input.angle,0,90),floor:input.floor,platformShape:input.platformShape,platformAngle:whole(input.platformAngle,0,90),platformBack:whole(input.platformBack,0,48),platformSide:whole(input.platformSide,0,48),wallColor:hex(input.wallColor),platformColor:hex(input.platformColor),floorColor:hex(input.floorColor)};
+}
 export function projectValidate(kind,input,now=Date.now()) {
  const fail=message=>{throw Error(message);},str=(v,max=160)=>typeof v==='string'&&v.length<=max,id=v=>str(v,80)&&/^[\w-]+$/.test(v),money=(v,negative=false)=>Number.isSafeInteger(v)&&v<1e9&&(negative?v>-1e9:v>=0),list=(v,max)=>Array.isArray(v)&&v.length<=max;
  const unique=xs=>new Set(xs.map(x=>x.id)).size===xs.length;
@@ -79,7 +86,7 @@ export function projectValidate(kind,input,now=Date.now()) {
   if(!list(input.stages,30)||!input.stages.length||!unique(input.stages))fail('Keep 1–30 production stages.');
   for(const s of input.stages){if(!id(s.id)||!str(s.name)||!s.name.trim()||!notes(s.notes)||!list(s.steps,100)||!s.steps.length||!unique(s.steps))fail('Invalid stage or notes.');for(const t of s.steps)if(!id(t.id)||!str(t.name)||!t.name.trim()||!Number.isInteger(t.percent)||t.percent<0||t.percent>100||!notes(t.notes)||(t.completedAt!=null&&(!Number.isSafeInteger(t.completedAt)||t.completedAt<0||t.completedAt>now+60000)))fail('Each step needs a name and progress from 0–100%.');}
   if(input.progressLog!==undefined&&(!list(input.progressLog,5000)||!input.progressLog.every(e=>e&&Number.isSafeInteger(e.at)&&e.at>=0&&e.at<=now+60000&&id(e.step)&&[e.from,e.to].every(v=>Number.isInteger(v)&&v>=0&&v<=100))))fail('Invalid progress history.');
-  return {floorAssemblyVersion:input.floorAssemblyVersion===1?1:0,assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),progressLog:(input.progressLog||[]).map(e=>({at:e.at,step:e.step,from:e.from,to:e.to})),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes,completedAt:t.completedAt??null}))}))};
+  return {design:input.design==null?null:projectBuildDesign(input.design),floorAssemblyVersion:input.floorAssemblyVersion===1?1:0,assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),progressLog:(input.progressLog||[]).map(e=>({at:e.at,step:e.step,from:e.from,to:e.to})),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes,completedAt:t.completedAt??null}))}))};
  }
  if(kind!=='finance')fail('Unknown project module.');
  if(input.budgetCents!==null&&!money(input.budgetCents)||!list(input.expenses,5000)||!list(input.crew,100)||!list(input.shifts,10000))fail('Invalid project totals or too many entries.');
@@ -217,19 +224,13 @@ export function projectGuideStagePercent(data,stage,design){
  return groups.length?Math.round(groups.reduce((sum,[id])=>sum+projectStepPercent(data,id),0)/groups.length):0;
 }
 export function projectGuideStageDone(data,stage,design){const saved=data?.guideChecks?.[projectGuideKey(stage,design)];if(saved!==undefined&&projectCountUnits(design).some(u=>u.stages.includes(stage)))return saved===true||saved===100;return projectGuideStagePercent(data,stage,design)===100;}
-// One pass through a unit's Build guide steps builds one more of it. Adds that amount (capped at the total) and keeps
-// the counts consistent with each other: attached jacks need built jacks and a panel per pair; ballast needs both jacks.
-export function projectAddUnit(assembly,key,amount,max){const a={...projectAssembly(assembly)},at=k=>a[k]??0;a[key]=Math.min(max,at(key)+amount);
+// Finishing every Build guide step of a unit proves at least one of it exists. It raises the count to that floor and
+// never adds past it: the milestone count box is the only way to record more. Keeps the counts consistent with each
+// other: attached jacks need built jacks and a panel per pair; ballast needs both jacks.
+export function projectEnsureUnit(assembly,key,amount,max){const a={...projectAssembly(assembly)},at=k=>a[k]??0;a[key]=Math.min(max,Math.max(at(key),amount));
  if(key==='ballastAttached')a.jacksAttached=Math.max(at('jacksAttached'),a.ballastAttached*2);
  if(['ballastAttached','jacksAttached'].includes(key)){a.jacksBuilt=Math.max(at('jacksBuilt'),a.jacksAttached);a.panelsCompleted=Math.max(at('panelsCompleted'),Math.ceil(a.jacksAttached/2));}
  return projectAssembly(a);}
-// Walkthrough checks of a counted unit cover only the unit being built now. Older records kept every step checked after
-// crediting the first unit; clear those finished passes once so a re-check cannot count them again.
-export function projectClearFinishedPasses(input){
- const checks=input.guideChecks||{},done=key=>checks[key]===true||checks[key]===100,clear=[];
- for(const height of [96,120]){const design={height,floor:'none'};for(const unit of projectCountUnits(design))if(unit.per){const keys=unit.stages.map(n=>projectGuideKey(n,design));if(keys.every(done))clear.push(...keys);}}
- if(!clear.length)return input;const data=structuredClone(input);for(const key of clear)delete data.guideChecks[key];return data;
-}
 export function projectSetGuideStage(input,stage,done,design){
  const groups=projectGuideGroups(design),affected=Object.entries(groups).filter(([,stages])=>stages.includes(stage));
  if(!affected.length||(typeof done!=='boolean'&&(!Number.isInteger(done)||done<0||done>100)))throw Error('This guide step is not part of the current design.');
@@ -238,7 +239,7 @@ export function projectSetGuideStage(input,stage,done,design){
  for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!counted.has(number)&&!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStagePercent(input,number,design);}
  data.guideChecks[projectGuideKey(stage,design)]=done;
  const unit=projectCountUnits(design).find(u=>u.stages.includes(stage));
- if(unit?.per&&(done===true||done===100)&&unit.stages.every(n=>projectGuideStageDone(data,n,design))){data.assembly=projectAddUnit(data.assembly,unit.key,unit.per,unit.max);for(const n of unit.stages)delete data.guideChecks[projectGuideKey(n,design)];}
+ if(unit?.per&&(done===true||done===100)&&unit.stages.every(n=>projectGuideStageDone(data,n,design))){data.assembly=projectEnsureUnit(data.assembly,unit.key,unit.per,unit.max);}
  if(unit)for(const id of projectCountMilestones())if(!affected.some(([a])=>a===id)&&groups[id])affected.push([id,groups[id]]);
  for(const [id,stages]of affected){let row=data.stages.flatMap(s=>s.steps).find(t=>t.id===id);
   if(!row&&done){const defaults=projectDefaultTracking(),source=defaults.stages.find(s=>s.steps.some(t=>t.id===id));if(source){let parent=data.stages.find(s=>s.id===source.id);if(!parent){parent={id:source.id,name:source.name,notes:[],steps:[]};data.stages.push(parent);}row=structuredClone(source.steps.find(t=>t.id===id));parent.steps.push(row);}}

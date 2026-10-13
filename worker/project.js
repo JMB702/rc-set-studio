@@ -1,6 +1,9 @@
 // Inlined by build.mjs together with project-model.js. Finance is protected at every API boundary.
 async function projectDigest(value) {return [...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))].map(v=>v.toString(16).padStart(2,'0')).join('');}
 async function projectPinHash(pin,salt) {const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:new TextEncoder().encode(salt),iterations:100000,hash:'SHA-256'},key,256);return [...new Uint8Array(bits)].map(v=>v.toString(16).padStart(2,'0')).join('');}
+// Until a build design is saved, every device reads progress through the newest approved design (the site default),
+// never its own locally explored design. Returned with the record; it is stored the next time tracking is saved.
+async function projectApprovedDesign(db){try{const r=await db.prepare('SELECT design FROM design_approvals ORDER BY created_at DESC, id DESC LIMIT 1').first();if(!r)return null;const d=JSON.parse(r.design);return projectBuildDesign({height:d.height,angle:Math.round(d.angle),floor:d.floor,platformShape:d.platformShape,platformAngle:Math.round(d.platformAngle),platformBack:d.platformBack,platformSide:d.platformSide,wallColor:d.wallColor,platformColor:d.platformColor,floorColor:d.floorColor});}catch{return null;}}
 async function projectAPI(request,env) {
  const url=new URL(request.url),path=url.pathname.slice('/api/project/'.length),db=env.DB,now=Date.now();
  if(!db)return json({error:'Project storage is unavailable.'},503);
@@ -78,7 +81,7 @@ async function projectAPI(request,env) {
     row=await db.prepare('SELECT * FROM project_documents WHERE id=?').bind(path).first();
    }
   }
-  if(request.method==='GET')return json({data:JSON.parse(row.content),revision:row.revision});
+  if(request.method==='GET'){const data=JSON.parse(row.content);if(path==='tracking'&&!data.design)data.design=await projectApprovedDesign(db);return json({data,revision:row.revision});}
   if(request.method!=='PUT')return json({error:'Method not allowed.'},405);
   if(!Number.isSafeInteger(input?.revision)||input.revision<0)return json({error:'Invalid revision.'},400);
   let content;try{if(path==='tracking'&&input.data){const previous=JSON.parse(row.content);for(const key of ['assembly','guideChecks','floorAssemblyVersion','design'])if(!Object.hasOwn(input.data,key))input.data[key]=previous[key];if(input.data.assembly)for(const key of ['ballastAttached','wallsJoined','anglesSet'])if(!Object.hasOwn(input.data.assembly,key))input.data.assembly[key]=previous.assembly?.[key]??null;input.data=projectStampProgress(previous,projectReconcileGuideChecks(previous,input.data),now);}if(path==='finance')input.data=projectPreserveFinance(JSON.parse(row.content),input.data);content=JSON.stringify(projectValidate(path,input.data,now));}catch(e){return json({error:e.message},400);}

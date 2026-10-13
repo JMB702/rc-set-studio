@@ -14,6 +14,7 @@ export function installLighting(api){
  <div class="light-toolbar"><label for="light-picker">Selected light<select id="light-picker"></select></label><button id="light-add" type="button">+ Add</button></div>
  <div id="light-editor">
  <div class="light-name-row"><input id="light-name" aria-label="Light name" maxlength="40"><button id="light-enabled" aria-pressed="true">On</button></div>
+ ${range('power','Intensity (%)',0,200)}
  <div class="light-types" role="group" aria-label="Light type"><button data-light-type="diffuse" aria-pressed="true">Diffuse</button><button data-light-type="spot" aria-pressed="false">Spotlight</button></div>
  <details id="light-placement" open><summary>Light position <span>+</span></summary>
  ${range('rotation','Rotation around subject (°)',-180,180)}${range('elevation','Height (ft)',.5,16,.25)}${range('distance','Distance from subject (ft)',.5,30,.25)}
@@ -25,7 +26,7 @@ export function installLighting(api){
  ${range('width','Width (in)',3,144)}${range('height','Height (in)',3,144)}
  <div class="light-ratio-row"><span id="light-ratio"></span><button id="light-lock" aria-pressed="false">Lock ratio</button></div>${range('roll','Shape roll (°)',-180,180)}
  <p class="hint" id="light-size-note"></p></details>
- <details id="light-output" open><summary>Output &amp; edge <span>+</span></summary>${range('power','Intensity (%)',0,200)}
+ <details id="light-output" open><summary>Color &amp; edge <span>+</span></summary>
  <label class="light-color">Light color<input id="light-color" type="color" value="#fff5e6"></label>
  <div id="light-spot-controls">${range('beam','Beam angle (°)',10,120)}${range('edge','Edge feather (%)',0,100)}<div class="light-presets"><button data-light-edge="0">Hard</button><button data-light-edge="50">Soft</button><button data-light-edge="100">Feathered</button></div></div></details>
  <div class="light-actions"><button id="light-duplicate">Duplicate</button><button id="light-remove">Remove light</button></div></div>

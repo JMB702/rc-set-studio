@@ -36,6 +36,15 @@ export const cameraPositions = sqliteTable('camera_positions', {
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
 }, table => [index('camera_positions_created_at_idx').on(table.createdAt)]);
+export const lightingSetups = sqliteTable('lighting_setups', {
+  deletedAt: integer('deleted_at'),
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  rig: text('rig').notNull(),
+  revision: integer('revision').notNull().default(0),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+}, table => [index('lighting_setups_created_at_idx').on(table.createdAt)]);
 
 // Project records use optimistic revisions so another browser cannot silently overwrite work.
 export const projectDocuments = sqliteTable('project_documents', {

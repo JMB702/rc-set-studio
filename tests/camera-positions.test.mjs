@@ -130,3 +130,18 @@ test('Camera API stores and recalls a six-light rig without losing source shape 
  const env=database();try{const shot={...a,lighting};let res=await api.fetch(request('POST',{id,name:'Lit master',shot}),env);assert.equal(res.status,201);assert.deepEqual((await res.json()).position.shot,shot);const list=await(await api.fetch(request('GET'),env)).json();assert.deepEqual(list.positions[0].shot.lighting,lighting);const changed=structuredClone(shot);changed.lighting.lights[0].width=.3048;res=await api.fetch(request('PATCH',{id,name:'Lit master',shot:changed,revision:0}),env);assert.equal(res.status,200);assert.deepEqual((await res.json()).position.shot,changed);}finally{env.sqlite.close();}
 });
 test('Recalling a lit camera restores the rig only at the end of the move',()=>{const r=rig();let current={version:1,lights:[]},calls=0;r.api.lighting={get:()=>current,set:v=>{current=v;calls++;}};const to={...b,lighting:{version:1,lights:[]}};r.motion.move(to);r.tick(500);assert.equal(calls,0);r.tick(1000);assert.equal(calls,1);assert.deepEqual(r.motion.snapshot(),to);});
+test('Lighting setups save, update, delete and restore across devices like camera positions',async()=>{
+ const env=database(),setup='5b1a2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d',url='https://example.com/api/lighting-setups';
+ const call=(method,body)=>api.fetch(new Request(url,{method,headers:{'Content-Type':'application/json',Origin:'https://example.com'},...(body!==undefined?{body:JSON.stringify(body)}:{})}),env);
+ const light=(id,power)=>({id,name:id,type:'diffuse',enabled:true,position:[-2,2.5,3],target:[0,1.5,1.5],width:.9,height:1.2,power,beam:60,edge:80,roll:0,color:'#fff5e6'});
+ try{
+  let res=await call('POST',{id:setup,name:'Moody',rig:{version:1,lights:[light('key',100)]}});assert.equal(res.status,201);const saved=(await res.json()).setup;assert.equal(saved.rig.lights[0].power,100);
+  res=await call('PATCH',{id:setup,name:'Moody',revision:0,rig:{version:1,lights:[light('key',40),light('rim',90)]}});assert.equal(res.status,200);assert.equal((await res.json()).setup.rig.lights.length,2);
+  assert.equal((await call('PATCH',{id:setup,name:'Stale',revision:0,rig:{version:1,lights:[]}})).status,409);
+  assert.equal((await call('POST',{id:setup,name:'Bad',rig:{version:1,lights:new Array(7).fill(0).map((_,i)=>light('l'+i,50))}})).status,400,'six lights at most');
+  res=await call('POST',{id:setup,revision:1,action:'delete'});assert.equal(res.status,200);
+  let list=await(await call('GET')).json();assert.equal(list.setups.length,0);assert.equal(list.deletedSetups.length,1);
+  await call('POST',{id:setup,revision:2,action:'restore'});list=await(await call('GET')).json();assert.equal(list.setups[0].name,'Moody');
+  const camera=await(await api.fetch(request('GET'),env)).json();assert.deepEqual(camera,{positions:[],deletedPositions:[]},'cameras stay separate');
+ }finally{env.sqlite.close();}
+});

@@ -79,6 +79,8 @@ installCameraPositions(window.__studio);
 
 import {installLighting} from './lighting.js';
 installLighting(window.__studio);
+import {installLightingSetups} from './lighting-setups.js';
+installLightingSetups(window.__studio);
 
 installWorkspaceSession(window.__studio,savedWorkspace);
 

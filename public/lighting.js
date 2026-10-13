@@ -10,33 +10,33 @@ export function installLighting(api){
  tabs.innerHTML='<button id="shot-tab-camera" role="tab" aria-controls="shot-camera-panel" aria-selected="true">Camera controls</button><button id="shot-tab-lighting" role="tab" aria-controls="shot-lighting-panel" aria-selected="false" tabindex="-1">Lighting controls</button>';host.prepend(tabs);
  const panel=document.createElement('section');panel.id='shot-lighting-panel';panel.hidden=true;panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby','shot-tab-lighting');host.append(panel);
  const range=(key,label,min,max,step=1)=>`<label class="light-range" for="light-${key}"><span>${label}</span><output id="light-${key}-value" for="light-${key}"></output><input id="light-${key}" data-light-field="${key}" type="range" min="${min}" max="${max}" step="${step}"></label>`;
- panel.innerHTML=`<div class="light-intro"><h2>Light the scene</h2><p>Key, fill &amp; rim · soft three-point starting setup</p></div>
- <div class="light-toolbar"><label for="light-picker">Selected light<select id="light-picker"></select></label><button id="light-add" type="button">+ Add</button></div>
+ panel.innerHTML=`<div class="light-chips" role="group" aria-label="Lights in the rig"><div id="light-chip-list"></div><button id="light-add" type="button" class="light-chip-add">+ Add light</button></div>
+ <p id="light-none" class="hint">Tap a light to adjust it. Tap it again, or empty space in the view, to deselect.</p>
  <div id="light-editor">
- <div class="light-name-row"><input id="light-name" aria-label="Light name" maxlength="40"><button id="light-enabled" aria-pressed="true">On</button></div>
- ${range('power','Intensity (%)',0,200)}
- <div class="light-types" role="group" aria-label="Light type"><button data-light-type="diffuse" aria-pressed="true">Diffuse</button><button data-light-type="spot" aria-pressed="false">Spotlight</button></div>
- <details id="light-placement" open><summary>Light position <span>+</span></summary>
- ${range('rotation','Rotation around subject (°)',-180,180)}${range('elevation','Height (ft)',.5,16,.25)}${range('distance','Distance from subject (ft)',.5,30,.25)}
- <p class="hint">0° in front · 90° right · −90° left · ±180° behind. Distance is across the floor; height is above the subject’s floor.</p>
- <details id="light-aim-details"><summary>Fine-tune aim <span>+</span></summary>${range('aimRotation','Aim rotation around subject (°)',-180,180)}${range('aimHeight','Aim height (ft)',0,16,.25)}${range('aimDistance','Aim distance from subject (ft)',0,15,.25)}<p class="hint">Move the point the light aims at. Zero distance aims at the subject’s center.</p></details>
- <div class="light-actions"><button id="light-place">Place in scene</button><button id="light-aim">Aim in scene</button></div></details>
- <details id="light-shape" open><summary>Shape &amp; size <span>+</span></summary>
+ <div class="light-head"><h2 id="light-title"></h2><button id="light-enabled" class="light-switch" aria-pressed="true"><span aria-hidden="true"></span><b>On</b></button></div>
+ <div class="light-pads"><div id="light-pad" class="light-pad" tabindex="0" role="group" aria-label="Light position pad. Drag left or right to circle the subject, up or down to raise or lower the light. Arrow keys also work." aria-describedby="light-pad-readout"><span class="light-pad-x" aria-hidden="true">◀ circle subject ▶</span><span class="light-pad-y" aria-hidden="true">▲ higher</span><output id="light-pad-readout"></output></div>
+ <div id="light-strip" class="light-strip" tabindex="0" role="group" aria-label="Distance strip. Drag up to move the light farther from the subject, down to bring it closer. Arrow keys also work." aria-describedby="light-strip-readout"><span aria-hidden="true">▲ farther</span><output id="light-strip-readout"></output><span aria-hidden="true">▼ closer</span></div></div>
+ ${range('power','Brightness',0,200)}
+ <div class="light-actions"><button id="light-place">Tap to place</button><button id="light-aim">Tap to aim</button></div>
+ <details id="light-exact"><summary>Exact position <span>+</span></summary>${range('rotation','Direction',-180,180)}${range('elevation','Height',.5,16,.25)}${range('distance','Distance',.5,30,.25)}</details>
+ <div class="light-quality"><span>Light quality</span><div class="light-types" role="group" aria-label="Light quality"><button data-light-type="diffuse" aria-pressed="true"><b>Soft</b><small>Softbox · even wrap</small></button><button data-light-type="spot" aria-pressed="false"><b>Hard</b><small>Spotlight · crisp shadows</small></button></div></div>
+ <details id="light-aim-details"><summary>Fine-tune aim <span>+</span></summary>${range('aimRotation','Aim direction',-180,180)}${range('aimHeight','Aim height',0,16,.25)}${range('aimDistance','Aim offset',0,15,.25)}<p class="hint">Moves the point the light aims at. Zero offset aims at the subject’s center.</p></details>
+ <details id="light-shape"><summary>Shape &amp; size <span>+</span></summary>
  <div class="light-presets" role="group" aria-label="Light shape presets"><button data-light-preset="softbox">Softbox</button><button data-light-preset="strip">Strip</button><button data-light-preset="square">Square</button></div>
- ${range('width','Width (in)',3,144)}${range('height','Height (in)',3,144)}
- <div class="light-ratio-row"><span id="light-ratio"></span><button id="light-lock" aria-pressed="false">Lock ratio</button></div>${range('roll','Shape roll (°)',-180,180)}
+ ${range('width','Width',3,144)}${range('height','Height',3,144)}
+ <div class="light-ratio-row"><span id="light-ratio"></span><button id="light-lock" aria-pressed="false">Lock ratio</button></div>${range('roll','Tilt',-180,180)}
  <p class="hint" id="light-size-note"></p></details>
- <details id="light-output" open><summary>Color &amp; edge <span>+</span></summary>
+ <details id="light-output"><summary>Color &amp; beam <span>+</span></summary>
  <label class="light-color">Light color<input id="light-color" type="color" value="#fff5e6"></label>
- <div id="light-spot-controls">${range('beam','Beam angle (°)',10,120)}${range('edge','Edge feather (%)',0,100)}<div class="light-presets"><button data-light-edge="0">Hard</button><button data-light-edge="50">Soft</button><button data-light-edge="100">Feathered</button></div></div></details>
- <div class="light-actions"><button id="light-duplicate">Duplicate</button><button id="light-remove">Remove light</button></div></div>
- <div class="light-view-options"><label><input id="light-show-shapes" type="checkbox" checked> Show light shapes</label><button id="light-overview">View entire rig</button><button id="light-return" hidden>Return to shot</button></div>
- <button id="light-reset">Reset to soft three-point</button><p id="light-status" role="status" aria-live="polite"></p><p class="hint">Saved on this device. Save or update a camera position to include its lighting across devices. Preview is approximate; diffuse-light shadows are not simulated.</p>
+ <div id="light-spot-controls">${range('beam','Beam width',10,120)}${range('edge','Edge softness',0,100)}<div class="light-presets"><button data-light-edge="0">Hard edge</button><button data-light-edge="50">Soft edge</button><button data-light-edge="100">Feathered</button></div></div></details>
+ <details id="light-manage"><summary>Manage light <span>+</span></summary><label class="light-name">Name<input id="light-name" maxlength="40"></label><div class="light-actions"><button id="light-duplicate">Duplicate</button><button id="light-remove">Remove light</button></div></details></div>
+ <div class="light-view-options"><label><input id="light-show-shapes" type="checkbox" checked> Show lights in view</label><button id="light-overview">See whole rig</button><button id="light-return" hidden>Back to shot</button></div>
+ <button id="light-reset">Reset to soft three-point</button><p id="light-status" role="status" aria-live="polite"></p><p class="hint">Your current lights stay on this device. Save them as a setup below to use them on any device. Preview is approximate; soft-light shadows are not simulated.</p>
  <div id="light-reset-confirm" hidden><p>Replace your current lights with the soft three-point setup?</p><div class="light-actions"><button id="light-reset-cancel">Cancel</button><button id="light-reset-yes">Replace lights</button></div></div>`;
  panel.addEventListener('pointerdown',()=>api.cancelCameraMove?.(),{capture:true,passive:true});
  const $=s=>panel.querySelector(s);let rig=defaultLightingRig(),selected,tab='camera',picking=null,locked=false,overview=null,ready=false,initializing=null;
  try{const saved=localStorage.getItem(STORAGE);if(saved)rig=normalizeLightingRig(JSON.parse(saved));}catch{}
- selected=rig.lights[0]?.id;
+ selected=null;
  const group=new THREE.Group();group.name='Lighting rig';api.scene.add(group);
  const helpers=new THREE.Group();helpers.name='Light placement shapes';api.scene.add(helpers);
  const originalLights=api.scene.children.filter(o=>o.isLight).map(o=>[o,o.visible]);
@@ -71,16 +71,21 @@ export function installLighting(api){
   }
   api.invalidate();
  }
- function list(){const picker=$('#light-picker');picker.replaceChildren(...rig.lights.map(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.name+(l.enabled?'':' · Off');return o;}));picker.value=selected||'';picker.disabled=!rig.lights.length;$('#light-add').disabled=rig.lights.length>=6;}
+ function list(){const host=$('#light-chip-list');host.replaceChildren(...rig.lights.map(l=>{const b=document.createElement('button');b.type='button';b.className='light-chip';b.dataset.lightId=l.id;b.setAttribute('aria-pressed',l.id===selected);b.classList.toggle('off',!l.enabled);const dot=document.createElement('i');dot.setAttribute('aria-hidden','true');b.append(dot,l.name);b.setAttribute('aria-label',l.name+(l.enabled?'':' (off)'));b.onclick=()=>{selected=selected===l.id?null:l.id;locked=false;cancelPick();sync();};return b;}));$('#light-add').disabled=rig.lights.length>=6;host.querySelector('[aria-pressed=true]')?.scrollIntoView({block:'nearest',inline:'nearest'});}
+ // Readable values: feet and inches for distances, plain directions around the subject.
+ const feet=v=>{const t=Math.round(v*12),f=Math.floor(t/12),i=t-f*12;return f?`${f}′${i?` ${i}″`:''}`:`${i}″`;},turn=v=>{const a=Math.round(v),m=Math.abs(a);return m<=5?'Front':m>=175?'Behind':`${m}° ${a>0?'right':'left'}`;};
+ const shown={power:v=>Math.round(v)+'%',rotation:turn,aimRotation:turn,elevation:feet,distance:feet,aimHeight:feet,aimDistance:feet,width:v=>Math.round(v)+'″',height:v=>Math.round(v)+'″',roll:v=>Math.round(v)+'°',beam:v=>Math.round(v)+'°',edge:v=>Math.round(v)+'%'};
  const mapping={rotation:['position','rotation',1],elevation:['position','height',FT],distance:['position','distance',FT],aimRotation:['target','rotation',1],aimHeight:['target','height',FT],aimDistance:['target','distance',FT]},angles=new Map();
  const subject=()=>api.getFigures()?.position.toArray()??[0,0,48*IN];
  function coordinates(l,key){const id=l.id+':'+key,c=subjectCoordinates(l[key],subject(),angles.get(id)||0);angles.set(id,c.rotation);return c;}
- function sync(){list();const l=current();$('#light-editor').hidden=!l;if(!l){syncScene();return;}
-  $('#light-name').value=l.name;$('#light-enabled').textContent=l.enabled?'On':'Off';$('#light-enabled').setAttribute('aria-pressed',l.enabled);
+ function sync(){list();const l=current();$('#light-editor').hidden=!l;$('#light-none').hidden=!!l||!rig.lights.length;if(!l){syncScene();return;}
+  $('#light-name').value=l.name;$('#light-title').textContent=/\blight\b/i.test(l.name)?l.name:l.name+' light';$('#light-enabled').querySelector('b').textContent=l.enabled?'On':'Off';$('#light-enabled').setAttribute('aria-pressed',l.enabled);$('#light-enabled').setAttribute('aria-label',(l.enabled?'Turn off ':'Turn on ')+l.name);
   panel.querySelectorAll('[data-light-type]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lightType===l.type));
-  for(const input of panel.querySelectorAll('[data-light-field]')){const k=input.dataset.lightField,m=mapping[k],v=m?coordinates(l,m[0])[m[1]]/m[2]:['width','height'].includes(k)?l[k]/IN:l[k];if(m){input.min=Math.min(+input.min,v);input.max=Math.max(+input.max,v);}input.value=v;$('#light-'+k+'-value').textContent=Math.round(v*100)/100;}
+  for(const input of panel.querySelectorAll('[data-light-field]')){const k=input.dataset.lightField,m=mapping[k],v=m?coordinates(l,m[0])[m[1]]/m[2]:['width','height'].includes(k)?l[k]/IN:l[k];if(m){input.min=Math.min(+input.min,v);input.max=Math.max(+input.max,v);}input.value=v;$('#light-'+k+'-value').textContent=(shown[k]||(x=>Math.round(x*100)/100))(v);}
+  const pos=coordinates(l,'position'),h=pos.height/FT,d=pos.distance/FT;
+  $('#light-pad-readout').textContent=turn(pos.rotation)+' · '+feet(h)+' high';$('#light-strip-readout').textContent=feet(d);
   $('#light-ratio').textContent='Aspect ratio '+(l.width/l.height).toFixed(2)+' : 1';$('#light-lock').setAttribute('aria-pressed',locked);$('#light-lock').textContent=locked?'Ratio locked':'Lock ratio';$('#light-color').value=l.color;$('#light-spot-controls').hidden=l.type!=='spot';$('#light-duplicate').disabled=rig.lights.length>=6;
-  $('#light-size-note').textContent=l.type==='diffuse'?'The rectangular surface emits light. Wider shapes create softboxes and narrow shapes create strips.':'Size changes the source marker. Beam angle and edge feather control the spotlight coverage.';
+  $('#light-size-note').textContent=l.type==='diffuse'?'The whole panel glows. Bigger shapes give softer light; narrow strips make a thin edge light.':'Size only changes the marker. Beam width and edge softness set the spotlight’s coverage.';
   syncScene();
  }
  function commit(next){try{rig=normalizeLightingRig(next);sync();persist();}catch(e){status(e.message);sync();}}
@@ -89,18 +94,26 @@ export function installLighting(api){
  function selectTab(next){tab=next;try{localStorage.setItem('rc-set-shot-controls',next);}catch{}if(next==='camera'&&overview){restoreShot(overview);overview=null;$('#light-return').hidden=true;}cameraPanel.hidden=next!=='camera';panel.hidden=next!=='lighting';cancelPick();for(const b of tabs.children){const on=b.id==='shot-tab-'+next;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;}syncScene();}
  for(const name of ['camera','lighting'])document.querySelector('#shot-tab-'+name).onclick=()=>selectTab(name);
  tabs.onkeydown=e=>{if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;e.preventDefault();selectTab(e.key==='Home'?'camera':e.key==='End'?'lighting':tab==='camera'?'lighting':'camera');document.querySelector('#shot-tab-'+tab).focus();};
- $('#light-picker').onchange=e=>{selected=e.target.value;locked=false;cancelPick();sync();};
  $('#light-name').onchange=e=>edit(l=>l.name=e.target.value.trim());$('#light-enabled').onclick=()=>edit(l=>l.enabled=!l.enabled);
  panel.querySelectorAll('[data-light-type]').forEach(b=>b.onclick=()=>edit(l=>l.type=b.dataset.lightType));
  panel.querySelectorAll('[data-light-field]').forEach(input=>input.oninput=()=>edit(l=>{const k=input.dataset.lightField,v=+input.value,m=mapping[k];if(m){const c=coordinates(l,m[0]);c[m[1]]=v*m[2];angles.set(l.id+':'+m[0],c.rotation);l[m[0]]=subjectPoint(c,subject());}else if(['width','height'].includes(k)){const other=k==='width'?'height':'width',ratio=l[other]/l[k];l[k]=v*IN;if(locked){l[other]=l[k]*ratio;if(l[other]<3*IN){l[other]=3*IN;l[k]=l[other]/ratio;}if(l[other]>144*IN){l[other]=144*IN;l[k]=l[other]/ratio;}}}else l[k]=v;}));
+ // Trackpads move relative to where the drag starts, like a laptop trackpad, and feed the position sliders.
+ function nudge(key,value){const input=$('#light-'+key);if(key==='rotation')value=((value+180)%360+360)%360-180;input.value=Math.min(+input.max,Math.max(+input.min,value));input.dispatchEvent(new Event('input'));}
+ function trackpad(el,axes){let drag=null;
+  el.addEventListener('pointerdown',e=>{if(!current()||!e.isPrimary)return;e.preventDefault();el.setPointerCapture(e.pointerId);el.classList.add('dragging');drag={x:e.clientX,y:e.clientY,start:Object.fromEntries(axes.map(([key])=>[key,+$('#light-'+key).value]))};});
+  el.addEventListener('pointermove',e=>{if(!drag)return;for(const [key,axis,rate] of axes)nudge(key,drag.start[key]+(axis==='x'?e.clientX-drag.x:drag.y-e.clientY)*rate);});
+  const end=()=>{drag=null;el.classList.remove('dragging');};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+  el.addEventListener('keydown',e=>{const step=e.shiftKey?4:1;for(const [key,axis,,keyStep] of axes){const delta=axis==='x'?{ArrowRight:1,ArrowLeft:-1}[e.key]:{ArrowUp:1,ArrowDown:-1}[e.key];if(delta&&current()){e.preventDefault();nudge(key,+$('#light-'+key).value+delta*keyStep*step);}}});
+ }
+ trackpad($('#light-pad'),[['rotation','x',1.2,5],['elevation','y',.06,.25]]);trackpad($('#light-strip'),[['distance','y',.1,.25]]);
  $('#light-lock').onclick=()=>{locked=!locked;sync();};$('#light-color').oninput=e=>edit(l=>l.color=e.target.value);
  panel.querySelectorAll('[data-light-preset]').forEach(b=>b.onclick=()=>{locked=false;edit(l=>{l.type='diffuse';const [w,h]={softbox:[36,48],strip:[12,48],square:[48,48]}[b.dataset.lightPreset];l.width=w*IN;l.height=h*IN;});});
  panel.querySelectorAll('[data-light-edge]').forEach(b=>b.onclick=()=>edit(l=>l.edge=+b.dataset.lightEdge));
  function add(copy=false){if(rig.lights.length>=6)return;const l=structuredClone(copy&&current()?current():defaultLightingRig().lights[0]);l.id=crypto.randomUUID();l.name=copy?l.name.slice(0,33)+' copy':'Light '+(rig.lights.length+1);l.position[0]=Math.min(6,l.position[0]+.5);selected=l.id;rig.lights.push(l);rebuild();sync();persist();}
  $('#light-add').onclick=()=>add();$('#light-duplicate').onclick=()=>add(true);
- let removed=null;$('#light-remove').onclick=()=>{removed={light:current(),index:rig.lights.findIndex(l=>l.id===selected)};rig.lights=rig.lights.filter(l=>l.id!==selected);selected=rig.lights[0]?.id;cancelPick();rebuild();sync();persist();status('Light removed. ');const undo=document.createElement('button');undo.textContent='Undo';undo.onclick=()=>{if(!removed||rig.lights.length>=6)return;rig.lights.splice(removed.index,0,removed.light);selected=removed.light.id;removed=null;rebuild();sync();persist();status('Light restored.');};$('#light-status').append(undo);};
+ let removed=null;$('#light-remove').onclick=()=>{removed={light:current(),index:rig.lights.findIndex(l=>l.id===selected)};rig.lights=rig.lights.filter(l=>l.id!==selected);selected=null;cancelPick();rebuild();sync();persist();status('Light removed. ');const undo=document.createElement('button');undo.textContent='Undo';undo.onclick=()=>{if(!removed||rig.lights.length>=6)return;rig.lights.splice(removed.index,0,removed.light);selected=removed.light.id;removed=null;rebuild();sync();persist();status('Light restored.');};$('#light-status').append(undo);};
  $('#light-show-shapes').onchange=syncScene;
- $('#light-reset').onclick=()=>{$('#light-reset-confirm').hidden=false;$('#light-reset-cancel').focus();};$('#light-reset-cancel').onclick=()=>{$('#light-reset-confirm').hidden=true;};$('#light-reset-yes').onclick=()=>{rig=defaultLightingRig();selected=rig.lights[0].id;locked=false;cancelPick();$('#light-reset-confirm').hidden=true;rebuild();sync();persist();status('Soft three-point setup restored.');};
+ $('#light-reset').onclick=()=>{$('#light-reset-confirm').hidden=false;$('#light-reset-cancel').focus();};$('#light-reset-cancel').onclick=()=>{$('#light-reset-confirm').hidden=true;};$('#light-reset-yes').onclick=()=>{rig=defaultLightingRig();selected=null;locked=false;cancelPick();$('#light-reset-confirm').hidden=true;rebuild();sync();persist();status('Soft three-point setup restored.');};
  const snapshot=()=>({position:api.camera.position.toArray(),target:api.orbit.target.toArray(),lens:api.lens.get()});
  function restoreShot(s){const damping=api.orbit.enableDamping;api.orbit.enableDamping=false;api.orbit.update();api.lens.set(s.lens);api.camera.position.fromArray(s.position);api.orbit.target.fromArray(s.target);api.camera.lookAt(api.orbit.target);api.orbit.update();api.orbit.enableDamping=damping;api.invalidate();}
  $('#light-overview').onclick=()=>{overview??=snapshot();api.lens.set({on:false});const box=new THREE.Box3().setFromObject(api.getSet());for(const l of rig.lights)box.expandByPoint(new THREE.Vector3(...l.position));const center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3()).length(),fov=THREE.MathUtils.degToRad(Math.min(api.camera.fov,api.camera.fov*api.camera.aspect)),distance=Math.min(42,size/2/Math.tan(fov/2)*1.15);const shot={position:center.clone().add(new THREE.Vector3(.35,.7,1).normalize().multiplyScalar(distance)).toArray(),target:center.toArray(),lens:{...api.lens.get(),on:false}};restoreShot(shot);$('#light-return').hidden=false;};
@@ -111,14 +124,14 @@ export function installLighting(api){
  canvas.addEventListener('pointerdown',e=>{if(e.isPrimary)down={x:e.clientX,y:e.clientY,id:e.pointerId};else down=null;},{passive:true});
  canvas.addEventListener('pointercancel',()=>down=null);
  canvas.addEventListener('pointerup',e=>{if(!down||down.id!==e.pointerId||Math.hypot(e.clientX-down.x,e.clientY-down.y)>8){down=null;return;}down=null;if(!active()||tab!=='lighting')return;const rect=canvas.getBoundingClientRect();point.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);ray.setFromCamera(point,api.camera);
-  if(!picking){if(helpers.visible){const hit=ray.intersectObjects(nodes.map(n=>n.mesh))[0];if(hit){selected=hit.object.userData.lightId;locked=false;sync();}}return;}
+  if(!picking){if(helpers.visible){const hit=ray.intersectObjects(nodes.map(n=>n.mesh))[0];selected=hit?hit.object.userData.lightId:null;locked=false;sync();}return;}
   let hit;if(picking==='target')hit=ray.intersectObjects([api.getSet(),api.getFloor()].filter(Boolean),true)[0]?.point;
   hit??=ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),new THREE.Vector3());
   if(!hit||Math.abs(hit.x)>6.096||hit.z< -3.048||hit.z>7.62){status('Tap closer to the set, or use the position sliders.');return;}
-  const key=picking;edit(l=>{l[key]=[hit.x,key==='position'?l.position[1]:Math.max(0,hit.y),hit.z];});cancelPick();status(key==='position'?'Light placed. Adjust its height below.':'Aim updated.');
+  const key=picking;edit(l=>{l[key]=[hit.x,key==='position'?l.position[1]:Math.max(0,hit.y),hit.z];});cancelPick();status(key==='position'?'Light placed. Adjust its height above.':'Aim updated.');
  });
  document.addEventListener('keydown',e=>{if(e.key==='Escape')cancelPick();});
- api.lighting={get:()=>structuredClone(rig),set:raw=>{rig=normalizeLightingRig(raw);selected=rig.lights[0]?.id;locked=false;cancelPick();rebuild();sync();persist();}};
+ api.lighting={get:()=>structuredClone(rig),set:raw=>{rig=normalizeLightingRig(raw);selected=null;locked=false;cancelPick();rebuild();sync();persist();}};
  const baseMode=api.setMode;api.setMode=m=>{cancelPick();const r=baseMode(m);if(m==='cameras')initialize();syncScene();return r;};
  window.addEventListener('set-configured',sync);
  syncScene();sync();

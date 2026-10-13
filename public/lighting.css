@@ -2,14 +2,25 @@
 .shot-tabs button{padding:10px 8px;border-radius:7px;background:transparent;font-size:13px;font-weight:650;min-height:48px;color:var(--ink)}
 .shot-tabs [aria-selected=true]{background:var(--ink);color:white}
 #shot-lighting-panel{min-width:0;padding-bottom:24px}
-.light-intro h2{font-size:23px;letter-spacing:-.6px;margin:0 0 6px}.light-intro p{font-size:12px;color:var(--muted);margin:0 0 18px;line-height:1.5}
-.light-toolbar{display:flex;align-items:end;gap:10px;margin-bottom:14px}.light-toolbar label{flex:1;min-width:0;font-size:12px;color:var(--muted)}
-#light-picker{display:block;width:100%;min-height:48px;margin-top:7px;padding:10px;border:1px solid #bccab9;border-radius:8px;background:white;color:var(--ink);font:inherit;font-size:16px}
+.light-chips{display:flex;align-items:center;gap:8px;margin:0 0 16px}
+/* Chips scroll sideways and slide under the fixed Add light button when they do not fit. */
+#light-chip-list{display:flex;gap:8px;flex:1;min-width:0;overflow-x:auto;scroll-padding-inline:2px 36px;scrollbar-width:none;overscroll-behavior-x:contain;padding:2px 24px 2px 2px;margin-right:-24px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+#light-chip-list::-webkit-scrollbar{display:none}#light-chip-list .light-chip{flex-shrink:0}
+#shot-lighting-panel .light-chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:8px 14px;border-radius:999px;font-weight:600;background:white}
+.light-chip i{width:10px;height:10px;border-radius:50%;background:#e4b93c;box-shadow:0 0 0 3px #e4b93c33}.light-chip.off i{background:#b8beb9;box-shadow:none}.light-chip.off{color:var(--muted)}
+#shot-lighting-panel .light-chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:white}
+#shot-lighting-panel .light-chip-add{flex-shrink:0;position:relative;z-index:1;border-style:dashed;border-radius:999px;min-height:44px;background:#fafbf8;white-space:nowrap}
+.light-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 6px}.light-head h2{font-size:21px;letter-spacing:-.4px;margin:0;overflow-wrap:anywhere}
+#shot-lighting-panel .light-switch{display:inline-flex;align-items:center;gap:8px;min-width:84px;border-radius:999px;padding:6px 12px 6px 6px;flex-shrink:0}
+.light-switch span{width:34px;height:20px;border-radius:999px;background:#c9d0ca;position:relative;transition:background .15s}.light-switch span::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:white;transition:transform .15s}
+.light-switch[aria-pressed=true] span{background:#426a36}.light-switch[aria-pressed=true] span::after{transform:translateX(14px)}
+.light-quality>span{font-size:13px;display:block;margin-top:10px}#shot-lighting-panel .light-types button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px}.light-types small{font-size:11px;color:var(--muted)}
+.light-name{display:grid;gap:6px;font-size:13px;margin:6px 0}.light-name input{border:1px solid var(--line);border-radius:7px;padding:10px;font:inherit;font-size:16px;background:white}
 #shot-lighting-panel button{min-height:46px;border:1px solid #cfd8ca;background:transparent;border-radius:7px;padding:8px 12px;font-size:13px;color:var(--ink)}
 #shot-lighting-panel button[aria-pressed=true]{background:#e3efd8;border-color:#6e8f50}
-.light-name-row{display:flex;gap:10px;margin-bottom:12px}.light-name-row input{min-width:0;flex:1;border:1px solid var(--line);border-radius:7px;padding:10px;font:inherit;font-size:16px;background:white}.light-name-row button{min-width:55px}
+
 .light-types,.light-actions,.light-presets{display:flex;gap:8px;margin:10px 0}.light-types button,.light-actions button,.light-presets button{flex:1}
-.light-types{margin-bottom:20px}.light-range{display:grid;grid-template-columns:1fr auto;align-items:center;font-size:13px;margin:10px 0 14px;gap:3px 10px}.light-range output{font-size:16px;font-weight:600;letter-spacing:0}.light-range input[type=range]{grid-column:1/-1;height:44px;touch-action:pan-y}.light-ratio-row{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12px}.light-color{display:flex;align-items:center;justify-content:space-between;font-size:13px;margin-bottom:16px}.light-color input{width:70px;height:44px;padding:3px;background:white;border:1px solid var(--line);border-radius:6px}.light-view-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid var(--line);margin-top:20px;padding-top:16px}.light-view-options label{display:flex;align-items:center;gap:10px;grid-column:1/-1;font-size:14px;min-height:44px}.light-view-options input{width:22px;height:22px;accent-color:#426a36}#light-reset{width:100%;margin-top:12px}#light-status{font-size:13px;line-height:1.5;color:#38542c;overflow-wrap:anywhere}#light-status:empty{display:none}#light-reset-confirm{padding:14px;background:#eef3e9;border-radius:8px;font-size:14px;margin-top:12px}#light-pick-banner{position:absolute;top:12px;left:12px;right:12px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#172024ed;color:white;border-radius:9px;font-size:13px}#light-pick-banner button{border-radius:6px;padding:8px 12px;background:#c7ec9d;color:#172024;min-height:44px}
+.light-types{margin:6px 0 18px}.light-range{display:grid;grid-template-columns:1fr auto;align-items:center;font-size:13px;margin:10px 0 14px;gap:3px 10px}.light-range output{font-size:16px;font-weight:600;letter-spacing:0}.light-range input[type=range]{grid-column:1/-1;height:44px;touch-action:pan-y}.light-ratio-row{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:12px}.light-color{display:flex;align-items:center;justify-content:space-between;font-size:13px;margin-bottom:16px}.light-color input{width:70px;height:44px;padding:3px;background:white;border:1px solid var(--line);border-radius:6px}.light-view-options{display:grid;grid-template-columns:1fr 1fr;gap:8px;border-top:1px solid var(--line);margin-top:20px;padding-top:16px}.light-view-options label{display:flex;align-items:center;gap:10px;grid-column:1/-1;font-size:14px;min-height:44px}.light-view-options input{width:22px;height:22px;accent-color:#426a36}#light-reset{width:100%;margin-top:12px}#light-status{font-size:13px;line-height:1.5;color:#38542c;overflow-wrap:anywhere}#light-status:empty{display:none}#light-reset-confirm{padding:14px;background:#eef3e9;border-radius:8px;font-size:14px;margin-top:12px}#light-pick-banner{position:absolute;top:12px;left:12px;right:12px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;background:#172024ed;color:white;border-radius:9px;font-size:13px}#light-pick-banner button{border-radius:6px;padding:8px 12px;background:#c7ec9d;color:#172024;min-height:44px}
 @media(max-width:850px){
  body.camera-positions{height:100svh;overflow:hidden}
  .camera-positions>header{height:112px;min-height:112px;flex-shrink:0}
@@ -31,3 +42,13 @@
  .camera-positions>header nav{width:auto;flex:1;min-width:0}
  .camera-positions>header .brand{flex-shrink:0}
 }
+
+.light-pads{display:grid;grid-template-columns:1fr 64px;gap:10px;margin:8px 0 14px}
+.light-pad,.light-strip{position:relative;height:190px;border-radius:12px;background:#eef2ec linear-gradient(#dfe6dc 1px,transparent 1px) 0 0/100% 25%,#eef2ec;border:1px solid #cdd7c8;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;overflow:hidden}
+.light-pad{background-image:linear-gradient(90deg,#dfe6dc 1px,transparent 1px),linear-gradient(#dfe6dc 1px,transparent 1px);background-size:25% 100%,100% 25%}
+.light-pad.dragging,.light-strip.dragging{cursor:grabbing;border-color:#6e8f50;background-color:#e6efdf}
+.light-pad:focus-visible,.light-strip:focus-visible{outline:3px solid #6e8f50;outline-offset:2px}
+.light-pad-x{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:11px;color:var(--muted);pointer-events:none}.light-pad-y{position:absolute;top:8px;left:10px;font-size:11px;color:var(--muted);pointer-events:none}
+.light-pad output{position:absolute;top:8px;right:10px;font-size:13px;font-weight:650;pointer-events:none}
+.light-strip{display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 2px;font-size:10px;color:var(--muted);text-align:center}.light-strip output{font-size:12px;font-weight:650;color:var(--ink);background:#eef2ecd9;border-radius:6px;padding:2px 4px;pointer-events:none;z-index:1}
+@media(max-width:850px){.light-pad,.light-strip{height:160px}}

@@ -22,59 +22,66 @@ function normalize(input) {
   return {id:input.id,name,body,elementId,elementLabel,context:JSON.stringify({height:c.height,angle:c.angle,floor,platformShape,...(platformShape!=='none'?{platformBack:c.platformBack??12,platformSide:c.platformSide??12,platformAngle:Math.max(c.angle,c.platformAngle??c.angle),platformColor:c.platformColor||'#34383b'}:{}),mode:c.mode,step:c.step,wallColor:c.wallColor||'#34383b',floorColor:c.floorColor||'#3c4041',figures:c.figures||'podcast',figureScale:c.figureScale||1}),createdAt:Date.now()};
 }
 function commentRow(r){return {id:r.id,name:r.name,body:r.body,elementId:r.element_id,elementLabel:r.element_label,context:JSON.parse(r.context),createdAt:r.created_at};}
+// Named, revisioned, soft-deletable lists shared across devices. Table and column names are fixed here, never from input.
+const savedLists={
+  '/api/camera-positions':{table:'camera_positions',field:'shot',item:'position',items:'positions',deletedItems:'deletedPositions',noun:'camera',label:'Camera position',plural:'Camera positions',maxBytes:4000,validate:v=>normalizeCameraShot(v)},
+  '/api/lighting-setups':{table:'lighting_setups',field:'rig',item:'setup',items:'setups',deletedItems:'deletedSetups',noun:'lighting setup',label:'Lighting setup',plural:'Lighting setups',maxBytes:6000,validate:v=>normalizeLightingRig(v)},
+};
 export default {async fetch(request,env) {
   const url=new URL(request.url);
   if(url.pathname.startsWith('/api/project/'))return projectAPI(request,env);
-  if(url.pathname==='/api/camera-positions') {
+  const saved=savedLists[url.pathname];
+  if(saved) {
+    const {table,field,item,items,deletedItems,noun,label,plural,maxBytes,validate}=saved;
     try {
-      const db=database(env),row=r=>({id:r.id,name:r.name,shot:JSON.parse(r.shot),revision:r.revision,createdAt:r.created_at,updatedAt:r.updated_at,deletedAt:r.deleted_at??null});
+      const db=database(env),row=r=>({id:r.id,name:r.name,[field]:JSON.parse(r[field]),revision:r.revision,createdAt:r.created_at,updatedAt:r.updated_at,deletedAt:r.deleted_at??null});
       if(request.method==='GET') {
-        const result=await db.prepare('SELECT * FROM camera_positions ORDER BY created_at DESC,id DESC').all();
-        return json({positions:result.results.filter(r=>r.deleted_at===null).map(row),deletedPositions:result.results.filter(r=>r.deleted_at!==null).map(row)});
+        const result=await db.prepare(`SELECT * FROM ${table} ORDER BY created_at DESC,id DESC`).all();
+        return json({[items]:result.results.filter(r=>r.deleted_at===null).map(row),[deletedItems]:result.results.filter(r=>r.deleted_at!==null).map(row)});
       }
       if(['POST','PATCH','DELETE'].includes(request.method)) {
         if(request.headers.get('Origin')&&request.headers.get('Origin')!==url.origin)return json({error:'Please save from this site.'},403);
         if(!request.headers.get('Content-Type')?.includes('application/json'))return json({error:'Expected JSON.'},415);
-        const raw=await request.text();if(raw.length>4000)return json({error:'Camera position is too large.'},413);
-        let input,name,shot,removing,restoring;
+        const raw=await request.text();if(raw.length>maxBytes)return json({error:label+' is too large.'},413);
+        let input,name,value,removing,restoring;
         try {
-          input=JSON.parse(raw);if(input?.action!==undefined&&(request.method!=='POST'||!['delete','restore'].includes(input.action)))throw Error('Invalid camera action.');removing=request.method==='DELETE'||input?.action==='delete';restoring=request.method==='PATCH'&&input?.restore===true||input?.action==='restore';
-          if(typeof input?.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid camera ID.');
-          if((request.method!=='POST'||removing||restoring)&&(!Number.isSafeInteger(input.revision)||input.revision<0))throw Error('Invalid camera revision.');
+          input=JSON.parse(raw);if(input?.action!==undefined&&(request.method!=='POST'||!['delete','restore'].includes(input.action)))throw Error('Invalid '+noun+' action.');removing=request.method==='DELETE'||input?.action==='delete';restoring=request.method==='PATCH'&&input?.restore===true||input?.action==='restore';
+          if(typeof input?.id!=='string'||!/^[0-9a-f-]{36}$/i.test(input.id))throw Error('Invalid '+noun+' ID.');
+          if((request.method!=='POST'||removing||restoring)&&(!Number.isSafeInteger(input.revision)||input.revision<0))throw Error('Invalid '+noun+' revision.');
           if(!removing&&!restoring){
             name=typeof input.name==='string'?input.name.trim():'';
-            if(!name||name.length>80)throw Error('Enter a camera name (up to 80 characters).');
-            shot=JSON.stringify(normalizeCameraShot(input.shot));
+            if(!name||name.length>80)throw Error('Enter a '+noun+' name (up to 80 characters).');
+            value=JSON.stringify(validate(input[field]));
           }
         }catch(e){return json({error:e.message},400);}
-        const current=await db.prepare('SELECT * FROM camera_positions WHERE id=?').bind(input.id).first();
+        const current=await db.prepare(`SELECT * FROM ${table} WHERE id=?`).bind(input.id).first();
         if(removing||restoring){
-          if(!current)return json({error:'Camera position not found.'},404);
+          if(!current)return json({error:label+' not found.'},404);
           const alreadyDone=removing?current.deleted_at!==null:current.deleted_at===null;
-          if(alreadyDone&&current.revision===input.revision+1)return json({position:row(current)});
-          if(current.revision!==input.revision||alreadyDone)return json({error:'This camera changed elsewhere. Refresh the list before trying again.'},409);
-          const result=await db.prepare('UPDATE camera_positions SET deleted_at=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=?').bind(removing?Date.now():null,Date.now(),input.id,input.revision).run();
-          if(result.meta.changes!==1)return json({error:'This camera changed elsewhere. Refresh the list before trying again.'},409);
-          return json({position:row(await db.prepare('SELECT * FROM camera_positions WHERE id=?').bind(input.id).first())});
+          if(alreadyDone&&current.revision===input.revision+1)return json({[item]:row(current)});
+          if(current.revision!==input.revision||alreadyDone)return json({error:'This '+noun+' changed elsewhere. Refresh the list before trying again.'},409);
+          const result=await db.prepare(`UPDATE ${table} SET deleted_at=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=?`).bind(removing?Date.now():null,Date.now(),input.id,input.revision).run();
+          if(result.meta.changes!==1)return json({error:'This '+noun+' changed elsewhere. Refresh the list before trying again.'},409);
+          return json({[item]:row(await db.prepare(`SELECT * FROM ${table} WHERE id=?`).bind(input.id).first())});
         }
-        if(current?.deleted_at!=null)return json({error:'This camera has been deleted. Restore it before editing.'},409);
+        if(current?.deleted_at!=null)return json({error:'This '+noun+' has been deleted. Restore it before editing.'},409);
         if(request.method==='POST') {
-          if(current&&(current.name!==name||current.shot!==shot))return json({error:'This camera ID is already in use.'},409);
-          await db.prepare('INSERT INTO camera_positions (id,name,shot,created_at,updated_at) VALUES (?,?,?,?,?) ON CONFLICT(id) DO NOTHING').bind(input.id,name,shot,Date.now(),Date.now()).run();
+          if(current&&(current.name!==name||current[field]!==value))return json({error:'This '+noun+' ID is already in use.'},409);
+          await db.prepare(`INSERT INTO ${table} (id,name,${field},created_at,updated_at) VALUES (?,?,?,?,?) ON CONFLICT(id) DO NOTHING`).bind(input.id,name,value,Date.now(),Date.now()).run();
         }else {
-          if(!current)return json({error:'Camera position not found.'},404);
+          if(!current)return json({error:label+' not found.'},404);
           if(current.revision!==input.revision) {
-            if(current.revision===input.revision+1&&current.name===name&&current.shot===shot)return json({position:row(current)});
-            return json({error:'This camera was edited elsewhere. Refresh the list and select it before saving again.'},409);
+            if(current.revision===input.revision+1&&current.name===name&&current[field]===value)return json({[item]:row(current)});
+            return json({error:'This '+noun+' was edited elsewhere. Refresh the list and select it before saving again.'},409);
           }
-          const result=await db.prepare('UPDATE camera_positions SET name=?,shot=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=?').bind(name,shot,Date.now(),input.id,input.revision).run();
-          if(result.meta.changes!==1)return json({error:'This camera was edited elsewhere. Refresh the list before saving again.'},409);
+          const result=await db.prepare(`UPDATE ${table} SET name=?,${field}=?,updated_at=?,revision=revision+1 WHERE id=? AND revision=?`).bind(name,value,Date.now(),input.id,input.revision).run();
+          if(result.meta.changes!==1)return json({error:'This '+noun+' was edited elsewhere. Refresh the list before saving again.'},409);
         }
-        const saved=await db.prepare('SELECT * FROM camera_positions WHERE id=?').bind(input.id).first();
-        return json({position:row(saved)},request.method==='POST'?201:200);
+        const stored=await db.prepare(`SELECT * FROM ${table} WHERE id=?`).bind(input.id).first();
+        return json({[item]:row(stored)},request.method==='POST'?201:200);
       }
       return json({error:'Method not allowed.'},405,{'Allow':'GET, POST, PATCH, DELETE'});
-    }catch(e){console.error('Camera position request failed',e);return json({error:'Camera positions are temporarily unavailable. Please try again.'},503);}
+    }catch(e){console.error(label+' request failed',e);return json({error:plural+' are temporarily unavailable. Please try again.'},503);}
   }
   if(url.pathname==='/api/pricing-configurations'||url.pathname.startsWith('/api/pricing-configurations/')) {
     try {

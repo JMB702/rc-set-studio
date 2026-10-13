@@ -773,3 +773,28 @@ body.pricing #design{display:none}
  #approval-dock #approvals>summary{min-height:34px;font-size:13px}
  .approval-dock-visible .controls{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
 }
+
+/* Save bars stay pinned to the bottom of their panel, like the Build guide's Back/Next dock. */
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.save-dock{position:fixed;right:0;bottom:0;width:370px;z-index:18;margin:0;padding:10px 25px calc(12px + env(safe-area-inset-bottom));background:#fafbf8;border-top:1px solid #d8e1d1;box-shadow:0 -6px 20px #17202408}
+body.camera-positions main .controls{padding-bottom:180px}
+@media(min-width:1500px){.save-dock{width:400px;padding-left:32px;padding-right:32px}}
+.save-dock label{display:block;font-size:14px;font-weight:650;margin-bottom:7px;overflow-wrap:anywhere}.save-dock label span{font-weight:500;color:var(--muted)}
+.save-dock input{width:100%;padding:11px 12px;font:inherit;font-size:16px;border:1px solid #bdc9bd;border-radius:7px;background:#fff;color:var(--ink)}
+.save-dock .camera-actions{grid-template-columns:1fr 1fr;margin-top:8px}.save-dock .camera-actions button{min-height:44px}
+#camera-save-form button[type=submit],#shot-lighting-panel .save-dock button[type=submit]{background:var(--ink);color:#fff;border-color:var(--ink)}#camera-save-form button[type=submit]:disabled,#shot-lighting-panel .save-dock button[type=submit]:disabled{opacity:.5}
+.save-dock [role=status]{min-height:0;margin:0 0 8px;font-size:13px;line-height:1.45;overflow-wrap:anywhere}.save-dock [role=status]:empty{display:none}
+#lighting-setups{margin-top:22px}#lighting-refresh{padding:8px 12px;border:1px solid var(--line);border-radius:7px;background:transparent;font-size:13px}
+#lighting-setup-list{display:grid;gap:8px;margin:14px 0}
+#lighting-deleted{margin-top:16px}#lighting-deleted-list>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.camera-row-actions button:only-child{color:#90392e}
+@media(max-width:850px){
+ /* One compact row on phones so the bar does not crowd the controls: name, then Update (only when it applies) and Save. */
+ .save-dock{left:0;width:auto;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 16px calc(8px + env(safe-area-inset-bottom))}
+ .save-dock label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+ .save-dock [role=status]{grid-column:1/-1;margin:0}
+ .save-dock .camera-actions{display:flex;gap:6px;margin:0}.save-dock .camera-actions button{padding:0 12px;font-size:13px;white-space:nowrap}
+ .save-dock .camera-actions button:disabled:not([type=submit]){display:none}
+ body.camera-positions main .controls{padding-bottom:96px}
+}
+@media(max-width:850px) and (orientation:landscape){.save-dock{left:auto;width:max(280px,42%)}}

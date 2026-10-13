@@ -4,9 +4,20 @@
     {
       "name": "rc-set-studio",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["start"],
+      "runtimeArgs": [
+        "start"
+      ],
       "port": 8787,
       "autoPort": true
+    },
+    {
+      "name": "rc-set-studio-phone",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "start:phone"
+      ],
+      "port": 8787
     }
   ]
 }

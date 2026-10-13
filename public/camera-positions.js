@@ -4,12 +4,11 @@ import {createCameraMotion} from './camera-motion.js';
 export function installCameraPositions(api) {
   const $=s=>document.querySelector(s),host=$('#camera-positions'),lensControls=$('#camera-controls'),explore=$('#explore-controls');
   host.innerHTML=`<div id="camera-lens-slot"></div>
-<form id="camera-save-form"><h2 id="camera-form-title">Save camera position</h2><p id="camera-selection" class="hint"></p><label for="camera-name">Camera name</label><input id="camera-name" required maxlength="80" placeholder="e.g. Wide master" autocomplete="off"><div class="camera-actions"><button type="button" id="camera-update" disabled>Update selected</button><button type="submit" id="camera-save">Save as new</button></div></form>
-<p id="camera-status" role="status" aria-live="polite"></p>
 <div class="camera-heading"><h2>Saved angles</h2><button id="camera-refresh" type="button">Refresh</button></div>
 <div id="camera-shot-list" role="group" aria-label="Saved camera positions"></div>
 <dialog id="camera-delete-dialog" aria-labelledby="camera-delete-title" aria-describedby="camera-delete-description"><h2 id="camera-delete-title">Delete camera position?</h2><p id="camera-delete-description"></p><p class="hint">This removes the saved angle across devices. You can restore it later under Deleted angles.</p><div class="dialog-actions"><button type="button" id="camera-delete-cancel" autofocus>Cancel</button><button type="button" id="camera-delete-confirm">Delete position</button></div></dialog>
-<details id="camera-deleted" hidden><summary>Deleted angles <span>+</span></summary><div id="camera-deleted-list"></div></details>`;
+<details id="camera-deleted" hidden><summary>Deleted angles <span>+</span></summary><div id="camera-deleted-list"></div></details>
+<form id="camera-save-form" class="save-dock"><h2 id="camera-form-title" class="visually-hidden">Save camera position</h2><p id="camera-status" role="status" aria-live="polite"></p><label for="camera-name">Camera name <span id="camera-selection"></span></label><input id="camera-name" required maxlength="80" placeholder="e.g. Wide master" autocomplete="off"><div class="camera-actions"><button type="button" id="camera-update" disabled>Update selected</button><button type="submit" id="camera-save">Save as new</button></div></form>`;
   let positions=[],deleted=[],selected=null,busy=false,attempt=null,loadVersion=0,rowMessage=null,pendingDelete=null;
   const motion=createCameraMotion(api),status=$('#camera-status'),name=$('#camera-name');
   api.cancelCameraMove=motion.stop;
@@ -17,7 +16,7 @@ export function installCameraPositions(api) {
   function buttons(){
     const moving=!!api.cameraAnimating,dirty=changed();
     $('#camera-save').disabled=busy||moving;$('#camera-update').disabled=busy||moving||!selected||!dirty;name.disabled=busy;
-    $('#camera-selection').textContent=selected?'Selected: '+selected.name+(moving?' · Moving…':dirty?' · Unsaved changes':' · No changes to save'):'';
+    $('#camera-selection').textContent=selected?'· '+selected.name+(moving?' · moving…':dirty?' · unsaved changes':''):'';
   }
   function action(label,aria,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.setAttribute('aria-label',aria);b.disabled=busy;b.onclick=fn;return b;}
   function render(){
@@ -44,7 +43,7 @@ export function installCameraPositions(api) {
   function select(p,edit=false){
     if(busy)return;motion.stop();selected=p;name.value=p.name;name.setCustomValidity('');attempt=null;
     status.textContent='Moving to '+p.name+'…';motion.move(p.shot,complete=>{status.textContent=complete?('Viewing '+p.name+'. Move the camera or change its settings to enable Update selected.'):'Move stopped. You can adjust this view.';buttons();});render();
-    if(edit)$('#camera-save-form').scrollIntoView({block:'nearest'});
+    if(edit)name.focus();
   }
   function remember(p){positions=positions.filter(x=>x.id!==p.id);deleted=deleted.filter(x=>x.id!==p.id);if(p.deletedAt!==null)deleted.unshift(p);else positions.unshift(p);}
   async function save(update=false){

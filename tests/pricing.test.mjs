@@ -144,3 +144,10 @@ test('Wall and fascia finishes use premixed tubs with paper tape while deck skim
  for(const id of ['wallSeamTape','platformTape']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321613');assert.equal(r.purchaseQuantity,1);assert.equal(r.unitPriceCents,328);}
  for(const id of ['floorSeams','platformDeckSkim'])assert.equal(rows.find(r=>r.id===id).productUrl,'https://www.homedepot.com/p/313474246');
 });
+
+test('Four bags per 8-foot panel round to two retail packs for the full set without changing sand mass',()=>{
+ const rows=priceRows(data,{scope:'set',height:96,angle:45,floor:'wood',supports:true,ballast:true});
+ const bags=rows.find(r=>r.id==='bags'),sand=rows.find(r=>r.id==='sand');
+ assert.equal(bags.needed,32);assert.equal(bags.purchaseQuantity,2);assert.equal(sand.needed,600);
+ assert.ok(!priceRows(data,{scope:'set',height:120,angle:45,floor:'wood',supports:true,ballast:true}).some(r=>r.id==='bags'));
+});

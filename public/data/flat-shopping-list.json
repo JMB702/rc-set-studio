@@ -220,7 +220,7 @@
     "Whole retail packs are rounded after combining requirements. Adhesive allowance is one 16 oz bottle per four panels, rounded up; actual use depends on application.",
     "The 10\u00d74 panel quantities match the current website model. This is a construction prototype, not structural validation.",
     "10-foot facing uses a 48\u00d796 lower sheet and 48\u00d724 upper strip. Allowing saw kerf, only three full 24-inch strips fit a second 96-inch sheet.",
-    "8-foot ballast is the existing provisional 75 lb assumption. Fill three bags to 25 lb each and retain them around both shelf crossbars; supplied sandbag shape differs from the schematic.",
+    "8-foot ballast is the existing provisional 75 lb assumption. Fill four bags to about 19 lb each and stand them in a row along the shelf between both crossbars; supplied sandbag shape differs from the schematic.",
     "10-foot required ballast mass, bag count and retention layout are unresolved; no complete freestanding total is presented.",
     "Choose straight, sound dry lumber and measure supplied stock. Pilot drill and verify proposed screw sizes in the prototype. Use matched-thickness pads at all bearing points.",
     "Screw-only jack revision, Oct 7, 2026: six #8 \u00d7 1\u00bc in wood screws per jack, driven from the stile into the upright, heads flush. Two actual \u00be in boards provide \u00bd in nominal penetration into the upright. Prototype connection: verify on scrap, avoid splits/over-countersinking, and replace wood with stripped holes. Keep the flat supported during assembly and removal. Staples fasten the skin; do not substitute them or nails at the jack attachment.",
@@ -246,7 +246,7 @@
         "pads": 1
       },
       "ballastRequirements": {
-        "bags": 3,
+        "bags": 4,
         "sand": 75
       },
       "cuts": [

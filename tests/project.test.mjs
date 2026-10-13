@@ -121,26 +121,30 @@ test('Platform stage upgrade keeps all notes and respects custom order and remov
  data.stages[0].steps.pop();assert.equal(projectUpgradePlatform(data),data);
 });
 
-test('Each pass through a unit\'s guide steps adds one unit and resets the steps for the next',()=>{
- const design={height:120,floor:'charcoal',platformShape:'square'},walls1=d=>d.stages[0].steps[1].percent,base=projectDefaultTracking();base.stages[0].steps[1].notes=[{id:'n',text:'Keep this note',at:1}];
- base.assembly={panelsCompleted:3};const panelStages=[1,2,3,4,5,6,7,8,9,10,11,12];
- let next=projectSetGuideStage(base,1,true,design);assert.equal(walls1(next),38,'progress is the count (3 of 8), not the steps');assert.equal(projectGuideStageDone(next,1,design),true);assert.equal(projectGuideStageDone(next,2,design),false);
- for(const stage of panelStages)next=projectSetGuideStage(next,stage,true,design);
- assert.equal(next.assembly.panelsCompleted,4,'one more panel');assert.equal(walls1(next),50);assert.ok(panelStages.every(n=>!projectGuideStageDone(next,n,design)),'steps reset for the next panel');assert.deepEqual(next.stages[0].steps[1].notes,base.stages[0].steps[1].notes);
- for(const stage of panelStages)next=projectSetGuideStage(next,stage,true,design);assert.equal(next.assembly.panelsCompleted,5,'and again');
- let jacks=projectDefaultTracking();for(let pass=1;pass<=2;pass++)for(const stage of [13,14,15,16])jacks=projectSetGuideStage(jacks,stage,true,design);assert.equal(jacks.assembly.jacksBuilt,4,'two passes build two mirrored pairs');
+test('Finishing a unit\'s guide steps records at least one, keeps the checks, and never moves the count again',()=>{
+ const design={height:120,floor:'charcoal',platformShape:'square'},walls1=d=>d.stages[0].steps[1].percent,panelStages=[1,2,3,4,5,6,7,8,9,10,11,12];
+ let next=projectDefaultTracking();
+ for(const stage of panelStages.slice(0,-1))next=projectSetGuideStage(next,stage,true,design);
+ assert.equal(next.assembly?.panelsCompleted??null,null,'a partial pass never counts');
+ next=projectSetGuideStage(next,12,true,design);
+ assert.equal(next.assembly.panelsCompleted,1,'every step checked: at least one panel');assert.equal(walls1(next),13);
+ assert.ok(panelStages.every(n=>projectGuideStageDone(next,n,design)),'checks stay checked');
+ next=projectSetGuideStage(next,5,false,design);assert.equal(next.assembly.panelsCompleted,1,'an accidental uncheck keeps the count');assert.equal(projectGuideStageDone(next,5,design),false);
+ next=projectSetGuideStage(next,5,true,design);assert.equal(next.assembly.panelsCompleted,1,'re-checking does not add another');
+ for(const stage of panelStages)next=projectSetGuideStage(next,stage,true,design);assert.equal(next.assembly.panelsCompleted,1,'walking back through never adds');
+ let counted=projectDefaultTracking();counted.assembly={panelsCompleted:3};for(const stage of panelStages)counted=projectSetGuideStage(counted,stage,true,design);
+ assert.equal(counted.assembly.panelsCompleted,3,'a higher count is left alone');
+ counted=projectSetGuideStage(counted,1,false,design);assert.equal(counted.assembly.panelsCompleted,3);
+ let jacks=projectDefaultTracking();for(let pass=1;pass<=2;pass++)for(const stage of [13,14,15,16])jacks=projectSetGuideStage(jacks,stage,true,design);assert.equal(jacks.assembly.jacksBuilt,2,'the jack steps prove one pair, however often they are walked');
  jacks=projectSetGuideStage(jacks,17,true,design);assert.equal(jacks.assembly.jacksAttached,2);assert.equal(jacks.assembly.panelsCompleted,1,'attaching a pair needs a panel');
  for(const stage of [18,19,20])jacks=projectSetGuideStage(jacks,stage,true,design);assert.equal(jacks.assembly.ballastAttached,1);
- let full=projectDefaultTracking();full.assembly={panelsCompleted:8};for(const stage of panelStages)full=projectSetGuideStage(full,stage,true,design);assert.equal(full.assembly.panelsCompleted,8,'never past the total');
  assert.equal(projectSetGuideStage(projectSetGuideStage(projectDefaultTracking(),1,true,design),1,false,design).assembly?.panelsCompleted??null,null,'unchecking never counts');
  projectValidate('tracking',jacks);
 });
-test('Finished passes left checked by older records are cleared once, so they cannot count twice',()=>{
- const design={height:120,floor:'charcoal',platformShape:'square'},data=projectDefaultTracking();data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:1};
+test('Loading never clears checked guide steps',()=>{
+ const data=projectDefaultTracking();data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:1};
  data.guideChecks=Object.fromEntries([13,14,15,16,17,18,19,20].map(n=>['jack:120:'+n,true]).concat([['panel:120:1',true],['set:28',true]]));
- const next=projectUpgradeTracking(data);assert.deepEqual(next.guideChecks,{'panel:120:1':true,'set:28':true},'only complete passes clear; partial panel pass and uncounted steps stay');
- const again=projectSetGuideStage(projectSetGuideStage(next,13,false,design),13,true,design);assert.equal(again.assembly.jacksBuilt,4,'re-checking one step does not add a pair');
- assert.equal(projectUpgradeTracking(next),next);
+ assert.deepEqual(projectUpgradeTracking(data).guideChecks,data.guideChecks);
 });
 test('Uncounted milestones still follow guide checks, and manual edits supersede them',()=>{
  const design={height:120,floor:'charcoal',platformShape:'square'},base=projectDefaultTracking();base.stages[0].steps[0].percent=100;assert.equal(projectGuideStageDone(base,0,design),true);
@@ -239,7 +243,7 @@ test('Exact assembly counts update guide and tracker without inventing attached 
  assert.equal(data.stages.flatMap(s=>s.steps).find(s=>s.id==='walls-3').percent,21,'building a pair weighs twice attaching it');
  assert.equal(original.assembly,undefined);
  const changed=projectSetGuideStage(data,17,100,design);
- assert.equal(changed.assembly.jacksAttached,4,'one more attached pair');
+ assert.equal(changed.assembly.jacksAttached,2,'checking the step again never adds to an exact count');
  assert.throws(()=>projectSetAssemblyCounts(data,{panelsCompleted:1,jacksBuilt:4,jacksAttached:3},design),/Attached jacks/);
 });
 test('Attached jacks remain visible when only one panel has been completed',()=>{
@@ -330,4 +334,13 @@ test('Progress going up is time-stamped; reaching 100% stamps completion once; o
  projectValidate('tracking',edited,t0+7200000);
  const r=rig(),snap=await(await r.call('tracking')).json();snap.data.stages[0].steps[0].percent=100;const saved=await(await r.call('tracking','PUT',snap)).json();
  assert.equal(saved.data.progressLog.length,1);assert.ok(saved.data.stages[0].steps[0].completedAt>0,'the server stamps saves from every screen');
+});
+test('The build design is saved with tracking and kept by saves that omit it',async()=>{
+ const r=rig(),design={height:120,angle:45,floor:'charcoal',platformShape:'angled',platformAngle:45,platformBack:12,platformSide:12,wallColor:'#E4E1D8',platformColor:'#34383b',floorColor:'#34383b'};
+ let t=await (await r.call('tracking')).json();assert.equal(t.data.design??null,null);
+ t=await (await r.call('tracking','PUT',{data:{...t.data,design},revision:t.revision})).json();
+ assert.deepEqual(t.data.design,{...design,wallColor:'#e4e1d8'});
+ const {design:_,...rest}=t.data;t=await (await r.call('tracking','PUT',{data:rest,revision:t.revision})).json();
+ assert.equal(t.data.design.floor,'charcoal');
+ assert.equal((await r.call('tracking','PUT',{data:{...t.data,design:{...design,height:100}},revision:t.revision})).status,400);
 });

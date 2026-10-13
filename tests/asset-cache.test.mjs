@@ -11,6 +11,6 @@ test('Static asset revalidation avoids retransferring unchanged assets and serve
 });
 test('Both public progress displays use access-independent weights',()=>{
  const project=fs.readFileSync(new URL('../public/project.js',import.meta.url),'utf8');
- assert.equal((project.match(/w=progressWeights\(api.state\)/g)||[]).length,2);
+ assert.equal((project.match(/w=progressWeights\(buildDesign\([^)]*\)\)/g)||[]).length,2);
  assert.doesNotMatch(project,/progressWeights\(api.state,\{tracking:[^}]*shifts:/);
 });

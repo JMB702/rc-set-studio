@@ -102,7 +102,7 @@ The 10×4 panel quantities match the current website model. This is a constructi
 
 10-foot facing uses a 48×96 lower sheet and 48×24 upper strip. Allowing saw kerf, only three full 24-inch strips fit a second 96-inch sheet.
 
-8-foot ballast is the existing provisional 75 lb assumption. Fill three bags to 25 lb each and retain them around both shelf crossbars; supplied sandbag shape differs from the schematic.
+8-foot ballast is the existing provisional 75 lb assumption. Fill four bags to about 19 lb each and stand them in a row along the shelf between both crossbars; supplied sandbag shape differs from the schematic.
 
 10-foot required ballast mass, bag count and retention layout are unresolved; no complete freestanding total is presented.
 

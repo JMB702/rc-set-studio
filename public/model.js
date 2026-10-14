@@ -93,11 +93,12 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
  G.userData.plan=plan;return G;}
 
 // Retrofit cyclorama: the same inset wall path generates the cylindrical sweeps and compound corners.
-export function cycloramaMesh(d,{stage=48,construction=false}={}){
+export function cycloramaMesh(d,{stage=48,construction=false,progressSupports=false}={}){
  const plan=cycloramaPlan(d),G=new T.Group();G.name='Seamless retrofit';G.userData.plan=plan;if(!plan.corners&&!plan.perimeter)return G;
+ const supports=new T.Group();supports.name='Cyclorama framing';supports.userData.progressOnly=progressSupports;G.add(supports);
  function part(name,geometry,st,mat='wood'){
   const material=(mat==='finish'?mats.charcoal:mats[mat]).clone();material.side=T.DoubleSide;if(mat==='finish')material.userData.surface='wall';
-  const mesh=new T.Mesh(geometry,material);mesh.name=name;mesh.userData={step:st,commentKey:name,pricingIds:[name.includes('rib')?'cycRibPly':name.includes('Backing')?'cycBacking':'cycSkin'],progress:{kind:'cyclorama',stage:st}};mesh.castShadow=mesh.receiveShadow=true;mesh.visible=st<=stage;G.add(mesh);return mesh;
+  const mesh=new T.Mesh(geometry,material);mesh.name=name;mesh.userData={step:st,commentKey:name,pricingIds:[name.includes('rib')?'cycRibPly':name.includes('Backing')?'cycBacking':'cycSkin'],progress:{kind:'cyclorama',stage:st}};mesh.castShadow=mesh.receiveShadow=true;mesh.visible=st<=stage;(mat==='wood'?supports:G).add(mesh);return mesh;
  }
  function grid(name,rows,st,normal){const pos=[],indices=[],width=rows[0].length;for(const row of rows)for(const [x,y,z]of row)pos.push(x*inch,y*inch,z*inch);for(let j=0;j<rows.length-1;j++)for(let i=0;i<width-1;i++){const k=j*width+i;indices.push(k,k+width,k+1,k+1,k+width,k+width+1);}const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(pos,3));geo.setIndex(indices);geo.computeVertexNormals();if(normal&&new T.Vector3().fromBufferAttribute(geo.attributes.normal,0).dot(new T.Vector3(...normal))<0){for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];geo.setIndex(indices);geo.computeVertexNormals();}const uv=[];for(let j=0;j<rows.length;j++)for(let i=0;i<width;i++)uv.push(i/(width-1),j/(rows.length-1));geo.setAttribute('uv',new T.Float32BufferAttribute(uv,2));part(name,geo,st,construction&&stage<48?'ply':'finish');}
  const base=cycloramaPath(d),bottom=plan.perimeter?plan.floorRadius:0;

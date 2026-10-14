@@ -22,7 +22,7 @@ test('Angled platform angle defaults to the walls and is never wider than them',
 const approvedDesign={height:120,angle:45,wallColor:'#34383B',platformShape:'square',platformAngle:45,platformBack:12,platformSide:12,platformColor:'#26364d',floor:'charcoal',floorColor:'#34383b',figures:'rap'};
 test('An approved design keeps every design setting, normalized the same way everywhere',()=>{
  const d=normalizeDesign(approvedDesign);assert.equal(d.wallColor,'#34383b');assert.equal(d.platformAngle,90,'square holds 90°');assert.equal(d.platformColor,'#26364d');
- assert.deepEqual(Object.keys(d),['seamlessCorners','seamlessPerimeter','height','angle','wallColor','platformShape','platformAngle','platformBack','platformSide','platformColor','floor','floorColor','figures']);
+ assert.deepEqual(Object.keys(d),['floorLip','seamlessCorners','seamlessPerimeter','height','angle','wallColor','platformShape','platformAngle','platformBack','platformSide','platformColor','floor','floorColor','figures']);
  assert.equal(normalizeDesign({...approvedDesign,platformShape:'angled',platformAngle:20}).platformAngle,45,'never wider than the walls');
  assert.deepEqual(normalizeDesign({...approvedDesign,floor:'platform',platformShape:undefined}),{...d,floor:'none',platformShape:'angled',platformAngle:45});
  for(const bad of [{height:100},{angle:91},{floor:'carpet'},{platformShape:'round'},{platformBack:49},{wallColor:'red'},{figures:'band'}])assert.throws(()=>normalizeDesign({...approvedDesign,...bad}),JSON.stringify(bad));

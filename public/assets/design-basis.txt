@@ -94,10 +94,22 @@ USG Sheetrock premixed all-purpose compound, feather and sand, then prime and pa
 The two wing corners use paintable caulk; do not rigid-plaster them.
 Keep the assembly fixed and refinish after moves.
 Oak floor:glueless click-lock;3/8-inch expansion gap stays open; no shoe trim.
-Charcoal show floor: two 23/32-inch plywood layers, approximately 1 7/16 inches
+Charcoal show floor: two 23/32-inch-class plywood layers (.703 inch actual each), 1.406 inches
 combined, loose-laid on QuietWalk vapor-barrier felt over continuously
-supporting concrete. Tape underlayment seams per its instructions. Upper
-joints offset in both axes. PL 400 adhesive in 1/4-inch serpentine beads
+supporting concrete. Tape underlayment seams per its instructions. Upper sheets run their full 96-inch length back-to-front, with no crosswise
+top joints. Keep the four central 48x96 sheets whole and trim only the wing
+boundaries. Lower longitudinal joints are offset 24 inches. Purchase quantities
+come from floor-plan.js: rectangular blank packing with a 1/8-inch saw kerf,
+not a blanket area allowance. Angled offcuts are not assumed reusable.
+Actual stock sizes and manufacturer movement gaps must be measured before cuts.
+Optional floorLip (default false) extends the LOWER layer 6 inches to depth102,
+while the top and finish stop at96. Shift the long lower sheets 6 inches forward
+and fill the rear6-inch band using the numbered cuts; do not attach a detached
+front strip. The exposed ledge is not extra finished floor: keep it clear, raw
+and supported until a future fully supported section overlaps it. This option
+applies only to the painted plywood floor; laminate and no-floor modes ignore it.
+Underlayment covers the full lower outline; glue, screws, skim, primer and paint
+are based on the unchanged top area. PL 400 adhesive in 1/4-inch serpentine beads
 about 6 inches apart and #8x1.25 screws on an 8-inch grid join the layers;
 never fasten into the concrete.
 Thin Rapid Set SKIM FLOOR cement skim (planning average 1/16 inch), compatible

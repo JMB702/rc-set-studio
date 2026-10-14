@@ -21,8 +21,8 @@ test('Straight seam screws share the support screw pack',()=>{
 });
 test('Floor-only excludes panel stock and every floor row is priced',()=>{
  const rows=priceRows(data,{scope:'floor',height:120,angle:90,floor:'charcoal'});
- assert.ok(!rows.some(r=>r.id==='board16'));assert.equal(rows.find(r=>r.id==='floorPly').purchaseQuantity,10);
- assert.deepEqual(rows.filter(r=>r.subtotalCents===null).map(r=>r.id),[]);assert.equal(rows.find(r=>r.id==='vapor').subtotalCents,2*5175);assert.equal(rows.find(r=>r.id==='floorPly').subtotalCents,10*5288);
+ assert.ok(!rows.some(r=>r.id==='board16'));assert.equal(rows.find(r=>r.id==='floorPly').purchaseQuantity,9);
+ assert.deepEqual(rows.filter(r=>r.subtotalCents===null).map(r=>r.id),[]);assert.equal(rows.find(r=>r.id==='vapor').subtotalCents,2*5175);assert.equal(rows.find(r=>r.id==='floorPly').subtotalCents,9*5288);
 });
 test('All scopes and variants use integer packs and Home Depot links',()=>{
  for(const height of [96,120])for(const scope of ['set','panel','floor'])for(const floor of ['wood','charcoal']){

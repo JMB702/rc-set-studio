@@ -141,3 +141,5 @@ Full evidence/limitations: docs/cyclorama-research.md in the source repository.
 
 RETAIL REFRESH — OCTOBER 14, 2026
 Home Depot E Bradenton #6319, delivery ZIP 34201. Dated SKU evidence in data/flat-shopping-list.json retailChecks is shared by every design configuration and the agent read tool. 33 product prices observed in the working browser; SKIM FLOOR #313474246 uses a user-approved provisional allowance of $46.73 per bag before estimated 7% tax, approximately $50 per bag / $100 for two including tax and a price/delivery cushion. This is not a supplier price or shipping quote; current price and fulfillment remain unverified. The older $38.97 is retained as provenance. Home Depot FibaFuse #203154307 is $7.58, replacing the $7.98 Lowe’s fallback. Order-only products show shipping costs and arrival estimates when observed; unknown values are not inferred free. No receipt, purchase or saved design was changed.
+
+2026-10-14 floor layout revision: existing plywood, underlayment, adhesive, screws and finish SKUs retained. No prices or availability rechecked. Quantities follow floor-plan.js and the optional 6-inch lower-layer front lip. No new load-rating claim.

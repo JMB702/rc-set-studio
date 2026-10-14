@@ -1,5 +1,6 @@
 import {customizeRows,consolidatePacks} from './pricing-config.js';
 import {calculate} from './shopping-calc.js';
+import {floorPlan} from './floor-plan.js';
 import {platformPlan,PLATFORM} from './platform.js';
 import {cycloramaPlan} from './cyclorama.js';
 export const money=c=>c===null?'Price pending':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
@@ -17,15 +18,15 @@ export function applyRetailChecks(data,rows){return rows.map(row=>{const sku=row
  const planning=(row.unallocatedAvailability??row.availability??'').split(' · ').filter(s=>! /^(?:Checked|Observed|checked|Catalog checked|Unavailable|out of stock|not stocked|ship to store|nearby pickup|\$.*online listing|\d[\d,]* (?:\w+ )?in stock)/i.test(s.trim())).join(' · ');
  return {...row,priceVerification:'observed',unitPriceCents:check.priceCents,subtotalCents:row.purchaseQuantity!=null?check.priceCents*row.purchaseQuantity:row.subtotalCents,checkedDate:check.checkedDate??row.checkedDate,observedStock:check.stock??null,fulfillment:check.fulfillment,availability:[`Checked ${check.checkedDate} at ${check.store} #${check.storeId||'6319'}. ${check.pickupNote||''} ${check.deliveryNote||''}`,check.productNote,planning].filter(Boolean).join(' · ')};
 });}
-export function floorRows(data,angle,type){const area=floorArea(angle),waste=area*1.1,rows=[];
+export function floorRows(data,angle,type,cfg={}){const plan=type==='charcoal'?floorPlan(angle,cfg):null,area=floorArea(angle),waste=area*1.1,baseWaste=(plan?.baseArea??area)*1.1,rows=[];
  if(type==='wood'){
  rows.push(extra('laminate','TrafficMaster Gladstone Oak · 24.24 sq ft case',Math.ceil(waste/24.24),2399,'203315038','Observed Oct 5 at #6319 · out of stock'));
  rows.push(extra('underlay','TrafficMaster 100 sq ft standard underlayment',Math.ceil(waste/100),3900,'327262533','30 rolls in stock · check substrate and manufacturer requirements'));
  rows.push(extra('vapor','Substrate-dependent vapor barrier',null,null,'https://www.homedepot.com/s/laminate%20vapor%20barrier','Required on applicable substrates; selection and quantity pending'));
  }else{
  // Loose-laid on the concrete: a felt underlayment with attached vapor barrier keeps moisture out and adds grip.
- rows.push(extra('vapor','QuietWalk 1.4 mm felt underlayment with attached vapor barrier · 100 sq ft roll',Math.ceil(waste/100),5175,'306837487',`Checked Oct 10 · ship to store #6319 · ${area.toFixed(0)} sq ft + 10% for overlaps; dense felt under the plywood, built-in tape strip at seams`));
- const sheets=2*Math.ceil(waste/32);rows.push(stocked(extra('floorPly','Plytanium 23/32 in BC sanded pine plywood · two layers · 4×8 sheet',sheets,5288,'100061386',`Checked Oct 10 at #6319 · 18 in stock · two layers, each with 10% area waste; offset joints both ways. Verify actual cut yield`),18));
+ rows.push(extra('vapor','QuietWalk 1.4 mm felt underlayment with attached vapor barrier · 100 sq ft roll',Math.ceil(baseWaste/100),5175,'306837487',`Checked Oct 10 · ship to store #6319 · ${plan.baseArea.toFixed(1)} sq ft including any joining lip + 10% for overlaps; dense felt under the plywood, built-in tape strip at seams`));
+ const sheets=plan.sheetCount;rows.push(stocked(extra('floorPly','Plytanium 23/32 in BC sanded pine plywood · two layers · 4×8 sheet',sheets,5288,'100061386',`Checked Oct 10 at #6319 · 18 in stock · ${plan.upper.pieces.length} top pieces, ${plan.lower.pieces.length} lower pieces, packed into ${sheets} sheets with ⅛″ kerf; ${plan.cutCount} planned edge cuts. No crosswise top seams; lower joints offset 24″${plan.lip?`; lower layer extends ${plan.lip}″ forward`:""}. No blanket waste uplift; measure actual sheets and gaps before cutting`),18));
  rows.push(stocked(extra('floorPrimer','BEHR PREMIUM Concrete & Masonry Bonding Primer · gallon',Math.ceil(area/250),2998,'100129649','Checked Oct 10 at #6319 · 19 in stock · one coat over the cured skim at 250 sq ft/gallon; paint-only SKIM FLOOR finish is an unverified scenic compromise'),19));
  rows.push(stocked(extra('floorPaint','BEHR Mined Coal porch & patio paint · gallon',Math.ceil(area*2/300),3998,'302055336','Checked Oct 10 at #6319 · 23 in stock · two coats at 300 sq ft/gallon. No epoxy or polyurethane; touch-ups expected'),23));
  rows.push(extra('floorSeams','Rapid Set SKIM FLOOR · 35 lb bag · full-surface cement skim',Math.ceil(area*1.1/SKIM_SQFT_PER_BAG),3897,'313474246',`Checked Oct 10 · not stocked at #6319 (order online) · about ${SKIM_SQFT_PER_BAG} sq ft per 35 lb bag at 1/16 inch, scaled from the data sheet's 20 lb figure; 10% allowance`));
@@ -87,7 +88,7 @@ export function cycloramaRows(data,d,{finishes=true}={}){
 }
 // floor: 'none' | 'wood' | 'charcoal'; platformShape: 'none' | 'angled' | 'square'. Floor:'platform' is the older
 // spelling of a platform with no floor under it.
-export function priceRows(data,{scope,height,angle,floor,platformShape='none',supports=true,ballast=true,finishes=true,platformBack=PLATFORM.gap,platformSide=PLATFORM.gap,platformAngle=angle,seamlessCorners=false,seamlessPerimeter=false}){
+export function priceRows(data,{scope,height,angle,floor,platformShape='none',supports=true,ballast=true,finishes=true,platformBack=PLATFORM.gap,platformSide=PLATFORM.gap,platformAngle=angle,floorLip=false,seamlessCorners=false,seamlessPerimeter=false}){
  if(floor==='platform'){floor='none';if(platformShape==='none')platformShape='angled';}if(platformShape==='square')platformAngle=90;
  const key=height===120?'10x4':'8x4',n=scope==='panel'?1:8;let rows=scope==='floor'?[]:calculate(data,key,n,supports,ballast);
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
@@ -107,7 +108,7 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  const stud=data.products.find(p=>p.id==='crossbar');rows.push({...extra('corners','2×4×96 in stud · wing-corner drop',2,stud.unitPriceCents,stud.productUrl,`One per wing corner, screwed to both flats · ${stud.availability} · checked ${stud.checkedDate}`,'connections'),observedStock:stud.observedStock});
  const bar=rows.find(r=>r.id==='barScrews'),cornerScrews=16;if(bar){bar.needed+=cornerScrews;bar.purchaseQuantity=Math.ceil(bar.needed/bar.packSize);bar.subtotalCents=bar.purchaseQuantity*bar.unitPriceCents;}
  }
- if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessPerimeter}));}
+ if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor,{floorLip}));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessPerimeter}));}
  if(scope==='set')rows.push(...cycloramaRows(data,{height,angle,floor,seamlessCorners,seamlessPerimeter},{finishes}));
  // Pool identical consumable products by their measured use before rounding whole containers.
  // Paint colors are not pooled across different product URLs or wall/floor product families.

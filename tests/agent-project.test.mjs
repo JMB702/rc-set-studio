@@ -9,8 +9,8 @@ const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list
 const design={height:120,angle:90,floor:'charcoal',platformShape:'square',wallColor:'#34383b'};
 const context={readAt:1000,tracking:{data:{...projectDefaultTracking(),design},revision:4},approvals:[],configurations:[],financeIncluded:false};
 test('Agent estimates reuse UI rows and taxes for dynamic designs',()=>{
- for(const height of [96,120])for(const angle of [0,45,90])for(const floor of ['none','wood','charcoal'])for(const seamlessCorners of [false,true]){
- const s=agentProject(data,context,{source:'supplied',configuration:{...design,height,angle,floor,seamlessCorners,seamlessPerimeter:true}});
+ for(const floorLip of [false,true])for(const height of [96,120])for(const angle of [0,45,90])for(const floor of ['none','wood','charcoal'])for(const seamlessCorners of [false,true]){
+ const s=agentProject(data,context,{source:'supplied',configuration:{...design,height,angle,floor,floorLip,seamlessCorners,seamlessPerimeter:true}});
  const rows=customizeRows(priceRows(data,s.configuration),s.configuration);
  assert.deepEqual(s.materials.map(x=>x.row),rows);assert.equal(s.estimate.taxCents,materialTax(rows));assert.equal(s.estimate.labor.costCents,null);assert.ok(s.materials.every(x=>x.status==='unknown'));
  }

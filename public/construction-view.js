@@ -24,8 +24,9 @@ export function installConstructionView(api){
  async function loadDefault(){try{const r=await fetch('/api/lighting-setups',{signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error();defaultRig=(await r.json()).setups.find(s=>s.isDefault)?.rig??null;}catch{defaultRig=null;}}
  async function applyLighting(){if(!lighting()){api.lighting?.preview(null);return;}if(defaultRig===undefined)await loadDefault();if(lighting())api.lighting?.preview(defaultRig);sync();if(defaultRig===null){status.title='Set a default in Camera positions › Lighting controls › Saved setups.';announceView();}}
  window.addEventListener('lighting-default-changed',async()=>{await loadDefault();applyLighting();});
- // The Build guide always shows the project's build design so every device draws the same progress.
- function pinBuildDesign(){const d=tracking?.design;if(api.state.mode!=='build'||!d)return;const changed=Object.entries(d).some(([k,v])=>typeof v==='number'?Math.round(+api.state[k])!==v:api.state[k]!==v);if(changed){api.configure({...d});window.dispatchEvent(new Event('studio-view-changed'));}}
+ let seamlessEdited=api.hasRestoredSession===true;window.addEventListener('set-configured',e=>{if(e.detail?.seamlessEdited)seamlessEdited=true;});
+ // Keep explicit seamless-option previews visible; completion is guarded until the shared build design matches.
+ function pinBuildDesign(){const d=tracking?.design;if(api.state.mode!=='build'||!d||seamlessEdited&&['seamlessCorners','seamlessPerimeter'].some(k=>(d[k]===true)!==(api.state[k]===true)))return;const changed=Object.entries(d).some(([k,v])=>typeof v==='number'?Math.round(+api.state[k])!==v:api.state[k]!==v);if(changed){api.configure({...d});window.dispatchEvent(new Event('studio-view-changed'));}}
  function accept(data,nextRevision){if(nextRevision!==undefined&&nextRevision<revision)return;tracking=projectUpgradeTracking(data);if(nextRevision!==undefined)revision=nextRevision;pinBuildDesign();sync();window.dispatchEvent(new CustomEvent('project-tracking-loaded',{detail:tracking}));}
  async function refresh(){if(loading||disposed)return;loading=true;const version=generation;try{let data=await window.__rcEarlyTracking?.('construction-view');if(!data){const r=await fetch('/api/project/tracking',{signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('Progress unavailable');data=await r.json();}if(version===generation)accept(data.data,data.revision);}catch{if(!tracking&&!mode()){status.textContent='Progress unavailable';status.title='Could not load saved progress. Unconfirmed parts remain gray.';}}finally{loading=false;}}
  window.addEventListener('project-tracking-changed',e=>{generation++;revision=-1;accept(e.detail);});
@@ -36,9 +37,10 @@ export function installConstructionView(api){
   const oldMap=m.map,oldTransparent=m.transparent;m.copy(base);
   if(ghost){m.color.set('#858585');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.26,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
   else if(part.kind==='platform'&&part.stage>=34&&(finish==='raw'||finish==='seams')){const wood=part.stage===34?mats.platformWood:mats.ply;m.map=wood.map;m.color.copy(wood.color);}
+  else if(finish==='raw'&&part.kind==='cyclorama'){m.color.copy(mats.ply.color);m.map=mats.ply.map;}
   else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.ply;m.color.copy(raw.color);m.map=raw.map;}
   else if(finish==='seams'&&part.kind==='wallSkin'){m.color.set(0xffffff);m.map=(api.state.height===120?mats.wallSeams10:mats.wallSeams8).map;m.roughness=1;}
-  else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
+  else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'||part.kind==='cyclorama'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
   else if(finish==='skim'){m.map=mats.compound.map;m.color.setRGB(1.4,1.4,1.4);m.roughness=1;}
   else if(finish==='primer'){m.map=null;m.color.set('#e3e0d8');}
   if(oldMap!==m.map||oldTransparent!==m.transparent)m.needsUpdate=true;

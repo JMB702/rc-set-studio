@@ -1,9 +1,16 @@
+import {cycloramaPlan} from './cyclorama.js';
 import {platformPlan} from './platform.js';
 // This is the existing material schedule, surfaced at the point of use.
 // Quantities are per panel with two jacks unless the note names the full set/platform.
 export function stepFasteners(stage,height,floor,cfg={}){
   const item=(title,note,productId=null,quantity=null)=>({title,note,productId,quantity});
   const none=note=>[item('No fasteners in this step',note)];
+  if(stage>=43&&stage<=48){const p=cycloramaPlan({...cfg,height,floor}),anchors=p.ribCount*4,skins=Math.max(0,p.fasteners-anchors);
+   if(stage===43)return [item('SPAX #8 × 2½″ flat-head wood screws',`${anchors} planned across all retrofit ribs and backing, four per rib. Predrill through the existing skin into framing or added rear blocking; confirm screw direction and penetration on the mockup.`,'cycAnchorScrews',anchors)];
+   if(stage===44)return [item('SPAX #8 × 2½″ flat-head wood screws','From the shared retrofit allowance in the survey step. Fasten ribs to framing-backed cleats; the thin existing laminate is not an anchor.','cycAnchorScrews')];
+   if(stage===45||stage===46||stage===47)return [item('#8 × 1¼″ countersunk wood screws',`${skins} planned skin fasteners for the whole retrofit, shared across these steps. Pilot into rib edges, support joints and test against pull-through.`,'cycSkinScrews'),item('Compatible flexible-skin adhesive','Product and price pending the skin selection and mockup. Follow the adhesive manufacturer; do not assume the wall-skin glue suits every laminate.','cycAdhesive'),...(stage===46||stage===47?[item('SPAX #8 × 2½″ flat-head wood screws','Rib and backing fixings are included in the shared allowance at the survey step. Keep fasteners out of floating click-lock flooring.','cycAnchorScrews')]:[])];
+   return [...(p.corners&&p.perimeter?[item('Compatible compound-curve seam reinforcement','Selection and price pending a successful trial with the chosen skin, adhesive and filler; do not assume flat paper tape can cover every gore seam.','cycReinforcement')]:[]),item('Paper joint tape and compatible reinforcement','Use paper where it lies flat; trial a compatible system at compound gore seams before bulk work.','cycTape'),item('Premixed all-purpose compound','Thin coats on supported non-walking scenic skin only; dry completely between coats. Additional compound and rework are planned at the two compound corners.','cycCompound')];
+  }
   if(stage===0)return none('Cut and label only. Fasteners are listed on the joining steps.');
   if(stage>=1&&stage<=8)return none('Dry-fit and clamp the frame. Use the #6 × 1½″ screws in “Glue and screw the frame.”');
   if(stage===9)return [item('#6 × 1½″ flat-head wood screws',height===120?'14 per panel: one at each rail/toggle end, plus two at each end of the seam backer. Predrill; heads flush.':'10 per panel: one at each end of the two rails and three toggles. Predrill; heads flush.','frameScrews',height===120?14:10),item('Titebond III wood glue','Glue every frame butt joint.','glue')];
@@ -27,7 +34,7 @@ export function stepFasteners(stage,height,floor,cfg={}){
   if(stage===24)return [item('Underlayment seam tape','Use the underlayment’s built-in overlap and tape strip. The floor is loose-laid: no fasteners into the concrete.','vapor')];
   if(stage===25||stage===26||stage===27||stage===28||stage===37)return none('This is a surface preparation or coating step. Use the filler, seam fabric, primer or paint specified in the instructions.');
   if(stage===36)return [item('Rapid Set SKIM FLOOR · deck','Cement skim on the single-layer, frame-supported plywood walking surface.','platformDeckSkim'),item('Scenic joint materials · fascia only','Paper tape, premixed compound and vertical corner bead stay off the deck. Follow the selected bead’s attachment method.')];
-  const p=platformPlan(cfg.angle??45,cfg.platformBack??12,cfg.platformSide??12,cfg.platformAngle),c=p.counts;
+  const p=platformPlan(cfg.angle??45,cfg.platformBack??12,cfg.platformSide??12,cfg.platformAngle,cfg),c=p.counts;
   if(stage===31)return [item('#9 × 3″ star-drive flat-head wood screws',`Two per rim corner joint and two at each joist end. ${c.rims*2+c.joists*4} planned for all platform frames.`,'platformFrameScrews',c.rims*2+c.joists*4)];
   if(stage===32)return [item('#9 × 3″ star-drive flat-head wood screws',`Four per leg through the rims, two per sill, plus two per leg resting on a sill. ${c.legs*4+c.sills*2+c.sillLegs*2} planned for the whole platform.`,'platformFrameScrews',c.legs*4+c.sills*2+c.sillLegs*2)];
   if(stage===33)return [item('#9 × 3″ star-drive flat-head wood screws','Join shared rims from inside the frames, about 12″ apart overall, staggered from both sides. Use the module seam allowance in the Pricing guide.','platformFrameScrews',p.frameScrews-(c.rims*2+c.joists*4+c.legs*4+c.sills*2+c.sillLegs*2))];

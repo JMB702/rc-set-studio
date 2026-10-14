@@ -1,6 +1,7 @@
 import {customizeRows} from './pricing-config.js';
 import {calculate} from './shopping-calc.js';
 import {platformPlan,PLATFORM} from './platform.js';
+import {cycloramaPlan} from './cyclorama.js';
 export const money=c=>c===null?'Price pending':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
 export function floorArea(angle){const c=Math.cos(angle*Math.PI/180),s=Math.sin(angle*Math.PI/180);return 128+128*c-64*c*s;}
 function extra(id,name,qty,price,url,note,group='floor'){return {id,name,purchaseQuantity:qty,unitPriceCents:price,subtotalCents:price===null||qty===null?null:price*qty,productUrl:url.startsWith('http')?url:'https://www.homedepot.com/p/'+url,availability:note,group,needed:qty,packSize:1};}
@@ -26,8 +27,8 @@ export function floorRows(data,angle,type){const area=floorArea(angle),waste=are
  return rows.map(r=>['floorPrimer','floorPaint','floorSeams','trim'].includes(r.id)?{...r,group:'floorFinish'}:r);
 }
 // 10″ platform: every quantity comes from the module plan for this angle and these wall gaps.
-export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,platformAngle=angle){
- const plan=platformPlan(angle,back,side,platformAngle),own=id=>data.platform.products.find(p=>p.id===id),shared=id=>data.products.find(p=>p.id===id);
+export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,platformAngle=angle,configuration={}){
+ const plan=platformPlan(angle,back,side,platformAngle,configuration),own=id=>data.platform.products.find(p=>p.id===id),shared=id=>data.products.find(p=>p.id===id);
  const row=(id,src,name,needed,qty,note)=>({id,name,purchaseQuantity:qty,unitPriceCents:src.unitPriceCents,subtotalCents:qty*src.unitPriceCents,productUrl:src.productUrl,availability:note+' · '+src.availability,group:'platform',needed,packSize:1,observedStock:src.observedStock??null});
  const pack=(id,src,name,needed,note)=>({...row(id,src,name,needed,Math.ceil(needed/src.packSize),note),packSize:src.packSize});
  const rows=[],deckSheets=plan.deckSheets,strips=plan.fasciaStrips,finish=plan.finishArea;
@@ -49,9 +50,35 @@ export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,plat
  rows.push(row('platformPaint',own('platformPaint'),own('platformPaint').name,paint,paint,`Two coats over ${finish.toFixed(0)} sq ft, planned at 300 sq ft/gallon`));
  return rows.filter(r=>r.purchaseQuantity!==0).map(r=>['platformTape','platformBead','platformCompound','platformPrimer','platformDeckSkim','platformDeckPrimer','platformPaint'].includes(r.id)?{...r,group:'platformFinish'}:r);
 }
+// Retrofit quantities come from the same plan as geometry and the Build guide. Prices here reuse
+// dated catalog observations; unknown sheet specifications and compatible adhesive remain pending.
+export function cycloramaRows(data,d,{finishes=true}={}){
+ const p=cycloramaPlan(d);if(!p.corners&&!p.perimeter)return [];
+ const shared=id=>data.products.find(r=>r.id===id),own=id=>data.platform.products.find(r=>r.id===id);
+ const sourced=(id,src,name,needed,quantity,note,group='cyclorama')=>({...extra(id,name,quantity,src.unitPriceCents,src.productUrl,`${note} · Catalog checked ${src.checkedDate}: ${src.availability}`,group),needed,packSize:src.packSize||1});
+ const pending=(id,name,quantity,note)=>extra(id,name,quantity,null,'https://www.homedepot.com/s/'+encodeURIComponent(name),note,'cyclorama');
+ const anchors=p.ribCount*4,skinScrews=Math.max(0,p.fasteners-anchors),anchor=shared('barScrews'),skin=shared('lapScrews');
+ const rows=[
+  pending('cycRibPly','¾ in plywood · cyclorama ribs · 4×8 sheet',p.ribSheets,`${p.ribCount} ribs including ${p.compoundRibs} compound-corner ribs; sheet allowance requires nesting and a supplier quote`),
+  pending('cycSkin','Flexible ⅛ in skin · cyclorama · 4×8 sheet',p.skinSheets,`${p.skinArea.toFixed(1)} sq ft curved surface; sheet allowance includes waste. Verify bend direction, minimum radius and paint/compound adhesion with a full-size sample; existing wall facing is not assumed bend-rated`),
+  sourced('cycBacking',shared('crossbar'),'2×4×96 in stud · cyclorama backing and cleats',p.blockingFeet,Math.ceil(p.blockingFeet*1.1/8),`${p.blockingFeet.toFixed(1)} linear ft + 10%; locate existing framing and add rear blocking where needed; no fastening into facing alone`),
+  sourced('cycAnchorScrews',anchor,'SPAX #8×2½ in screws · cyc ribs and backing · 133 box',anchors,Math.ceil(anchors/anchor.packSize),`${anchors} planning fasteners (four per rib); confirm cleat direction, timber penetration and existing frame locations before fixing`),
+  sourced('cycSkinScrews',skin,'#8×1¼ in screws · flexible cyc skin · 100 pack',skinScrews,Math.ceil(skinScrews/skin.packSize),`${skinScrews} skin fasteners; pilot, keep every joint supported and check pull-through on the sample`),
+  pending('cycAdhesive','Skin-compatible cyclorama adhesive',null,'Adhesive specification, coverage, price and floor substrate compatibility pending the bend/adhesion sample; avoid high-moisture adhesive that can warp the facing'),
+ ];
+ if(p.perimeter&&d.floor!=='charcoal')rows.push(pending('cycTransition','Stable paintable cove-to-floor transition substrate',null,'Floor-dependent substrate, preparation, expansion joint and price pending inspection; do not bridge or fasten to floating laminate'));
+ if(p.corners&&p.perimeter)rows.push(pending('cycReinforcement','Compound-corner seam reinforcement',null,'Selection, quantity and price pending the gore-seam adhesion sample; paper tape only where it lies flat, compatible reinforcement on compound curves'));
+ if(finishes){const tape=own('platformTape'),compound=own('platformCompound'),primer=own('platformPrimer'),paint=data.wallPaint;
+  rows.push(sourced('cycTape',tape,'USG paper joint tape · cyclorama seams · 250 ft roll',p.tapeFeet,Math.ceil(p.tapeFeet*1.1/250),`${p.tapeFeet.toFixed(1)} ft + 10%; embed in thin wet compound on compatible supported seams`,'cycloramaFinish'));
+  rows.push(sourced('cycCompound',compound,'USG premixed joint compound · cyclorama · 4.5 gal pail',p.compoundPails,p.compoundPails,'Planning thin skim and repeated fills, with extra allowance for compound corners; decorative non-walking cove only, no thick unsupported plaster bridge','cycloramaFinish'));
+  rows.push(sourced('cycPrimer',primer,'KILZ 2 primer · cyclorama · gallon',Math.ceil(p.skinArea/250),Math.ceil(p.skinArea/250),'One coat, planning 250 sq ft/gallon; adhesion on selected flexible skin must be tested','cycloramaFinish'));
+  rows.push(sourced('cycPaint',paint,'BEHR flat wall paint · cyclorama · gallon',Math.ceil(p.skinArea*2/paint.coverageSqFtPerGallon),Math.ceil(p.skinArea*2/paint.coverageSqFtPerGallon),'Two coats on decorative cove; allow drying and match wall color','cycloramaFinish'));
+ }
+ return rows.filter(r=>r.purchaseQuantity!==0);
+}
 // floor: 'none' | 'wood' | 'charcoal'; platformShape: 'none' | 'angled' | 'square'. Floor:'platform' is the older
 // spelling of a platform with no floor under it.
-export function priceRows(data,{scope,height,angle,floor,platformShape='none',supports=true,ballast=true,finishes=true,platformBack=PLATFORM.gap,platformSide=PLATFORM.gap,platformAngle=angle}){
+export function priceRows(data,{scope,height,angle,floor,platformShape='none',supports=true,ballast=true,finishes=true,platformBack=PLATFORM.gap,platformSide=PLATFORM.gap,platformAngle=angle,seamlessCorners=false,seamlessPerimeter=false}){
  if(floor==='platform'){floor='none';if(platformShape==='none')platformShape='angled';}if(platformShape==='square')platformAngle=90;
  const key=height===120?'10x4':'8x4',n=scope==='panel'?1:8;let rows=scope==='floor'?[]:calculate(data,key,n,supports,ballast);
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
@@ -63,7 +90,7 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  if(seamFt){const compound=own('platformCompound'),tape=own('platformTape'),bags=Math.max(1,Math.ceil(seamFt*10/12/150));
   rows.push(stocked(extra('wallSeams','USG Sheetrock All Purpose premixed compound · wall seams · 4.5 gal pail',bags,compound.unitPriceCents,compound.productUrl,`Checked Oct 12 at #6319 · 184 in stock · ${seamFt} ft of seams feathered about 10″ wide; planning 150 sq ft/pail for thin coats, not a manufacturer coverage rating`,'finish'),184));
   rows.push(stocked(extra('wallSeamTape','USG Sheetrock paper joint tape · wall seams · 250 ft roll',Math.ceil(seamFt*1.1/250),tape.unitPriceCents,tape.productUrl,`Checked Oct 12 at #6319 · 107 in stock · ${seamFt} ft of seams + 10%; embed paper in wet compound`,'finish'),107));}
- if(scope==='set')rows.push(stocked(extra('wallCornerCaulk','BEHR Multi-Purpose paintable siliconized acrylic caulk · 10.1 oz',Math.ceil(2*height/12*1.1/25),548,'316993414','Checked Oct 10 at #6319 · 282 in stock · the two wing corners, about 25 ft of ¼″ bead per tube; flexible, not taped','finish'),282));}
+ if(scope==='set'&&!(seamlessCorners&&angle>0))rows.push(stocked(extra('wallCornerCaulk','BEHR Multi-Purpose paintable siliconized acrylic caulk · 10.1 oz',Math.ceil(2*height/12*1.1/25),548,'316993414','Checked Oct 10 at #6319 · 282 in stock · the two wing corners, about 25 ft of ¼″ bead per tube; flexible, not taped','finish'),282));}
  if(scope==='set'){
  const p=data.products.find(p=>p.id==='lapScrews'),existing=rows.find(r=>r.id==='lapScrews'),needed=5*(height===120?5:4);
  if(existing){existing.needed+=needed;existing.purchaseQuantity=Math.ceil(existing.needed/p.packSize);existing.subtotalCents=existing.purchaseQuantity*p.unitPriceCents;}else rows.push({...p,needed,purchaseQuantity:Math.ceil(needed/p.packSize),subtotalCents:Math.ceil(needed/p.packSize)*p.unitPriceCents});
@@ -71,7 +98,8 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  const stud=data.products.find(p=>p.id==='crossbar');rows.push({...extra('corners','2×4×96 in stud · wing-corner drop',2,stud.unitPriceCents,stud.productUrl,`One per wing corner, screwed to both flats · ${stud.availability} · checked ${stud.checkedDate}`,'connections'),observedStock:stud.observedStock});
  const bar=rows.find(r=>r.id==='barScrews'),cornerScrews=16;if(bar){bar.needed+=cornerScrews;bar.purchaseQuantity=Math.ceil(bar.needed/bar.packSize);bar.subtotalCents=bar.purchaseQuantity*bar.unitPriceCents;}
  }
- if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle));}
+ if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessPerimeter}));}
+ if(scope==='set')rows.push(...cycloramaRows(data,{height,angle,floor,seamlessCorners,seamlessPerimeter},{finishes}));
  return rows;
 }
 export function summary(rows){return {subtotal:rows.reduce((s,r)=>s+(r.subtotalCents??0),0),pending:rows.filter(r=>r.subtotalCents===null).length};}

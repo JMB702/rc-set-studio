@@ -32,3 +32,28 @@ desktop and 375 px, with no horizontal overflow.
 2026-10-06: design approvals. Approve with and without a remembered name, empty name rejected,
 newest approval opens on a fresh visit and is what Revert to default restores, choosing an older
 approval loads it; desktop and 375 px.
+
+2026-10-13 seamless retrofit implementation:
+Independent corners/perimeter options add conditional stable guide stages 43-48;
+workspace restoration now accepts stage 48. Both-off defaults preserve prior
+quantities and original construction stage IDs. Automated guide coverage checks
+both heights, all three floor selections, angles 0/45/90 and all option pairs.
+Tracker tests verify existing counts/notes/progress survive additions, inactive
+milestones have zero progress weight, and saved optional work is retained.
+Model progress follows backing/rib/skin dependencies. Guide completion is blocked
+for a seamless-option preview that differs from the shared build design until
+that design is selected. Older clients omitting the new design fields preserve
+stored or approved option values; explicit false still removes the option.
+These software checks do not validate physical rib fastening, skin bending,
+finish compatibility or actual labor duration. Full-size mockup remains required.
+Earlier browser/performance measurements above apply to their recorded revisions;
+new option desktop/mobile visual checks are recorded separately when completed.
+
+2026-10-13 retrofit browser QA (local http://localhost:8793)
+- 32 design/layout cases: 1200px and390px, both heights, oak/painted floors, all4 option combinations.
+- 112 applicable guide stage visits, including43–48; correct stable stages and options retained.
+- No page errors or horizontal overflow in changed guide steps or Pricing.
+- Visually inspected finished geometry and mobile compound-corner instructions.
+- Platform clearance checked for every integer wall angle0–90, both platform side-angle limits,
+  including compound-corner feather clearance and cove free ends within the8ft floor.
+- No live tracking, approval, expense, or published-site writes performed.

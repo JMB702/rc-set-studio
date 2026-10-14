@@ -224,7 +224,8 @@
     "10-foot required ballast mass, bag count and retention layout are unresolved; no complete freestanding total is presented.",
     "Choose straight, sound dry lumber and measure supplied stock. Pilot drill and verify proposed screw sizes in the prototype. Use matched-thickness pads at all bearing points.",
     "Screw-only jack revision, Oct 7, 2026: six #8 \u00d7 1\u00bc in wood screws per jack, driven from the stile into the upright, heads flush. Two actual \u00be in boards provide \u00bd in nominal penetration into the upright. Prototype connection: verify on scrap, avoid splits/over-countersinking, and replace wood with stripped holes. Keep the flat supported during assembly and removal. Staples fasten the skin; do not substitute them or nails at the jack attachment.",
-    "Only the #8 \u00d7 1\u00bc in screw pack was rechecked Oct 7, 2026: Home Depot #6319, model 801832, SKU 251429, internet 204275496, $7.97 per 100-pack, 6 packs shown in stock. Other product check dates remain as listed."
+    "Only the #8 \u00d7 1\u00bc in screw pack was rechecked Oct 7, 2026: Home Depot #6319, model 801832, SKU 251429, internet 204275496, $7.97 per 100-pack, 6 packs shown in stock. Other product check dates remain as listed.",
+    "Optional cyclorama retrofit: seamlessCorners and seamlessPerimeter are independent design options. The Pricing guide calculates ribs, flexible skin, timber backing, fasteners, seam reinforcement and finish from cycloramaPlan(); these extras are excluded from the per-panel list above. Unknown flexible skin, \u00be-inch rib plywood, compatible adhesive and compound-corner reinforcement remain explicitly pending. Use the design-specific Pricing guide CSV for current quantities. Both options add a separate 48 person-hour compound-corner planning allowance plus 3\u20135 drying calendar days; this is not a published construction-time benchmark."
   ],
   "variants": {
     "8x4": {

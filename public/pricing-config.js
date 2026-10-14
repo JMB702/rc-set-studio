@@ -9,6 +9,7 @@ export function normalizeCustom(item){
  if(typeof item.id!=='string'||!/^custom-[0-9a-f-]{36}$/i.test(item.id))throw Error('Invalid custom item ID.');
  return {id:item.id,title,description,link:optionalLink(item.link),quantity,unitPriceCents};
 }
+export function normalizeSeamless(input){const result={};for(const key of ['seamlessCorners','seamlessPerimeter']){if(input[key]!==undefined&&typeof input[key]!=='boolean')throw Error('Invalid seamless option.');result[key]=input[key]??false;}return result;}
 export function normalizeConfiguration(input){
  if(!input||typeof input!=='object'||input.version!==1)throw Error('Unsupported pricing configuration.');
  if(!['set','panel','floor'].includes(input.scope)||![96,120].includes(input.height)||!Number.isInteger(input.angle)||input.angle<0||input.angle>90||!['none','wood','charcoal','platform'].includes(input.floor))throw Error('Invalid set configuration.');
@@ -22,7 +23,7 @@ export function normalizeConfiguration(input){
  if(!['supports','ballast','finishes'].every(k=>typeof input[k]==='boolean'))throw Error('Invalid material options.');
  if(!Array.isArray(input.excluded)||input.excluded.length>200||input.excluded.some(id=>typeof id!=='string'||!/^[-a-zA-Z\d]{1,80}$/.test(id)))throw Error('Invalid removed items.');
  if(!Array.isArray(input.customItems)||input.customItems.length>100)throw Error('Too many custom items.');const customItems=input.customItems.map(normalizeCustom);if(new Set(customItems.map(i=>i.id)).size!==customItems.length)throw Error('Duplicate custom item IDs.');
- return {version:1,scope:input.scope,height:input.height,angle:input.angle,floor,platformShape,platformBack,platformSide,platformAngle,platformColor:platformColor.toLowerCase(),wallColor:wallColor.toLowerCase(),floorColor:floorColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
+ return {...normalizeSeamless(input),version:1,scope:input.scope,height:input.height,angle:input.angle,floor,platformShape,platformBack,platformSide,platformAngle,platformColor:platformColor.toLowerCase(),wallColor:wallColor.toLowerCase(),floorColor:floorColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
 }
 export function customizeRows(rows,configuration){const excluded=new Set(configuration.excluded);return [...rows.filter(r=>!excluded.has(r.id)),...configuration.customItems.map(i=>({id:i.id,custom:true,name:i.title,description:i.description,availability:i.description,productUrl:i.link,purchaseQuantity:i.quantity,packSize:1,needed:i.quantity,unitPriceCents:i.unitPriceCents,subtotalCents:i.quantity*i.unitPriceCents,group:'custom'}))];}
 export function removedPart(tags,floor,excluded){const physical=tags.includes('laminate')?(floor==='wood'?'laminate':'floorPly'):tags[0];return excluded.includes(physical);}
@@ -36,7 +37,7 @@ export function normalizeDesign(input){
  const platformBack=input.platformBack??12,platformSide=input.platformSide??12;if(![platformBack,platformSide].every(v=>Number.isInteger(v)&&v>=0&&v<=48))throw Error('Invalid platform gap.');
  const a=Math.round(angle),pa=platformShape==='square'?90:Math.round(Math.max(a,Number(input.platformAngle??a)));if(!Number.isFinite(pa)||pa>90)throw Error('Invalid platform angle.');
  const figures=input.figures??'rap';if(!['podcast','rap'].includes(figures))throw Error('Invalid figures.');
- return {height:input.height,angle:a,wallColor:hex(input.wallColor,'wall'),platformShape,platformAngle:pa,platformBack,platformSide,platformColor:hex(input.platformColor??'#34383b','platform'),floor,floorColor:hex(input.floorColor??'#34383b','floor'),figures};
+ return {...normalizeSeamless(input),height:input.height,angle:a,wallColor:hex(input.wallColor,'wall'),platformShape,platformAngle:pa,platformBack,platformSide,platformColor:hex(input.platformColor??'#34383b','platform'),floor,floorColor:hex(input.floorColor??'#34383b','floor'),figures};
 }
 
 // The estimate actually reviewed with an approval. Older approvals have no recorded estimate.

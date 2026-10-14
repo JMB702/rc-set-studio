@@ -4,6 +4,7 @@
 // not a quote. Glue, compound and paint drying time is calendar time, not labor, and is not counted.
 // The pure functions (laborTasks, laborEstimate, crewFactor, laborCost) take no DOM, so tests use them directly.
 import {platformPlan} from './platform.js';
+import {cycloramaPlan} from './cyclorama.js';
 import {floorArea,priceRows,summary,money,materialTax} from './pricing-calc.js';
 
 export const LABOR={crew:2,maxCrew:12,hoursPerDay:8,panels:8,seams:5,corners:2};
@@ -34,11 +35,22 @@ export function laborTasks(d){
   if(floorType==='wood')add('floor','23–27',`Lay the oak laminate floor · ${area.toFixed(0)} sq ft`,1+area*.06+1.5,'Footprint, underlay, click-lock rows at about 17 sq ft per person-hour, expansion-gap check and cleanup');
   else{const sheets=2*Math.ceil(area*1.1/32);add('floor','23–27, 42',`Build and paint the double-layer plywood floor · ${area.toFixed(0)} sq ft`,1+sheets*.5+2+area/60+area*3/200,`Footprint, ${sheets} sheets in two bonded layers, cement skim, primer, two paint coats; planning labor, excludes cure time and future touch-ups`);}
  }
- if(platformShape!=='none'){const pl=platformPlan(d.angle,d.platformBack??12,d.platformSide??12,platformShape==='square'?90:Math.max(d.angle,d.platformAngle??d.angle)),c=pl.counts,ft=v=>v/12;
+ if(platformShape!=='none'){const pl=platformPlan(d.angle,d.platformBack??12,d.platformSide??12,platformShape==='square'?90:Math.max(d.angle,d.platformAngle??d.angle),d),c=pl.counts,ft=v=>v/12;
   add('platformFrame','30–31',`Cut and frame the platform · ${c.modules} modules`,.5+pl.lumberLengths.length*.06+c.modules,`${pl.lumberLengths.length} cuts, ${c.modules} module frames`);
   add('platformLegs','32–33','Legs, sills, then set and join the modules',c.legs*.15+c.sills*.1+c.modules*.35,`${c.legs} legs, ${c.sills} sills`);
   add('platformDeck','34–35','Deck and fascia',pl.deckSheets*.6+pl.deckScrews*.005+ft(pl.fasciaLength)*.12,`${pl.decks.length} deck pieces from ${pl.deckSheets} sheets, ${ft(pl.fasciaLength).toFixed(0)} ft of fascia`);
   add('platformFinish','36–37',`Tape, skim, prime and paint the platform · ${pl.finishArea.toFixed(0)} sq ft`,ft(pl.tapeLength+pl.beadLength)*.04+pl.finishArea*.03+pl.finishArea*3/120,'Deck cement skim and scenic fascia finishing, primer, two paint coats; excludes curing and future touch-ups');
+ }
+ const cyc=cycloramaPlan(d);
+ if(cyc.corners||cyc.perimeter){
+  add('cycBacking','43','Locate framing and install retrofit backing',1+cyc.blockingFeet*.08,'Existing walls stay assembled; locate framing, add rear blocking and supported cleats over the facing');
+  if(cyc.corners){
+   add('cycVerticalRibs','44',`Template, cut and fit ${cyc.verticalRibs} vertical-corner ribs`,1+cyc.verticalRibs*.3,'Full-size bend test and a master rib template; hand-cut allowance, CNC is an optional quoted alternative');
+   add('cycCornerSkin','45','Skin the two rounded wall corners',cyc.corners*cyc.cornerArc*cyc.cornerHeight/144*.08,'Flexible facing, supported sheet seams and flush fasteners; corners-only runs straight down to the floor');
+  }
+  if(cyc.perimeter)add('cycFloorSweep','46',`Build the wall-to-floor sweeps · ${(cyc.straightLength/12).toFixed(1)} ft`,2+cyc.floorRibs*.25+cyc.straightLength/12*.2,'Template ribs, cleats and bent facing; includes straight sweep framing and skin, excludes compound corner junctions');
+  if(cyc.corners&&cyc.perimeter)add('cycJunctions','47','Form and finish the two compound floor corners',24*cyc.corners,'Conservative planning allowance: 24 person-hours EACH (48 total), not a published benchmark. Includes radial ribs, separate tapered gores, repeated thin filling, sanding and raking-light corrections. At most two effective workers in this phase; drying is additional calendar time');
+  add('cycFinish','48','Finish, prime and paint the cyclorama',1+cyc.skinArea*.06,'Straight seams and fastener fills, sanding, primer and two coats; compound-junction shaping is counted separately. Plan 3–5 additional drying days, weather and product dependent');
  }
  add('shoppingDone','Shopping','Wall panels and jacks · shopping completed',3.5,'Jeff reported 3.5 hours for one shopper; included in project estimate, not automatically entered as paid time');
  add('shoppingRemaining','Shopping','Remaining supplies · shopping allowance',5,'One shopper: 3 hours bulk floor/platform pickup + 2 hours finish supplies and follow-up pickups');
@@ -49,8 +61,9 @@ export function laborTasks(d){
 export function crewFactor(crew){const n=Math.max(1,Math.min(LABOR.maxCrew,Math.round(crew)||1));return n===1?.85:n<=2?n:2+(n-2)*.75;}
 // Hours on site for the whole crew, rounded up to the half hour.
 export function laborEstimate(d,crew=LABOR.crew){
- const tasks=laborTasks(d),personHours=r1(tasks.reduce((s,t)=>s+t.personHours,0)),shoppingHours=tasks.filter(t=>t.stage==='Shopping').reduce((n,t)=>n+t.personHours,0),hours=Math.ceil((personHours-shoppingHours)/crewFactor(crew)*2)/2;
- return {tasks,personHours,shoppingHours,crew:Math.max(1,Math.min(LABOR.maxCrew,Math.round(crew)||1)),hours,days:Math.ceil(hours/LABOR.hoursPerDay*2)/2};
+ const tasks=laborTasks(d),personHours=r1(tasks.reduce((s,t)=>s+t.personHours,0)),shoppingHours=tasks.filter(t=>t.stage==='Shopping').reduce((n,t)=>n+t.personHours,0),junctionHours=tasks.find(t=>t.id==='cycJunctions')?.personHours??0,factor=crewFactor(crew),hours=Math.ceil(((personHours-shoppingHours-junctionHours)/factor+junctionHours/Math.min(factor,2))*2)/2;
+ const rawTaskHours=Object.fromEntries(tasks.filter(t=>t.stage!=='Shopping').map(t=>[t.id,t.personHours/(t.id==='cycJunctions'?Math.min(factor,2):factor)])),rawHours=Object.values(rawTaskHours).reduce((n,h)=>n+h,0),taskOnSiteHours=Object.fromEntries(Object.entries(rawTaskHours).map(([id,h])=>[id,h*hours/rawHours]));
+ return {tasks,personHours,shoppingHours,junctionHours,taskOnSiteHours,dryingDays:tasks.some(t=>t.id.startsWith('cyc'))?{min:3,max:5}:null,crew:Math.max(1,Math.min(LABOR.maxCrew,Math.round(crew)||1)),hours,days:Math.ceil(hours/LABOR.hoursPerDay*2)/2};
 }
 // Each person has their own rate, per hour in cents, or null when it has not been set. Labor is priced from
 // the people who have a rate; with no rates at all it is not priced.
@@ -66,8 +79,8 @@ export function laborFor(d){const crew=crewMembers?.length?crewMembers:null,est=
  return {...est,defaultHours:est.hours,adjusted:false,rates,people:crew?crew.map(c=>c.name):null,...base,shoppingRateCents,shoppingCents,costCents:base.costCents===null&&shoppingCents===null?null:(base.costCents??0)+(shoppingCents??0)};}
 const hoursText=h=>`${Math.round(h*10)/10} hr${h===1?'':'s'}`;
 export function laborCrewLine(l){return l.people?l.people.map((name,i)=>`${name} ${l.rates[i]==null?'(no rate)':money(l.rates[i])+'/hr'}`).join(' · '):'Unlock Cost projection to price labor with your crew';}
-export function laborHoursLine(l){return `${hoursText(l.hours)} on site · crew of ${l.crew} · ${hoursText(l.shoppingHours)} shopping`;}
-export function laborTaskList(l){return l.tasks.map(t=>{const li=document.createElement('li'),name=document.createElement('span'),hrs=document.createElement('strong');name.textContent=t.name;hrs.textContent=`${t.personHours} h`;li.append(name,hrs);return li;});}
+export function laborHoursLine(l){return `${hoursText(l.hours)} on site · crew of ${l.crew} · ${hoursText(l.shoppingHours)} shopping${l.dryingDays?` · allow ${l.dryingDays.min}–${l.dryingDays.max} additional drying days`:''}${l.junctionHours?' · compound corners capped at two effective workers (whole crew priced on site)':''}`;}
+export function laborTaskList(l){return l.tasks.map(t=>{const li=document.createElement('li'),name=document.createElement('span'),hrs=document.createElement('strong');name.textContent=t.name;if(t.id.startsWith('cyc')){const note=document.createElement('small');note.textContent=t.note;name.append(note);}hrs.textContent=`${t.personHours} h`;li.append(name,hrs);return li;});}
 
 // Read-only labor summary for the approval dialog: the shared crew, the hours and how they add up.
 export function mountLabor(host,api){
@@ -81,7 +94,7 @@ export function mountLabor(host,api){
 
 // Materials and labor for the full set, for the approval gate.
 export function costSummary(data,d){
- const rows=priceRows(data,{scope:'set',height:d.height,angle:d.angle,floor:d.floor,platformShape:d.platformShape,platformBack:d.platformBack,platformSide:d.platformSide,platformAngle:d.platformAngle}),m=summary(rows),labor=laborFor(d);
+ const rows=priceRows(data,{scope:'set',height:d.height,angle:d.angle,floor:d.floor,platformShape:d.platformShape,platformBack:d.platformBack,platformSide:d.platformSide,platformAngle:d.platformAngle,seamlessCorners:d.seamlessCorners,seamlessPerimeter:d.seamlessPerimeter}),m=summary(rows),labor=laborFor(d);
  return {taxCents:materialTax(rows),materialsCents:m.subtotal,pending:m.pending,lines:rows.length,labor,totalCents:m.subtotal+materialTax(rows)+(labor.costCents??0)};
 }
 

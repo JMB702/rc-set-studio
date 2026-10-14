@@ -30,7 +30,7 @@ export function installDesign(api){
 ${colorField('wall')}
 <div class="field"><span class="field-label">Seamless corners · 36″ radius</span>${choice('data-seamless-corners','Seamless wall corners', [['false','Off'],['true','Include','Retrofit over existing walls']])}</div>
 <div class="field"><span class="field-label">Seamless perimeter · 24″ radius</span>${choice('data-seamless-perimeter','Seamless wall to floor perimeter', [['false','Off'],['true','Include','Curved floor sweep']])}</div>
-<p id="seamless-note" class="hint"></p></section>
+</section>
 <section class="design-group" aria-labelledby="platform-heading"><div class="group-head"><h3 id="platform-heading">Platform</h3><span id="platform-meta"></span></div>
 <div class="field"><span class="field-label">Shape</span>${choice('data-platform-shape','Platform shape',[['none','None'],['angled','Angled','Follows walls'],['square','Square','Straight sides']])}</div>
 <div data-platform-on>
@@ -59,7 +59,6 @@ ${colorField('platform')}</div></section>
  function refresh(){
   for(const b of all('[data-seamless-corners]'))b.setAttribute('aria-pressed',String(S.seamlessCorners=== (b.dataset.seamlessCorners==='true')));
   for(const b of all('[data-seamless-perimeter]'))b.setAttribute('aria-pressed',String(S.seamlessPerimeter=== (b.dataset.seamlessPerimeter==='true')));
-  const gaps=cycloramaGaps(S);q('#seamless-note').textContent=[S.seamlessCorners?(S.angle===0?'Walls are straight: no corner inserts are needed.':'Corners retrofit over the assembled walls; fixing goes into framing or added backing.'): '',S.seamlessPerimeter?`Stage keeps at least 32″ from the walls: 24″ sweep + 6″ feather + 2″ clear, with extra corner clearance when needed. Effective gaps: ${gaps.back}″ back / ${gaps.side}″ sides. Your preferred gaps return when removed.`:`Corners alone extend straight down to the floor.${S.seamlessCorners?` Stage gaps keep at least ${gaps.minimum}″ clear of the rounded inserts.`:''}`,S.seamlessPerimeter&&S.seamlessCorners&&S.angle>0?'Two compound junctions add 48 person-hours of planning labor, plus drying time.':'',S.seamlessPerimeter&&S.floor!=='charcoal'?'A stable paintable floor transition is required; do not plaster onto floating oak laminate.':'',S.seamlessCorners||S.seamlessPerimeter?'The seamless camera effect also needs matching wall/floor color and controlled lighting. Physical removal requires finish repairs.':''].filter(Boolean).join(' ');
 
   for(const b of all('[data-height]')){const a=+b.dataset.height===S.height;b.setAttribute('aria-pressed',a);}
   for(const b of all('[data-floor]'))b.setAttribute('aria-pressed',b.dataset.floor===S.floor);

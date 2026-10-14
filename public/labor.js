@@ -47,10 +47,10 @@ export function laborTasks(d){
   add('cycBacking','43','Locate framing and install retrofit backing',1+cyc.blockingFeet*.08,'Existing walls stay assembled; locate framing, add rear blocking and supported cleats over the facing');
   if(cyc.corners){
    add('cycVerticalRibs','44',`Template, cut and fit ${cyc.verticalRibs} vertical-corner ribs`,1+cyc.verticalRibs*.3,'Full-size bend test and a master rib template; hand-cut allowance, CNC is an optional quoted alternative');
-   add('cycCornerSkin','45','Skin the two rounded wall corners',cyc.corners*cyc.cornerArc*cyc.cornerHeight/144*.08,'Flexible facing, supported sheet seams and flush fasteners; corners-only runs straight down to the floor');
+   add('cycCornerSkin','45',cyc.corners===2?'Skin the two rounded wall corners':`Skin the rounded ${cyc.cornerSides[0]} wall corner`,cyc.corners*cyc.cornerArc*cyc.cornerHeight/144*.08,'Flexible facing, supported sheet seams and flush fasteners; corners-only runs straight down to the floor');
   }
   if(cyc.perimeter)add('cycFloorSweep','46',`Build the wall-to-floor sweeps · ${(cyc.straightLength/12).toFixed(1)} ft`,2+cyc.floorRibs*.25+cyc.straightLength/12*.2,'Template ribs, cleats and bent facing; includes straight sweep framing and skin, excludes compound corner junctions');
-  if(cyc.corners&&cyc.perimeter)add('cycJunctions','47','Form and finish the two compound floor corners',24*cyc.corners,'Conservative planning allowance: 24 person-hours EACH (48 total), not a published benchmark. Includes radial ribs, separate tapered gores, repeated thin filling, sanding and raking-light corrections. At most two effective workers in this phase; drying is additional calendar time');
+  if(cyc.corners&&cyc.perimeter)add('cycJunctions','47',cyc.corners===2?'Form and finish the two compound floor corners':`Form and finish the ${cyc.cornerSides[0]} compound floor corner`,24*cyc.corners,`Conservative planning allowance: 24 person-hours EACH (${24*cyc.corners} total), not a published benchmark. Includes radial ribs, separate tapered gores, repeated thin filling, sanding and raking-light corrections. At most two effective workers in this phase; drying is additional calendar time`);
   add('cycFinish','48','Finish, prime and paint the cyclorama',1+cyc.skinArea*.06,'Straight seams and fastener fills, sanding, primer and two coats; compound-junction shaping is counted separately. Plan 3–5 additional drying days, weather and product dependent');
  }
  add('shoppingDone','Shopping','Wall panels and jacks · shopping completed',3.5,'Jeff reported 3.5 hours for one shopper; included in project estimate, not automatically entered as paid time');
@@ -95,7 +95,7 @@ export function mountLabor(host,api){
 
 // Materials and labor for the full set, for the approval gate.
 export function costSummary(data,d){
- const rows=priceRows(data,{scope:'set',height:d.height,angle:d.angle,floor:d.floor,platformShape:d.platformShape,platformBack:d.platformBack,platformSide:d.platformSide,platformAngle:d.platformAngle,seamlessCorners:d.seamlessCorners,seamlessPerimeter:d.seamlessPerimeter}),m=summary(rows),labor=laborFor(d);
+ const rows=priceRows(data,{scope:'set',height:d.height,angle:d.angle,floor:d.floor,platformShape:d.platformShape,platformBack:d.platformBack,platformSide:d.platformSide,platformAngle:d.platformAngle,seamlessCorners:d.seamlessCorners,seamlessCornerSide:d.seamlessCornerSide??'both',seamlessPerimeter:d.seamlessPerimeter}),m=summary(rows),labor=laborFor(d);
  return {taxCents:materialTax(rows),materialsCents:m.subtotal,pending:m.pending,lines:rows.length,labor,totalCents:m.subtotal+materialTax(rows)+(labor.costCents??0)};
 }
 

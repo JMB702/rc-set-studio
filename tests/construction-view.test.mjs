@@ -98,3 +98,18 @@ test('Above-corner view hits the top plywood rib rather than an empty hidden cav
   assert.ok(hits[0].object.name.startsWith('Corner rib'),'top support must remain physically present and visible');model.dispose(root);
  }
 });
+
+test('Left and right floor ribs mirror inward at square and angled walls',()=>{
+ for(const angle of [45,89,90]){
+  const root=model.cycloramaMesh({height:120,angle,seamlessCorners:true,seamlessPerimeter:true});
+  const left=[],right=[];root.traverse(o=>{if(o.name.startsWith('Floor rib left'))left.push(o);if(o.name.startsWith('Floor rib right'))right.push(o);});
+  assert.equal(left.length,right.length);
+  for(let i=0;i<left.length;i++){
+   left[i].geometry.computeBoundingBox();right[i].geometry.computeBoundingBox();
+   const l=left[i].geometry.boundingBox,r=right[i].geometry.boundingBox;
+   assert.ok(Math.abs(l.min.x+r.max.x)<1e-6,`angle ${angle}, rib ${i}: mirrored min`);
+   assert.ok(Math.abs(l.max.x+r.min.x)<1e-6,`angle ${angle}, rib ${i}: mirrored max`);
+   if(angle===90)assert.ok(l.min.x>=-96*model.inch-1e-6,'left rib stays inside wall');
+  }
+ }
+});

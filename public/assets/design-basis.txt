@@ -209,6 +209,17 @@ when the corresponding option is removed. Pricing, cuts, model and guide use the
 same effective plan. Skin joint lines, shapes and thicknesses remain illustrative;
 field template every junction before batch cutting.
 
+Corner ribs follow the wall crossbars. Added crossbars, cut from the same stock as
+the toggles (1x3 on 10-foot flats, 1x2 on 8-foot), go midway between the existing
+ones (12, 36, 60, 84 and, on 10-foot flats, 108 inches above the subfloor) in the
+two panels at each rounded corner, plus one low crossbar for the bottom rib. They
+are glued to the back of the skin, toe-screwed into the stiles and stapled through
+the face. Each rib bears on a 12-inch 2x4 cleat on each wall, screwed through the
+skin into its crossbar with two #9 x 3-inch screws; the bottom rib rests on the
+floor (or cove top) and the top rib hangs under cleats at the top rail. That gives
+11 ribs per corner on 10-foot walls with a painted floor. The vertical rear corner
+backers are gone: they could not pass the existing toggles, and the crossbars now
+back the ribs and the skin edges.
 Ribs: 3/4-inch plywood, up to 16-inch centers for simple curves; radial junction
 ribs spaced approximately 8 inches around the upper arc. Purchasing envelopes
 allow two 36-inch vertical rib blanks or three 26-inch floor/junction blanks per

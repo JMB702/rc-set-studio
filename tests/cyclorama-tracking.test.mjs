@@ -42,7 +42,7 @@ test('Build design and workspace preserve options and requested gaps through sta
  assert.equal(guideCompletionMatchesDesign({design},{...design,seamlessPerimeter:false}),false);assert.equal(guideCompletionMatchesDesign({design},design),true);
 });
 test('Guide fastener allowance matches retrofit pricing quantity basis',()=>{
- const p=cycloramaPlan(design),anchors=stepFasteners(43,120,'charcoal',design)[0];assert.equal(anchors.quantity,(p.floorRibs+p.compoundRibs)*4);assert.equal(stepFasteners(49,120,'charcoal',design)[0].quantity,p.ribBackScrews/p.corners);
+ const p=cycloramaPlan(design),anchors=stepFasteners(43,120,'charcoal',design)[0];assert.equal(anchors.quantity,(p.floorRibs+p.compoundRibs)*4+p.ribFlatScrews);const corner=stepFasteners(49,120,'charcoal',design),qty=id=>corner.find(f=>f.productId===id)?.quantity;assert.equal(qty('cycRibScrews'),p.ribBackScrews/p.corners);assert.equal(qty('cycAnchorScrews'),p.ribFlatScrews/p.corners);
  const skin=stepFasteners(45,120,'charcoal',design)[0];assert.match(skin.note,new RegExp('^'+(p.fasteners-p.ribCount*4)+' planned'));
  for(const stage of [43,44,45,46,47,48])assert.ok(stepFasteners(stage,120,'charcoal',design).every(row=>row.title&&row.note));
 });

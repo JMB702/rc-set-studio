@@ -609,7 +609,7 @@ body>header nav .mode{padding-left:15px;padding-right:15px}
 .guide-batch-entry button{margin-left:auto;padding:10px 14px;border-radius:7px;background:#263e30;color:white;font-size:14px}
 #guide-batch [role=status]:empty{display:none}
 
-.batch-checkpoint #step-fasteners,.batch-checkpoint #step-description,.batch-checkpoint #step-actions,.batch-checkpoint .step-part-card,.batch-checkpoint #step-check,.batch-checkpoint #step-detail,.batch-checkpoint #guide-completion{display:none!important}
+.batch-checkpoint #step-needs,.batch-checkpoint .step-do-title,.batch-checkpoint #step-actions,.batch-checkpoint #guide-completion{display:none!important}
 .batch-checkpoint #guide-batch{margin:12px 0 18px}
 .batch-checkpoint #guide-batch h3{display:none}
 .batch-checkpoint #guide-batch p{margin:0 0 14px}
@@ -799,3 +799,22 @@ body.camera-positions main .controls{padding-bottom:180px}
  body.camera-positions main .controls{padding-bottom:96px}
 }
 @media(max-width:850px) and (orientation:landscape){.save-dock{left:auto;width:max(280px,42%)}}
+
+/* Build step layout: what you need in one compact card, then every instruction numbered in order. */
+#step-needs{margin:4px 0 20px;padding:12px 14px;border:1px solid #dbe3d6;border-radius:10px;background:#f6f8f3}
+#step-needs h3,.step-do-title{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#5f7457;margin:0 0 8px;font-weight:700}
+#step-needs dl{margin:0;display:grid;gap:8px}
+.need-row{display:grid;grid-template-columns:76px minmax(0,1fr);gap:10px;align-items:start}.need-row[hidden]{display:none}
+.need-row dt{font-size:12px;font-weight:650;color:#5f6d66;padding-top:1px}.need-row dd{margin:0;font-size:14px;line-height:1.45;color:#22322b;overflow-wrap:anywhere}
+#step-needs #step-spec{margin:0;padding:0;background:none;font-size:14px;color:#22322b}
+#step-needs #step-fasteners{background:none;border:0;padding:0;margin:0}
+#step-needs #step-fasteners-list{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+#step-needs #step-fasteners-list strong{display:block;font-size:14px;font-weight:650;color:#22322b}
+#step-needs #step-fasteners-list span{display:block;font-size:13px;line-height:1.45;color:#56655e;margin-top:2px}
+#step-needs #step-tools{font-size:14px}
+#step-needs #guide-cut-link{margin-top:10px}
+.step-do-title{margin-top:14px}
+#step-actions{counter-reset:instruction;list-style:none;margin:0 0 18px;padding:0;display:grid;gap:12px}
+#step-actions li{counter-increment:instruction;position:relative;padding-left:36px;font-size:16px;line-height:1.5;color:#1f2e27}
+#step-actions li:before{content:counter(instruction);position:absolute;left:0;top:0;width:24px;height:24px;display:grid;place-items:center;background:#2f4a2b;color:#fff;border-radius:50%;font-size:12px;font-weight:700}
+@media(max-width:850px){.building #step-actions li{font-size:15px}.need-row{grid-template-columns:68px minmax(0,1fr)}}

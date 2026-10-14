@@ -63,41 +63,16 @@ function platformSteps(p,onFloor){const c=p.counts,ft=v=>(v/12).toFixed(1)+' ft'
 [35,'Skin the exposed sides',`Rip 1/8″ lauan along the 8-foot sheet length. Measure the actual floor-to-deck height (about 10″), then trim strips to fit. Use the long side pieces in the cut list, spanning frame joints. Glue and staple them to every exposed rim, leg and sill, from the floor to the top of the deck so they cover the deck edge. Butt strip ends over a leg and keep the top edge flush with the deck.`,`${ft(p.fasciaLength)} of fascia · ${p.fasciaPieces.length} fitted pieces from ${p.fasciaStrips} stock strips (${sheets} sheets) · ½″ staples about 4″ apart.`,'front'],
 [36,'Cement-skim the deck and finish the sides',`Check that all deck joints are supported by framing and the neighboring frames are screwed tight. Trowel a thin, continuous Rapid Set SKIM FLOOR coat over the single-layer plywood walking surface. Follow the cement skim preparation and curing instructions. On the vertical lauan fascia only, embed paper joint tape in premixed all-purpose compound and finish with thin coats, letting each coat dry; fit corner bead to vertical outside corners. Keep drywall compound off the walking surface.`,`${p.deckArea.toFixed(0)} sq ft cement-skim deck + ${(p.finishArea-p.deckArea).toFixed(0)} sq ft scenic fascia. Plan a 1/16″ average deck skim. Paint-only finish is an unverified scenic wear system; patching and repainting are accepted.`,'front'],
 [37,'Prime and paint the platform',`After the cement skim is dry, prime the deck with the same cement-compatible primer selected for the floor. Prime the scenic fascia with KILZ 2. Paint the whole platform in the selected matching floor-paint color. No epoxy or polyurethane wear coat is planned. Allow the coating to cure before performance use and repair chips or wear as needed.`,`Prime the cured deck skim with BEHR Concrete & Masonry Bonding Primer before the floor paint. Keep the platform assembled after finishing; taking modules apart will require repairing the finish.`,'front']];}
-const platformHelp={30:['Floor plan · look down','Tape measure, chalk line and framing square','The outline keeps the chosen gaps from every wall line, and every module is 4′ × 4′ or smaller.'],31:['Frames flat on the floor','Miter saw, square, clamps and drill','Each frame matches its layout, the rims are flush on top and the joists sit at 16″ centers.'],32:['Frames upright on their legs','Saw, square, clamps and drill','Every leg is tight against the rims, and each frame sits flat without rocking.'],33:['Platform in place · work from outside','Drill, clamps, level and shims','Rim tops are flush across every seam, and no module rocks.'],34:['Platform in place · work from above','Circular saw, chalk line and drill','Every deck edge lands on a rim or joist, and the screw heads sit just below the surface.'],35:['Platform in place · work from outside','Table or track saw, wood glue and narrow-crown stapler','The fascia is flush with the deck top and covers every exposed edge down to the floor.'],36:['Finish the top and sides','Trowel, mixing paddle and drill, fascia taping knives and sanding tools','The deck skim is dry and bonded; fascia joints are smooth. All deck joints remain supported and frames stay joined.'],37:['Finish the top and sides','Roller, brush, tray and extension pole','The paint has cured as the label directs before anyone walks on the platform.']};
+const platformHelp={30:['Floor plan · look down','Tape measure, chalk line and framing square'],31:['Frames flat on the floor','Miter saw, square, clamps and drill'],32:['Frames upright on their legs','Saw, square, clamps and drill'],33:['Platform in place · work from outside','Drill, clamps, level and shims'],34:['Platform in place · work from above','Circular saw, chalk line and drill'],35:['Platform in place · work from outside','Table or track saw, wood glue and narrow-crown stapler'],36:['Finish the top and sides','Trowel, mixing paddle and drill, fascia taping knives and sanding tools'],37:['Finish the top and sides','Roller, brush, tray and extension pole']};
 const phases=['Prepare parts','Build the frame','Attach the skin','Build the jacks','Support the panel','Assemble the set','Lay the floor','Trim and finish','Build the platform'];
-const checks=[
-'Every part is labeled and cut to the listed length. Use the cut list below before starting.',
-'The skin-facing edge is against the bench. The board lies straight.',
-'Outside width is 48″; inside width is 46½″. Both ends line up.',
-'The bottom rail is flush with both stile ends.',
-'The two outside diagonals match. Keep the rectangle clamped square.',
-'The toggle center is 24″ from the bottom outside edge.',
-'The toggle center is 48″ from the bottom outside edge.',
-'The toggle center is 72″ from the bottom outside edge. All skin edges align.',
-'The backer center is 96″ from the bottom, leaving 1¾″ for each skin edge.',
-'All joints are glued and fastened, heads are flush, and the frame is still square.',
-'The sheet is flush with the bottom and both sides. The frame supports the face evenly.',
-'The joint lands on the backer, with both skin edges fully supported.',
-'Staples sit flush without cutting the veneer. Keep the face flat during curing.',
-'You have a left and right jack, both lying with their inboard faces up.',
-'The upright and foot bottoms are flush, and the foot butts against the upright at 90°. Keep them clamped while fitting the diagonal.',
-'Both diagonals fit their overlaps and have two screws at each end.',
-'Each gusset clears the diagonal and is fastened to both members.',
-'Six flush wood-screw heads per jack; no protruding tips or split wood. Keep the panel supported.',
-'Both bars are flat, centered, and fastened at all four foot crossings.',
-'The shelf sits flat; all twelve screw heads are flush.',
-'Ballast sits low and centered. Verify stability in the actual layout before releasing support.',
-'Four back panels and two panels per wing are aligned and joined. Supports remain secure.',
-'Wings are independently braced and corners secured at the chosen angle.',
-'The outline matches the final wall positions and the existing floor supports the whole overlay.',
-null,null,null,null,
-'Wall seams are smooth and primed. Let the selected paint cure before using the set.'
-];
+// Verifications that are real work become the step's last numbered instruction. Restatements of the step were dropped.
+const finishingChecks={4:'Measure both outside diagonals (about 129¼″ on 10′ flats, 107 5/16″ on 8′) and adjust the clamps until they match.',9:'Measure the diagonals again; the frame must still be square.',12:'Keep the face flat while the glue cures.',17:'Check that no screw tip pokes through and no wood split. Keep the panel supported until the shelf and ballast are on.',28:'Let the paint cure before using the set.',30:'Check that every module is 4′ × 4′ or smaller.',32:'Set each frame on the floor and make sure it does not rock.'};
+const floorChecks={wood:{27:'Make sure the ⅜″ gap stays clear on every wall line and nothing pins the floating floor.'},charcoal:{25:'Let the skim dry fully before priming.',26:'Let the primer dry before painting.',27:'Let the paint cure before anyone walks on the floor; touch up chips as it wears.'}};
 function stepHelp(stage,floor){
  const phaseIndex=stage===0?0:stage<=9?1:stage<=12?2:stage<=16?3:stage<=20?4:stage<=22?5:stage>=30&&stage<40?8:stage<=26||stage===27&&floor!=='wood'?6:7;
  const orientation=platformHelp[stage]?platformHelp[stage][0]:stage===0?'Parts laid flat':stage<=9?'Flat on bench · frame side up':stage<=12?'Flat on supports · skin side up':stage<=16?'Jacks on their sides · inboard faces up':stage<=20?'Panel upright · work from behind':stage<=22?'Walls upright · secure supports':stage<=26?'Floor flat · look down into the set':stage===27?'Finish at floor level':'Walls upright · work from the front';
  const tools=platformHelp[stage]?platformHelp[stage][1]:stage===0?'Tape measure, square, pencil and saw':stage<=8?'Tape measure, square and clamps':stage===9?'Wood glue, clamps, drill, pilot bit and countersink':stage<=12?'Wood glue, clamps and narrow-crown stapler':stage<=16?'Square, clamps, saw, wood glue and drill':stage===17?'Helper, clamps, drill/driver, #2 Phillips bit, clearance bit, pilot bit and countersink':stage<=19?'Drill/driver, matching driver bit, pilot bit and countersink':stage===20?'Ballast':stage<=22?'Helper, clamps, drill and independent braces':stage<=26?'Tape measure and tools specified by the floor manufacturer':'Sanding and finishing tools specified by the coating manufacturer';
- return {phase:phases[phaseIndex],phaseIndex,orientation,tools,check:platformHelp[stage]?.[2]??checks[stage]};
+ return {phase:phases[phaseIndex],phaseIndex,orientation,tools,check:finishingChecks[stage]??floorChecks[floor]?.[stage]};
 }
 function outlinePiece(o){const outline=new T.LineSegments(new T.EdgesGeometry(o.geometry,30),new T.LineBasicMaterial({color:0x527b2b,transparent:true,opacity:1}));outline.name='Current piece outline';outline.userData.guideDecoration=true;outline.raycast=()=>{};o.add(outline);}
 export function installGuide(api){
@@ -228,7 +203,7 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   // Floor work is viewed from above; frame the footprint rather than empty wall height.
   if(floorWork){const poly=footprint(S.angle);bounds.min.x=Math.min(...poly.map(p=>p[0]))*inch;bounds.max.x=Math.max(...poly.map(p=>p[0]))*inch;bounds.min.y=0;bounds.max.y=.15;bounds.min.z=0;bounds.max.z=96*inch;}
  }
- const floorReplay=document.createElement('button');floorReplay.id='floor-assembly-replay';floorReplay.type='button';floorReplay.textContent='Replay panel assembly ↻';floorReplay.hidden=true;$('#step-description').after(floorReplay);floorReplay.onclick=()=>display(false);
+ const floorReplay=document.createElement('button');floorReplay.id='floor-assembly-replay';floorReplay.type='button';floorReplay.textContent='Replay panel assembly ↻';floorReplay.hidden=true;$('#step-actions').after(floorReplay);floorReplay.onclick=()=>display(false);
  function sectionUI(current){
   $('#guide-sections').replaceChildren(...sections.map(x=>{const count=all.filter(step=>step.section===x.id).length,b=document.createElement('button');b.type='button';b.dataset.section=x.id;b.disabled=!count;b.setAttribute('aria-pressed',x.id===current);if(x.id===current)b.setAttribute('aria-current','step');
    b.title=x.sub;b.innerHTML=`<strong>${x.label}</strong><span>${count?`${count} step${count===1?'':'s'}`:x.id==='platform'?'No platform in this design':'No floor in this design'}</span>`;b.onclick=()=>goSection(x.id);return b;}));
@@ -240,11 +215,11 @@ function materialUI(){const area=floorArea(S.angle),cases=Math.ceil(area*1.1/24.
   sectionUI(st.section);
   floorReplay.hidden=!([24,42].includes(st.stage)&&S.floor==='charcoal');
   $('#step-phase').textContent=st.phase;$('#step-title').textContent=st.title;
-  $('#step-fasteners-list').replaceChildren(...st.fasteners.map(f=>{const li=document.createElement('li'),title=document.createElement('strong'),note=document.createElement('span');title.textContent=f.title;note.textContent=f.note;li.append(title,note);return li;}));
-  const sentences=st.description.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[st.description];
-  $('#step-description').textContent=sentences.shift().trim();$('#step-actions').replaceChildren(...sentences.map(text=>{const li=document.createElement('li');li.textContent=text.trim();return li;}));
-  $('#step-check-text').textContent=st.check||(S.floor==='wood'?{24:'Underlayment edges meet without overlap. Follow the required moisture-barrier details.',25:'Starter rows are straight, end pieces are at least 16″, and the ⅜″ expansion gap is clear.',26:'End joints are staggered at least 16″. All perimeter pieces retain their expansion gap.',27:'The ⅜″ gap is clear on every wall line and nothing pins the floating floor.'}:{24:'All sheets and their edges are supported. No joints flex or rock.',25:'The cement skim is smooth, bonded and dry. The paint-only wear layer is an accepted scenic compromise.',26:'The cement-compatible primer is dry and ready for the selected paint.',27:'The paint has cured for foot traffic; schedule touch-ups as the surface wears.'})[st.stage];
-  $('#guide-cut-link').hidden=![0,30,34].includes(st.stage);$('#step-spec').textContent=st.spec;$('#step-tools').textContent='Bring: '+st.tools;
+  const fasteners=st.fasteners.filter(f=>!/^No fasteners/.test(f.title));$('#step-fasteners').hidden=!fasteners.length;
+  $('#step-fasteners-list').replaceChildren(...fasteners.map(f=>{const li=document.createElement('li'),title=document.createElement('strong'),note=document.createElement('span');title.textContent=f.title;note.textContent=f.note;li.append(title,note);return li;}));
+  const sentences=(st.description.match(/[^.!?]+[.!?]+|[^.!?]+$/g)||[st.description]).map(t=>t.trim()).filter(Boolean);if(st.check)sentences.push(st.check);
+  $('#step-actions').replaceChildren(...sentences.map(text=>{const li=document.createElement('li');li.textContent=text;return li;}));
+  $('#guide-cut-link').hidden=![0,30,34].includes(st.stage);$('#step-spec').textContent=st.spec;$('#step-tools').textContent=st.tools;
   $('#guide-orientation').textContent=st.orientation;
   $('#back').disabled=S.step===0;$('#next').textContent=S.step===all.length-1?'Finish & explore →':'Next step →';
   const next=all[S.step+1];$('#guide-next-label').textContent=!next?'Last step · check the finished set':next.section!==st.section?`Up next: ${sections.find(x=>x.id===next.section).label} · ${next.title}`:'Up next: '+next.title;

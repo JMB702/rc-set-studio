@@ -28,7 +28,7 @@ export function render(data) {
     out.push(`SUBTOTAL ${money(rows.reduce((sum, r) => sum + r.subtotalCents, 0))}`, '');
   }
   if(data.cyclorama){out.push('OPTIONAL CYCLORAMA CATALOG — QUANTITIES FOLLOW THE ACTIVE DESIGN');for(const p of data.cyclorama.products)out.push(`${p.name} @ ${money(p.unitPriceCents)}`,`  ${p.availability}`,`  ${p.productUrl}`);out.push('Curved skins and adhesive reuse the wall-panel skin and glue products above. Use the Pricing guide CSV for current configured buying quantities and tax.','');}
-  if(data.floorLayout)out.push('FLOOR LAYOUT — DYNAMIC QUANTITIES','Top: full 48×96 sheets back-to-front; four whole center sheets, perimeter cuts only. Lower joints offset 24 inches.','Optional 6-inch front joining lip extends the lower layer only. Floor stock uses the shared cut planner with 1/8-inch kerf.','Floor sheet quantities depend on the wing angle and lip setting; use Explore, the floor cut list and Pricing for the current design.','');
+  if(data.floorLayout)out.push('FLOOR LAYOUT — DYNAMIC QUANTITIES','Top: full 48×96 sheets back-to-front; four whole center sheets, perimeter cuts only. Lower joints offset 24 inches.','Optional 12-inch front joining lip extends the lower layer only. Floor stock uses the shared cut planner with 1/8-inch kerf.','Floor sheet quantities depend on the wing angle and lip setting; use Explore, the floor cut list and Pricing for the current design.','');
   out.push(data.notes.join('\n\n'), '');
   return out.join('\n');
 }

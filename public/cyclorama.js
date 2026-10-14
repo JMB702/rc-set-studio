@@ -1,3 +1,4 @@
+import {floorSurfaceHeight} from './floor-plan.js';
 // Retrofit planning geometry in inches. Actual rib/skin fit must be templated on the assembled set.
 // 36″ vertical radius leaves a 12″ corner radius at the toe of a 24″ floor sweep.
 export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:36,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
@@ -25,7 +26,7 @@ export function cycloramaPlan(d={}){
  const ribSheets=Math.ceil(verticalRibs/Math.max(1,verticalYield))+Math.ceil(floorRibs/floorYield)+Math.ceil(compoundRibs/compoundYield),blockingFeet=Math.ceil((corners*cornerHeight*2+verticalSkinSeams*cornerHeight+(perimeter?straightLength*2:0)+ribCount*12)/12*1.15),fasteners=Math.ceil((ribCount*8+skinArea*4)*1.15),tapeFeet=Math.ceil((corners*cornerHeight*2+(perimeter?perimeterLength*2:0))/12+(skinSheets*8)+(perimeter&&corners?80:0)),compoundPails=skinArea?Math.ceil(skinArea/150)+(perimeter&&corners?2:0):0;
  const glueContactSqFt=((verticalRibs*cornerArc+(floorRibs+compoundRibs)*r*Math.PI/2)*CYC.ribThickness+(corners*cornerHeight*2+(perimeter?straightLength*2:0))*1.5+verticalSkinSeams*cornerHeight*3.5)/144;
  const adhesiveBottles=ribCount?Math.max(1,Math.ceil(glueContactSqFt*1.25/(250/8))):0;
- return {...CYC,ribStock,verticalSkinSeams,skinLayout,goreSheets,glueContactSqFt,adhesiveBottles,angle,corners,perimeter,margin:CYC.feather+CYC.clearance,cornerHeight,tangent,cornerArc,straightLength,perimeterLength,verticalRibs,floorRibs,compoundRibs,ribCount,skinArea,skinSheets,ribSheets,blockingFeet,fasteners,tapeFeet,compoundPails};
+ return {...CYC,fittedCornerHeight:cornerHeight-floorSurfaceHeight(d),floorBase:floorSurfaceHeight(d),ribStock,verticalSkinSeams,skinLayout,goreSheets,glueContactSqFt,adhesiveBottles,angle,corners,perimeter,margin:CYC.feather+CYC.clearance,cornerHeight,tangent,cornerArc,straightLength,perimeterLength,verticalRibs,floorRibs,compoundRibs,ribCount,skinArea,skinSheets,ribSheets,blockingFeet,fasteners,tapeFeet,compoundPails};
 }
 // Three straight runs and optional two rounded corners at an inward offset from the existing wall.
 // Sweep this path from offset0/y24 to offset24/y0 for a continuously tangent floor cove.

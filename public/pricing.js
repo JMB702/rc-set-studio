@@ -1,3 +1,4 @@
+import {floorSurfaceHeight} from './floor-plan.js';
 import {installCanvasTap,pricingIsolationAllowed,pricingPartOpaque} from './pricing-interaction.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
@@ -66,7 +67,7 @@ export function installPricing(api){
  const previewToggle=document.createElement('button');previewToggle.id='price-preview-toggle';previewToggle.type='button';previewToggle.textContent='Hide 3D preview';previewToggle.setAttribute('aria-expanded','true');document.querySelector('.viewport').append(previewToggle);previewToggle.onclick=()=>{const hidden=document.body.classList.toggle('price-preview-hidden');previewToggle.textContent=hidden?'Show 3D preview':'Hide 3D preview';previewToggle.setAttribute('aria-expanded',String(!hidden));if(!hidden)requestAnimationFrame(()=>requestAnimationFrame(()=>fit()));};
  const report=document.createElement('section');report.id='price-print-report';document.body.append(report);
  q('#price-design-edit').onclick=()=>api.setMode('finished');
- const designText=()=>[`${S.height/12}′ walls`,`${S.angle}° wings`,S.platformShape==='none'?'no platform':`${S.platformShape} platform`,S.floor==='none'?'no floor':S.floor==='wood'?'oak floor':'painted floor',...(S.floor==='charcoal'&&S.floorLip?['6″ front joining lip']:[]),...(S.seamlessCorners?['seamless corners']:[]),...(S.seamlessPerimeter?['seamless perimeter']:[]),...((S.seamlessCorners||S.seamlessPerimeter)&&S.platformShape!=='none'?[`platform gaps ${cycloramaGaps(S).back}″ back / ${cycloramaGaps(S).side}″ sides`]:[])].join(' · ');
+ const designText=()=>[`${S.height/12}′ walls`,`${S.angle}° wings`,S.platformShape==='none'?'no platform':`${S.platformShape} platform`,S.floor==='none'?'no floor':S.floor==='wood'?'oak floor':'painted floor',...(S.floor==='charcoal'&&S.floorLip?['12″ front joining lip']:[]),...(S.seamlessCorners?['seamless corners']:[]),...(S.seamlessPerimeter?['seamless perimeter']:[]),...((S.seamlessCorners||S.seamlessPerimeter)&&S.platformShape!=='none'?[`platform gaps ${cycloramaGaps(S).back}″ back / ${cycloramaGaps(S).side}″ sides`]:[])].join(' · ');
  const groupOf=r=>r.custom?'custom':r.group||'other',groupOrder=Object.keys(GROUP_LABELS);
  function estimate(){const sub=summary(rows).subtotal,tax=materialTax(rows),labor=laborFor(S);return {sub,tax,materials:sub+tax,labor,total:sub+tax+(labor.costCents??0)};}
  // With burn-down unlocked the breakdown itemizes the projected total: what was paid and logged, plus the estimate for
@@ -100,9 +101,9 @@ export function installPricing(api){
   if(scope==='panel'){const p=pricedPanel(h);p.position.x=-24*inch;model.add(p);}else{
    const back=new T.Group(),left=new T.Group(),right=new T.Group();back.position.x=left.position.x=-96*inch;right.position.x=96*inch;left.rotation.y=a;right.rotation.y=-a;model.add(back,left,right);
    for(let i=0;i<4;i++){const p=pricedPanel(h,i);p.position.x=i*48*inch;p.userData.progressPanel=i;back.add(p);}for(let i=0;i<2;i++){const l=pricedPanel(h,5-i),r=pricedPanel(h,6+i);l.position.x=-(i+1)*48*inch;r.position.x=i*48*inch;l.userData.progressPanel=4+i;r.userData.progressPanel=6+i;left.add(l);right.add(r);}
-   if(S.floor!=='none'){const f=floorMesh(S.angle,S.floor,99,S);f.traverse(o=>{if(o.isMesh){o.userData.pricingIds=o.userData.progress?.rawOnly?['floorPly','vapor']:['laminate','underlay','vapor','floorPly','floorPrimer','floorPaint','floorSeams','floorGlue','floorLayerScrews','floorFixings'];o.userData.baseColor=o.material.color.clone();o.userData.baseMap=o.material.map;}});model.add(f);}
+   if(S.floor!=='none'){const f=floorMesh(S.angle,S.floor,99,S);f.traverse(o=>{if(o.isMesh){o.userData.pricingIds=o.userData.floorPriceIds||(o.userData.progress?.rawOnly?['floorPly','vapor']:['laminate','underlay','vapor','floorPly','floorPrimer','floorPaint','floorSeams','floorGlue','floorLayerScrews','floorFixings']);o.userData.baseColor=o.material.color.clone();o.userData.baseMap=o.material.map;}});model.add(f);}
    if(S.seamlessCorners||S.seamlessPerimeter){const cyc=cycloramaMesh(S,{construction:true});cyc.traverse(o=>{if(o.isMesh){const kind=o.userData.pricingIds?.[0]||'cycSkin';o.userData.pricingIds=kind==='cycRibPly'?['cycRibPly','cycAnchorScrews']:kind==='cycBacking'?['cycBacking','cycAnchorScrews']:['cycSkin','cycSkinScrews','cycAdhesive','cycTape','cycReinforcement','cycCompound','cycPrimer','cycPaint'];o.userData.baseColor=o.material.color.clone();o.userData.baseMap=o.material.map;}});model.add(cyc);}
-   if(S.platformShape!=='none')model.add(pricedPlatform(platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle,S)));
+   if(S.platformShape!=='none'){const p=pricedPlatform(platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle,S));p.position.y=floorSurfaceHeight(S)*inch;model.add(p);}
   }
   apply();api.invalidate();
  }

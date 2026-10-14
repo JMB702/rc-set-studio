@@ -102,9 +102,9 @@ boundaries. Lower longitudinal joints are offset 24 inches. Purchase quantities
 come from floor-plan.js: rectangular blank packing with a 1/8-inch saw kerf,
 not a blanket area allowance. Angled offcuts are not assumed reusable.
 Actual stock sizes and manufacturer movement gaps must be measured before cuts.
-Optional floorLip (default false) extends the LOWER layer 6 inches to depth102,
-while the top and finish stop at96. Shift the long lower sheets 6 inches forward
-and fill the rear6-inch band using the numbered cuts; do not attach a detached
+Optional floorLip (default false) extends the LOWER layer 12 inches to depth108,
+while the top and finish stop at96. Shift the long lower sheets 12 inches forward
+and fill the rear12-inch band using the numbered cuts; do not attach a detached
 front strip. The exposed ledge is not extra finished floor: keep it clear, raw
 and supported until a future fully supported section overlaps it. This option
 applies only to the painted plywood floor; laminate and no-floor modes ignore it.
@@ -120,7 +120,7 @@ system. The priced primer is BEHR Concrete & Masonry Bonding Primer;
 compatibility of the complete paint-only system remains unverified.
 Prices are recorded in the Pricing guide with their check dates.
 The retail skim bag listing and manufacturer TDS differ in size;
-use verified pack yield when buying. Model finished-floor datum stays at zero.
+use verified pack yield when buying. Finished views use the supporting concrete at y=0. Painted floor layers are 1.4mm felt + .703in lower plywood + .703in upper plywood + 1/16in planned skim: total1.5236in, excluding negligible paint thickness. The 12in joining lip ends at the lower-plywood top, about0.7581in above concrete. Both plywood edges are visible. Walls and jacks remain on concrete; the platform, people and floor coves reference the raised surface. Vertical corner skins trim to the unchanged wall top; existing full-height stock allowance is retained. Laminate renders its documented7mm body; underlay thickness must be measured on the selected product.
 The visualization is dimensionally derived, not a structural certification.
 
 10-INCH PLATFORM (ADDED OCTOBER 6, 2026)

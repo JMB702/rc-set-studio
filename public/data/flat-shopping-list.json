@@ -1564,9 +1564,12 @@
     "topDirection": "96-inch length back to front; four whole center sheets",
     "lowerSeamOffsetInches": 24,
     "sawKerfInches": 0.125,
-    "frontJoiningLipInches": 6,
+    "frontJoiningLipInches": 12,
     "frontJoiningLipDefault": false,
     "quantityMethod": "Pack bounding blanks for both layers with kerf; reuse rectangular offcuts, no blanket sheet waste uplift",
-    "priceBasis": "Existing dated products and prices unchanged"
+    "priceBasis": "Existing dated products and prices unchanged",
+    "underlaymentThicknessMm": 1.4,
+    "plannedSkimThicknessInches": 0.0625,
+    "finishedSurfaceInches": 1.523618
   }
 }

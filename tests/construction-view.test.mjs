@@ -113,3 +113,21 @@ test('Left and right floor ribs mirror inward at square and angled walls',()=>{
   }
  }
 });
+
+test('Finished floor has physical layers and a 12-inch lower-plywood ledge above the support floor',async()=>{
+ const {floorSection,FLOOR}=await import('../public/floor-plan.js');const s=floorSection('charcoal'),I=model.inch,close=(a,b)=>assert.ok(Math.abs(a-b)<1e-5,`${a} != ${b}`);
+ for(const angle of [0,45,90])for(const floorLip of [false,true]){
+  const root=model.floorMesh(angle,'charcoal',99,{floorLip});root.updateMatrixWorld(true);
+  const bounds=o=>new T.Box3().setFromObject(o),felt=bounds(root.getObjectByName('Felt underlayment')),lower=bounds(root.getObjectByName(floorLip?'Front joining lip — exposed lower plywood':'Lower plywood layer')),upper=bounds(root.getObjectByName('Upper plywood layer')),paint=bounds(root.getObjectByName('Floor'));
+  close(felt.min.y,0);close(felt.max.y,s.underlay*I);close(lower.min.y,felt.max.y);close(lower.max.y,s.lower*I);close(upper.min.y,lower.max.y);close(upper.max.y,s.upper*I);close(paint.min.y,s.top*I);close(paint.max.y,s.top*I);
+  close(upper.max.z,96*I);close(lower.max.z,(floorLip?108:96)*I);assert.ok(lower.max.y<paint.min.y);model.dispose(root);
+ }
+ close(s.top-s.lipTop,FLOOR.thickness+1/16);
+});
+test('Platforms and floor curves meet the raised floor without lifting wall tops',async()=>{
+ const {floorSurfaceHeight}=await import('../public/floor-plan.js'),I=model.inch,close=(a,b)=>assert.ok(Math.abs(a-b)<1e-5,`${a} != ${b}`);
+ for(const floor of ['none','wood','charcoal']){const d={height:120,angle:90,floor,seamlessCorners:true,seamlessPerimeter:true},top=floorSurfaceHeight(d),platform=model.platformFloor(90,12,12,90,d),cyc=model.cycloramaMesh(d);platform.updateMatrixWorld(true);cyc.updateMatrixWorld(true);
+  const b=new T.Box3().setFromObject(platform);close(b.min.y,top*I);close(b.max.y,(top+10)*I);
+  const corner=cyc.getObjectByName('Rounded wall corner -1'),skin=new T.Box3().setFromObject(corner);close(skin.max.y,120*I);assert.ok(skin.min.y>=top*I);close(cyc.position.y,top*I);model.dispose(platform);model.dispose(cyc);
+ }
+});

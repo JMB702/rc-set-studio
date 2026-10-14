@@ -92,6 +92,15 @@ SUBTOTAL $262.49
   https://www.homedepot.com/p/314459358
 SUBTOTAL $304.42
 
+OPTIONAL CYCLORAMA CATALOG — QUANTITIES FOLLOW THE ACTIVE DESIGN
+Plytanium 23/32 in BC sanded pine plywood · rib stock · 4×8 sheet @ $52.88
+  Last verified at #6319 Oct 10; live price refresh blocked Oct 13. Actual .703 × 47.938 × 95.938 inches. Measure sheets before templating.
+  https://www.homedepot.com/p/100061386
+ADFORS FibaFuse paperless joint tape · 2-1/16 in × 250 ft @ $7.98
+  Lowe’s online price observed Oct 13, 2026; local stock unverified. Home Depot equivalent #203154307 preferred if available; its price refresh was blocked. Manufacturer recommends all-purpose ready-mixed compound; trial on supported curved lauan seams.
+  https://www.lowes.com/pd/Saint-Gobain-ADFORS-FibaFuse-2-0625-in-x-250-ft-Mesh-Construction-Joint-Tape/4411371
+Curved skins and adhesive reuse the wall-panel skin and glue products above. Use the Pricing guide CSV for current configured buying quantities and tax.
+
 Lumber names use store sizes such as 1×6 and 2×4. Listed cut lengths and sheet cuts are exact finished dimensions. The 3D model retains actual geometry; this labeling change does not change what to buy or how long to cut it.
 
 Prices observed with E Bradenton selected; availability can change. Tax, delivery, tools, paint, primer, floor materials and panel-to-panel/corner connections excluded.
@@ -112,4 +121,6 @@ Screw-only jack revision, Oct 7, 2026: six #8 × 1¼ in wood screws per jack, dr
 
 Only the #8 × 1¼ in screw pack was rechecked Oct 7, 2026: Home Depot #6319, model 801832, SKU 251429, internet 204275496, $7.97 per 100-pack, 6 packs shown in stock. Other product check dates remain as listed.
 
-Optional cyclorama retrofit: seamlessCorners and seamlessPerimeter are independent design options. The Pricing guide calculates ribs, flexible skin, timber backing, fasteners, seam reinforcement and finish from cycloramaPlan(); these extras are excluded from the per-panel list above. Unknown flexible skin, ¾-inch rib plywood, compatible adhesive and compound-corner reinforcement remain explicitly pending. Use the design-specific Pricing guide CSV for current quantities. Both options add a separate 48 person-hour compound-corner planning allowance plus 3–5 drying calendar days; this is not a published construction-time benchmark.
+Optional cyclorama retrofit: seamlessCorners and seamlessPerimeter are independent design options. The Pricing guide calculates ribs, flexible skin, timber backing, fasteners, seam reinforcement and finish from cycloramaPlan(); these extras are excluded from the per-panel list above. Skin, rib plywood, adhesive and compound reinforcement are now selected and priced; floor-substrate transitions remain conditional. Use the design-specific Pricing guide CSV for current quantities. Both options add a separate 48 person-hour compound-corner planning allowance plus 3–5 drying calendar days; this is not a published construction-time benchmark.
+
+Cyclorama estimate Oct 13: uses the same Home Depot utility plywood skin and Titebond III as the walls; no specialty supplier or order minimum. Rib stock uses Home Depot 23/32 nominal, .703 actual plywood. The cut plan respects sheet size, bend direction and kerf; the optional lower junctions add sourced Lowe’s FibaFuse only as a fallback. Existing store prices retain their original check dates because Home Depot blocked today’s refresh. Quantities, labor and estimated 7% tax follow the active design, not a separately chosen configuration.

@@ -27,6 +27,7 @@ export function render(data) {
     for (const r of rows) out.push(`${r.purchaseQuantity} x ${r.name} @ ${money(r.unitPriceCents)} = ${money(r.subtotalCents)}`, `  ${r.availability}`, `  ${r.productUrl}`);
     out.push(`SUBTOTAL ${money(rows.reduce((sum, r) => sum + r.subtotalCents, 0))}`, '');
   }
+  if(data.cyclorama){out.push('OPTIONAL CYCLORAMA CATALOG — QUANTITIES FOLLOW THE ACTIVE DESIGN');for(const p of data.cyclorama.products)out.push(`${p.name} @ ${money(p.unitPriceCents)}`,`  ${p.availability}`,`  ${p.productUrl}`);out.push('Curved skins and adhesive reuse the wall-panel skin and glue products above. Use the Pricing guide CSV for current configured buying quantities and tax.','');}
   out.push(data.notes.join('\n\n'), '');
   return out.join('\n');
 }

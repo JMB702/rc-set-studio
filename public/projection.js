@@ -29,9 +29,9 @@ export function projectMaterials(rows,expenses=[]){
  const plan=rows.map(row=>({row,...materialStatus(row,items)})),ids=new Set(rows.map(r=>r.id));
  const remainingRows=plan.filter(p=>p.status!=='bought');
  const spentCents=expenses.reduce((n,e)=>n+e.amountCents,0),remainingCents=remainingRows.reduce((n,p)=>n+(p.remainingCents??0),0);
- const remainingTaxCents=materialTax(remainingRows.map(p=>({custom:p.row.custom,subtotalCents:p.remainingCents})));
+ const remainingTaxCents=materialTax(remainingRows.map(p=>({...p.row,purchaseQuantity:p.remainingQuantity,subtotalCents:p.remainingCents})));
  // What the shopping list said the purchased part would cost, so actual spending can be compared with it.
- const covered=plan.filter(p=>p.status!=='remaining'&&p.row.subtotalCents!==null&&p.remainingCents!==null).map(p=>({custom:p.row.custom,subtotalCents:p.row.subtotalCents-p.remainingCents}));
+ const covered=plan.filter(p=>p.status!=='remaining'&&p.row.subtotalCents!==null&&p.remainingCents!==null).map(p=>({...p.row,purchaseQuantity:p.row.purchaseQuantity-p.remainingQuantity,subtotalCents:p.row.subtotalCents-p.remainingCents}));
  const coveredEstimateCents=covered.reduce((n,r)=>n+r.subtotalCents,0)+materialTax(covered);
  const estimateCents=rows.reduce((n,r)=>n+(r.subtotalCents??0),0)+materialTax(rows);
  return {plan,spentCents,remainingCents,remainingTaxCents,estimateCents,coveredEstimateCents,projectedCents:spentCents+remainingCents+remainingTaxCents,

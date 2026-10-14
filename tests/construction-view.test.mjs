@@ -75,9 +75,9 @@ test('Opaque skin covers rib faces from the room while ribs remain real solid ge
  }
 });
 
-test('Cyclorama skin has a measurable eighth-inch front/back separation',()=>{
+test('Cyclorama skin matches the wall plywood actual .106-inch thickness',()=>{
  const g=new T.PlaneGeometry(1,1),shell=model.cycloramaSkin(g),p=shell.attributes.position,c=shell.userData.skinVertexCount;
- for(let i=0;i<c;i++)assert.ok(Math.abs(new T.Vector3().fromBufferAttribute(p,i).distanceTo(new T.Vector3().fromBufferAttribute(p,i+c))-.125*model.inch)<1e-7);
+ for(let i=0;i<c;i++)assert.ok(Math.abs(new T.Vector3().fromBufferAttribute(p,i).distanceTo(new T.Vector3().fromBufferAttribute(p,i+c))-.106*model.inch)<1e-7);
  shell.dispose();
 });
 

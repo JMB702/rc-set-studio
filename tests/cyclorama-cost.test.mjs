@@ -22,8 +22,8 @@ test('All seamless combinations price matching plan quantities and preserve exis
    assert.equal(r.find(x=>x.id==='cycRibPly').purchaseQuantity,p.ribSheets);
    assert.equal(r.find(x=>x.id==='cycSkin').purchaseQuantity,p.skinSheets);
    assert.equal(r.find(x=>x.id==='cycAnchorScrews').needed+r.find(x=>x.id==='cycSkinScrews').needed,p.fasteners);
-   assert.equal(r.find(x=>x.id==='cycCompound').purchaseQuantity,p.compoundPails);
-   assert.ok(cyc.filter(x=>['cycRibPly','cycSkin','cycAdhesive','cycReinforcement'].includes(x.id)).every(x=>x.subtotalCents===null));
+   const compounds=r.filter(x=>x.productUrl==='https://www.homedepot.com/p/100321605');assert.equal(compounds.reduce((n,x)=>n+x.purchaseQuantity,0),Math.ceil(compounds.reduce((n,x)=>n+x.needed,0)));
+   assert.ok(cyc.filter(x=>['cycRibPly','cycSkin','cycAdhesive','cycReinforcement'].includes(x.id)).every(x=>Number.isInteger(x.subtotalCents)&&x.subtotalCents>0));
   }
   const platform=platformPlan(angle,12,12,angle,d);assert.equal(r.find(x=>x.id==='platformDeck').purchaseQuantity,platform.deckSheets);
   const tasks=laborTasks(d);assert.equal(tasks.some(x=>x.id==='cycJunctions'),!!(p.corners&&p.perimeter));

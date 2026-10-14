@@ -101,6 +101,11 @@ ADFORS FibaFuse paperless joint tape · 2-1/16 in × 250 ft @ $7.58
   https://www.homedepot.com/p/203154307
 Curved skins and adhesive reuse the wall-panel skin and glue products above. Use the Pricing guide CSV for current configured buying quantities and tax.
 
+FLOOR LAYOUT — DYNAMIC QUANTITIES
+Top: full 48×96 sheets back-to-front; four whole center sheets, perimeter cuts only. Lower joints offset 24 inches.
+Optional 6-inch front joining lip extends the lower layer only. Floor stock uses the shared cut planner with 1/8-inch kerf.
+Floor sheet quantities depend on the wing angle and lip setting; use Explore, the floor cut list and Pricing for the current design.
+
 Lumber names use store sizes such as 1×6 and 2×4. Listed cut lengths and sheet cuts are exact finished dimensions. The 3D model retains actual geometry; this labeling change does not change what to buy or how long to cut it.
 
 Prices observed with E Bradenton selected; availability can change. Tax, delivery, tools, paint, primer, floor materials and panel-to-panel/corner connections excluded.

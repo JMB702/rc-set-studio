@@ -1553,5 +1553,20 @@
       "provisionalDate": "2026-10-14",
       "provisionalNote": "User-approved planning allowance: about $50 per bag including estimated 7% tax and a delivery/price cushion; $100 for two bags. This is not a retailer unit price or verified shipping quote. Replace with the supplier quote when obtained."
     }
+  },
+  "floorLayout": {
+    "planner": "public/floor-plan.js",
+    "stockInches": [
+      48,
+      96
+    ],
+    "actualThicknessInches": 0.703,
+    "topDirection": "96-inch length back to front; four whole center sheets",
+    "lowerSeamOffsetInches": 24,
+    "sawKerfInches": 0.125,
+    "frontJoiningLipInches": 6,
+    "frontJoiningLipDefault": false,
+    "quantityMethod": "Pack bounding blanks for both layers with kerf; reuse rectangular offcuts, no blanket sheet waste uplift",
+    "priceBasis": "Existing dated products and prices unchanged"
   }
 }

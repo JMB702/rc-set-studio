@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import fs f
 const url=name=>new URL('../public/'+name,import.meta.url).href;
 const utils=fs.readFileSync(new URL('../public/vendor/BufferGeometryUtils.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js')));
 let source=fs.readFileSync(new URL('../public/model.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./vendor/BufferGeometryUtils.js'",JSON.stringify('data:text/javascript;base64,'+Buffer.from(utils).toString('base64')));
-for(const name of ['cyclorama.js','platform.js','jack-attachment.js','jack-layout.js','wall-appearance.js','platform-finish.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
+for(const name of ['floor-plan.js','cyclorama.js','platform.js','jack-attachment.js','jack-layout.js','wall-appearance.js','platform-finish.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
 const load=T.TextureLoader.prototype.load;T.TextureLoader.prototype.load=path=>{const t=new T.Texture();t.name=path;return t;};let model;
 try{model=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));}finally{T.TextureLoader.prototype.load=load;}
 const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-6,`${a} != ${b}`);

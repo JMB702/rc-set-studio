@@ -12,12 +12,13 @@ const angle = angleArg > -1 ? Number(process.argv[angleArg + 1]) : 45;
 const platformArg = process.argv.indexOf('--platform-angle');
 const platformAngle = platformArg > -1 ? Math.max(angle, Number(process.argv[platformArg + 1])) : angle;
 
+const floorLip=process.argv.includes('--floor-lip');
 const lines = [`Pricing guide subtotals at ${angle}° wings, base prices ${data.checkedDate} (platform items ${data.platform.products[0].checkedDate}; jack screw pack ${data.products.find(p=>p.id==='lapScrews').checkedDate}), platform gaps 12″, angled platform at ${platformAngle}° (before tax and delivery)`, ''];
 // The design a first visit opens with (public/design.js defaultDesign): 10×4 at 45°, square platform, painted floor.
 {
-  const rows = priceRows(data, {scope: 'set', height: 120, angle: 45, floor: 'charcoal', platformShape: 'square'});
+  const rows = priceRows(data, {scope: 'set', height: 120, angle: 45, floorLip, floor: 'charcoal', platformShape: 'square'});
   const {subtotal, pending} = summary(rows);
-  const labor = laborEstimate({height: 120, angle: 45, floor: 'charcoal', platformShape: 'square', platformAngle: 90});
+  const labor = laborEstimate({height: 120, angle: 45, floorLip, floor: 'charcoal', platformShape: 'square', platformAngle: 90});
   lines.push(`Default design, full set ${money(subtotal).padStart(11)}  ${rows.length} lines, ${pending} priced pending, labor ${labor.personHours} person-hours (${labor.hours} hrs for 2)`, '');
 }
 for (const height of [96, 120]) {
@@ -25,11 +26,11 @@ for (const height of [96, 120]) {
     // Floor and platform are independent design choices: [floor, platform shape].
     const designs = scope === 'panel' ? [['wood', 'none']] : [['wood', 'none'], ['charcoal', 'none'], ['none', 'angled'], ['none', 'square'], ['wood', 'square']];
     for (const [floor, platformShape] of designs) {
-      const rows = priceRows(data, {scope, height, angle, floor, platformShape, platformAngle});
+      const rows = priceRows(data, {scope, height, angle, floor, platformShape, platformAngle,floorLip});
       const {subtotal, pending} = summary(rows);
       const design = platformShape === 'none' ? floor : floor === 'none' ? `${platformShape} platform` : `${floor} + ${platformShape}`;
       const label = `${height / 12}x4  ${scope.padEnd(5)} ${scope === 'panel' ? ''.padEnd(16) : design.padEnd(16)}`;
-      const labor = scope === 'set' ? laborEstimate({height, angle, floor, platformShape, platformAngle: platformShape === 'square' ? 90 : platformAngle}) : null;
+      const labor = scope === 'set' ? laborEstimate({height, angle, floor,floorLip, platformShape, platformAngle: platformShape === 'square' ? 90 : platformAngle}) : null;
       lines.push(`${label} ${money(subtotal).padStart(11)}  ${String(rows.length).padStart(2)} lines, ${pending} priced pending${labor ? `, labor ${labor.personHours} ph` : ''}`);
     }
   }

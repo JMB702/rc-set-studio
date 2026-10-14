@@ -17,7 +17,7 @@ const item=(materialId,extra={})=>({id:'i-'+materialId+(extra.id||''),materialId
 const expense=(items,amountCents=10000,id='e1')=>({id,vendor:'Home Depot',date:'2026-10-09',amountCents,note:'',receiptId:null,items});
 
 test('An unlogged completed shopping trip is excluded from projection, across designs and crew rates',()=>{
- for(const d of [design,{...design,height:96,platformShape:'none',floor:'wood',angle:45},{...design,platformShape:'angled',platformAngle:60,angle:45,floor:'none'}])
+ for(const d of [design,{...design,angle:45,floorLip:true},{...design,angle:45,floorLip:false},{...design,height:96,platformShape:'none',floor:'wood',angle:45},{...design,platformShape:'angled',platformAngle:60,angle:45,floor:'none'}])
   for(const options of [{},{rates:[5000,3000]},{rates:[null,null]},{rates:[2500,null,1000],crew:3},{hours:71.5}]){
    const l=labor(d,options),r=priceRows(data,{scope:'set',...d}),p=projectCost({rows:r,finance:{expenses:[],shifts:[]},tracking:projectDefaultTracking(),design:d,labor:l,now});
    const unloggedShopping=Math.round(3.5*(l.shoppingRateCents??0));assert.equal(p.projectedCents,p.estimateCents-unloggedShopping,JSON.stringify({d,options}));assert.equal(p.varianceCents,0-unloggedShopping);

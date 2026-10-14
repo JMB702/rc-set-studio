@@ -75,8 +75,8 @@ export function projectBuildDesign(input) {
  if(!input||typeof input!=='object'||Array.isArray(input))throw Error('Invalid build design.');
  const hex=v=>{if(typeof v!=='string'||!/^#[0-9a-f]{6}$/i.test(v))throw Error('Invalid build design color.');return v.toLowerCase();},whole=(v,min,max)=>{if(!Number.isInteger(v)||v<min||v>max)throw Error('Invalid build design.');return v;};
  if(![96,120].includes(input.height)||!['none','wood','charcoal'].includes(input.floor)||!['none','angled','square'].includes(input.platformShape))throw Error('Invalid build design.');
- for(const key of ['seamlessCorners','seamlessPerimeter'])if(input[key]!==undefined&&typeof input[key]!=='boolean')throw Error('Invalid build design.');
- return {seamlessCorners:input.seamlessCorners===true,seamlessPerimeter:input.seamlessPerimeter===true,height:input.height,angle:whole(input.angle,0,90),floor:input.floor,platformShape:input.platformShape,platformAngle:whole(input.platformAngle,0,90),platformBack:whole(input.platformBack,0,48),platformSide:whole(input.platformSide,0,48),wallColor:hex(input.wallColor),platformColor:hex(input.platformColor),floorColor:hex(input.floorColor)};
+ for(const key of ['seamlessCorners','seamlessPerimeter','floorLip'])if(input[key]!==undefined&&typeof input[key]!=='boolean')throw Error('Invalid build design.');
+ return {floorLip:input.floorLip===true,seamlessCorners:input.seamlessCorners===true,seamlessPerimeter:input.seamlessPerimeter===true,height:input.height,angle:whole(input.angle,0,90),floor:input.floor,platformShape:input.platformShape,platformAngle:whole(input.platformAngle,0,90),platformBack:whole(input.platformBack,0,48),platformSide:whole(input.platformSide,0,48),wallColor:hex(input.wallColor),platformColor:hex(input.platformColor),floorColor:hex(input.floorColor)};
 }
 export function projectValidate(kind,input,now=Date.now()) {
  const fail=message=>{throw Error(message);},str=(v,max=160)=>typeof v==='string'&&v.length<=max,id=v=>str(v,80)&&/^[\w-]+$/.test(v),money=(v,negative=false)=>Number.isSafeInteger(v)&&v<1e9&&(negative?v>-1e9:v>=0),list=(v,max)=>Array.isArray(v)&&v.length<=max;

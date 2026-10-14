@@ -19,7 +19,8 @@ function normalize(input) {
   if(c.platformShape!==undefined&&!['none','angled','square'].includes(c.platformShape))throw Error('Invalid platform shape.');
   if(c.platformColor!==undefined&&(typeof c.platformColor!=='string'||!/^#[0-9a-f]{6}$/i.test(c.platformColor)))throw Error('Invalid platform color.');
   const platformShape=c.platformShape??(c.floor==='platform'?'angled':'none'),floor=c.floor==='platform'?'none':c.floor;
-  return {id:input.id,name,body,elementId,elementLabel,context:JSON.stringify({height:c.height,angle:c.angle,floor,platformShape,...(platformShape!=='none'?{platformBack:c.platformBack??12,platformSide:c.platformSide??12,platformAngle:Math.max(c.angle,c.platformAngle??c.angle),platformColor:c.platformColor||'#34383b'}:{}),mode:c.mode,step:c.step,wallColor:c.wallColor||'#34383b',floorColor:c.floorColor||'#3c4041',figures:c.figures||'podcast',figureScale:c.figureScale||1}),createdAt:Date.now()};
+  if(c.floorLip!==undefined&&typeof c.floorLip!=='boolean')throw Error('Invalid front joining lip option.');
+  return {id:input.id,name,body,elementId,elementLabel,context:JSON.stringify({floorLip:c.floorLip??false,height:c.height,angle:c.angle,floor,platformShape,...(platformShape!=='none'?{platformBack:c.platformBack??12,platformSide:c.platformSide??12,platformAngle:Math.max(c.angle,c.platformAngle??c.angle),platformColor:c.platformColor||'#34383b'}:{}),mode:c.mode,step:c.step,wallColor:c.wallColor||'#34383b',floorColor:c.floorColor||'#3c4041',figures:c.figures||'podcast',figureScale:c.figureScale||1}),createdAt:Date.now()};
 }
 function commentRow(r){return {id:r.id,name:r.name,body:r.body,elementId:r.element_id,elementLabel:r.element_label,context:JSON.parse(r.context),createdAt:r.created_at};}
 // Named, revisioned, soft-deletable lists shared across devices. Table and column names are fixed here, never from input.

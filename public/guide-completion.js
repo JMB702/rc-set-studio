@@ -1,5 +1,5 @@
 import {projectGuideStageDone,projectSetGuideStage,projectCountUnits,projectAssembly,projectSetAssemblyCounts} from './project-model.js';
-export function guideCompletionMatchesDesign(data,design){return !data?.design||['seamlessCorners','seamlessPerimeter'].every(k=>(data.design[k]===true)===(design[k]===true));}
+export function guideCompletionMatchesDesign(data,design){return !data?.design||['seamlessCorners','seamlessPerimeter','floorLip'].every(k=>(data.design[k]===true)===(design[k]===true));}
 export function nextCompletionState(done,autoMark){return autoMark?{done:false,autoMark:false}:done?{done:true,autoMark:true}:{done:true,autoMark:false};}
 export function installGuideCompletion(api){
  const host=document.createElement('div');host.id='guide-completion';host.innerHTML='<label><input id="guide-step-done" type="checkbox" disabled><span>Mark this step done</span></label><span id="guide-save-status" role="status" aria-live="polite"></span>';

@@ -46,7 +46,7 @@ test('Each physical curve has separate rib and skin instructions with its own ma
  for(const [rib,skin,label] of [[49,51,'wall corner 1'],[50,52,'wall corner 2'],[53,54,'left perimeter'],[55,56,'right perimeter'],[57,58,'back perimeter'],[59,60,'compound floor corner 1'],[61,62,'compound floor corner 2']]){
   assert.ok(by[rib].title.includes(label));assert.ok(by[skin].title.includes(label));
   assert.match(by[rib].title,/Add ribs/);assert.match(by[skin].title,/Add skin/);
-  assert.deepEqual(Array.from(by[rib].fasteners,x=>x.productId),label.startsWith('wall corner')?['cycRibScrews','cycAdhesive']:['cycAnchorScrews'],'corner ribs are screwed from behind through the crossbars');
+  assert.deepEqual(Array.from(by[rib].fasteners,x=>x.productId),label.startsWith('wall corner')?['cycAnchorScrews','cycRibScrews','cycAdhesive']:['cycAnchorScrews'],'corner ribs are screwed from behind: SPAX through flat crossbars, deck screws through on-edge toggles');
   assert.deepEqual(Array.from(by[skin].fasteners,x=>x.productId),['cycSkinScrews','cycAdhesive']);
   assert.doesNotMatch(by[rib].description,/Bend the skin|Fasten each supported gore|ease the sheet/);
   assert.doesNotMatch(by[skin].description,/Secure the ribs|Cut and fit.*ribs|Fit a fan/);

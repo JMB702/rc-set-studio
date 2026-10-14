@@ -15,18 +15,22 @@ export function cycloramaGaps(d={}){const a=Math.max(0,Math.min(90,Number(d.angl
 export function wallCrossbars(h){return h===120?[.375,24,48,72,96,119.625]:[.375,24,48,72,95.625];}
 // Added crossbars go midway between the existing ones, so a corner panel has one every 12″.
 export function infillCrossbars(h){return h===120?[12,36,60,84,108]:[12,36,60,84];}
+// Added crossbars lie flat against the back of the skin, like the 10′ seam backer, so a screw from behind passes
+// only ¾″ of wood and the skin before it reaches the rib. Same stock as the toggles: 1×3 on 10′, 1×2 on 8′.
+export function addedCrossbar(h){return {width:h===120?2.5:1.5,thickness:.75};}
 // Each corner rib is centered on a crossbar and screwed from behind the wall, through the crossbar and the skin,
 // into the rib's straight edge. No cleats, no separate seam backing. The bottom rib rests on the floor (or the
 // cove top) and reuses the bottom rail when the rail is behind it; otherwise one low crossbar is added for it.
 export function cornerRibLevels(h,base,t=CYC.ribThickness){
- const half=t/2,rails=wallCrossbars(h),top=rails.at(-1),low=base+half,reuse=rails.find(L=>Math.abs(L-low)<=.375);
- // A new low crossbar may not overlap an existing one; it then sits tight above it, still behind the rib edge.
- const clash=rails.find(L=>Math.abs(L-low)<.75),bottom={y:base,crossbar:reuse??(clash===undefined?low:clash+.75),added:reuse===undefined},last={y:top-half,crossbar:top,added:false};
+ const half=t/2,rails=wallCrossbars(h),top=rails.at(-1),low=base+half,reuse=rails.find(L=>Math.abs(L-low)<=.375),w=addedCrossbar(h).width;
+ // A new low crossbar may not overlap an existing on-edge one; it then sits tight above it, still behind the rib.
+ const clearance=.375+w/2,clash=rails.find(L=>Math.abs(L-low)<clearance),flat=L=>h===120&&L===96;
+ const bottom={y:base,crossbar:reuse??(clash===undefined?low:clash+clearance),added:reuse===undefined},last={y:top-half,crossbar:top,added:false};
  const middle=[...rails.slice(1,-1),...infillCrossbars(h)].sort((a,b)=>a-b).filter(L=>L-half>=base+t+3&&L+half<=last.y-3).map(L=>({y:L-half,crossbar:L,added:infillCrossbars(h).includes(L)}));
- return [bottom,...middle,last];}
-// Screw from behind: through the crossbar's depth (1×3 on edge on 10′, 1×2 on 8′; the 10′ seam backer lies flat)
-// and the .106″ skin, leaving at least ¾″ in the rib edge.
-export function ribBackScrew(h){return h===120?{size:'#9 × 3½″',length:3.5,through:2.5+.106}:{size:'#9 × 3″',length:3,through:1.5+.106};}
+ return [bottom,...middle,last].map(l=>({...l,flat:l.added||flat(l.crossbar)}));}
+// Screw from behind, leaving at least ¾″ in the rib edge. Flat crossbars (added ones and the 10′ seam backer) take a
+// 2½″ SPAX; the existing on-edge rails and toggles (1×3 on 10′, 1×2 on 8′) need a longer deck screw.
+export function ribBackScrew(h,flat=false){return flat?{size:'#8 × 2½″',length:2.5,through:.75+.106}:h===120?{size:'#9 × 3½″',length:3.5,through:2.5+.106}:{size:'#9 × 3″',length:3,through:1.5+.106};}
 
 export function cycloramaPlan(d={}){
  const angle=Math.max(0,Math.min(90,Number(d.angle??45)||0)),a=angle*Math.PI/180,h=d.height===120?120:96,cornerSides=cycloramaCornerSides(d),corners=cornerSides.length,perimeter=!!d.seamlessPerimeter,R=CYC.cornerRadius,r=CYC.floorRadius,tangent=corners?R*Math.tan(a/2):0,cornerArc=corners?R*a:0,cornerHeight=h-(perimeter?r:0);
@@ -50,14 +54,14 @@ export function cycloramaPlan(d={}){
  const verticalYield=paired?fit(R+.125,R+.125)*2:fit(...verticalBlank),floorYield=fit(r+.125,r+.125)*2,compoundBlank=[R/Math.cos(a/2)-(R-r),r],compoundYield=Math.max(1,fit(...compoundBlank));
  const ribStock={rotationDegrees:verticalBlank===chordBlank?-angle/2:0,verticalBlank:paired?[R+.125,R+.125]:verticalBlank,verticalYield,paired,floorBlank:[r+.125,r+.125],floorYield,compoundBlank,compoundYield};
  const ribSheets=Math.ceil(verticalRibs/Math.max(1,verticalYield))+Math.ceil(floorRibs/floorYield)+Math.ceil(compoundRibs/compoundYield),blockingFeet=Math.ceil(((perimeter?straightLength*2:0)+(floorRibs+compoundRibs)*12)/12*1.15),fasteners=Math.ceil((ribCount*8+skinArea*4)*1.15),tapeFeet=Math.ceil((corners*cornerHeight*2+(perimeter?perimeterLength*2:0))/12+(skinSheets*8)+(perimeter?40*corners:0)),compoundPails=skinArea?Math.ceil(skinArea/150)+(perimeter?corners:0):0;
- const glueContactSqFt=((verticalRibs*cornerArc+(floorRibs+compoundRibs)*r*Math.PI/2)*CYC.ribThickness+(perimeter?straightLength*2:0)*1.5+addedCrossbars*46.5*.75)/144;
+ const glueContactSqFt=((verticalRibs*cornerArc+(floorRibs+compoundRibs)*r*Math.PI/2)*CYC.ribThickness+(perimeter?straightLength*2:0)*1.5+addedCrossbars*46.5*addedCrossbar(h).width)/144;
  const adhesiveBottles=ribCount?Math.max(1,Math.ceil(glueContactSqFt*1.25/(250/8))):0;
  // Fixings: added crossbars are glued to the skin, toe-screwed into the stiles and stapled through the face;
  // each corner rib takes two screws per wall from behind, through its crossbar into the rib edge.
- const crossbarScrews=addedCrossbars*4,crossbarStaples=addedCrossbars*16,ribBackScrews=verticalRibs*4,backScrew=ribBackScrew(h);
+ const crossbarScrews=addedCrossbars*4,crossbarStaples=addedCrossbars*16,ribBackScrews=corners*4*ribLevels.filter(l=>!l.flat).length,ribFlatScrews=corners*4*ribLevels.filter(l=>l.flat).length,backScrew=ribBackScrew(h),flatScrew=ribBackScrew(h,true);
  // Back screws go where the rib is at least 2″ deep behind the wall: within this distance of the corner.
  const screwReach=corners?Math.max(0,tangent-Math.sqrt(R**2-(R-2)**2)):0;
- return {...CYC,screwReach,backScrew,ribBackScrews,cornerSides,runs,ribLevels,addedCrossbarLevels,crossbarPanels,addedCrossbars,crossbarScrews,crossbarStaples,fittedCornerHeight:cornerHeight-floorSurfaceHeight(d),floorBase:floorSurfaceHeight(d),ribStock,verticalSkinSeams,skinLayout,goreSheets,glueContactSqFt,adhesiveBottles,angle,corners,perimeter,margin:CYC.feather+CYC.clearance,cornerHeight,tangent,cornerArc,straightLength,perimeterLength,verticalRibs,floorRibs,compoundRibs,ribCount,skinArea,skinSheets,ribSheets,blockingFeet,fasteners,tapeFeet,compoundPails};
+ return {...CYC,screwReach,backScrew,ribBackScrews,flatScrew,ribFlatScrews,crossbarStock:addedCrossbar(h),cornerSides,runs,ribLevels,addedCrossbarLevels,crossbarPanels,addedCrossbars,crossbarScrews,crossbarStaples,fittedCornerHeight:cornerHeight-floorSurfaceHeight(d),floorBase:floorSurfaceHeight(d),ribStock,verticalSkinSeams,skinLayout,goreSheets,glueContactSqFt,adhesiveBottles,angle,corners,perimeter,margin:CYC.feather+CYC.clearance,cornerHeight,tangent,cornerArc,straightLength,perimeterLength,verticalRibs,floorRibs,compoundRibs,ribCount,skinArea,skinSheets,ribSheets,blockingFeet,fasteners,tapeFeet,compoundPails};
 }
 // Three straight runs and up to two rounded corners at an inward offset from the existing wall.
 // A sharp corner meets at the miter point; a rounded one runs tangent into its arc.

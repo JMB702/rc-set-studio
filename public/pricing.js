@@ -1,3 +1,4 @@
+import {installCanvasTap,pricingIsolationAllowed} from './pricing-interaction.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 import {panel,floorMesh,platformParts,cycloramaMesh,dispose,inch,mats,splitSkinFaces} from './model.js';
@@ -50,6 +51,8 @@ export function installPricing(api){
  // the quote and the projection live in Cost projection; only a Bought tag on purchased rows crosses over.
  const host=$('#pricing-controls'),baseMode=api.setMode,S=api.state,scope='set',excluded=[];
  let data,model,rows=[],selected=null,pricingCamera='front',customItems=[],restoring=false;
+ const canIsolate=()=>pricingIsolationAllowed(S.mode,document.body.dataset.projectTab);
+ const canPick=()=>canIsolate()&&!api.constructionView?.completed&&!document.body.classList.contains('picking-comment');
  // Shared project records: finance is null while the burn-down PIN is locked.
  let finance=null,tracking=null;
  host.classList.add('compact-pricing');
@@ -103,7 +106,7 @@ export function installPricing(api){
   }
   apply();api.invalidate();
  }
- function apply(){if(!model)return;const available=new Set(rows.map(r=>r.id));model.traverse(o=>{if(!o.isMesh)return;
+ function apply(){if(!canIsolate())selected=null;if(!model)return;if(S.mode==='pricing')$('#view-hint').textContent=canPick()?'Select a price item · drag to orbit':'Drag to orbit';const available=new Set(rows.map(r=>r.id));model.traverse(o=>{if(!o.isMesh)return;
   const tags=o.userData.pricingIds||[];o.visible=!removedPart(tags,S.floor,excluded);const inScope=(tags[0]==='laminate'?tags.some(id=>available.has(id)):available.has(tags[0]))&&true,hit=selected?tags.includes(selected)&&inScope:inScope;
   const m=o.material;const wall=tags.includes('wallPaint'),floorSurface=tags.includes('laminate'),seamed=wall&&['wallSeams','wallSeamTape','wallCornerCaulk'].includes(selected),painted=wall&&!seamed&&available.has('wallPaint')&&selected!=='skin',primed=wall&&!seamed&&available.has('wallPrimer')&&!painted&&selected!=='skin',rawFloor=floorSurface&&S.floor==='charcoal'&&!available.has('floorPaint'),primedFloor=rawFloor&&available.has('floorPrimer');const plat=tags.includes('platformPaint')&&!['platformDeck','platformSkin'].includes(selected),platSkim=plat&&['platformDeckSkim','platformCompound'].includes(selected),platPainted=plat&&!platSkim&&available.has('platformPaint')&&!['platformPrimer','platformDeckPrimer'].includes(selected),platPrimed=plat&&!platSkim&&!platPainted&&(available.has('platformPrimer')||available.has('platformDeckPrimer'));o.userData.wallFinishPreview=seamed?'seams':undefined;const map=painted||primed||primedFloor||platPainted||platPrimed?null:(platSkim?mats.compound.map:seamed?(S.height===120?mats.wallSeams10:mats.wallSeams8).map:wall?mats.wallRaw.map:rawFloor?mats.ply.map:o.userData.baseMap);if(m.map!==map){m.map=map;m.needsUpdate=true;}if(m.transparent!==!hit)m.needsUpdate=true;m.transparent=!hit;m.opacity=hit?1:.075;m.depthWrite=hit;m.color.copy(platSkim?new T.Color('#ddddcf'):primed||primedFloor||platPrimed||painted&&selected==='wallPrimer'?new T.Color(0xe3e0d8):platPainted?mats.platform.color:painted?mats.charcoal.color:rawFloor?mats.ply.color:floorSurface&&S.floor==='charcoal'?mats.floorGray.color:o.userData.baseColor);o.renderOrder=hit?2:0;o.castShadow=hit;o.receiveShadow=hit;
  });
@@ -114,7 +117,7 @@ export function installPricing(api){
   const content=document.createElement('div');content.className='price-item-inner';const button=document.createElement('button');button.type='button';button.dataset.priceItem=r.id;button.setAttribute('aria-pressed','false');const name=document.createElement('strong'),cost=document.createElement('span');name.textContent=r.name;cost.textContent=money(lineCents);button.append(name,cost);
   const detail=document.createElement('p');detail.className='price-line-math';const qty=purchase?.status==='partial'&&purchase.remainingQuantity!=null?purchase.remainingQuantity:r.purchaseQuantity;detail.textContent=r.subtotalCents===null?`${r.purchaseQuantity===null?'Quantity pending':r.purchaseQuantity} · ${r.unitPriceCents===null?'price pending':money(r.unitPriceCents)+' each'}`:`${qty}${purchase?.status==='partial'?' left':''} ${r.packSize>1?(qty===1?'pack':'packs'):''} × ${money(r.unitPriceCents)}`.replace('  ',' ');
   const note=document.createElement('small');note.className='price-row-note';note.textContent=(r.packSize>1?`${r.needed} needed, ${r.packSize} per pack. `:'')+(r.availability||'');
-  button.onclick=()=>{if(r.custom)return;selected=selected===r.id?null:r.id;apply();};
+  button.onclick=()=>{if(r.custom||!canIsolate())return;selected=selected===r.id?null:r.id;apply();};
   const details=document.createElement('button');details.className='price-line-details';details.type='button';details.textContent='Details';details.setAttribute('aria-expanded','false');details.onclick=()=>{const open=article.classList.toggle('show-details');details.setAttribute('aria-expanded',open);details.textContent=open?'Less':'Details';};
   // Two lines: name and price; then quantity × unit, status tags and Details. Cut needs and links open below.
   const meta=document.createElement('div');meta.className='price-item-meta';meta.append(detail);const bought=purchaseNote(purchase);if(bought){const tag=document.createElement('small');tag.className='price-purchase';tag.dataset.status=purchase.status;tag.textContent=bought;meta.append(tag);}if(needsOrder(r,purchase)){const tag=document.createElement('small');tag.className='price-order-needed';tag.textContent='Need to order';meta.append(tag);}else if(pickupUnverified(r,purchase)){const tag=document.createElement('small');tag.className='price-pickup-unknown';tag.textContent='Pickup not verified';meta.append(tag);}if(r.priceVerification==='provisional'){const tag=document.createElement('small');tag.className='price-order-needed';tag.textContent='Provisional estimate';meta.append(tag);}meta.append(details);
@@ -154,7 +157,12 @@ export function installPricing(api){
  window.addEventListener('surface-color-changed',()=>{persistDraft();if(S.mode==='pricing')apply()});
  window.addEventListener('set-configured',()=>{render();if(S.mode==='pricing')fit()});
  window.addEventListener('labor-changed',()=>{if(data)showReview();});
- let down;const canvas=$('#scene');canvas.addEventListener('pointerdown',e=>down=[e.clientX,e.clientY]);canvas.addEventListener('pointerup',e=>{if(S.mode!=='pricing'||!model||!down||Math.hypot(e.clientX-down[0],e.clientY-down[1])>5||document.body.classList.contains('picking-comment'))return;const r=canvas.getBoundingClientRect(),ray=new T.Raycaster();ray.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),api.camera);const hits=ray.intersectObject(model,true).filter(h=>h.object.visible&&h.object.userData.pricingIds?.some(id=>rows.some(r=>r.id===id)));const hit=hits.find(h=>h.object.material.opacity===1)||hits[0];if(hit){selected=hit.object.userData.pricingIds.find(id=>rows.some(r=>r.id===id));const box=host.querySelector(`[data-price-item="${selected}"]`)?.closest('details');if(box)box.open=true;apply();host.querySelector(`[data-price-item="${selected}"]`)?.scrollIntoView({block:'nearest',behavior:'smooth'});}});
+ const canvas=$('#scene'),tap=installCanvasTap(canvas,{enabled:canPick,onTap:e=>{if(!model)return;const r=canvas.getBoundingClientRect(),ray=new T.Raycaster();ray.setFromCamera(new T.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),api.camera);const hits=ray.intersectObject(model,true).filter(h=>h.object.visible&&h.object.userData.pricingIds?.some(id=>rows.some(r=>r.id===id)));const hit=hits.find(h=>h.object.material.opacity===1)||hits[0];if(hit){selected=hit.object.userData.pricingIds.find(id=>rows.some(r=>r.id===id));const box=host.querySelector(`[data-price-item="${selected}"]`)?.closest('details');if(box)box.open=true;apply();host.querySelector(`[data-price-item="${selected}"]`)?.scrollIntoView({block:'nearest',behavior:'smooth'});}}});
+ // Never carry a hidden material selection into a different project tab or preview.
+ const clearIsolation=()=>{tap.reset();selected=null;apply();};
+ window.addEventListener('project-tab-changed',clearIsolation);
+ window.addEventListener('studio-view-changed',clearIsolation);
+ window.addEventListener('pagehide',()=>tap.dispose(),{once:true});
  api.showProjectPricing=()=>render();
  api.projectBudget=()=>data?pricingBudget(data,snapshot(),laborFor(S)):null;
  // The full-set shopping list as priced here, with added costs.

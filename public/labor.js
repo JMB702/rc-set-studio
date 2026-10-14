@@ -44,9 +44,9 @@ export function laborTasks(d){
  }
  const cyc=cycloramaPlan(d);
  if(cyc.corners||cyc.perimeter){
-  add('cycBacking','43','Locate framing and install retrofit backing',1+cyc.blockingFeet*.08,'Existing walls stay assembled; locate framing, add rear blocking and supported cleats over the facing');
+  add('cycBacking','43',cyc.addedCrossbars?`Locate framing and add ${cyc.addedCrossbars} wall crossbars`:'Locate framing and install retrofit backing',1+cyc.blockingFeet*.08+cyc.addedCrossbars*.35,'Existing walls stay assembled; fit added crossbars between the stiles from behind (glue, toe-screw, staple through the face), add rear blocking and supported cleats over the facing');
   if(cyc.corners){
-   add('cycVerticalRibs','44',`Template, cut and fit ${cyc.verticalRibs} vertical-corner ribs`,1+cyc.verticalRibs*.3,'Full-size bend test and a master rib template; hand-cut allowance, CNC is an optional quoted alternative');
+   add('cycVerticalRibs','44',`Template, cut and fit ${cyc.verticalRibs} vertical-corner ribs on cleats`,1+cyc.verticalRibs*.3+cyc.verticalRibs*2*.1,'Full-size bend test and a master rib template; hand-cut allowance, CNC is an optional quoted alternative');
    add('cycCornerSkin','45',cyc.corners===2?'Skin the two rounded wall corners':`Skin the rounded ${cyc.cornerSides[0]} wall corner`,cyc.corners*cyc.cornerArc*cyc.cornerHeight/144*.08,'Flexible facing, supported sheet seams and flush fasteners; corners-only runs straight down to the floor');
   }
   if(cyc.perimeter)add('cycFloorSweep','46',`Build the wall-to-floor sweeps · ${(cyc.straightLength/12).toFixed(1)} ft`,2+cyc.floorRibs*.25+cyc.straightLength/12*.2,'Template ribs, cleats and bent facing; includes straight sweep framing and skin, excludes compound corner junctions');

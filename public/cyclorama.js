@@ -11,11 +11,25 @@ export function cycloramaGaps(d={}){const a=Math.max(0,Math.min(90,Number(d.angl
  const minimum=Math.ceil(corners?CYC.cornerRadius-(CYC.cornerRadius-r-margin)*Math.cos(a/2):d.seamlessPerimeter?r+margin:0);
  return {back:Math.max(d.platformBack??12,minimum),side:Math.max(d.platformSide??12,minimum),minimum};}
 
+// Wall crossbar centers above the subfloor: bottom rail, 24″ toggles, the 10′ flat seam backer at 96″, top rail.
+export function wallCrossbars(h){return h===120?[.375,24,48,72,96,119.625]:[.375,24,48,72,95.625];}
+// Added crossbars go midway between the existing ones, so a corner panel has one every 12″.
+export function infillCrossbars(h){return h===120?[12,36,60,84,108]:[12,36,60,84];}
+// Each corner rib bears on a 2×4 cleat laid flat on each wall and screwed through the skin into the crossbar
+// behind it. The top rib hangs under its cleat at the top rail; the bottom rib rests on the floor (or the cove)
+// with its cleat above it, backed by one added low crossbar.
+export const RIB_CLEAT={length:12,height:3.5,thickness:1.5};
+export function cornerRibLevels(h,base,t=CYC.ribThickness){
+ const c=RIB_CLEAT.height,top={y:h-c-t,cleat:'above',crossbar:wallCrossbars(h).at(-1),added:false},bottom={y:base,cleat:'above',crossbar:base+t+c/2,added:true};
+ const middle=[...wallCrossbars(h).slice(1,-1),...infillCrossbars(h)].sort((a,b)=>a-b).map(line=>({y:line+c/2,cleat:'below',crossbar:line,added:infillCrossbars(h).includes(line)})).filter(r=>r.y-c>=base+t+c&&r.y+t<=top.y-.5);
+ return [bottom,...middle,top];}
+
 export function cycloramaPlan(d={}){
  const angle=Math.max(0,Math.min(90,Number(d.angle??45)||0)),a=angle*Math.PI/180,h=d.height===120?120:96,cornerSides=cycloramaCornerSides(d),corners=cornerSides.length,perimeter=!!d.seamlessPerimeter,R=CYC.cornerRadius,r=CYC.floorRadius,tangent=corners?R*Math.tan(a/2):0,cornerArc=corners?R*a:0,cornerHeight=h-(perimeter?r:0);
  // Each rounded corner shortens the back run and its own wing run by one tangent; a sharp corner keeps the full run.
  const runs={back:192-corners*tangent,left:96-(cornerSides.includes('left')?tangent:0),right:96-(cornerSides.includes('right')?tangent:0)},straightLength=runs.back+runs.left+runs.right,perimeterLength=straightLength+corners*cornerArc;
- const verticalRibs=corners*(Math.ceil(cornerHeight/CYC.ribSpacing)+1),floorRibs=perimeter?Object.values(runs).reduce((n,run)=>n+Math.ceil(run/16)+1,0):0,compoundRibs=perimeter&&corners?corners*(Math.ceil(cornerArc/8)+1):0,ribCount=verticalRibs+floorRibs+compoundRibs;
+ const lift=floorSurfaceHeight(d),ribLevels=corners?cornerRibLevels(h,lift+(perimeter?r:0)):[],addedCrossbarLevels=ribLevels.filter(l=>l.added).map(l=>l.crossbar),crossbarPanels=corners*2,addedCrossbars=crossbarPanels*addedCrossbarLevels.length;
+ const verticalRibs=corners*ribLevels.length,floorRibs=perimeter?Object.values(runs).reduce((n,run)=>n+Math.ceil(run/16)+1,0):0,compoundRibs=perimeter&&corners?corners*(Math.ceil(cornerArc/8)+1):0,ribCount=verticalRibs+floorRibs+compoundRibs;
  const verticalArea=corners*cornerArc*cornerHeight/144,floorArea=perimeter?straightLength*r*Math.PI/2/144:0,junctionArea=perimeter&&corners?corners*a*(R*r*Math.PI/2-r*r*(Math.PI/2-1))/144:0,skinArea=verticalArea+floorArea+junctionArea;
  // Stock envelopes for ribs; wall-skin sheets are packed without rotating the grain.
  const skinCuts=[];
@@ -30,10 +44,14 @@ export function cycloramaPlan(d={}){
  const rawBlank=[Math.max(2,tangent*(1+Math.cos(a))),Math.max(2,tangent*Math.sin(a))],chordBlank=[Math.max(2,2*R*Math.sin(a/2)),Math.max(2,tangent*Math.sin(a/2))],paired=angle===90,verticalBlank=fit(...rawBlank)>=fit(...chordBlank)?rawBlank:chordBlank;
  const verticalYield=paired?fit(R+.125,R+.125)*2:fit(...verticalBlank),floorYield=fit(r+.125,r+.125)*2,compoundBlank=[R/Math.cos(a/2)-(R-r),r],compoundYield=Math.max(1,fit(...compoundBlank));
  const ribStock={rotationDegrees:verticalBlank===chordBlank?-angle/2:0,verticalBlank:paired?[R+.125,R+.125]:verticalBlank,verticalYield,paired,floorBlank:[r+.125,r+.125],floorYield,compoundBlank,compoundYield};
- const ribSheets=Math.ceil(verticalRibs/Math.max(1,verticalYield))+Math.ceil(floorRibs/floorYield)+Math.ceil(compoundRibs/compoundYield),blockingFeet=Math.ceil((corners*cornerHeight*2+verticalSkinSeams*cornerHeight+(perimeter?straightLength*2:0)+ribCount*12)/12*1.15),fasteners=Math.ceil((ribCount*8+skinArea*4)*1.15),tapeFeet=Math.ceil((corners*cornerHeight*2+(perimeter?perimeterLength*2:0))/12+(skinSheets*8)+(perimeter?40*corners:0)),compoundPails=skinArea?Math.ceil(skinArea/150)+(perimeter?corners:0):0;
- const glueContactSqFt=((verticalRibs*cornerArc+(floorRibs+compoundRibs)*r*Math.PI/2)*CYC.ribThickness+(corners*cornerHeight*2+(perimeter?straightLength*2:0))*1.5+verticalSkinSeams*cornerHeight*3.5)/144;
+ const ribSheets=Math.ceil(verticalRibs/Math.max(1,verticalYield))+Math.ceil(floorRibs/floorYield)+Math.ceil(compoundRibs/compoundYield),blockingFeet=Math.ceil((verticalSkinSeams*cornerHeight+(perimeter?straightLength*2:0)+verticalRibs*2*RIB_CLEAT.length+(floorRibs+compoundRibs)*12)/12*1.15),fasteners=Math.ceil((ribCount*8+skinArea*4)*1.15),tapeFeet=Math.ceil((corners*cornerHeight*2+(perimeter?perimeterLength*2:0))/12+(skinSheets*8)+(perimeter?40*corners:0)),compoundPails=skinArea?Math.ceil(skinArea/150)+(perimeter?corners:0):0;
+ const glueContactSqFt=((verticalRibs*cornerArc+(floorRibs+compoundRibs)*r*Math.PI/2)*CYC.ribThickness+(perimeter?straightLength*2:0)*1.5+verticalSkinSeams*cornerHeight*3.5+addedCrossbars*46.5*.75+verticalRibs*2*RIB_CLEAT.length*1.5)/144;
  const adhesiveBottles=ribCount?Math.max(1,Math.ceil(glueContactSqFt*1.25/(250/8))):0;
- return {...CYC,cornerSides,runs,fittedCornerHeight:cornerHeight-floorSurfaceHeight(d),floorBase:floorSurfaceHeight(d),ribStock,verticalSkinSeams,skinLayout,goreSheets,glueContactSqFt,adhesiveBottles,angle,corners,perimeter,margin:CYC.feather+CYC.clearance,cornerHeight,tangent,cornerArc,straightLength,perimeterLength,verticalRibs,floorRibs,compoundRibs,ribCount,skinArea,skinSheets,ribSheets,blockingFeet,fasteners,tapeFeet,compoundPails};
+ // Fixings for the added crossbars (glued to the skin, toe-screwed into the stiles, stapled through the face) and cleats.
+ const crossbarScrews=addedCrossbars*4,crossbarStaples=addedCrossbars*16,cleatScrews=verticalRibs*4;
+ // How far from the corner a 1½″ cleat can reach before the curve comes within 1½″ of the wall.
+ const cleatReach=corners?Math.max(0,tangent-Math.sqrt(R**2-(R-RIB_CLEAT.thickness)**2)):0;
+ return {...CYC,cleatReach,cornerSides,runs,ribLevels,addedCrossbarLevels,crossbarPanels,addedCrossbars,crossbarScrews,crossbarStaples,cleatScrews,cleat:RIB_CLEAT,fittedCornerHeight:cornerHeight-floorSurfaceHeight(d),floorBase:floorSurfaceHeight(d),ribStock,verticalSkinSeams,skinLayout,goreSheets,glueContactSqFt,adhesiveBottles,angle,corners,perimeter,margin:CYC.feather+CYC.clearance,cornerHeight,tangent,cornerArc,straightLength,perimeterLength,verticalRibs,floorRibs,compoundRibs,ribCount,skinArea,skinSheets,ribSheets,blockingFeet,fasteners,tapeFeet,compoundPails};
 }
 // Three straight runs and up to two rounded corners at an inward offset from the existing wall.
 // A sharp corner meets at the miter point; a rounded one runs tangent into its arc.

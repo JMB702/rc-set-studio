@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "documentation": "/agent-api.txt",
+  "tools": [{
+    "name": "read_project",
+    "description": "Read configuration provenance, dynamic estimate, dated supplier evidence and optional private purchase/receipt metadata. CLI: scripts/agent-project.mjs; browser: WebMCP read_project.",
+    "readOnly": true,
+    "inputSchema": {"type":"object","properties":{"source":{"enum":["shared-build","active-draft","saved","supplied"]},"configurationId":{"type":"string"},"configuration":{"type":"object"},"includeFinance":{"type":"boolean","default":false}},"required":["source"],"additionalProperties":false},
+    "contextEndpoint": "/api/project/agent-context",
+    "privateContextEndpoint": "/api/project/agent-context?finance=1",
+    "catalogEndpoint": "/data/flat-shopping-list.json",
+    "calculatorModule": "/agent-project.js",
+    "privateAuthentication": "Existing rc_project_session HttpOnly cookie; user unlocks Cost projection. Never ask an agent to collect a PIN."
+  }]
+}

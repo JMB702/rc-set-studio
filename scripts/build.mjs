@@ -1,3 +1,4 @@
+import {agentEngineRevision} from './agent-engine.mjs';
 import {createHash} from 'node:crypto';
 import { readdir, readFile, mkdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -10,5 +11,5 @@ const types = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charse
 async function walk(dir) {for (const entry of await readdir(dir,{withFileTypes:true})) {const file=path.join(dir,entry.name);if(entry.isDirectory()) await walk(file);else {const content=await readFile(file);assets['/'+path.relative('public',file).split(path.sep).join('/')]=[types[path.extname(file)]||'application/octet-stream',content.toString('base64'),'"'+createHash('sha256').update(content).digest('hex')+'"'];}}}
 await walk('public');
 await rm('dist',{recursive:true,force:true});await mkdir('dist/server',{recursive:true});
-await writeFile('dist/server/index.js',`const assets=${JSON.stringify(assets)};\n`+pricingConfigHelpers+'\n'+cameraHelpers+'\n'+projectHelpers+'\n'+projectWorker+'\n'+await readFile('worker/index.js','utf8'));
+await writeFile('dist/server/index.js',`const AGENT_ENGINE_REVISION=${JSON.stringify(await agentEngineRevision())};\nconst assets=${JSON.stringify(assets)};\n`+pricingConfigHelpers+'\n'+cameraHelpers+'\n'+projectHelpers+'\n'+projectWorker+'\n'+await readFile('worker/index.js','utf8'));
 console.log(`Built Worker with ${Object.keys(assets).length} assets.`);

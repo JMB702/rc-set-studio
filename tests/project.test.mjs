@@ -29,7 +29,7 @@ test('Receipt extraction distinguishes total from subtotal, savings, tender and 
 });
 const model=fs.readFileSync(new URL('../public/project-model.js',import.meta.url),'utf8').replaceAll('export function ','function '),routes=fs.readFileSync(new URL('../worker/project.js',import.meta.url),'utf8')+'\n'+fs.readFileSync(new URL('../worker/project-transfer.js',import.meta.url),'utf8');
 const api=(await import('data:text/javascript;base64,'+Buffer.from('const json=(data,status=200,headers={})=>Response.json(data,{status,headers});\n'+model+'\n'+routes+'\nexport {projectAPI,projectPinHash,projectTransfer};').toString('base64')));
-function rig(){const sqlite=new DatabaseSync(':memory:');for(const f of fs.readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort())sqlite.exec(fs.readFileSync(new URL('../drizzle/'+f,import.meta.url),'utf8'));const env={DB:{prepare(sql){const stmt=sqlite.prepare(sql);let args=[];return {bind(...values){args=values;return this;},async first(){return stmt.get(...args)||null;},async run(){return {meta:stmt.run(...args)};}};}}};return {sqlite,call:(path,method='GET',body,cookie,origin)=>api.projectAPI(new Request('http://localhost/api/project/'+path,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{}),...(origin?{Origin:origin}:{})},body:body?JSON.stringify(body):undefined}),env)};}
+function rig(){const sqlite=new DatabaseSync(':memory:');for(const f of fs.readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort())sqlite.exec(fs.readFileSync(new URL('../drizzle/'+f,import.meta.url),'utf8'));const env={DB:{prepare(sql){const stmt=sqlite.prepare(sql);let args=[];return {bind(...values){args=values;return this;},async all(){return {results:stmt.all(...args)};},async first(){return stmt.get(...args)||null;},async run(){return {meta:stmt.run(...args)};}};}}};return {sqlite,call:(path,method='GET',body,cookie,origin)=>api.projectAPI(new Request('http://localhost/api/project/'+path,{method,headers:{...(body?{'Content-Type':'application/json'}:{}),...(cookie?{Cookie:cookie}:{}),...(origin?{Origin:origin}:{})},body:body?JSON.stringify(body):undefined}),env)};}
 test('Read-only tracking diagnostics never initialize or upgrade saved progress',async()=>{
  const r=rig();
  assert.deepEqual(await (await r.call('tracking?readOnly=1')).json(),{data:null,revision:null});
@@ -372,4 +372,12 @@ test('Older tracker clients also preserve seamless settings inherited from the a
  r.sqlite.prepare('INSERT INTO design_approvals (id,name,design,created_at) VALUES (?,?,?,?)').run('cyc-approved','Jeff',JSON.stringify(design),1);
  const old=await(await r.call('tracking')).json();assert.equal(old.data.design.seamlessCorners,true);delete old.data.design.seamlessCorners;delete old.data.design.seamlessPerimeter;
  const response=await r.call('tracking','PUT',old);assert.equal(response.status,200);const saved=await response.json();assert.equal(saved.data.design.seamlessCorners,true);assert.equal(saved.data.design.seamlessPerimeter,true);
+});
+
+test('Agent context is read-only and never exposes finance without explicit authenticated request',async()=>{
+ const r=rig();const before=r.sqlite.prepare('SELECT count(*) AS n FROM project_documents').get().n;
+ const publicResponse=await r.call('agent-context');assert.equal(publicResponse.status,200);const publicData=await publicResponse.json();assert.equal(publicData.finance,null);assert.equal(publicData.receipts,null);
+ assert.equal((await r.call('agent-context?finance=1')).status,401);assert.equal(r.sqlite.prepare('SELECT count(*) AS n FROM project_documents').get().n,before);
+ const login=await r.call('access','POST',{action:'setup',pin:'1234'});const cookie=login.headers.get('Set-Cookie').split(';')[0];
+ const privateResponse=await r.call('agent-context?finance=1','GET',undefined,cookie);assert.equal(privateResponse.status,200);assert.equal((await privateResponse.json()).financeIncluded,true);assert.equal(r.sqlite.prepare('SELECT count(*) AS n FROM project_documents').get().n,before);
 });

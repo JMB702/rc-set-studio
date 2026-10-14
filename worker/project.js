@@ -49,6 +49,18 @@ async function projectAPI(request,env) {
    await db.prepare('INSERT INTO project_sessions (id,expires_at) VALUES (?,?)').bind(await projectDigest(nextToken),now+43200000).run();
    return json({unlocked:true},200,{'Set-Cookie':cookie(nextToken)});
   }
+  // Agent reads never initialize or migrate documents. Finance remains behind the same session gate.
+  if(path==='agent-context'&&request.method==='GET'){
+   const includeFinance=url.searchParams.get('finance')==='1';
+   if(includeFinance&&!session)return json({error:'Unlock Cost projection first.'},401);
+   const tracking=await db.prepare('SELECT * FROM project_documents WHERE id=?').bind('tracking').first();
+   const approvals=await db.prepare('SELECT * FROM design_approvals ORDER BY created_at DESC, id DESC LIMIT 50').all();
+   const configurations=await db.prepare('SELECT * FROM pricing_configurations ORDER BY created_at DESC,id DESC LIMIT 100').all();
+   const record=r=>r?{data:JSON.parse(r.content),revision:r.revision,updatedAt:r.updated_at}:null;
+   const result={version:1,engineRevision:typeof AGENT_ENGINE_REVISION==='string'?AGENT_ENGINE_REVISION:null,readAt:now,tracking:record(tracking),approvals:approvals.results.map(r=>({id:r.id,name:r.name,design:JSON.parse(r.design),revision:r.revision??0,createdAt:r.created_at})),configurations:configurations.results.map(r=>({id:r.id,name:r.name,configuration:JSON.parse(r.configuration),createdAt:r.created_at})),finance:null,receipts:null,financeIncluded:includeFinance};
+   if(includeFinance){result.finance=record(await db.prepare('SELECT * FROM project_documents WHERE id=?').bind('finance').first());const receipts=await db.prepare('SELECT id,filename,created_at FROM project_receipts ORDER BY created_at DESC').all();result.receipts=receipts.results.map(r=>({id:r.id,filename:r.filename,createdAt:r.created_at}));}
+   return json(result);
+  }
   if(path!=='tracking'&&!session)return json({error:'Unlock project burn-down with your PIN.'},401);
   if(path==='receipts'&&request.method==='POST'){
    if(!/^[\w-]{1,80}$/.test(input?.id)||!/^([a-f0-9]{64})$/.test(input.fingerprint)||typeof input.filename!=='string'||input.filename.length>200||!Array.isArray(input.pages)||!input.pages.length||input.pages.length>5||input.pages.some(p=>typeof p!=='string'||p.length>1000000||!/^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(p)))return json({error:'Upload a receipt image or PDF, up to five pages.'},400);

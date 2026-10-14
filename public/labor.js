@@ -75,7 +75,7 @@ export function laborCost(hours,rates){const set=rates.filter(r=>r!=null);return
 let crewMembers=null;
 export function setLaborCrew(crew){crewMembers=Array.isArray(crew)?crew.filter(c=>!c.archived).map(c=>({name:c.name,rateCents:c.rateCents})).slice(0,LABOR.maxCrew):null;}
 // Everything the UI shows for a design: the estimate, each person's rate and the labor cost. Shopping is one person.
-export function laborFor(d){const crew=crewMembers?.length?crewMembers:null,est=laborEstimate(d,crew?crew.length:LABOR.crew),rates=crew?crew.map(c=>c.rateCents).slice(0,est.crew):Array(est.crew).fill(null),base=laborCost(est.hours,rates),shoppingRateCents=rates[0]??null,shoppingCents=shoppingRateCents==null?null:Math.round(est.shoppingHours*shoppingRateCents);
+export function laborFor(d,members=crewMembers){const active=Array.isArray(members)?members.filter(c=>!c.archived).slice(0,LABOR.maxCrew):null,crew=active?.length?active:null,est=laborEstimate(d,crew?crew.length:LABOR.crew),rates=crew?crew.map(c=>c.rateCents).slice(0,est.crew):Array(est.crew).fill(null),base=laborCost(est.hours,rates),shoppingRateCents=rates[0]??null,shoppingCents=shoppingRateCents==null?null:Math.round(est.shoppingHours*shoppingRateCents);
  return {...est,defaultHours:est.hours,adjusted:false,rates,people:crew?crew.map(c=>c.name):null,...base,shoppingRateCents,shoppingCents,costCents:base.costCents===null&&shoppingCents===null?null:(base.costCents??0)+(shoppingCents??0)};}
 const hoursText=h=>`${Math.round(h*10)/10} hr${h===1?'':'s'}`;
 export function laborCrewLine(l){return l.people?l.people.map((name,i)=>`${name} ${l.rates[i]==null?'(no rate)':money(l.rates[i])+'/hr'}`).join(' · '):'Unlock Cost projection to price labor with your crew';}

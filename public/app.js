@@ -108,3 +108,6 @@ const viewerHeader=document.querySelector('body>header');let viewerSizeFrame=0;
 function syncViewerHeight(){viewerSizeFrame=0;const visible=Math.max(0,viewerHeader.getBoundingClientRect().bottom);document.documentElement.style.setProperty('--visible-header-height',visible+'px');}
 function scheduleViewerHeight(){if(!viewerSizeFrame)viewerSizeFrame=requestAnimationFrame(syncViewerHeight);}
 window.addEventListener('scroll',scheduleViewerHeight,{passive:true});window.addEventListener('resize',scheduleViewerHeight);window.addEventListener('pageshow',scheduleViewerHeight);new ResizeObserver(scheduleViewerHeight).observe(viewerHeader);syncViewerHeight();
+
+import {installAgentProject} from './agent-project.js';
+installAgentProject(window.__studio);

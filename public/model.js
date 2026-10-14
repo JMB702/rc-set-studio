@@ -133,17 +133,14 @@ export function cycloramaMesh(d,{stage=48,construction=true}={}){
 
  if(plan.corners)for(const seg of base.filter(s=>s.kind==='corner')){
   grid(`Rounded wall corner ${seg.side}`, [seg.points.map(([x,z])=>[x,bottom,z]),seg.points.map(([x,z])=>[x,d.height,z])],45,[-seg.side*Math.sin(plan.angle*Math.PI/360),0,Math.cos(plan.angle*Math.PI/360)]);
-  if(construction&&plan.verticalSkinSeams){const joins=plan.verticalSkinSeams/plan.corners;for(let j=1;j<=joins;j++){const phi=plan.angle*Math.PI/180*j/(joins+1),half=1.75/plan.cornerRadius,pg=[];for(const radius of [plan.cornerRadius,plan.cornerRadius+1.5])for(let k=0;k<=8;k++){const u=phi-half+2*half*(radius===plan.cornerRadius?k:8-k)/8;pg.push([seg.side*(96-plan.tangent+radius*Math.sin(u)),plan.cornerRadius-radius*Math.cos(u)]);}part(`Backing skin seam ${seg.side} ${j}`,slab(pg,bottom,d.height),43);}}
   if(construction){
    // Wall frames: back panel 4 (or 1) and the first wing panel. Panel-local x runs away from the corner, z out of the wall face.
    const s=seg.side,a=plan.angle*Math.PI/180,walls=[{at:u=>[s*(96-u),0],out:[0,1]},{at:u=>[s*(96+u*Math.cos(a)),u*Math.sin(a)],out:[-s*Math.sin(a),Math.cos(a)]}],lift=plan.floorBase,rd=design(d.height+lift).railDepth;
    const block=(name,wall,u0,u1,z0,z1,y0,y1,st,ids)=>{const w=walls[wall],[x0,q0]=w.at(u0),[x1,q1]=w.at(u1),pg=[[x0+w.out[0]*z0,q0+w.out[1]*z0],[x1+w.out[0]*z0,q1+w.out[1]*z0],[x1+w.out[0]*z1,q1+w.out[1]*z1],[x0+w.out[0]*z1,q0+w.out[1]*z1]];const m=part(name,slab(pg,y0,y1),st);m.userData.pricingIds=ids;return m;};
    // Added crossbars sit behind the existing skin between the stiles, like the panel's own toggles.
    for(const [wall,label] of [[0,'back'],[1,'wing']])for(const y of plan.addedCrossbarLevels)block(`Added crossbar ${label} ${s} ${y}`,wall,.75,47.25,-.106-rd,-.106,y-lift-.375,y-lift+.375,43,['cycCrossbars']);
-   // Cleats stay clear of the curve: the skin needs 1½″ behind it, so each cleat ends where the arc is that far out.
-   const end=plan.cleatReach,start=Math.max(1,end-plan.cleat.length);
-   plan.ribLevels.forEach((level,i)=>{const y=level.y-lift,pg=[[s*96,0],...seg.points];part(`Corner rib ${s} ${i+1}`,slab(pg,y,y+plan.ribThickness),44);
-    if(end>start+1)for(const wall of [0,1]){const c0=level.cleat==='below'?y-plan.cleat.height:y+plan.ribThickness;block(`Corner rib cleat ${s} ${i+1} ${wall}`,wall,start,end,0,plan.cleat.thickness,c0,Math.min(d.height,c0+plan.cleat.height),44,['cycBacking']);}});
+   // Ribs are centered on their crossbars and screwed from behind; nothing is added on the wall face.
+   plan.ribLevels.forEach((level,i)=>part(`Corner rib ${s} ${i+1}`,slab([[s*96,0],...seg.points],level.y-lift,level.y-lift+plan.ribThickness),44));
   }
  }
  if(plan.perimeter){

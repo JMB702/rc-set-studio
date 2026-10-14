@@ -21,7 +21,7 @@ test('All seamless combinations price matching plan quantities and preserve exis
   if(cyc.length){
    assert.equal(r.find(x=>x.id==='cycRibPly').purchaseQuantity,p.ribSheets);
    assert.equal(r.find(x=>x.id==='cycSkin').purchaseQuantity,p.skinSheets);
-   assert.equal(r.find(x=>x.id==='cycAnchorScrews').needed+r.find(x=>x.id==='cycSkinScrews').needed,p.fasteners);
+   const need=id=>r.find(x=>x.id===id)?.needed??0;assert.equal(need('cycAnchorScrews')+need('cycRibScrews')+need('cycSkinScrews'),p.fasteners,'corner ribs are screwed from behind; other ribs use SPAX anchors');
    const compounds=r.filter(x=>x.productUrl==='https://www.homedepot.com/p/100321605');assert.equal(compounds.reduce((n,x)=>n+x.purchaseQuantity,0),Math.ceil(compounds.reduce((n,x)=>n+x.needed,0)));
    assert.ok(cyc.filter(x=>['cycRibPly','cycSkin','cycAdhesive','cycReinforcement'].includes(x.id)).every(x=>Number.isInteger(x.subtotalCents)&&x.subtotalCents>0));
   }

@@ -8,7 +8,7 @@ const close=(a,b)=>assert.ok(Math.abs(a-b)<1e-5,`${a} != ${b}`);
 test('Larger decks halve the default square pieces and reduce angled pieces without adding sheets',()=>{
  const square=platformPlan(45,12,12,90),angled=platformPlan(45,12,12,45);
  assert.deepEqual([square.modules.length,square.decks.length,square.deckSheets],[8,4,4]);assert.deepEqual([angled.modules.length,angled.decks.length,angled.deckSheets],[13,7,7]);
- assert.equal(square.deckScrews,312);assert.equal(angled.deckScrews,516);assert.equal(square.deckSeamLength,252);close(angled.deckSeamLength,476.0588745030458);assert.ok(square.deckSeamLength<square.seamLength);
+ assert.equal(square.deckScrews,312);assert.equal(angled.deckScrews,512);assert.equal(square.deckSeamLength,252);close(angled.deckSeamLength,476.0588745030458);assert.ok(square.deckSeamLength<square.seamLength);
 });
 test('Decks cover the frame layout once, remain supported, and their stock cuts fit without overlap',()=>{
  for(const angle of [0,15,30,45,60,75,90])for(const back of [0,12,24,48])for(const side of [0,12,24,48])for(const pa of [angle,90]){

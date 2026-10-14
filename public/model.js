@@ -1,9 +1,9 @@
 import {cycloramaPlan,cycloramaPath} from './cyclorama.js';
 import {platformSeamSegments} from './platform-finish.js';
-import {makeWallAtlas} from './wall-appearance.js';
+import {makeWallAtlas,sheetVariation} from './wall-appearance.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
-import {footprint,platformPlan,PLATFORM,legLength,rimBottom} from './platform.js';
+import {footprint,platformPlan,PLATFORM,legLength,rimBottom,bottomRimTop} from './platform.js';
 import {floorPlan,FLOOR,floorSection,floorSurfaceHeight} from './floor-plan.js';
 import {jackLayout} from './jack-layout.js';
 import {jackAttachment} from './jack-attachment.js';
@@ -88,7 +88,11 @@ root.userData.surfaceHeight=section.top;root.userData.area=Math.abs(poly.reduce(
 export function dispose(r){r?.traverse(o=>{o.geometry?.dispose();if(o.material&&!Object.values(mats).includes(o.material))o.material.dispose()});r?.parent?.remove(r);}
 // Raised platform. Footprint polygons are [x, z] in inches; extrude them between two heights.
 export function slab(pg,y0,y1){const shape=new T.Shape(pg.map(([x,z])=>new T.Vector2(x*inch,z*inch)));const g=new T.ExtrudeGeometry(shape,{depth:(y1-y0)*inch,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(0,y1*inch,0);g.computeBoundingBox();const s=g.boundingBox.getSize(new T.Vector3());return grain(g,[s.x/inch,s.y/inch,s.z/inch],pg.length);}
-function slabMesh(G,id,pg,y0,y1,mat,step){const g=slab(pg,y0,y1);if(step===34||step===35){const p=g.attributes.position,n=g.attributes.normal,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,Math.abs(n.getY(i))>.5?p.getZ(i)/(48*inch):(p.getX(i)-p.getZ(i))/(48*inch),Math.abs(n.getY(i))>.5?p.getX(i)/(96*inch):p.getY(i)/(96*inch));}return mesh(G,id,g,mat,step);}
+// Deck and fascia pieces are separate sheets: each gets its own grain offset and a slight tone shift,
+// so joints read in raw plywood the way they do on the wall skins. Neighbors alternate light and dark.
+function slabMesh(G,id,pg,y0,y1,mat,step,sheet=null,shade=0){const g=slab(pg,y0,y1),v=sheet==null?null:sheetVariation(sheet,step===35);if(step===34||step===35){const p=g.attributes.position,n=g.attributes.normal,uv=g.attributes.uv,du=v?v.offsetX:0,dv=v?v.offsetY:0;// Grain follows texture V, along the 96″ sheet length: across the joists on top, along each strip on the sides.
+for(let i=0;i<p.count;i++){const top=Math.abs(n.getY(i))>.5,along=p.getZ(i)*n.getX(i)-p.getX(i)*n.getZ(i);uv.setXY(i,(top?p.getZ(i)/(48*inch):p.getY(i)/(48*inch))+du,(top?p.getX(i):along)/(96*inch)+dv);}}
+ const o=mesh(G,id,g,mat,step);if(v){const m=o.material.clone(),c=m.color;c.multiplyScalar(Math.min(1,(shade?.8:1)*(1+v.tone)));c.b*=1-Math.max(0,v.warmth)*3;c.r*=1-Math.max(0,-v.warmth)*3;m.userData.sheetColor=c.getHex();o.material=m;}return o;}
 // The finished platform reads as one plastered block in its own color.
 export function platformFloor(a,back,side,pa=a,cfg={}){const plan=platformPlan(a,back,side,pa,cfg),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan);parts.userData.progressOnly=true;parts.visible=false;root.add(parts);root.userData.area=plan.deckArea;root.userData.plan=plan;root.position.y=floorSurfaceHeight(cfg)*inch;return root;}
 // Every framing part, each tagged with the Build guide stage that adds it (30–37).
@@ -97,12 +101,13 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
   const first=G.children.length;
   for(const r of m.rims)slabMesh(G,'Platform rim',r.poly,rimBottom,legLength,'wood',31).userData.cutLength=r.length;
   for(const j of m.joists)slabMesh(G,'Platform joist',j.poly,rimBottom,legLength,'wood',31).userData.cutLength=j.length;
-  for(const l of m.legs)slabMesh(G,l.onSill?'Platform leg on sill':'Platform leg',l.poly,legLength-l.length,legLength,'wood',32).userData.cutLength=l.length;
-  for(const s of m.sills)slabMesh(G,'Platform sill',s.poly,0,PLATFORM.sill,'wood',32).userData.cutLength=s.length;
+  for(const l of m.legs)slabMesh(G,'Platform leg',l.poly,0,legLength,'wood',32).userData.cutLength=l.length;
+  for(const r of m.bottomRims)slabMesh(G,'Platform bottom rim',r.poly,0,bottomRimTop,'wood',32).userData.cutLength=r.length;
   for(const o of G.children.slice(first))o.userData.progress={kind:'platform',stage:o.userData.step,module:moduleIndex,total:plan.modules.length,deckIndex:plan.decks.findIndex(d=>d.moduleIndices.includes(moduleIndex)),deckTotal:plan.decks.length,seamEdges:m.edges.map(e=>[...e.A,...e.B])};
  }
- for(const [fasciaIndex,f] of plan.fasciaPieces.entries()){const o=slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35);o.userData.cutLength=f.cutLength;o.userData.plasterSeams=platformSeamSegments([f],true);o.userData.progress={kind:'platform',stage:35,members:f.moduleIndices,deckIndices:f.moduleIndices.map(i=>plan.decks.findIndex(d=>d.moduleIndices.includes(i))),total:plan.modules.length,deckTotal:plan.decks.length,fasciaIndex,fasciaTotal:plan.fasciaPieces.length,seamEdges:[[...f.A,...f.B]]};}
- for(const [deckIndex,d] of plan.decks.entries()){const o=slabMesh(G,'Platform deck',d.poly,legLength,PLATFORM.height,'platformWood',34);o.userData.plasterSeams=platformSeamSegments(d.edges);o.userData.deckId=d.id;o.userData.progress={kind:'platform',stage:34,module:d.moduleIndices[0],members:d.moduleIndices,fasciaIndices:plan.fasciaPieces.flatMap((f,i)=>f.moduleIndices.some(m=>d.moduleIndices.includes(m))?[i]:[]),fasciaTotal:plan.fasciaPieces.length,total:plan.modules.length,deckIndex,deckTotal:plan.decks.length,seamEdges:d.edges.map(e=>[...e.A,...e.B])};}
+ for(const [fasciaIndex,f] of plan.fasciaPieces.entries()){const o=slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35,fasciaIndex,fasciaIndex%2);o.userData.cutLength=f.cutLength;o.userData.plasterSeams=platformSeamSegments([f],true);o.userData.progress={kind:'platform',stage:35,members:f.moduleIndices,deckIndices:f.moduleIndices.map(i=>plan.decks.findIndex(d=>d.moduleIndices.includes(i))),total:plan.modules.length,deckTotal:plan.decks.length,fasciaIndex,fasciaTotal:plan.fasciaPieces.length,seamEdges:[[...f.A,...f.B]]};}
+ const deckRow=d=>plan.modules[d.moduleIndices[0]].row,deckShade=plan.decks.map((d,i)=>(deckRow(d)+plan.decks.slice(0,i).filter(e=>deckRow(e)===deckRow(d)).length)%2);
+ for(const [deckIndex,d] of plan.decks.entries()){const o=slabMesh(G,'Platform deck',d.poly,legLength,PLATFORM.height,'platformWood',34,deckIndex,deckShade[deckIndex]);o.userData.plasterSeams=platformSeamSegments(d.edges);o.userData.deckId=d.id;o.userData.progress={kind:'platform',stage:34,module:d.moduleIndices[0],members:d.moduleIndices,fasciaIndices:plan.fasciaPieces.flatMap((f,i)=>f.moduleIndices.some(m=>d.moduleIndices.includes(m))?[i]:[]),fasciaTotal:plan.fasciaPieces.length,total:plan.modules.length,deckIndex,deckTotal:plan.decks.length,seamEdges:d.edges.map(e=>[...e.A,...e.B])};}
  G.userData.plan=plan;return G;}
 
 // Retrofit cyclorama: the same inset wall path generates the cylindrical sweeps and compound corners.

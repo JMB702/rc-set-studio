@@ -188,7 +188,7 @@ export function projectUpgradePlatform(input) {
  const legacy=['platform-0','platform-1','platform-2','platform-3'];if(!legacy.every(id=>stage.steps.some(t=>t.id===id)))return input;
  const groups={
   'platform-0':[['platform-cut','Lay out and number modules'],['platform-frame','Cut and assemble module frames']],
-  'platform-1':[['platform-legs','Fit legs and sills'],['platform-join','Position and join modules']],
+  'platform-1':[['platform-legs','Fit legs and bottom rings'],['platform-join','Position and join modules']],
   'platform-2':[['platform-deck','Attach the decks'],['platform-fascia','Attach the fascia']],
   'platform-3':[['platform-skim','Tape, skim and sand'],['platform-prime','Prime the platform'],['platform-paint','Paint the platform']],
  };

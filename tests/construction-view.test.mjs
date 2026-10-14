@@ -34,7 +34,10 @@ test('Progress materials are temporary, the toggle restores the model, and camer
 });
 test('Deck seams follow larger plywood pieces while fascia follows long strip joints',()=>{
  for(const angle of [30,45,90]){const platform=model.platformFloor(angle,12,12,angle),parts=platform.children.find(o=>o.userData.progressOnly),plan=platform.userData.plan;
-  for(const o of parts.children){if(o.userData.step<34)continue;const part=o.userData.progress;assert.equal(part.seamEdges.length,o.userData.step===34?plan.decks[part.deckIndex].edges.length:1);assert.ok(part.seamEdges.length<=8);for(const edge of part.seamEdges)assert.ok(edge.every(Number.isFinite));if(o.userData.step===34)assert.equal(o.material,model.mats.platformWood);}
+  for(const o of parts.children){if(o.userData.step<34)continue;const part=o.userData.progress;assert.equal(part.seamEdges.length,o.userData.step===34?plan.decks[part.deckIndex].edges.length:1);assert.ok(part.seamEdges.length<=8);for(const edge of part.seamEdges)assert.ok(edge.every(Number.isFinite));if(o.userData.step===34)assert.equal(o.material.map,model.mats.platformWood.map);assert.ok(Number.isInteger(o.material.userData.sheetColor),'each sheet keeps its own tone');}
+  const tone=new Map(parts.children.filter(o=>o.userData.step===34).map(o=>[o.userData.progress.deckIndex,o.material.userData.sheetColor]));
+  const touches=(a,b)=>a.edges.some(e=>{const m=[(e.A[0]+e.B[0])/2,(e.A[1]+e.B[1])/2];return b.edges.some(f=>{const dx=f.B[0]-f.A[0],dz=f.B[1]-f.A[1],l=Math.hypot(dx,dz),t=((m[0]-f.A[0])*dx+(m[1]-f.A[1])*dz)/l/l;return t>0&&t<1&&Math.abs((m[0]-f.A[0])*dz-(m[1]-f.A[1])*dx)/l<1e-3;});});
+  for(let i=0;i<plan.decks.length;i++)for(let j=i+1;j<plan.decks.length;j++)if(plan.modules[plan.decks[i].moduleIndices[0]].row===plan.modules[plan.decks[j].moduleIndices[0]].row&&touches(plan.decks[i],plan.decks[j]))assert.notEqual(tone.get(i),tone.get(j),`decks ${i} and ${j} share a joint and read as separate sheets`);
   model.dispose(platform);
  }
 });

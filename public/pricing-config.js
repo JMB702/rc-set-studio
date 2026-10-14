@@ -7,7 +7,8 @@ export function normalizeCustom(item){
  const quantity=item.quantity??1,unitPriceCents=item.unitPriceCents??0;
  if(!Number.isInteger(quantity)||quantity<1||quantity>10000||!Number.isSafeInteger(unitPriceCents)||unitPriceCents<0||unitPriceCents>9999999999)throw Error('Invalid quantity or price.');
  if(typeof item.id!=='string'||!/^custom-[0-9a-f-]{36}$/i.test(item.id))throw Error('Invalid custom item ID.');
- return {id:item.id,title,description,link:optionalLink(item.link),quantity,unitPriceCents};
+ if(item.taxable!==undefined&&typeof item.taxable!=='boolean')throw Error('Invalid tax treatment.');
+ return {id:item.id,title,description,link:optionalLink(item.link),quantity,unitPriceCents,...(item.taxable!==undefined?{taxable:item.taxable}:{})};
 }
 export function normalizeSeamless(input){const result={};for(const key of ['seamlessCorners','seamlessPerimeter']){if(input[key]!==undefined&&typeof input[key]!=='boolean')throw Error('Invalid seamless option.');result[key]=input[key]??false;}return result;}
 export function normalizeConfiguration(input){
@@ -25,7 +26,7 @@ export function normalizeConfiguration(input){
  if(!Array.isArray(input.customItems)||input.customItems.length>100)throw Error('Too many custom items.');const customItems=input.customItems.map(normalizeCustom);if(new Set(customItems.map(i=>i.id)).size!==customItems.length)throw Error('Duplicate custom item IDs.');
  return {...normalizeSeamless(input),version:1,scope:input.scope,height:input.height,angle:input.angle,floor,platformShape,platformBack,platformSide,platformAngle,platformColor:platformColor.toLowerCase(),wallColor:wallColor.toLowerCase(),floorColor:floorColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
 }
-export function customizeRows(rows,configuration){const excluded=new Set(configuration.excluded);return [...rows.filter(r=>!excluded.has(r.id)),...configuration.customItems.map(i=>({id:i.id,custom:true,name:i.title,description:i.description,availability:i.description,productUrl:i.link,purchaseQuantity:i.quantity,packSize:1,needed:i.quantity,unitPriceCents:i.unitPriceCents,subtotalCents:i.quantity*i.unitPriceCents,group:'custom'}))];}
+export function customizeRows(rows,configuration){const excluded=new Set(configuration.excluded);return consolidatePacks([...rows.filter(r=>!excluded.has(r.id)),...configuration.customItems.map(i=>({id:i.id,custom:true,name:i.title,description:i.description,availability:i.description,productUrl:i.link,purchaseQuantity:i.quantity,packSize:1,needed:i.quantity,unitPriceCents:i.unitPriceCents,subtotalCents:i.quantity*i.unitPriceCents,group:'custom',taxable:i.taxable===true}))]);}
 export function removedPart(tags,floor,excluded){const physical=tags.includes('laminate')?(floor==='wood'?'laminate':'floorPly'):tags[0];return excluded.includes(physical);}
 // An approved design: every setting the design panel controls, validated the same way in the browser and the Worker.
 export function normalizeDesign(input){
@@ -60,3 +61,8 @@ export function normalizeApprovalEstimate(input){
 // UI equality follows saved settings; estimate-format revisions do not change those settings.
 export function approvalSettingsMatch(approval,design){return !!approval&&JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design));}
 export function approvalMatchesDesign(approval,design){return JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design))&&(normalizeDesign(design).platformShape==='none'||approval.estimate?.deckLayoutRevision==='paired-v1');}
+
+// Stable cost-row IDs remain intact while identical hardware packs and finishing containers are rounded only once.
+export function consolidatePacks(rows){const out=rows.map(r=>({...r})),groups=new Map();for(const r of out){if(r.custom||!(r.packSize>1||r.sharedSupply)||!Number.isFinite(r.needed)||r.unitPriceCents===null)continue;r.purchaseQuantity=Math.ceil(r.needed/r.packSize);r.subtotalCents=r.purchaseQuantity*r.unitPriceCents;if(r.unallocatedAvailability)r.availability=r.unallocatedAvailability;const key=[r.productUrl,r.packSize,r.unitPriceCents].join('|');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}
+ for(const group of groups.values()){if(group.length<2)continue;let needed=0,bought=0;for(const r of group){needed+=r.needed;const total=Math.ceil(needed/r.packSize);r.purchaseQuantity=total-bought;bought=total;r.subtotalCents=r.purchaseQuantity*r.unitPriceCents;r.unallocatedAvailability??=r.availability;r.availability=r.unallocatedAvailability+` · Shared packs across ${group.map(x=>x.id).join(', ')}; this row adds ${r.purchaseQuantity} pack(s), using prior pack spare capacity first.`;}}
+ return out;}

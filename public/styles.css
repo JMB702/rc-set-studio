@@ -818,3 +818,5 @@ body.camera-positions main .controls{padding-bottom:180px}
 #step-actions li{counter-increment:instruction;position:relative;padding-left:36px;font-size:16px;line-height:1.5;color:#1f2e27}
 #step-actions li:before{content:counter(instruction);position:absolute;left:0;top:0;width:24px;height:24px;display:grid;place-items:center;background:#2f4a2b;color:#fff;border-radius:50%;font-size:12px;font-weight:700}
 @media(max-width:850px){.building #step-actions li{font-size:15px}.need-row{grid-template-columns:68px minmax(0,1fr)}}
+
+#price-add-form .price-tax-choice{display:flex;align-items:center;gap:8px}#price-add-form #price-taxable{width:18px;height:18px;padding:0;flex:none}

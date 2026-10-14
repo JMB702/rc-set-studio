@@ -140,8 +140,8 @@ test('Floor and platform finishes are separate groups without changing rows or t
 });
 test('Wall and fascia finishes use premixed tubs with paper tape while deck skim remains cement',()=>{
  const rows=priceRows(data,{scope:'set',height:120,angle:90,floor:'charcoal',platformShape:'square'});
- for(const id of ['wallSeams','platformCompound']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321605');assert.equal(r.purchaseQuantity,1);assert.equal(r.unitPriceCents,2368);}
- for(const id of ['wallSeamTape','platformTape']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321613');assert.equal(r.purchaseQuantity,1);assert.equal(r.unitPriceCents,328);}
+ for(const id of ['wallSeams','platformCompound']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321605');assert.equal(r.purchaseQuantity,id==='wallSeams'?1:0);assert.equal(r.unitPriceCents,2368);}
+ for(const id of ['wallSeamTape','platformTape']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321613');assert.equal(r.purchaseQuantity,id==='wallSeamTape'?1:0);assert.equal(r.unitPriceCents,328);}
  for(const id of ['floorSeams','platformDeckSkim'])assert.equal(rows.find(r=>r.id===id).productUrl,'https://www.homedepot.com/p/313474246');
 });
 

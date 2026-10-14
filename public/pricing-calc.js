@@ -1,4 +1,4 @@
-import {customizeRows} from './pricing-config.js';
+import {customizeRows,consolidatePacks} from './pricing-config.js';
 import {calculate} from './shopping-calc.js';
 import {platformPlan,PLATFORM} from './platform.js';
 import {cycloramaPlan} from './cyclorama.js';
@@ -24,6 +24,7 @@ export function floorRows(data,angle,type){const area=floorArea(angle),waste=are
  rows.push(stocked(extra('floorGlue','Loctite PL 400 Subfloor construction adhesive · 28 oz',Math.ceil(area*2*1.1/86),898,'300751977',`Checked Oct 10 at #6319 · 204 in stock · ¼″ serpentine beads 6″ apart across ${area.toFixed(1)} sq ft between layers (~86 ft of bead per tube) + 10%. Separate from wall glue`),204));
  const screw=data.products.find(p=>p.id==='lapScrews');rows.push(stocked(extra('floorLayerScrews','Everbilt #8×1¼ in flat-head wood screws · plywood layers · 100 pack',Math.ceil(area*2.25*1.05/screw.packSize),797,'204275496','Checked Oct 10 at #6319 · 4 packs in stock · 8″ grid through the top layer; 1¼″ stays inside the 1 13/32″ combined thickness'),4));
  }
+ const layer=rows.find(r=>r.id==='floorLayerScrews');if(layer){layer.needed=Math.ceil(area*2.25*1.05);layer.packSize=data.products.find(p=>p.id==='lapScrews').packSize;}
  return rows.map(r=>['floorPrimer','floorPaint','floorSeams','trim'].includes(r.id)?{...r,group:'floorFinish'}:r);
 }
 // 10″ platform: every quantity comes from the module plan for this angle and these wall gaps.
@@ -53,21 +54,21 @@ export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,plat
 // Retrofit quantities come from the same plan as geometry and the Build guide. Prices here reuse
 // dated catalog observations; unknown sheet specifications and compatible adhesive remain pending.
 export function cycloramaRows(data,d,{finishes=true}={}){
- const p=cycloramaPlan(d);if(!p.corners&&!p.perimeter)return [];
+ const p=cycloramaPlan(d);if(!p.corners&&!p.perimeter)return [];const cyc=id=>data.cyclorama.products.find(p=>p.id===id);
  const shared=id=>data.products.find(r=>r.id===id),own=id=>data.platform.products.find(r=>r.id===id);
  const sourced=(id,src,name,needed,quantity,note,group='cyclorama')=>({...extra(id,name,quantity,src.unitPriceCents,src.productUrl,`${note} · Catalog checked ${src.checkedDate}: ${src.availability}`,group),needed,packSize:src.packSize||1});
  const pending=(id,name,quantity,note)=>extra(id,name,quantity,null,'https://www.homedepot.com/s/'+encodeURIComponent(name),note,'cyclorama');
  const anchors=p.ribCount*4,skinScrews=Math.max(0,p.fasteners-anchors),anchor=shared('barScrews'),skin=shared('lapScrews');
  const rows=[
-  pending('cycRibPly','¾ in plywood · cyclorama ribs · 4×8 sheet',p.ribSheets,`${p.ribCount} ribs including ${p.compoundRibs} compound-corner ribs; sheet allowance requires nesting and a supplier quote`),
-  pending('cycSkin','Flexible ⅛ in skin · cyclorama · 4×8 sheet',p.skinSheets,`${p.skinArea.toFixed(1)} sq ft curved surface; sheet allowance includes waste. Verify bend direction, minimum radius and paint/compound adhesion with a full-size sample; existing wall facing is not assumed bend-rated`),
+  sourced('cycRibPly',cyc('cycRibPly'),cyc('cycRibPly').name,p.ribSheets,p.ribSheets,`${p.ribCount} ribs including ${p.compoundRibs} compound ribs; conservative stock envelopes, verify template nesting`),
+  sourced('cycSkin',shared('skin'),'Wall-panel utility plywood · curved skins · ⅛ nominal / .106 actual · 4×8 sheet',p.skinSheets,p.skinSheets,`${p.skinLayout.sheets} sheets packed with grain fixed + ${p.goreSheets} gore/mockup sheets. Same product as the wall skins; split wide corner arcs into supported strips and perform the bend test first`),
   sourced('cycBacking',shared('crossbar'),'2×4×96 in stud · cyclorama backing and cleats',p.blockingFeet,Math.ceil(p.blockingFeet*1.1/8),`${p.blockingFeet.toFixed(1)} linear ft + 10%; locate existing framing and add rear blocking where needed; no fastening into facing alone`),
   sourced('cycAnchorScrews',anchor,'SPAX #8×2½ in screws · cyc ribs and backing · 133 box',anchors,Math.ceil(anchors/anchor.packSize),`${anchors} planning fasteners (four per rib); confirm cleat direction, timber penetration and existing frame locations before fixing`),
   sourced('cycSkinScrews',skin,'#8×1¼ in screws · flexible cyc skin · 100 pack',skinScrews,Math.ceil(skinScrews/skin.packSize),`${skinScrews} skin fasteners; pilot, keep every joint supported and check pull-through on the sample`),
-  pending('cycAdhesive','Skin-compatible cyclorama adhesive',null,'Adhesive specification, coverage, price and floor substrate compatibility pending the bend/adhesion sample; avoid high-moisture adhesive that can warp the facing'),
+  sourced('cycAdhesive',shared('glue'),'Titebond III · rib-to-plywood skin contacts · 16 oz',p.adhesiveBottles,p.adhesiveBottles,`${p.glueContactSqFt.toFixed(1)} sq ft tight bare-wood contact + 25%, manufacturer spread 250 sq ft/gallon. Clamp firmly; not for gluing to paint, concrete or bridging gaps`),
  ];
  if(p.perimeter&&d.floor!=='charcoal')rows.push(pending('cycTransition','Stable paintable cove-to-floor transition substrate',null,'Floor-dependent substrate, preparation, expansion joint and price pending inspection; do not bridge or fasten to floating laminate'));
- if(p.corners&&p.perimeter)rows.push(pending('cycReinforcement','Compound-corner seam reinforcement',null,'Selection, quantity and price pending the gore-seam adhesion sample; paper tape only where it lies flat, compatible reinforcement on compound curves'));
+ if(p.corners&&p.perimeter)rows.push(sourced('cycReinforcement',cyc('cycReinforcement'),cyc('cycReinforcement').name,Math.ceil(p.compoundRibs*p.floorRadius*Math.PI/2/12*1.25/250),Math.ceil(p.compoundRibs*p.floorRadius*Math.PI/2/12*1.25/250),'Gore seams plus 25%; cut reliefs and trial on the curved plywood mockup with premixed compound'));
  if(finishes){const tape=own('platformTape'),compound=own('platformCompound'),primer=own('platformPrimer'),paint=data.wallPaint;
   rows.push(sourced('cycTape',tape,'USG paper joint tape · cyclorama seams · 250 ft roll',p.tapeFeet,Math.ceil(p.tapeFeet*1.1/250),`${p.tapeFeet.toFixed(1)} ft + 10%; embed in thin wet compound on compatible supported seams`,'cycloramaFinish'));
   rows.push(sourced('cycCompound',compound,'USG premixed joint compound · cyclorama · 4.5 gal pail',p.compoundPails,p.compoundPails,'Planning thin skim and repeated fills, with extra allowance for compound corners; decorative non-walking cove only, no thick unsupported plaster bridge','cycloramaFinish'));
@@ -100,7 +101,12 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  }
  if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessPerimeter}));}
  if(scope==='set')rows.push(...cycloramaRows(data,{height,angle,floor,seamlessCorners,seamlessPerimeter},{finishes}));
- return rows;
+ // Pool identical consumable products by their measured use before rounding whole containers.
+ // Paint colors are not pooled across different product URLs or wall/floor product families.
+ const wallArea=n*4*height/12,seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),pl=platformShape==='none'?null:platformPlan(angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessPerimeter}),cy=cycloramaPlan({height,angle,seamlessCorners,seamlessPerimeter});
+ const use={wallPrimer:wallArea/250,wallPaint:wallArea*2/data.wallPaint.coverageSqFtPerGallon,wallSeams:seamFt*10/12/150,wallSeamTape:seamFt*1.1,platformPrimer:pl?(pl.finishArea-pl.deckArea)/300:0,platformCompound:pl?(pl.finishArea-pl.deckArea)/150:0,platformTape:pl?(pl.tapeLength-pl.deckSeamLength)*1.1/12:0,floorPrimer:floorArea(angle)/250,platformDeckPrimer:pl?pl.deckArea/250:0,cycPrimer:cy.skinArea/250,cycPaint:cy.skinArea*2/data.wallPaint.coverageSqFtPerGallon,cycCompound:cy.skinArea/150+(cy.corners&&cy.perimeter?2:0),cycTape:cy.tapeFeet*1.1};
+ for(const row of rows)if(use[row.id]!==undefined){row.needed=use[row.id];row.packSize=['wallSeamTape','platformTape','cycTape'].includes(row.id)?250:1;row.sharedSupply=true;}
+ return consolidatePacks(rows);
 }
 export function summary(rows){return {subtotal:rows.reduce((s,r)=>s+(r.subtotalCents??0),0),pending:rows.filter(r=>r.subtotalCents===null).length};}
 
@@ -110,6 +116,6 @@ export function pricingBudget(data,configuration,labor){
  return {taxCents,totalCents:totals.subtotal+taxCents+(labor?.costCents??0),materialsCents:totals.subtotal,laborCents:labor?.costCents??null,pending:totals.pending,unrated:labor?.unrated??0};
 }
 
-// Manatee County 2026: 6% Florida + 1% county. Planning estimate on known material lines.
-// Additional/custom charges have unknown tax treatment; they are excluded, as is labor.
-export function materialTax(rows){return Math.round(rows.filter(r=>!r.custom).reduce((n,r)=>n+(r.subtotalCents??0),0)*.07);}
+// Florida 6% + Manatee 1%; county surtax caps at $5,000 per tangible item.
+// Custom entries retain historical tax-as-entered behavior unless explicitly marked taxable.
+export function materialTax(rows){let state=0,county=0;for(const r of rows){if(r.custom&&r.taxable!==true)continue;const subtotal=r.subtotalCents??0;state+=subtotal;const q=r.purchaseQuantity,u=r.unitPriceCents;county+=Number.isFinite(q)&&q>=0&&Number.isFinite(u)&&Math.abs(q*u-subtotal)<1?Math.min(u,500000)*q:subtotal;}return Math.round(state*.06+county*.01);}

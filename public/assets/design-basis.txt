@@ -227,3 +227,27 @@ Physical cyclorama model correction (2026-10-13)
   curved finish. Compound radial ribs are actual 3/4in extrusions, not triangles.
 - Existing rib counts, sheet allowances, fasteners, pricing and labor are retained;
   this corrects the representation of already specified materials, not quantities.
+
+
+2026-10-13 estimate and stock selection revision (supersedes generic thicknesses)
+Curved skins use the existing wall-panel lauan: .106in actual,48x96in. Ribs use
+Plytanium23/32 nominal (.703in actual). Both physical dimensions drive the model.
+Wide skin arcs split into supported strips with the grain along the96in sheet
+axis. The cut list now gives every rectangular blank and its sheet position,
+with1in across-arc trim allowance and1/8in kerf. Two extra sheets remain for
+compound gores and mockups only when both seamless options are active.
+Scribed2x4 vertical seam backing is included in geometry, stock and labor.
+Ribs are placed on16in centers with end ribs, supporting96in sheet joins.
+Titebond III quantities follow actual rib/seam contact area plus25% application
+allowance, using the manufacturer250sqft/gallon spread. New glue is not priced
+for concrete/paint bonds. Floor-substrate transitions remain pending when the
+perimeter is combined with no floor or floating oak; do not silently assume one.
+Identical screw/staple products share packs across cost rows. Row IDs remain
+stable for receipts; removing an option or excluded row recalculates pack needs.
+Tax uses6% state +1% Manatee with a per-item county cap. New custom costs can
+explicitly add tax; old/custom tax-as-entered values are retained. Receipt totals
+are not re-taxed; only remaining purchases get estimated tax. Pickup is assumed;
+no unverified delivery charge, store inventory, or refreshed price is invented.
+
+Matching primer, compound, paper tape and wall/curve paint also share containers
+from calculated coverage. Different paint product URLs remain separate.

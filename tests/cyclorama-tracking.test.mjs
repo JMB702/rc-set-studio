@@ -22,9 +22,9 @@ test('Adding retrofit work preserves completed wall counts, old progress, notes 
  assert.equal(projectGuideStagePercent(completed,47,design),50);
 });
 test('Guide stage mappings exclude disabled options and flat walls',()=>{
- assert.ok(!projectGuideGroups({...design,seamlessPerimeter:false})['cyc-junctions']);assert.ok(!projectGuideGroups({...design,angle:0})['cyc-ribs']);
+ assert.ok(!projectGuideGroups({...design,seamlessPerimeter:false})['cyc-compound-1-ribs']);assert.ok(!projectGuideGroups({...design,angle:0})['cyc-corner-1-ribs']);
  const initial=projectDefaultTracking(design);assert.throws(()=>projectSetGuideStage(initial,47,true,{...design,seamlessPerimeter:false}),/not part/);
- const checked=projectSetGuideStage(initial,47,true,design),manual=structuredClone(checked);manual.stages.find(s=>s.id==='cyclorama').steps.find(t=>t.id==='cyc-junctions').percent=0;
+ const checked=projectSetGuideStage(initial,47,true,design),manual=structuredClone(checked);manual.stages.find(s=>s.id==='cyclorama').steps.find(t=>t.id==='cyc-compound-1-ribs').percent=0;
  assert.equal(projectReconcileGuideChecks(checked,manual).guideChecks['set:47'],undefined);
 });
 test('Cove mesh progress requires its retrofit backing and relevant skin, independently of old wall finishing',()=>{
@@ -34,11 +34,11 @@ test('Cove mesh progress requires its retrofit backing and relevant skin, indepe
  for(const stage of [46,47,48])d=projectSetGuideStage(d,stage,true,design);
  assert.deepEqual(projectPartStatus({kind:'cyclorama',stage:47},d),{assembled:true,finish:'paint'});
 });
-test('Build design and workspace preserve options and requested gaps through stage48',()=>{
+test('Build design and workspace preserve options and requested gaps through stage62',()=>{
  assert.deepEqual(projectBuildDesign(design),design);assert.equal(projectBuildDesign({...design,seamlessCorners:undefined}).seamlessCorners,false);
  assert.throws(()=>projectBuildDesign({...design,seamlessPerimeter:'yes'}),/Invalid/);
- const saved=normalizeWorkspace({version:1,mode:'build',design,stage:48});assert.equal(saved.stage,48);assert.equal(saved.design.platformBack,12);assert.equal(saved.design.seamlessPerimeter,true);
- assert.throws(()=>normalizeWorkspace({version:1,mode:'build',design,stage:49}),/stage/);
+ const saved=normalizeWorkspace({version:1,mode:'build',design,stage:62});assert.equal(saved.stage,62);assert.equal(saved.design.platformBack,12);assert.equal(saved.design.seamlessPerimeter,true);
+ assert.throws(()=>normalizeWorkspace({version:1,mode:'build',design,stage:63}),/stage/);
  assert.equal(guideCompletionMatchesDesign({design},{...design,seamlessPerimeter:false}),false);assert.equal(guideCompletionMatchesDesign({design},design),true);
 });
 test('Guide fastener allowance matches retrofit pricing quantity basis',()=>{

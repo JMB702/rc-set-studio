@@ -149,3 +149,14 @@ test('Time entries take their stages from the work completed during them unless 
  const p=projectLabor(l,{design,tracking:t,shifts:[shift],now});assert.equal(p.unassignedHours,0);
  assert.ok(Math.abs(p.tasks.reduce((n,x)=>n+x.actual,0)-10)<.05,'all ten hours land on stages');assert.equal(p.actualCents,50000);
 });
+
+test('Granular retrofit completion preserves total labor weight and old log allocations',async()=>{
+ const {laborTasks}=await import('../public/labor.js');const {projectUpgradeCyclorama}=await import('../public/project-model.js');
+ const design={height:120,angle:90,floor:'charcoal',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12,seamlessCorners:true,seamlessPerimeter:true};
+ const tasks=laborTasks(design),weights=progressWeights(design),expected=tasks.filter(t=>!['All','Shopping'].includes(t.stage)).reduce((n,t)=>n+t.personHours,0);
+ assert.ok(Math.abs(Object.values(weights).reduce((a,b)=>a+b,0)-expected)<1e-8);
+ const old={...projectDefaultTracking(design),progressLog:[{at:100,step:'cyc-junctions',from:0,to:100}]};
+ const mapping=shiftStages({start:0,end:200},{log:old.progressLog,design,tasks,weights});assert.deepEqual(mapping,{auto:true,shares:{cycJunctions:1}});
+ let partial=projectSetGuideStage(old,59,true,design);assert.equal(laborTaskProgress(tasks.find(t=>t.id==='cycJunctions'),{design,tracking:partial}),25);
+ const off=progressWeights({...design,seamlessCorners:false,seamlessPerimeter:false});assert.ok(Object.entries(off).filter(([id])=>id.startsWith('cyc-')).every(([,weight])=>weight===0));
+});

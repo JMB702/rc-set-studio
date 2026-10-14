@@ -58,10 +58,10 @@ test('Pricing budget, approval summary and fresh projection preserve both featur
 
 test('Disabled seamless milestones carry zero weight without erasing recorded work',()=>{
  const d={...base,seamlessCorners:true,seamlessPerimeter:true},enabled=progressWeights(d),off=progressWeights(base);
- assert.equal(enabled['cyc-junctions'],48);
+ assert.equal(Object.entries(enabled).filter(([id])=>id.startsWith('cyc-compound-')).reduce((n,[,v])=>n+v,0),48);
  for(const id of ['cyc-backing','cyc-ribs','cyc-skin','cyc-perimeter','cyc-junctions','cyc-finish'])assert.equal(off[id],0);
- const tr=projectSetGuideStage(projectDefaultTracking(),47,100,d);assert.equal(tr.stages.flatMap(s=>s.steps).find(s=>s.id==='cyc-junctions').percent,100);
- assert.ok(progressWeights(d,{tracking:tr,shifts:[]})['cyc-junctions']>0);
+ const tr=projectSetGuideStage(projectDefaultTracking(),47,100,d);assert.equal(tr.stages.flatMap(s=>s.steps).find(s=>s.id==='cyc-compound-1-ribs').percent,100);
+ assert.ok(progressWeights(d,{tracking:tr,shifts:[]})['cyc-compound-1-ribs']>0);
 });
 
 test('The exported estimate includes the junction allowance and separates drying from labor',()=>{

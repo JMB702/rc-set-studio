@@ -131,3 +131,12 @@ test('Platforms and floor curves meet the raised floor without lifting wall tops
   const corner=cyc.getObjectByName('Rounded wall corner -1'),skin=new T.Box3().setFromObject(corner);close(skin.max.y,120*I);assert.ok(skin.min.y>=top*I);close(cyc.position.y,top*I);model.dispose(platform);model.dispose(cyc);
  }
 });
+
+test('Every retrofit mesh carries its exact component, and guide steps reveal ribs before skin',()=>{
+ const d={height:120,angle:90,seamlessCorners:true,seamlessPerimeter:true},expected=new Set(Array.from({length:14},(_,i)=>i+49)),all=model.cycloramaMesh(d);
+ const actual=new Set();all.traverse(o=>{if(o.userData.progress?.component){actual.add(o.userData.guideStage);assert.ok(['ribs','skin'].includes(o.userData.progress.phase));}});assert.deepEqual(actual,expected);
+ const first=model.cycloramaMesh(d,{stage:49}),seen=[];first.traverseVisible(o=>{if(o.isMesh&&o.userData.progress?.component)seen.push(o.userData.progress);});
+ assert.ok(seen.length);assert.ok(seen.every(p=>p.component==='corner-1'&&p.phase==='ribs'));
+ const skin=model.cycloramaMesh(d,{stage:51});let firstSkin=0,secondSkin=0;skin.traverseVisible(o=>{if(o.userData.progress?.phase==='skin'){if(o.userData.progress.component==='corner-1')firstSkin++;if(o.userData.progress.component==='corner-2')secondSkin++;}});assert.ok(firstSkin>0);assert.equal(secondSkin,0);
+ for(const root of [all,first,skin])model.dispose(root);
+});

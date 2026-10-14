@@ -6,7 +6,7 @@ import {progressWeights} from '../public/projection.js';
 import {normalizeWorkspace} from '../public/workspace-state.js';
 import {stepFasteners} from '../public/step-fasteners.js';
 import {cycloramaPlan} from '../public/cyclorama.js';
-const design={floorLip:false,height:120,angle:45,floor:'charcoal',platformShape:'angled',platformAngle:45,platformBack:12,platformSide:12,wallColor:'#34383b',platformColor:'#34383b',floorColor:'#34383b',seamlessCorners:true,seamlessPerimeter:true};
+const design={floorLip:false,height:120,angle:45,floor:'charcoal',platformShape:'angled',platformAngle:45,platformBack:12,platformSide:12,wallColor:'#34383b',platformColor:'#34383b',floorColor:'#34383b',seamlessCorners:true,seamlessCornerSide:'both',seamlessPerimeter:true};
 test('Adding retrofit work preserves completed wall counts, old progress, notes and guide IDs',()=>{
  const previous=projectDefaultTracking();previous.design=design;previous.assembly={panelsCompleted:8,jacksBuilt:16,jacksAttached:16,ballastAttached:8,wallsJoined:8,anglesSet:2};
  previous.stages[0].steps[0].notes=[{id:'kept',text:'Already cut',at:1}];previous.stages[0].steps[0].percent=100;

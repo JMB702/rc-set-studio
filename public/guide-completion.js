@@ -4,11 +4,13 @@ export function guideCompletionMatchesDesign(data,design,stage){
  let keys=['seamlessCorners','seamlessPerimeter','floorLip'];
  if(stage<=20||stage>=38&&stage<=41)keys=['height'];
  else if(stage===21||stage===22)keys=['height','angle'];
- else if(stage===28)keys=['height','angle','seamlessCorners'];
+ else if(stage===28)keys=['height','angle','seamlessCorners','seamlessCornerSide'];
  else if(stage>=23&&stage<=27||stage===42)keys=['floor','angle','floorLip'];
  else if(stage>=30&&stage<=37)keys=['floor','angle','platformShape','platformAngle','platformBack','platformSide','seamlessCorners','seamlessPerimeter'];
- else if(stage>=43)keys=['height','angle','floor','seamlessCorners','seamlessPerimeter'];
- return keys.every(k=>['seamlessCorners','seamlessPerimeter','floorLip'].includes(k)?(data.design[k]===true)===(design[k]===true):data.design[k]==null||data.design[k]===design[k]);
+ else if(stage>=43)keys=['height','angle','floor','seamlessCorners','seamlessCornerSide','seamlessPerimeter'];
+ // The corner side only matters while rounded corners are on; older records have no side and meant both.
+ const side=d=>d.seamlessCorners===true?d.seamlessCornerSide??'both':null;
+ return keys.every(k=>k==='seamlessCornerSide'?side(data.design)===side(design):['seamlessCorners','seamlessPerimeter','floorLip'].includes(k)?(data.design[k]===true)===(design[k]===true):data.design[k]==null||data.design[k]===design[k]);
 }
 export function nextCompletionState(done,autoMark){return autoMark?{done:false,autoMark:false}:done?{done:true,autoMark:true}:{done:true,autoMark:false};}
 export function installGuideCompletion(api){

@@ -11,7 +11,9 @@ export function normalizeCustom(item){
  return {id:item.id,title,description,link:optionalLink(item.link),quantity,unitPriceCents,...(item.taxable!==undefined?{taxable:item.taxable}:{})};
 }
 export function normalizeFloorLip(input){if(input.floorLip!==undefined&&typeof input.floorLip!=='boolean')throw Error('Invalid front joining lip option.');return input.floorLip??false;}
-export function normalizeSeamless(input){const result={};for(const key of ['seamlessCorners','seamlessPerimeter']){if(input[key]!==undefined&&typeof input[key]!=='boolean')throw Error('Invalid seamless option.');result[key]=input[key]??false;}return result;}
+export function normalizeSeamless(input){const result={};for(const key of ['seamlessCorners','seamlessPerimeter']){if(input[key]!==undefined&&typeof input[key]!=='boolean')throw Error('Invalid seamless option.');result[key]=input[key]??false;}
+ // Which wing corners are rounded; older saves have no side and meant both.
+ const side=input.seamlessCornerSide??'both';if(!['both','left','right'].includes(side))throw Error('Invalid seamless corner side.');result.seamlessCornerSide=side;return result;}
 export function normalizeConfiguration(input){
  if(!input||typeof input!=='object'||input.version!==1)throw Error('Unsupported pricing configuration.');
  if(!['set','panel','floor'].includes(input.scope)||![96,120].includes(input.height)||!Number.isInteger(input.angle)||input.angle<0||input.angle>90||!['none','wood','charcoal','platform'].includes(input.floor))throw Error('Invalid set configuration.');

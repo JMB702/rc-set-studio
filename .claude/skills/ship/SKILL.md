@@ -1,15 +1,17 @@
 ---
 name: ship
-description: Ship RC Set Studio when Jeff explicitly says ship, publish or deploy. Uses the installed Codex CLI as an authenticated Sites publishing bridge. Do not invoke for ordinary edits or reviews.
+description: Ship RC Set Studio when Jeff explicitly says ship, publish or deploy. Merges the pull request so Vercel deploys main to production, then verifies the live site. Do not invoke for ordinary edits or reviews.
 disable-model-invocation: true
 ---
 # Ship RC Set Studio
 
-When Jeff explicitly asks to ship, run `npm run ship` from this checkout and let it finish. The command delegates release integration and Sites publication to the installed Codex CLI using Jeff's existing sign-in. This explicit request overrides the repository's ordinary no-deployment default.
+Production is https://rc-set-studio.vercel.app, built by Vercel from `main`. Shipping means merging a verified pull request; Vercel does the deploy.
 
-- Do not separately deploy, change hosting audiences, copy credentials, or push competing releases while it runs.
-- Check its exit code and `output/releases/last-release.json`. Only report shipped when status is `deployed` and include the live URL/version. The receipt is ignored by Git.
-- If access fails, run `npm run ship:check`. Report the actual blocker; never call a GitHub push a production deployment.
-- Production project data and PIN stay untouched. A separate explicit data migration request needs its own reviewed workflow.
+1. Make sure the completed work is committed on a branch with an open PR against `main` (`gh pr create --repo JMB702/rc-set-studio --fill`). Run `npm run check` first; fix failures before shipping.
+2. Run `npm run ship <PR number>` (or `npm run ship` on the PR's branch). It merges the PR, waits for Vercel's production build of the merge commit, and checks `/`, `/api/project/tracking` (200) and `/api/project/finance` (401).
+3. Only report shipped when it prints `Shipped`. If the Vercel build fails, open the build log link it prints, fix forward in a new PR, and ship that. Never call a push or merge alone a deployment.
+
+- Do not run `vercel deploy --prod` by hand while the GitHub integration is connected; it races the integration.
+- Production project data and PIN stay untouched. Database schema changes ship as additive Drizzle migrations, which the production build applies. A data migration needs its own explicit request.
 
 For ordinary work, keep following `rc-set-sync`; open a PR and await a shipping request.

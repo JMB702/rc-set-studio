@@ -15,7 +15,7 @@ Sources:
 If no shared design or approval exists, supply a configuration; no implicit default is invented.
 
 CLI from repository root:
-node scripts/agent-project.mjs --url https://rc-set-studio.jerf702.chatgpt.site --source shared-build
+node scripts/agent-project.mjs --url https://rc-set-studio.vercel.app --source shared-build
 node scripts/agent-project.mjs --url http://localhost:8787 --source supplied --configuration design.json
 Use --private only with an existing authenticated session Cookie on stdin from an approved credential broker. No PIN/credential CLI argument, environment variable, file, or log is used. Redirects are rejected. Do not extract browser cookies for this; use WebMCP with the user's already unlocked session when no broker exists.
 

@@ -99,7 +99,7 @@ Fork, branch, commit, `gh pr create --repo JMB702/rc-set-studio --fill`. Never p
 - the `npm run quote` **before and after** numbers;
 - which Build guide steps and Pricing guide rows you updated, or why none needed it.
 
-For ordinary edits, preserve `.openai/` and do not deploy. An explicit user shipping request overrides this default: follow `.claude/skills/ship/SKILL.md` and run `npm run ship`. The release worker can merge verified work into main and publish the existing Site.
+For ordinary edits, do not deploy; the pull request's Vercel preview is the place to look at the change. An explicit user shipping request overrides this default: follow `.claude/skills/ship/SKILL.md` and run `npm run ship`, which merges the PR and lets Vercel publish `main`.
 
 
 ## Finishing sections and progress preservation

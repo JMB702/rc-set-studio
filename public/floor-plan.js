@@ -1,6 +1,6 @@
 // One physical floor plan for geometry, instructions, procurement and labor. Inches.
 // Fully supported overlay: continuous 8-foot top sheets avoid crosswise top joints.
-export const FLOOR={width:48,length:96,thickness:.703,lip:6,kerf:1/8};
+export const FLOOR={width:48,length:96,thickness:.703,lip:12,kerf:1/8};
 export function floorOutline(angle,lip=false){const c=Math.cos(angle*Math.PI/180)*96,s=Math.sin(angle*Math.PI/180)*96,d=96+(lip?FLOOR.lip:0);return clean([[-96,0],[96,0],[96+c,s],[96+c,d],[-96-c,d],[-96-c,s]]);}
 const area=p=>Math.abs(p.reduce((a,v,i)=>{const q=p[(i+1)%p.length];return a+v[0]*q[1]-q[0]*v[1]},0))/2;
 function clean(ps){const out=[];for(const p of ps)if(!out.length||Math.hypot(p[0]-out.at(-1)[0],p[1]-out.at(-1)[1])>1e-7)out.push(p);if(out.length>1&&Math.hypot(out[0][0]-out.at(-1)[0],out[0][1]-out.at(-1)[1])<1e-7)out.pop();return out;}
@@ -33,3 +33,11 @@ export function packFloorSheets(pieces){const sheets=[];
  return sheets;
 }
 export function floorPlan(angle,cfg={}){const lower=floorSheetPlan(angle,0,cfg),upper=floorSheetPlan(angle,1,cfg),pieces=[...upper.pieces,...lower.pieces],sheets=packFloorSheets(pieces);return {lower,upper,pieces,sheets,sheetCount:sheets.length,topArea:area(upper.outline)/144,baseArea:area(lower.outline)/144,lipArea:(area(lower.outline)-area(upper.outline))/144,topSeamLength:upper.seamLength,fullSheets:pieces.filter(p=>p.full).length,cutPieces:pieces.filter(p=>!p.full).length,cutCount:pieces.reduce((n,p)=>n+p.cutCount,0),lip:cfg.floorLip===true?FLOOR.lip:0};}
+// Heights above the existing supporting floor; paint thickness is negligible.
+// The painted overlay includes the existing 1.4 mm felt and planned 1/16-inch skim.
+export function floorSection(type){
+ if(type==='charcoal'){const underlay=1.4/25.4,lower=underlay+FLOOR.thickness,upper=lower+FLOOR.thickness,top=upper+1/16;return {underlay,lower,upper,top,lipTop:lower};}
+ if(type==='wood')return {underlay:0,lower:0,upper:7/25.4,top:7/25.4,lipTop:0};
+ return {underlay:0,lower:0,upper:0,top:0,lipTop:0};
+}
+export function floorSurfaceHeight(d={}){return floorSection(typeof d==='string'?d:d.floor).top;}

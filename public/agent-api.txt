@@ -27,4 +27,4 @@ Mutations are intentionally not added to read_project. Existing PUT /api/project
 
 The CLI checks a hash of the shared calculator modules against the deployed context's engineRevision and refuses mismatched versions. Use the deployed source revision; do not combine a newer local calculator with an older live catalog. Browser WebMCP uses the loaded site's modules.
 
-Design setting floorLip is an optional boolean, default false. It applies only with floor=charcoal: a 6-inch exposed lower-plywood joining ledge, not a finished floor extension. Saved designs, estimates and supplied configurations preserve it. Dynamic plywood stock and cut plans live in floor-plan.js.
+Design setting floorLip is an optional boolean, default false. It applies only with floor=charcoal: a 12-inch exposed lower-plywood joining ledge, not a finished floor extension. Saved designs, estimates and supplied configurations preserve it. Dynamic plywood stock and cut plans live in floor-plan.js.

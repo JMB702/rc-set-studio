@@ -18,8 +18,8 @@ test('Top has no crosswise joints, four whole core sheets and lower joints offse
  assert.equal(floorPlan(45).upper.pieces.length,8);assert.equal(floorPlan(45).topSeamLength,576);
 });
 test('Lip is a continuous lower-sheet projection, with a small rear infill and unchanged top',()=>{
- for(const angle of [0,45,90]){const off=floorPlan(angle),on=floorPlan(angle,{floorLip:true});assert.deepEqual(on.upper.outline,off.upper.outline);assert.equal(on.topSeamLength,off.topSeamLength);assert.ok(on.baseArea>off.baseArea);assert.equal(on.lip,6);
- for(const q of on.lower.pieces.filter(q=>Math.max(...q.poly.map(v=>v[1]))>96)){assert.equal(q.z,6);assert.ok(Math.min(...q.poly.map(v=>v[1]))<96);}
+ for(const angle of [0,45,90]){const off=floorPlan(angle),on=floorPlan(angle,{floorLip:true});assert.deepEqual(on.upper.outline,off.upper.outline);assert.equal(on.topSeamLength,off.topSeamLength);assert.ok(on.baseArea>off.baseArea);assert.equal(on.lip,12);
+ for(const q of on.lower.pieces.filter(q=>Math.max(...q.poly.map(v=>v[1]))>96)){assert.equal(q.z,12);assert.ok(Math.min(...q.poly.map(v=>v[1]))<96);}
  }
 });
 test('Packed rectangular blanks fit stock, never overlap and count each piece once',()=>{
@@ -28,5 +28,5 @@ test('Packed rectangular blanks fit stock, never overlap and count each piece on
  for(let i=0;i<sheet.cuts.length;i++)for(let j=i+1;j<sheet.cuts.length;j++){const a=sheet.cuts[i],b=sheet.cuts[j];assert.ok(a.x+a.width+FLOOR.kerf<=b.x+1e-6||b.x+b.width+FLOOR.kerf<=a.x+1e-6||a.z+a.depth+FLOOR.kerf<=b.z+1e-6||b.z+b.depth+FLOOR.kerf<=a.z+1e-6);}}
  assert.equal(new Set(ids).size,p.pieces.length);
  }
- assert.equal(floorPlan(90).sheetCount,9);assert.equal(floorPlan(45).sheetCount,14);assert.equal(floorPlan(45,{floorLip:true}).sheetCount,15);
+ assert.equal(floorPlan(90).sheetCount,9);assert.equal(floorPlan(90,{floorLip:true}).sheetCount,10);assert.equal(floorPlan(45).sheetCount,14);assert.equal(floorPlan(45,{floorLip:true}).sheetCount,15);
 });

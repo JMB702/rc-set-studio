@@ -4,7 +4,7 @@ import {cycloramaGaps} from './cyclorama.js';
 // one-line summary per part with an Edit button that opens the same editor in place.
 import {mats} from './model.js';
 import {platformPlan} from './platform.js';
-import {floorPlan} from './floor-plan.js';
+import {floorPlan,floorSection} from './floor-plan.js';
 // The design a first visit opens with, and what Revert to default restores in the Pricing guide.
 export const defaultDesign={floorLip:false,seamlessCorners:false,seamlessPerimeter:false,height:120,angle:45,wallColor:'#34383b',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12,platformColor:'#34383b',floor:'charcoal',floorColor:'#34383b',figures:'rap',figureScale:1};
 export const presets=[['Charcoal','#34383b'],['White','#ecece7'],['Warm gray','#96918a'],['Navy','#26364d'],['Forest','#344c40'],['Black','#181a1c']];
@@ -19,7 +19,7 @@ function hsv(hex){let [r,g,b]=hex.slice(1).match(/../g).map(x=>parseInt(x,16)/25
 const hex=c=>'#'+c.map(n=>n.toString(16).padStart(2,'0')).join('');
 
 // One line naming a design, used by the guides' summary and the approvals list.
-export const designLine=d=>[...(d.seamlessCorners?['rounded corners'+(d.angle===0?' (straight walls)':'')]:[]),...(d.seamlessPerimeter?['rounded perimeter']:[]),`${d.height/12}′ walls at ${d.angle}°`,d.platformShape!=='none'?`${d.platformShape} platform`:'no platform',d.floor==='none'?'no floor':d.floor==='wood'?'oak floor':'painted floor',...(d.floor==='charcoal'&&d.floorLip?['6″ front joining lip']:[])].join(' · ');
+export const designLine=d=>[...(d.seamlessCorners?['rounded corners'+(d.angle===0?' (straight walls)':'')]:[]),...(d.seamlessPerimeter?['rounded perimeter']:[]),`${d.height/12}′ walls at ${d.angle}°`,d.platformShape!=='none'?`${d.platformShape} platform`:'no platform',d.floor==='none'?'no floor':d.floor==='wood'?'oak floor':'painted floor',...(d.floor==='charcoal'&&d.floorLip?['12″ front joining lip']:[])].join(' · ');
 export function installDesign(api){
  const S=api.state,host=document.querySelector('#design');if(!host)return;
  host.innerHTML=`<div class="design-head"><div><span class="eyebrow">YOUR SET</span><h2 id="design-title">Design</h2></div><span id="panel-count" class="design-meta">8 panels</span><button type="button" id="design-toggle" class="edit-button" aria-expanded="false" aria-controls="design-editor">Edit</button></div>
@@ -42,7 +42,7 @@ ${colorField('platform')}</div></section>
 <section class="design-group" aria-labelledby="floor-heading"><div class="group-head"><h3 id="floor-heading">Floor</h3><span id="floor-meta"></span></div>
 <div class="field"><span class="field-label">Finish</span>${choice('data-floor','Floor finish',[['none','None'],['wood','Oak','Laminate'],['charcoal','Painted','2-layer plywood + skim']])}</div>
 
-<div data-floor-painted><div class="field"><span class="field-label">Front joining lip</span>${choice('data-floor-lip','Front joining lip',[['false','Off'],['true','6″ ledge','Lower plywood extends forward']])}<p class="hint">Lower layer only, below the finished surface. For a future overlapping floor section; keep the ledge clear until extended.</p></div><p id="floor-plan-summary" class="hint"></p>${colorField('floor')}</div></section>
+<div data-floor-painted><div class="field"><span class="field-label">Front joining lip</span>${choice('data-floor-lip','Front joining lip',[['false','Off'],['true','12″ ledge','Lower plywood extends forward']])}<p class="hint">Lower layer only, below the finished surface. For a future overlapping floor section; keep the ledge clear until extended.</p></div><p id="floor-plan-summary" class="hint"></p>${colorField('floor')}</div></section>
 </div>`;
  const q=s=>host.querySelector(s),all=s=>host.querySelectorAll(s);
  let open=false;
@@ -50,7 +50,7 @@ ${colorField('platform')}</div></section>
  function summary(){
   const plan=S.platformShape!=='none'?platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle,S):null,gaps=S.platformBack===S.platformSide?`${gapText(S.platformBack).toLowerCase()} from walls`:`${gapText(S.platformBack).toLowerCase()} back · ${gapText(S.platformSide).toLowerCase()} sides`;
   const g=cycloramaGaps(S);
-  const rows=[['Seamless',`${S.seamlessCorners?'36″ corners':'No rounded corners'} · ${S.seamlessPerimeter?'24″ floor sweep':'No floor sweep'}`,null],['Walls',`${S.height/12}′ tall · ${S.angle}° wings`,S.wallColor],['Platform',plan?`${angleText()} · ${(S.seamlessPerimeter||S.seamlessCorners)?`${g.back}″ back / ${g.side}″ sides (curve clearance)`:gaps} · ${plan.deckArea.toFixed(0)} sq ft`:'None',plan&&S.platformColor],['Floor',S.floor==='none'?'None':`${S.floor==='wood'?'Oak laminate':'Painted double-layer plywood + skim'}${S.floor==='charcoal'&&S.floorLip?' · 6″ joining lip':''}${plan?' · under the platform':''}`,S.floor==='charcoal'?S.floorColor:S.floor==='wood'?'oak':null]];
+  const rows=[['Seamless',`${S.seamlessCorners?'36″ corners':'No rounded corners'} · ${S.seamlessPerimeter?'24″ floor sweep':'No floor sweep'}`,null],['Walls',`${S.height/12}′ tall · ${S.angle}° wings`,S.wallColor],['Platform',plan?`${angleText()} · ${(S.seamlessPerimeter||S.seamlessCorners)?`${g.back}″ back / ${g.side}″ sides (curve clearance)`:gaps} · ${plan.deckArea.toFixed(0)} sq ft`:'None',plan&&S.platformColor],['Floor',S.floor==='none'?'None':`${S.floor==='wood'?'Oak laminate':'Painted double-layer plywood + skim'}${S.floor==='charcoal'&&S.floorLip?' · 12″ joining lip':''}${plan?' · under the platform':''}`,S.floor==='charcoal'?S.floorColor:S.floor==='wood'?'oak':null]];
   q('#design-summary').replaceChildren(...rows.map(([k,v,c])=>{const li=document.createElement('li'),dot=document.createElement('span'),t=document.createElement('strong'),d=document.createElement('span');dot.className='dot'+(c==='oak'?' oak':'')+(c?'':' empty');if(c&&c!=='oak')dot.style.background=c;t.textContent=k;d.textContent=v+(c&&c!=='oak'?` · ${colorName(c)}`:'');li.append(dot,t,d);return li;}));
   q('#design-line').textContent=designLine(S);
   q('#walls-meta').textContent=`${S.height/12}′ × 4′ panels · 16′ back wall`;
@@ -70,7 +70,7 @@ ${colorField('platform')}</div></section>
   const pa=q('#platform-angle');pa.value=S.platformAngle;host.querySelector('output[for="platform-angle"]').textContent=S.platformAngle===S.angle?'Matches walls':S.platformAngle+'°';
   q('#platform-angle-note').textContent=S.platformAngle===S.angle?`Turn it further in than the ${S.angle}° walls for a squarer platform. It can never open wider than the walls.`:`${S.platformAngle-S.angle}° further in than the walls. Bringing the walls in pushes it in too.`;
   for(const i of all('[data-platform-gap]')){const v=S[i.dataset.platformGap==='back'?'platformBack':'platformSide'];if(document.activeElement!==i)i.value=v;host.querySelector(`output[for="${i.id}"]`).textContent=gapText(v);}
-  q('[data-floor-painted]').hidden=S.floor!=='charcoal';for(const b of all('[data-floor-lip]'))b.setAttribute('aria-pressed',String(S.floorLip===(b.dataset.floorLip==='true')));if(S.floor==='charcoal'){const fp=floorPlan(S.angle,S);q('#floor-plan-summary').textContent=`${fp.sheetCount} plywood sheets · ${fp.upper.pieces.length} top pieces · ${(fp.topSeamLength/12).toFixed(1)} ft of top seams. Full sheets run back to front; lower joints are offset 24″.`;}
+  q('[data-floor-painted]').hidden=S.floor!=='charcoal';for(const b of all('[data-floor-lip]'))b.setAttribute('aria-pressed',String(S.floorLip===(b.dataset.floorLip==='true')));if(S.floor==='charcoal'){const fp=floorPlan(S.angle,S);q('#floor-plan-summary').textContent=`${fp.sheetCount} plywood sheets · ${fp.upper.pieces.length} top pieces · ${(fp.topSeamLength/12).toFixed(1)} ft of top seams. Full sheets run back to front; lower joints are offset 24″. Finished floor ${floorSection('charcoal').top.toFixed(2)}″ thick${S.floorLip?`; lip top ${floorSection('charcoal').lipTop.toFixed(2)}″ above the supporting floor`:''}.`;}
   for(const f of all('.color-field')){const c=S[surfaces[f.dataset.surface].key];f.querySelector('output').textContent=colorName(c);let match=false;for(const b of f.querySelectorAll('.swatch[data-color]')){const p=b.dataset.color===c;match||=p;b.setAttribute('aria-pressed',p);}const custom=f.querySelector('.swatch.custom');custom.classList.toggle('picked',!match);custom.style.setProperty('--c',match?'':c);syncWheel(f);}
   summary();applyColors();
  }

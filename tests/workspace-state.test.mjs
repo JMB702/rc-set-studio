@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {normalizeWorkspace,readWorkspace,saveWorkspace,workspaceKey} from '../public/workspace-state.js';
 import {installWorkspaceSession} from '../public/workspace-session.js';
-const design={height:120,angle:60,wallColor:'#34383b',platformShape:'angled',platformAngle:70,platformBack:24,platformSide:18,platformColor:'#34383b',floor:'wood',floorColor:'#34383b',figures:'rap',figureScale:1.1,clothing:{rapper:{shirt:'#112233',pants:'#445566'}}};
+const design={seamlessCorners:false,seamlessPerimeter:false,height:120,angle:60,wallColor:'#34383b',platformShape:'angled',platformAngle:70,platformBack:24,platformSide:18,platformColor:'#34383b',floor:'wood',floorColor:'#34383b',figures:'rap',figureScale:1.1,clothing:{rapper:{shirt:'#112233',pants:'#445566'}}};
 const saved={version:1,jackViewRevision:1,mode:'build',stage:17,design,scrollY:427,panelScroll:0,openDetails:['cut-details'],camera:{position:[1,2,3],target:[0,1,0],on:false,mm:50,ratio:'16:9'}};
 function storage(initial={}){const values=new Map(Object.entries(initial));return {getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v),values};}
 test('Workspace preserves each tab, stable build stage, full design, lens and reading position',()=>{

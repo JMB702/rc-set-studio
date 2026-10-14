@@ -88,3 +88,28 @@ scenic plywood finishing, not a manufacturer-rated plywood joint system.
 Planning coverage: 150 sq ft thin skim/seam area per pail (allowance, not a rating).
 Current design allocates one pail and one tape roll each to walls and fascia.
 Horizontal cement skim is unchanged and still requires mixing.
+
+SEAMLESS CYC RETROFIT RESEARCH — OCTOBER 13, 2026
+https://spokaneproductions.com/building-the-infinity-wall/
+Firsthand build: 24-inch floor sweep ribs in 3/4-inch plywood, runners/support
+and flexible hardboard. Connected pointed compound skins cracked; separate
+tapered pieces worked. Multiple filling/sanding passes and a flexible tool were
+needed at the lower corner. Reported adhesive-related warping supports a material
+and adhesion mockup. No logged person-hours for the compound junctions.
+https://ambanjafilms.co.uk/studio-build/
+Firsthand plywood/MDF studio build: intersections of curves were difficult and
+required help; plaster, sanding, primer and matte paint followed. No task-level
+timing is given.
+https://www.procyc.com/tips-for-building-a-professional-cyclorama-wall/
+Supplier guidance discusses DIY work taking days and modular systems as an
+alternative. It does not establish labor for this retrofit's lower corners.
+A prefabricated part requires a quote and verified angle/radius compatibility.
+
+Project-derived decisions: 36-inch vertical / 24-inch floor radii; 6-inch feather
+and 2-inch free margin; platform curve clearance from the shared geometry plan.
+The 48 person-hours for two compound junctions and 3-5 additional drying days are
+conservative planning allowances, not published timings or guarantees. Price
+reuse retains existing catalog check dates; no new price or stock verification
+is implied. Flexible skin, rib plywood, compatible adhesive, compound-curve
+reinforcement and non-painted-floor transition substrate remain pending.
+Full evidence/limitations: docs/cyclorama-research.md in the source repository.

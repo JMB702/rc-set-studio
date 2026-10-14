@@ -339,7 +339,7 @@ test('The build design is saved with tracking and kept by saves that omit it',as
  const r=rig(),design={height:120,angle:45,floor:'charcoal',platformShape:'angled',platformAngle:45,platformBack:12,platformSide:12,wallColor:'#E4E1D8',platformColor:'#34383b',floorColor:'#34383b'};
  let t=await (await r.call('tracking')).json();assert.equal(t.data.design??null,null);
  t=await (await r.call('tracking','PUT',{data:{...t.data,design},revision:t.revision})).json();
- assert.deepEqual(t.data.design,{...design,wallColor:'#e4e1d8'});
+ assert.deepEqual(t.data.design,{...design,seamlessCorners:false,seamlessPerimeter:false,wallColor:'#e4e1d8'});
  const {design:_,...rest}=t.data;t=await (await r.call('tracking','PUT',{data:rest,revision:t.revision})).json();
  assert.equal(t.data.design.floor,'charcoal');
  assert.equal((await r.call('tracking','PUT',{data:{...t.data,design:{...design,height:100}},revision:t.revision})).status,400);
@@ -354,4 +354,22 @@ test('Without a saved build design, every device reads progress through the newe
  assert.deepEqual(r.sqlite.prepare('SELECT content,revision,updated_at FROM project_documents WHERE id=?').get('tracking'),before,'inferring the build design does not write saved progress');
  const saved={...t.data.design,height:96};t=await (await r.call('tracking','PUT',{data:{...t.data,design:saved},revision:t.revision})).json();
  t=await (await r.call('tracking')).json();assert.equal(t.data.design.height,96,'a saved build design always wins');
+});
+
+test('Older tracker clients preserve omitted seamless settings while explicit removal remains possible',async()=>{
+ const r=rig(),design={height:120,angle:45,floor:'charcoal',platformShape:'angled',platformAngle:45,platformBack:12,platformSide:12,wallColor:'#34383b',platformColor:'#34383b',floorColor:'#34383b',seamlessCorners:true,seamlessPerimeter:true};
+ let snapshot=await(await r.call('tracking')).json();snapshot=await(await r.call('tracking','PUT',{data:{...snapshot.data,design},revision:snapshot.revision})).json();
+ snapshot=await(await r.call('tracking')).json();
+ const old=structuredClone(snapshot);delete old.data.design.seamlessCorners;delete old.data.design.seamlessPerimeter;old.data.stages[0].notes.push({id:'old-window',text:'Existing wall work recorded',at:Date.now()});
+ const response=await r.call('tracking','PUT',old);assert.equal(response.status,200);snapshot=await response.json();
+ assert.equal(snapshot.data.design.seamlessCorners,true);assert.equal(snapshot.data.design.seamlessPerimeter,true);assert.equal(snapshot.data.design.platformBack,12);assert.equal(snapshot.data.stages[0].notes.at(-1).text,'Existing wall work recorded');
+ const remove=structuredClone(snapshot);remove.data.design.seamlessPerimeter=false;delete remove.data.design.seamlessCorners;
+ const removed=await r.call('tracking','PUT',remove);assert.equal(removed.status,200);const data=(await removed.json()).data;assert.equal(data.design.seamlessCorners,true);assert.equal(data.design.seamlessPerimeter,false);
+ assert.equal((await r.call('tracking','PUT',old)).status,409,'stale writers remain revision protected');
+});
+test('Older tracker clients also preserve seamless settings inherited from the approved design',async()=>{
+ const r=rig(),design={height:120,angle:45,floor:'charcoal',platformShape:'angled',platformAngle:45,platformBack:12,platformSide:12,wallColor:'#34383b',platformColor:'#34383b',floorColor:'#34383b',seamlessCorners:true,seamlessPerimeter:true};
+ r.sqlite.prepare('INSERT INTO design_approvals (id,name,design,created_at) VALUES (?,?,?,?)').run('cyc-approved','Jeff',JSON.stringify(design),1);
+ const old=await(await r.call('tracking')).json();assert.equal(old.data.design.seamlessCorners,true);delete old.data.design.seamlessCorners;delete old.data.design.seamlessPerimeter;
+ const response=await r.call('tracking','PUT',old);assert.equal(response.status,200);const saved=await response.json();assert.equal(saved.data.design.seamlessCorners,true);assert.equal(saved.data.design.seamlessPerimeter,true);
 });

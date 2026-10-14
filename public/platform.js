@@ -1,5 +1,6 @@
+import {cycloramaGaps} from './cyclorama.js';
 // Raised platform floor: pure geometry shared by the 3D model, the Build guide and the Pricing guide.
-// No imports, so Node tests and the pricing calculator can use it directly.
+// Pure geometry helpers are shared by Node tests and the pricing calculator.
 // Units are inches. x runs along the back wall (center 0); z runs forward from the wall face.
 // The floor footprint (and the platform's front edge) is 96″ deep.
 export const PLATFORM={
@@ -68,7 +69,8 @@ function moduleCells(outline){
  return cells;
 }
 
-export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a){
+export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,cfg={}){
+ ({back,side}=cycloramaGaps({...cfg,angle:a,platformBack:back,platformSide:side}));
  back=clampGap(back);side=clampGap(side);pa=platformAngleFor(a,pa);
  const outline=platformOutline(a,back,side,pa),T=PLATFORM.lumber[0],D=PLATFORM.lumber[1],modules=[];
  for(const {poly,row,col} of moduleCells(outline)){

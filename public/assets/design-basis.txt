@@ -163,3 +163,55 @@ Measure the actual floor-to-deck height (about 10 inches) and trim to fit.
 Butt joints land on existing legs; corner ends include a trim allowance.
 Default square layout: 6 side pieces instead of 12. Default angled: 12 instead of 19.
 Cut lengths, stock packing, staples and joint tape follow these pieces; no bottom-edge tape.
+
+SEAMLESS CYC RETROFIT — OCTOBER 13, 2026
+Two independent design options: rounded vertical corners and wall-to-floor
+perimeter coves. Both default off. Retrofit cleats fasten over the existing
+wall facing into sound framing; add rear blocking where required. Existing
+wall connectors, completed panel/jack counts and prior work remain intact.
+Actual 2x4 backing is 1.5 x 3.5 inches. Never use thin wall skin alone as an anchor.
+Vertical face radius: 36 inches. Floor face radius: 24 inches. These are project
+choices, not universal standards. Rib templates fit the actual inside angle
+(180 minus wing angle); zero-degree wings have no vertical corner inserts.
+Corners alone continue straight to the floor. With both options, separately
+fitted tapered gores over radial ribs form two compound lower junctions.
+Use a full-size mockup and approved bendable skin, not an assumption that any
+laminate accepts this bend, adhesive or finish. Support every joint; fair with
+thin filler coats rather than filling large unsupported gaps with plaster.
+Floor coves need a stable paintable transition substrate. Do not plaster onto
+or pin floating click-lock flooring; keep its expansion gap clear. Coving and
+feathered compound are decorative surfaces that must not carry feet or staging.
+
+The shared plan reserves 24 inches sweep + 6 inches feather + 2 inches clear
+space: 32 inches minimum platform gap for perimeter only. Compound corners need
+33 inches at 45-degree wings, 34 inches at 90 degrees. Vertical corners alone
+need insert clearance (5 inches at 45 degrees, 12 inches at 90). Angle-dependent
+minimum = ceil(36 - (36 - floor radius - margin) x cos(wing angle / 2)) when
+vertical corners are present; margin is 8 inches with perimeter, otherwise 2.
+These are effective platform gaps. Requested gap settings stay stored and return
+when the corresponding option is removed. Pricing, cuts, model and guide use the
+same effective plan. Skin joint lines, shapes and thicknesses remain illustrative;
+field template every junction before batch cutting.
+
+Ribs: 3/4-inch plywood, up to 16-inch centers for simple curves; radial junction
+ribs spaced approximately 8 inches around the upper arc. Purchasing envelopes
+allow two 36-inch vertical rib blanks or three 26-inch floor/junction blanks per
+4x8 sheet; verify real nesting after the sample. Flexible skin sheets and compound
+gore stock include separate waste allowances. Specific flexible skin, rib plywood,
+adhesive and compound reinforcement products/prices remain pending.
+
+Build guide adds optional stages 43 backing/templates, 44 vertical ribs,
+45 vertical skin, 46 floor coves, 47 compound junctions, 48 fill/sand/paint.
+These follow existing assembly; no original stages or progress IDs are renumbered.
+Instructions retain numbered actions and one You'll need card. Optional progress
+has separate milestones and zero weight when disabled; saved work is retained.
+Allow 24 person-hours PER compound junction, 48 total, for templates, rib fitting,
+gores, repeated filling, sanding and grazing-light corrections. This is a
+conservative project allowance, not a measured or published industry benchmark.
+Straight curves and final coatings have separate labor. Plan 3-5 additional
+calendar days for drying, product and conditions dependent; drying is not labor.
+Only two effective workers are assumed on the junction phase. Time the first
+junction and update the remaining estimate. Corners only, repeatable router/CNC
+rib templates, or a quoted compatible prefab junction may simplify the build.
+Changing a design option is reversible; physically removing finished coves
+requires releasing fixings and repairing plastered joints and existing faces.

@@ -115,7 +115,7 @@ test('Progress is weighted by estimated hours, not step count',()=>{
  const heavy=projectProgress(t,w).percent;const light=structuredClone(projectDefaultTracking());light.stages.find(s=>s.id==='walls').steps.find(s=>s.id==='walls-4').percent=100;
  assert.ok(heavy>projectProgress(light,w).percent,'an 18-hour step moves progress more than a 3.6-hour one');assert.equal(projectProgress(t).percent,projectProgress(light).percent,'unweighted they are equal');
  const walls=t.stages.find(s=>s.id==='walls');assert.equal(projectStagePercent(walls,w),Math.round(1800/(7.2+8+6+18+3.6+5)));
- const custom=structuredClone(t);custom.stages[0].steps.push({id:'mine',name:'Custom',percent:0,notes:[]});const avg=Object.values(w).reduce((a,b)=>a+b,0)/Object.values(w).length;assert.ok(Math.abs(projectProgress(custom,w).weight-projectProgress(t,w).weight-avg)<1e-9,'custom steps weigh an average step');
+ const custom=structuredClone(t);custom.stages[0].steps.push({id:'mine',name:'Custom',percent:0,notes:[]});const avg=Object.values(w).filter(v=>v>0).reduce((a,b)=>a+b,0)/Object.values(w).filter(v=>v>0).length;assert.ok(Math.abs(projectProgress(custom,w).weight-projectProgress(t,w).weight-avg)<1e-9,'custom steps weigh an average step');
 });
 
 test('Weights use logged hours for done work and the estimate for what is left',()=>{

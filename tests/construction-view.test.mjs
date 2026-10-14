@@ -7,7 +7,7 @@ const url=name=>new URL('../public/'+name,import.meta.url).href;
 const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
 const utils=fs.readFileSync(new URL('../public/vendor/BufferGeometryUtils.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js')));
 let source=fs.readFileSync(new URL('../public/model.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js'))).replace("'./vendor/BufferGeometryUtils.js'",JSON.stringify(moduleURL(utils)));
-for(const name of ['platform.js','jack-attachment.js','jack-layout.js','wall-appearance.js','platform-finish.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
+for(const name of ['cyclorama.js','platform.js','jack-attachment.js','jack-layout.js','wall-appearance.js','platform-finish.js'])source=source.replace("'./"+name+"'",JSON.stringify(url(name)));
 source=source.replace(JSON.stringify(url('platform-finish.js')),JSON.stringify(moduleURL(fs.readFileSync(new URL('../public/platform-finish.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('vendor/three.module.js'))))));
 const modelURL=moduleURL(source),load=T.TextureLoader.prototype.load;T.TextureLoader.prototype.load=()=>new T.Texture();const model=await import(modelURL);T.TextureLoader.prototype.load=load;
 const finishSource=fs.readFileSync(new URL('../public/platform-finish.js',import.meta.url),'utf8').replace("'three'",JSON.stringify(url('vendor/three.module.js')));
@@ -36,5 +36,14 @@ test('Deck seams follow larger plywood pieces while fascia follows long strip jo
  for(const angle of [30,45,90]){const platform=model.platformFloor(angle,12,12,angle),parts=platform.children.find(o=>o.userData.progressOnly),plan=platform.userData.plan;
   for(const o of parts.children){if(o.userData.step<34)continue;const part=o.userData.progress;assert.equal(part.seamEdges.length,o.userData.step===34?plan.decks[part.deckIndex].edges.length:1);assert.ok(part.seamEdges.length<=8);for(const edge of part.seamEdges)assert.ok(edge.every(Number.isFinite));if(o.userData.step===34)assert.equal(o.material,model.mats.platformWood);}
   model.dispose(platform);
+ }
+});
+
+test('Retrofit meshes have finite geometry, inward corner normals, and floor-height corners without perimeter',()=>{
+ for(const height of [96,120])for(const angle of [0,45,90])for(const seamlessCorners of [false,true])for(const seamlessPerimeter of [false,true]){
+  const d={height,angle,seamlessCorners,seamlessPerimeter},root=model.cycloramaMesh(d,{construction:true});
+  root.traverse(o=>{if(!o.isMesh)return;for(const key of ['position','normal'])assert.ok([...o.geometry.attributes[key].array].every(Number.isFinite),o.name);assert.equal(o.userData.progress.kind,'cyclorama');
+   if(o.name.startsWith('Rounded wall corner')){o.geometry.computeBoundingBox();assert.ok(Math.abs(o.geometry.boundingBox.min.y-(seamlessPerimeter?24:0)*model.inch)<1e-6);assert.ok(o.geometry.attributes.normal.getZ(0)>0,'corner faces the room, preventing inverted shadow bias');}
+  });if(!seamlessPerimeter&&(!seamlessCorners||angle===0))assert.equal(root.children.length,0);model.dispose(root);
  }
 });

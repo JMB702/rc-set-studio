@@ -1,3 +1,4 @@
+import {cycloramaPlan,cycloramaPath} from './cyclorama.js';
 import {platformSeamSegments} from './platform-finish.js';
 import {makeWallAtlas} from './wall-appearance.js';
 import * as T from 'three';
@@ -76,7 +77,7 @@ export function dispose(r){r?.traverse(o=>{o.geometry?.dispose();if(o.material&&
 export function slab(pg,y0,y1){const shape=new T.Shape(pg.map(([x,z])=>new T.Vector2(x*inch,z*inch)));const g=new T.ExtrudeGeometry(shape,{depth:(y1-y0)*inch,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(0,y1*inch,0);g.computeBoundingBox();const s=g.boundingBox.getSize(new T.Vector3());return grain(g,[s.x/inch,s.y/inch,s.z/inch],pg.length);}
 function slabMesh(G,id,pg,y0,y1,mat,step){const g=slab(pg,y0,y1);if(step===34||step===35){const p=g.attributes.position,n=g.attributes.normal,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,Math.abs(n.getY(i))>.5?p.getZ(i)/(48*inch):(p.getX(i)-p.getZ(i))/(48*inch),Math.abs(n.getY(i))>.5?p.getX(i)/(96*inch):p.getY(i)/(96*inch));}return mesh(G,id,g,mat,step);}
 // The finished platform reads as one plastered block in its own color.
-export function platformFloor(a,back,side,pa=a){const plan=platformPlan(a,back,side,pa),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan);parts.userData.progressOnly=true;parts.visible=false;root.add(parts);root.userData.area=plan.deckArea;root.userData.plan=plan;return root;}
+export function platformFloor(a,back,side,pa=a,cfg={}){const plan=platformPlan(a,back,side,pa,cfg),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan);parts.userData.progressOnly=true;parts.visible=false;root.add(parts);root.userData.area=plan.deckArea;root.userData.plan=plan;return root;}
 // Every framing part, each tagged with the Build guide stage that adds it (30–37).
 export function platformParts(plan){const G=new T.Group();G.name='Platform construction';
  for(const [moduleIndex,m] of plan.modules.entries()){
@@ -90,3 +91,30 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
  for(const [fasciaIndex,f] of plan.fasciaPieces.entries()){const o=slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35);o.userData.cutLength=f.cutLength;o.userData.plasterSeams=platformSeamSegments([f],true);o.userData.progress={kind:'platform',stage:35,members:f.moduleIndices,deckIndices:f.moduleIndices.map(i=>plan.decks.findIndex(d=>d.moduleIndices.includes(i))),total:plan.modules.length,deckTotal:plan.decks.length,fasciaIndex,fasciaTotal:plan.fasciaPieces.length,seamEdges:[[...f.A,...f.B]]};}
  for(const [deckIndex,d] of plan.decks.entries()){const o=slabMesh(G,'Platform deck',d.poly,legLength,PLATFORM.height,'platformWood',34);o.userData.plasterSeams=platformSeamSegments(d.edges);o.userData.deckId=d.id;o.userData.progress={kind:'platform',stage:34,module:d.moduleIndices[0],members:d.moduleIndices,fasciaIndices:plan.fasciaPieces.flatMap((f,i)=>f.moduleIndices.some(m=>d.moduleIndices.includes(m))?[i]:[]),fasciaTotal:plan.fasciaPieces.length,total:plan.modules.length,deckIndex,deckTotal:plan.decks.length,seamEdges:d.edges.map(e=>[...e.A,...e.B])};}
  G.userData.plan=plan;return G;}
+
+// Retrofit cyclorama: the same inset wall path generates the cylindrical sweeps and compound corners.
+export function cycloramaMesh(d,{stage=48,construction=false}={}){
+ const plan=cycloramaPlan(d),G=new T.Group();G.name='Seamless retrofit';G.userData.plan=plan;if(!plan.corners&&!plan.perimeter)return G;
+ function part(name,geometry,st,mat='wood'){
+  const material=(mat==='finish'?mats.charcoal:mats[mat]).clone();material.side=T.DoubleSide;if(mat==='finish')material.userData.surface='wall';
+  const mesh=new T.Mesh(geometry,material);mesh.name=name;mesh.userData={step:st,commentKey:name,pricingIds:[name.includes('rib')?'cycRibPly':name.includes('Backing')?'cycBacking':'cycSkin'],progress:{kind:'cyclorama',stage:st}};mesh.castShadow=mesh.receiveShadow=true;mesh.visible=st<=stage;G.add(mesh);return mesh;
+ }
+ function grid(name,rows,st,normal){const pos=[],indices=[],width=rows[0].length;for(const row of rows)for(const [x,y,z]of row)pos.push(x*inch,y*inch,z*inch);for(let j=0;j<rows.length-1;j++)for(let i=0;i<width-1;i++){const k=j*width+i;indices.push(k,k+width,k+1,k+1,k+width,k+width+1);}const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(pos,3));geo.setIndex(indices);geo.computeVertexNormals();if(normal&&new T.Vector3().fromBufferAttribute(geo.attributes.normal,0).dot(new T.Vector3(...normal))<0){for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];geo.setIndex(indices);geo.computeVertexNormals();}const uv=[];for(let j=0;j<rows.length;j++)for(let i=0;i<width;i++)uv.push(i/(width-1),j/(rows.length-1));geo.setAttribute('uv',new T.Float32BufferAttribute(uv,2));part(name,geo,st,construction&&stage<48?'ply':'finish');}
+ const base=cycloramaPath(d),bottom=plan.perimeter?plan.floorRadius:0;
+ if(construction){
+  const beam=(name,A,B)=>{const va=new T.Vector3(...A.map(v=>v*inch)),vb=new T.Vector3(...B.map(v=>v*inch)),direction=vb.clone().sub(va),geo=new T.BoxGeometry(1.5*inch,direction.length(),3.5*inch);geo.applyQuaternion(new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),direction.normalize()));geo.translate(...va.add(vb).multiplyScalar(.5).toArray());part(name,geo,43);};
+  for(const seg of base){if(seg.kind==='corner'){for(const [i,p]of [seg.points[0],seg.points.at(-1)].entries())beam(`Backing corner ${seg.side} ${i}`,[p[0],0,p[1]],[p[0],d.height,p[1]]);}else if(plan.perimeter)for(const y of [1,plan.floorRadius-1])beam(`Backing floor ${seg.kind} ${y}`,[seg.points[0][0],y,seg.points[0][1]],[seg.points[1][0],y,seg.points[1][1]]);}
+ }
+
+ if(plan.corners)for(const seg of base.filter(s=>s.kind==='corner')){
+  grid(`Rounded wall corner ${seg.side}`, [seg.points.map(([x,z])=>[x,bottom,z]),seg.points.map(([x,z])=>[x,d.height,z])],45,[-seg.side*Math.sin(plan.angle*Math.PI/360),0,Math.cos(plan.angle*Math.PI/360)]);
+  if(construction)for(let i=0;i<plan.verticalRibs/2;i++){const y=bottom+(d.height-bottom-.75)*i/(plan.verticalRibs/2-1),pg=[[seg.side*96,0],...seg.points];part(`Corner rib ${seg.side} ${i+1}`,slab(pg,y,y+.75),44);}
+ }
+ if(plan.perimeter){
+  const paths=Array.from({length:25},(_,i)=>{const t=i/24*Math.PI/2;return {y:plan.floorRadius*(1-Math.sin(t)),segments:cycloramaPath(d,plan.floorRadius*(1-Math.cos(t)))};});
+  for(let k=0;k<base.length;k++){const seg=base[k];grid(`Floor sweep ${seg.kind}${seg.side??''}`,paths.map(p=>p.segments[k].points.map(([x,z])=>[x,p.y,z])),seg.kind==='corner'?47:46,[seg.kind==='left'?1:seg.kind==='right'?-1:-(seg.side??0),1,1]);}
+  if(construction)for(const seg of base.filter(s=>s.kind!=='corner')){const [A,B]=seg.points,L=Math.hypot(B[0]-A[0],B[1]-A[1]),count=Math.ceil(L/16)+1,dx=(B[0]-A[0])/L,dz=(B[1]-A[1])/L;let nx=-dz,nz=dx;if(nz<0){nx=-nx;nz=-nz;}for(let i=0;i<count;i++){const x=A[0]+(B[0]-A[0])*i/(count-1),z=A[1]+(B[1]-A[1])*i/(count-1),r=plan.floorRadius,shape=new T.Shape();shape.moveTo(0,0);shape.lineTo(0,r*inch);for(let j=0;j<=24;j++){const u=j/24*Math.PI/2;shape.lineTo(r*(1-Math.cos(u))*inch,r*(1-Math.sin(u))*inch);}shape.closePath();const geo=new T.ExtrudeGeometry(shape,{depth:.75*inch,bevelEnabled:false});const m=new T.Matrix4().makeBasis(new T.Vector3(nx,0,nz),new T.Vector3(0,1,0),new T.Vector3(-nz,0,nx));geo.applyMatrix4(m);geo.translate(x*inch,0,z*inch);part(`Floor rib ${seg.kind} ${i+1}`,geo,46);}}
+  if(construction&&plan.corners)for(const seg of base.filter(s=>s.kind==='corner')){const n=plan.compoundRibs/2;for(let i=0;i<n;i++){const rows=paths.map(p=>{const pt=p.segments.find(s=>s.kind==='corner'&&s.side===seg.side).points[Math.round(i/(n-1)*32)];return [pt[0],p.y,pt[1]];});const positions=[];for(let j=0;j<rows.length-1;j++){const A=rows[j],B=rows[j+1],inside=[seg.side*96,0,0];for(const v of [A,B,inside])positions.push(v[0]*inch,v[1]*inch,v[2]*inch);}const geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(positions,3));geo.computeVertexNormals();part(`Compound corner rib ${seg.side} ${i+1}`,geo,47);}}
+ }
+ return G;
+}

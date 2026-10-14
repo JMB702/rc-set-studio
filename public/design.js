@@ -1,10 +1,11 @@
+import {cycloramaGaps} from './cyclorama.js';
 // The one place the set is designed. Walls, platform and floor each follow the same pattern:
 // choose it, size it, color it. Explore shows the editor open; the Build and Pricing guides show a
 // one-line summary per part with an Edit button that opens the same editor in place.
 import {mats} from './model.js';
 import {platformPlan} from './platform.js';
 // The design a first visit opens with, and what Revert to default restores in the Pricing guide.
-export const defaultDesign={height:120,angle:45,wallColor:'#34383b',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12,platformColor:'#34383b',floor:'charcoal',floorColor:'#34383b',figures:'rap',figureScale:1};
+export const defaultDesign={seamlessCorners:false,seamlessPerimeter:false,height:120,angle:45,wallColor:'#34383b',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12,platformColor:'#34383b',floor:'charcoal',floorColor:'#34383b',figures:'rap',figureScale:1};
 export const presets=[['Charcoal','#34383b'],['White','#ecece7'],['Warm gray','#96918a'],['Navy','#26364d'],['Forest','#344c40'],['Black','#181a1c']];
 export const colorName=c=>presets.find(p=>p[1]===c)?.[0]||(c==='#3c4041'?'Charcoal':'Custom');
 export const gapText=v=>v===0?'Flush':v%12?`${v>=12?Math.floor(v/12)+'′ ':''}${v%12}″`:`${v/12}′`;
@@ -17,7 +18,7 @@ function hsv(hex){let [r,g,b]=hex.slice(1).match(/../g).map(x=>parseInt(x,16)/25
 const hex=c=>'#'+c.map(n=>n.toString(16).padStart(2,'0')).join('');
 
 // One line naming a design, used by the guides' summary and the approvals list.
-export const designLine=d=>[`${d.height/12}′ walls at ${d.angle}°`,d.platformShape!=='none'?`${d.platformShape} platform`:'no platform',d.floor==='none'?'no floor':d.floor==='wood'?'oak floor':'painted floor'].join(' · ');
+export const designLine=d=>[...(d.seamlessCorners?['rounded corners'+(d.angle===0?' (straight walls)':'')]:[]),...(d.seamlessPerimeter?['rounded perimeter']:[]),`${d.height/12}′ walls at ${d.angle}°`,d.platformShape!=='none'?`${d.platformShape} platform`:'no platform',d.floor==='none'?'no floor':d.floor==='wood'?'oak floor':'painted floor'].join(' · ');
 export function installDesign(api){
  const S=api.state,host=document.querySelector('#design');if(!host)return;
  host.innerHTML=`<div class="design-head"><div><span class="eyebrow">YOUR SET</span><h2 id="design-title">Design</h2></div><span id="panel-count" class="design-meta">8 panels</span><button type="button" id="design-toggle" class="edit-button" aria-expanded="false" aria-controls="design-editor">Edit</button></div>
@@ -26,7 +27,10 @@ export function installDesign(api){
 <section class="design-group" aria-labelledby="walls-heading"><div class="group-head"><h3 id="walls-heading">Walls</h3><span id="walls-meta"></span></div>
 <div class="field"><span class="field-label">Height</span>${choice('data-height','Wall height',[[96,'8′ tall','8 × 4 panels'],[120,'10′ tall','10 × 4 panels']])}</div>
 <div class="field"><label class="field-label" for="angle"><span>Wing angle</span><output id="angle-value" for="angle">45°</output></label><input id="angle" type="range" min="0" max="90" step="1" value="45" aria-label="Wing angle, straight to fully inward"><div class="presets"><button type="button" data-angle="0">0° straight</button><button type="button" data-angle="45">45°</button><button type="button" data-angle="90">90° square</button></div></div>
-${colorField('wall')}</section>
+${colorField('wall')}
+<div class="field"><span class="field-label">Seamless corners · 36″ radius</span>${choice('data-seamless-corners','Seamless wall corners', [['false','Off'],['true','Include','Retrofit over existing walls']])}</div>
+<div class="field"><span class="field-label">Seamless perimeter · 24″ radius</span>${choice('data-seamless-perimeter','Seamless wall to floor perimeter', [['false','Off'],['true','Include','Curved floor sweep']])}</div>
+<p id="seamless-note" class="hint"></p></section>
 <section class="design-group" aria-labelledby="platform-heading"><div class="group-head"><h3 id="platform-heading">Platform</h3><span id="platform-meta"></span></div>
 <div class="field"><span class="field-label">Shape</span>${choice('data-platform-shape','Platform shape',[['none','None'],['angled','Angled','Follows walls'],['square','Square','Straight sides']])}</div>
 <div data-platform-on>
@@ -43,8 +47,9 @@ ${colorField('platform')}</div></section>
  let open=false;
  const angleText=()=>S.platformShape==='square'?'Square':S.platformAngle===S.angle?`Angled · matches walls`:`Angled · ${S.platformAngle}°`;
  function summary(){
-  const plan=S.platformShape!=='none'?platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle):null,gaps=S.platformBack===S.platformSide?`${gapText(S.platformBack).toLowerCase()} from walls`:`${gapText(S.platformBack).toLowerCase()} back · ${gapText(S.platformSide).toLowerCase()} sides`;
-  const rows=[['Walls',`${S.height/12}′ tall · ${S.angle}° wings`,S.wallColor],['Platform',plan?`${angleText()} · ${gaps} · ${plan.deckArea.toFixed(0)} sq ft`:'None',plan&&S.platformColor],['Floor',S.floor==='none'?'None':`${S.floor==='wood'?'Oak laminate':'Painted double-layer plywood + skim'}${plan?' · under the platform':''}`,S.floor==='charcoal'?S.floorColor:S.floor==='wood'?'oak':null]];
+  const plan=S.platformShape!=='none'?platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle,S):null,gaps=S.platformBack===S.platformSide?`${gapText(S.platformBack).toLowerCase()} from walls`:`${gapText(S.platformBack).toLowerCase()} back · ${gapText(S.platformSide).toLowerCase()} sides`;
+  const g=cycloramaGaps(S);
+  const rows=[['Seamless',`${S.seamlessCorners?'36″ corners':'No rounded corners'} · ${S.seamlessPerimeter?'24″ floor sweep':'No floor sweep'}`,null],['Walls',`${S.height/12}′ tall · ${S.angle}° wings`,S.wallColor],['Platform',plan?`${angleText()} · ${(S.seamlessPerimeter||S.seamlessCorners)?`${g.back}″ back / ${g.side}″ sides (curve clearance)`:gaps} · ${plan.deckArea.toFixed(0)} sq ft`:'None',plan&&S.platformColor],['Floor',S.floor==='none'?'None':`${S.floor==='wood'?'Oak laminate':'Painted double-layer plywood + skim'}${plan?' · under the platform':''}`,S.floor==='charcoal'?S.floorColor:S.floor==='wood'?'oak':null]];
   q('#design-summary').replaceChildren(...rows.map(([k,v,c])=>{const li=document.createElement('li'),dot=document.createElement('span'),t=document.createElement('strong'),d=document.createElement('span');dot.className='dot'+(c==='oak'?' oak':'')+(c?'':' empty');if(c&&c!=='oak')dot.style.background=c;t.textContent=k;d.textContent=v+(c&&c!=='oak'?` · ${colorName(c)}`:'');li.append(dot,t,d);return li;}));
   q('#design-line').textContent=designLine(S);
   q('#walls-meta').textContent=`${S.height/12}′ × 4′ panels · 16′ back wall`;
@@ -52,6 +57,10 @@ ${colorField('platform')}</div></section>
   q('#floor-meta').textContent=S.floor==='none'?'Not included':S.floor==='wood'?'Click-lock oak laminate':'Painted plywood overlay';
  }
  function refresh(){
+  for(const b of all('[data-seamless-corners]'))b.setAttribute('aria-pressed',String(S.seamlessCorners=== (b.dataset.seamlessCorners==='true')));
+  for(const b of all('[data-seamless-perimeter]'))b.setAttribute('aria-pressed',String(S.seamlessPerimeter=== (b.dataset.seamlessPerimeter==='true')));
+  const gaps=cycloramaGaps(S);q('#seamless-note').textContent=[S.seamlessCorners?(S.angle===0?'Walls are straight: no corner inserts are needed.':'Corners retrofit over the assembled walls; fixing goes into framing or added backing.'): '',S.seamlessPerimeter?`Stage keeps at least 32″ from the walls: 24″ sweep + 6″ feather + 2″ clear, with extra corner clearance when needed. Effective gaps: ${gaps.back}″ back / ${gaps.side}″ sides. Your preferred gaps return when removed.`:`Corners alone extend straight down to the floor.${S.seamlessCorners?` Stage gaps keep at least ${gaps.minimum}″ clear of the rounded inserts.`:''}`,S.seamlessPerimeter&&S.seamlessCorners&&S.angle>0?'Two compound junctions add 48 person-hours of planning labor, plus drying time.':'',S.seamlessPerimeter&&S.floor!=='charcoal'?'A stable paintable floor transition is required; do not plaster onto floating oak laminate.':'',S.seamlessCorners||S.seamlessPerimeter?'The seamless camera effect also needs matching wall/floor color and controlled lighting. Physical removal requires finish repairs.':''].filter(Boolean).join(' ');
+
   for(const b of all('[data-height]')){const a=+b.dataset.height===S.height;b.setAttribute('aria-pressed',a);}
   for(const b of all('[data-floor]'))b.setAttribute('aria-pressed',b.dataset.floor===S.floor);
   for(const b of all('[data-platform-shape]'))b.setAttribute('aria-pressed',b.dataset.platformShape===S.platformShape);
@@ -65,7 +74,7 @@ ${colorField('platform')}</div></section>
   for(const f of all('.color-field')){const c=S[surfaces[f.dataset.surface].key];f.querySelector('output').textContent=colorName(c);let match=false;for(const b of f.querySelectorAll('.swatch[data-color]')){const p=b.dataset.color===c;match||=p;b.setAttribute('aria-pressed',p);}const custom=f.querySelector('.swatch.custom');custom.classList.toggle('picked',!match);custom.style.setProperty('--c',match?'':c);syncWheel(f);}
   summary();applyColors();
  }
- function applyColors(){mats.charcoal.color.set(S.wallColor);mats.floorGray.color.set(S.floorColor);mats.platform.color.set(S.platformColor);api.scene.traverse(o=>{const s=o.isMesh&&o.material?.userData?.surface;if(s==='floor')o.material.color.set(S.floorColor);if(s==='platform')o.material.color.set(S.platformColor);});api.invalidate();}
+ function applyColors(){mats.charcoal.color.set(S.wallColor);mats.floorGray.color.set(S.floorColor);mats.platform.color.set(S.platformColor);api.scene.traverse(o=>{const s=o.isMesh&&o.material?.userData?.surface;if(s==='wall')o.material.color.set(S.wallColor);if(s==='floor')o.material.color.set(S.floorColor);if(s==='platform')o.material.color.set(S.platformColor);});api.invalidate();}
  function setColor(surface,color){if(!/^#[0-9a-f]{6}$/i.test(color))throw Error('Use a six-digit hex color');S[surfaces[surface].key]=color.toLowerCase();refresh();window.dispatchEvent(new CustomEvent('surface-color-changed',{detail:{surface,color}}));}
  // Custom color: a wheel for hue and saturation, a brightness slider and a hex field, built on first open.
  function buildWheel(f){const panel=f.querySelector('.custom-panel'),surface=f.dataset.surface;panel.innerHTML=`<div class="wheel-wrap"><canvas width="220" height="220" tabindex="0" role="slider" aria-label="Color wheel: left and right adjust hue; up and down adjust saturation" aria-valuemin="0" aria-valuemax="359"></canvas><span class="wheel-cursor"></span></div><div class="color-fields"><label>Brightness <output></output><input type="range" min="0" max="100" value="100" class="brightness"></label><label>Hex color<input type="text" maxlength="7" spellcheck="false" autocomplete="off" class="hex-input"></label><span class="color-error" role="status"></span></div>`;
@@ -83,7 +92,9 @@ ${colorField('platform')}</div></section>
  q('#design-toggle').onclick=()=>{open=!open;layout();if(!open)host.scrollIntoView({block:'nearest'});};
  let lastMode=S.mode;new MutationObserver(()=>{if(S.mode!==lastMode){lastMode=S.mode;open=false;}layout();}).observe(document.body,{attributes:true,attributeFilter:['class']});
  host.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!host.contains(b))return;
-  if(b.dataset.height)api.configure({height:+b.dataset.height});
+  if(b.dataset.seamlessCorners!==undefined)api.configure({seamlessCorners:b.dataset.seamlessCorners==='true'});
+  else if(b.dataset.seamlessPerimeter!==undefined)api.configure({seamlessPerimeter:b.dataset.seamlessPerimeter==='true'});
+  else if(b.dataset.height)api.configure({height:+b.dataset.height});
   else if(b.dataset.angle)api.configure({angle:+b.dataset.angle});
   else if(b.dataset.floor)api.configure({floor:b.dataset.floor});
   else if(b.dataset.platformShape)api.configure({platformShape:b.dataset.platformShape});

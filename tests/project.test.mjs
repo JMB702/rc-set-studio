@@ -340,7 +340,7 @@ test('The build design is saved with tracking and kept by saves that omit it',as
  const r=rig(),design={height:120,angle:45,floor:'charcoal',platformShape:'angled',platformAngle:45,platformBack:12,platformSide:12,wallColor:'#E4E1D8',platformColor:'#34383b',floorColor:'#34383b'};
  let t=await (await r.call('tracking')).json();assert.equal(t.data.design??null,null);
  t=await (await r.call('tracking','PUT',{data:{...t.data,design},revision:t.revision})).json();
- assert.deepEqual(t.data.design,{...design,floorLip:false,seamlessCorners:false,seamlessPerimeter:false,wallColor:'#e4e1d8'});
+ assert.deepEqual(t.data.design,{...design,floorLip:false,seamlessCorners:false,seamlessCornerSide:'both',seamlessPerimeter:false,wallColor:'#e4e1d8'});
  const {design:_,...rest}=t.data;t=await (await r.call('tracking','PUT',{data:rest,revision:t.revision})).json();
  assert.equal(t.data.design.floor,'charcoal');
  assert.equal((await r.call('tracking','PUT',{data:{...t.data,design:{...design,height:100}},revision:t.revision})).status,400);

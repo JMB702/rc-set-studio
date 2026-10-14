@@ -221,7 +221,14 @@ Build guide adds optional stages 43 backing/templates, 44 vertical ribs,
 These follow existing assembly; no original stages or progress IDs are renumbered.
 Instructions retain numbered actions and one You'll need card. Optional progress
 has separate milestones and zero weight when disabled; saved work is retained.
-Allow 24 person-hours PER compound junction, 48 total, for templates, rib fitting,
+Rounded corners can be built on both wing corners or on one: left or right as
+you face the back wall (tracker corner 1 = left, corner 2 = right). One corner
+halves the vertical ribs, corner skin, compound ribs, gores and junction labor;
+the back cove and that wing's cove each lose one tangent (36 x tan(angle/2))
+while the sharp side keeps its full 96-inch cove and a fitted miter. The sharp
+corner keeps its caulk bead. The platform keeps one side gap, so the corner
+clearance applies to both sides. Unbuilt corner checkoffs are hidden.
+Allow 24 person-hours PER compound junction (48 with two corners) for templates, rib fitting,
 gores, repeated filling, sanding and grazing-light corrections. This is a
 conservative project allowance, not a measured or published industry benchmark.
 Straight curves and final coatings have separate labor. Plan 3-5 additional

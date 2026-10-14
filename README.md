@@ -2,7 +2,7 @@
 
 An interactive 3D viewer, step-by-step **Build guide** and **Pricing guide** for a modular scenic set: a 16′ back wall and two 8′ wings built from 4′-wide panels (8′ or 10′ tall), with jacks, ballast and a 10″ plastered platform (angled or square) and an oak or painted floor, each optional and designed in one panel. Runs on a phone, with shared comments and saved estimates.
 
-Live site: https://rc-set-studio.jerf702.chatgpt.site
+Live site: https://rc-set-studio.vercel.app
 
 ## Change it with an AI agent (easiest)
 
@@ -38,9 +38,11 @@ Fork, branch, open a pull request. The PR template carries the checklist: Build 
 
 ## How it works
 
-The editable browser assets are in `public/`. `worker/index.js` serves the site and its `/api/comments` and `/api/pricing-configurations` endpoints. `npm run build` packages the assets into one Worker module so the viewer needs no framework conversion or remote asset host.
+The editable browser assets are in `public/`. `worker/index.js` serves the site and its `/api/*` endpoints. `npm run build` packages the assets into one Worker module so the viewer needs no framework conversion or remote asset host.
 
-Comments and saved estimates live in the Site's D1 binding `DB`; only the remembered display name is stored in a cookie (one year). Comments can be general or attached to a stable model element plus its set configuration. Names are display names, not verified identities. Comments and names are inserted into the page with `textContent`.
+Production runs on Vercel. Its CDN serves `public/` directly, and every `/api/*` request goes to one Vercel Function, `api/index.mjs`, which runs the same built Worker. `api/_d1.mjs` gives the Worker the small slice of the Cloudflare D1 API it uses on top of Turso (libSQL, SQLite-compatible), so the queries and Drizzle migrations are identical locally and in production. Production builds (`npm run build:vercel`) apply pending migrations; preview builds never touch the production database and get an in-memory one instead.
+
+Comments and saved estimates live in the database (local D1 under `wrangler dev`, Turso in production); only the remembered display name is stored in a cookie (one year). Comments can be general or attached to a stable model element plus its set configuration. Names are display names, not verified identities. Comments and names are inserted into the page with `textContent`.
 
 Local comments stay in ignored `.wrangler/` state. Schema changes belong in `db/schema.ts`; generate append-only Drizzle migrations with `npm run db:generate`.
 
@@ -61,7 +63,7 @@ This is an indoor scenic prototype, not a structural, wind-rated or code-complia
 
 The Pricing guide sidebar has three tabs: **Pricing guide**, **Cost projection**, and **Project tracking**.
 
-- Burn-down saves actual material spending, an optional shared budget, crew members, and time entries in D1. The first visitor creates the four-digit project PIN. The API requires an HttpOnly session for all cost records and receipt reads/writes; PIN hashes use salted PBKDF2, sessions expire after 12 hours, and five failed attempts trigger a 15-minute lockout. Use Lock to end the current session.
+- Burn-down saves actual material spending, an optional shared budget, crew members, and time entries in the database. The first visitor creates the four-digit project PIN. The API requires an HttpOnly session for all cost records and receipt reads/writes; PIN hashes use salted PBKDF2, sessions expire after 12 hours, and five failed attempts trigger a 15-minute lockout. Use Lock to end the current session.
 - Two crew members start at $0/hour. Each shift captures its own hourly rate. Open shifts accrue completed hours; closing a shift includes its exact partial hour. Time/rate corrections are editable and overlapping shifts are rejected. Removing crew preserves time history and supports restoration.
 - JPG, PNG, WebP and PDF receipts (up to 20 MB / five pages) are read locally in the browser using pinned Tesseract.js and PDF.js from jsDelivr. OCR dependencies require internet access on first use. Receipt pixels are not sent to an OCR service. The review form pre-fills store, date and a labelled total, flags unclear or inconsistent results, and requires an explicit save. A second pass retries unclear images. Saved receipts retain compressed, viewable JPEG pages in protected D1 records (up to 1.5 MB combined); PDF originals are not retained. A file fingerprint prevents repeat uploads from being counted twice. A receipt photographed again has a different fingerprint, so check the entry list before saving it.
 - Tracking starts with Walls, Dress/prime/paint, Floor, Platform and 25 production milestones aligned with the existing Build guide. Stages and their steps can be dragged or moved using arrow controls. Each step supports 0–100% progress and multiple editable notes; stages also support notes and a bulk percentage edit. The main graphic averages all step percentages. It is separate from the Build guide's reading position and is shared without the cost PIN.
@@ -115,8 +117,8 @@ Project tracking omits the decorative heading, manual refresh and assembly-count
 
 Explore/Pricing page loads use a 1.5-second opening camera move after workspace restoration: slightly closer and straight on, easing to an angled full-set fit. Bounds include floor, jacks and figures; fitting considers horizontal/vertical FOV and viewport aspect. Resizing refits until interaction; pointer, wheel or keyboard input cancels the intro. Reduced motion settles immediately. Build and saved camera-position views retain their existing restoration behavior.
 
-### Shipping from Claude Code
+### Shipping
 
-Tell Claude **“Ship changes”** or invoke **`/ship`**. Claude runs `npm run ship`, which uses the installed, signed-in Codex CLI and Sites plugin to integrate completed changes, validate, merge to main, publish, and verify production. `npm run ship:check` performs a read-only connector/access check. The CLI must be on PATH and signed into the same ChatGPT account that owns the Site; Sites must remain enabled.
+Vercel's GitHub integration builds every pull request as a preview and every push to `main` as production. Tell Claude **“Ship changes”** or invoke **`/ship`**: Claude runs `npm run ship [PR number]`, which merges the pull request, waits for Vercel's production build of that merge commit and checks the live site. You can also just merge the PR on GitHub.
 
-No API key or Sites token is stored in this repository. Release transcripts are discarded, while a credential-free receipt is saved to ignored `output/releases/last-release.json`. A shared Git lock prevents simultaneous releases from linked worktrees. Code releases preserve production progress, receipts, hours and PIN. Automatic approval review still applies; blocked releases return failure, not a success claim.
+The Turso credentials live only in the Vercel project's Production environment (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`). Code releases preserve production progress, receipts, hours and PIN. `npm run ship` only reports success after the production build passes and the live checks answer correctly.

@@ -12,17 +12,17 @@
 <div id="guide-index" hidden><div id="guide-sections" role="group" aria-label="Build sections"></div><label for="guide-step-select">Jump to a step</label><select id="guide-step-select"></select><button id="restart">Start over</button></div>
 </div>
 <progress id="progress" aria-label="Build progress" value="1" max="29"></progress>
-<div id="step-content" tabindex="-1"><span id="step-phase" class="eyebrow"></span><h2 id="step-title"></h2><h3 class="step-do-title">Steps</h3><ol id="step-actions"></ol><section id="step-needs" aria-labelledby="step-needs-title"><h3 id="step-needs-title">You’ll need</h3><dl><div class="need-row"><dt>Details</dt><dd id="step-spec"></dd></div><div class="need-row" id="step-fasteners"><dt>Fasteners</dt><dd><ul id="step-fasteners-list"></ul></dd></div><div class="need-row"><dt>Tools</dt><dd id="step-tools"></dd></div></dl><button id="guide-cut-link" hidden>Open the complete cut list ↗</button></section></div>
+<div id="step-content" tabindex="-1"><span id="step-phase" class="eyebrow"></span><h2 id="step-title"></h2><h3 class="step-do-title">Steps</h3><ol id="step-actions"></ol><details id="cut-details" class="step-cuts" open hidden><summary>Cut list <span>+</span></summary><div class="detail-body"><p id="cut-intro"></p><div id="cut-list"></div><p class="hint">Lumber names are store sizes (1×6, 2×4, etc.). Cut lengths are the exact finished lengths. Quantities are for one panel with two jacks. Multiply by 8 for this layout. Allow blade kerf and trim.</p></div></details><section id="step-needs" aria-labelledby="step-needs-title"><h3 id="step-needs-title">You’ll need</h3><dl><div class="need-row"><dt>Details</dt><dd id="step-spec"></dd></div><div class="need-row" id="step-fasteners"><dt>Fasteners</dt><dd><ul id="step-fasteners-list"></ul></dd></div><div class="need-row"><dt>Tools</dt><dd id="step-tools"></dd></div></dl></section></div>
 
 <div class="step-buttons"><button id="back" aria-label="Previous build step">← Back</button><button id="next" class="primary">Next step →</button></div>
 <p id="guide-next-label"></p>
 
 </section>
-<details id="cut-details"><summary>Cut list &amp; dimensions <span>+</span></summary><div class="detail-body"><p id="cut-intro"></p><div id="cut-list"></div><p class="hint">Lumber names are store sizes (1×6, 2×4, etc.). Cut lengths are the exact finished lengths. Quantities are for one panel with two jacks. Multiply by 8 for this layout. Allow blade kerf and trim.</p><a href="assets/design-basis.txt" download>Download design notes</a></div></details>
-<details id="shopping-details"><summary>Home Depot shopping list <span>+</span></summary><div class="detail-body" id="shopping-body">Loading materials…</div></details>
-<details id="materials-details"><summary>Floor materials &amp; sources <span>+</span></summary><div class="detail-body" id="materials-body"></div></details>
-<details><summary>Before you build <span>+</span></summary><div class="detail-body"><p>This is an indoor scenic prototype, not a structural or wind-rated wall. Do not lean on it or hang equipment from it.</p><p>Wall jacks use twelve #8 × 1¼″ wood screws per panel, six per jack, with flush heads. Skin uses ½″ narrow-crown staples. Validate joinery, support connections, ballast and floor grip in the final layout. The taller panel has its own frame and jacks; it is not the 8′ panel stretched.</p><p>The angle control explores layouts. Set and secure the wings before dressing the corners. Change the angle only after removing corner finishes and re-securing supports.</p><p>Mobile textures approximate materials and paint. Check real samples under your lighting.</p><a href="assets/sources.txt" target="_blank" rel="noopener">Research and texture credits</a></div></details>
-<details id="contribute-details"><summary>Make changes to this project <span>+</span></summary><div class="detail-body"><p>Open source. Copy this prompt, paste it into Claude Code, Codex, Cursor or any AI coding agent, then say what you want changed. It downloads the project, runs it, makes the change and opens a pull request.</p><button id="agent-prompt-copy" class="agent-copy" type="button"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg><span id="agent-prompt-label" aria-live="polite">Copy prompt for agent</span></button><a href="https://github.com/JMB702/rc-set-studio" target="_blank" rel="noopener">View the code on GitHub</a></div></details>
+
+
+
+
+
 </aside></main>
 <section id="comment-picker" aria-label="Select a comment element" hidden>
 <p id="comment-picker-label" role="status" aria-live="polite">Click or tap a 3D element</p>
@@ -40,4 +40,4 @@
 <p id="comment-status" role="status" aria-live="polite"></p>
 </form>
 <div class="comment-list-heading"><h3>Discussion</h3><button id="comment-refresh">Refresh</button></div><div id="comment-list"></div><button id="comment-more" hidden>Load older comments</button>
-</section><dialog id="agent-prompt-dialog" aria-labelledby="agent-prompt-title"><form method="dialog"><h2 id="agent-prompt-title">Copy this prompt</h2><p>Your browser blocked automatic copying. Select the text below, copy it, and paste it into your AI coding agent.</p><textarea id="agent-prompt-text" readonly rows="14" aria-label="Agent prompt"></textarea><button class="primary">Close</button></form></dialog><script type="module" src="app.js"></script><script type="module" src="agent-prompt.js"></script><script type="module" src="shopping-list.js"></script></body></html>
+</section><script type="module" src="app.js"></script></body></html>

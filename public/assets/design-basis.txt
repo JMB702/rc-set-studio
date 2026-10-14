@@ -263,3 +263,6 @@ no unverified delivery charge, store inventory, or refreshed price is invented.
 
 Matching primer, compound, paper tape and wall/curve paint also share containers
 from calculated coverage. Different paint product URLs remain separate.
+
+PROGRESS CHECKOFFS
+Wall joining and angle-setting guide steps record the full set as joined and both wing angles as set. The tracker counters and guide checkmarks stay synchronized. Seamless construction has separate rib and skin checkoffs for wall corners 1 and 2 (left and right), each left/right/back perimeter run, and each of the two compound floor corners. Survey/backing and final filling, sanding and painting remain separate shared tasks. Removing an optional feature hides its tasks without deleting recorded work. These subdivisions do not add materials or multiply the labor allowance.

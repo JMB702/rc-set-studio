@@ -317,7 +317,8 @@ test('Joining walls and setting angles are counted: 8 walls, 2 angles',()=>{
  assert.equal(pct(d),50);assert.equal(projectGuideStagePercent(d,21,design),50);assert.equal(projectGuideStagePercent(d,22,design),50);
  d=projectSetAssemblyCounts(d,{...d.assembly,wallsJoined:8,anglesSet:2},design);assert.equal(pct(d),100);
  assert.throws(()=>projectAssembly({panelsCompleted:3,wallsJoined:4}),/Joined walls/);assert.throws(()=>projectAssembly({anglesSet:3}),/Invalid/);
- const checked=projectSetGuideStage(projectSetGuideStage(base,21,true,design),22,true,design);assert.equal(checked.assembly?.wallsJoined??null,null,'the guide never invents join counts');
+ assert.throws(()=>projectSetGuideStage(base,21,true,design),/completed wall panels/);
+ const ready=projectSetAssemblyCounts(base,{panelsCompleted:8,wallsJoined:7,anglesSet:2}),checked=projectSetGuideStage(projectSetGuideStage(ready,21,true,design),22,true,design);assert.equal(checked.assembly.wallsJoined,8);assert.equal(checked.assembly.anglesSet,2);assert.equal(pct(checked),100);
 });
 
 test('Progress going up is time-stamped; reaching 100% stamps completion once; older clients keep history',async()=>{

@@ -29,3 +29,14 @@ test('Stage/mode actions persist before backgrounding; startup restores without 
 });
 
 test('Old upside-down jack views reset without losing their build step, design or scroll',()=>{const old=normalizeWorkspace({...saved,stage:14,jackViewRevision:0});assert.equal(old.camera,null);assert.equal(old.stage,14);assert.equal(old.scrollY,saved.scrollY);assert.deepEqual(old.design,saved.design);assert.deepEqual(normalizeWorkspace({...saved,stage:14}).camera,saved.camera);assert.deepEqual(normalizeWorkspace({...saved,stage:17,jackViewRevision:0}).camera,saved.camera);});
+
+test('Granular seamless stages restore and coarse stages migrate to their first component',()=>{
+ for(let stage=49;stage<=62;stage++)assert.equal(normalizeWorkspace({...saved,stage}).stage,stage);
+ for(const [oldStage,newStage] of [[44,49],[45,51],[46,53],[47,59]]){
+  assert.equal(normalizeWorkspace({...saved,stage:oldStage}).stage,newStage);
+  const store=storage({'rc-set-build-progress-v1':JSON.stringify({...design,stage:oldStage})});
+  assert.equal(readWorkspace(design,store).stage,newStage);
+ }
+ for(const stage of [43,48])assert.equal(normalizeWorkspace({...saved,stage}).stage,stage);
+ assert.throws(()=>normalizeWorkspace({...saved,stage:63}));
+});

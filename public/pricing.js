@@ -156,6 +156,7 @@ export function installPricing(api){
  api.showProjectPricing=()=>render();
  api.projectBudget=()=>data?pricingBudget(data,snapshot(),laborFor(S)):null;
  // The full-set shopping list as priced here, with added costs.
+ api.agentConfiguration=()=>snapshot();
  api.projectRows=()=>{if(!data)return [];const c=snapshot();return customizeRows(priceRows(data,{...c,scope:'set'}),c);};
  api.projection=()=>data&&finance?projectCost({rows:api.projectRows(),finance,tracking,design:S,labor:laborFor(S)}):null;
  window.addEventListener('project-finance-changed',e=>{finance=e.detail;if(data)render(false);});

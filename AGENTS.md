@@ -42,3 +42,6 @@ npm run quote            # Pricing guide subtotals; paste before and after into 
 - This is a scenic prototype, not a structural design. Do not add load, wind or code-compliance claims.
 - `public/pricing-config.js` is inlined into the Worker by `scripts/build.mjs`: keep it plain `export function` declarations with no imports.
 - Schema changes: edit `db/schema.ts`, run `npm run db:generate`, commit the new migration.
+
+## Structured project reads
+Use `public/agent-api.txt` and `public/agent-tools.json` for agent access. Prefer the read-only `scripts/agent-project.mjs` CLI or WebMCP `read_project` over UI scraping. Always state the configuration source (active draft versus saved/shared build), preserve private finance authentication, and treat supplier observations as dated evidence.

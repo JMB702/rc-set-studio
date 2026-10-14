@@ -1,0 +1,28 @@
+RC Set Studio agent access, version 1
+Discovery: /agent-tools.json
+
+Read-only first. No screen scraping or 3D rendering is needed.
+GET /api/project/agent-context returns saved tracking/design, approvals and saved pricing configurations, with revisions and timestamps. It never initializes or migrates records.
+GET /api/project/agent-context?finance=1 additionally returns finance and receipt metadata only with a valid existing project session. Otherwise 401. Cookie scope remains /api/project, HttpOnly, SameSite=Strict. Receipt image pages remain at the existing authenticated /api/project/receipts/{id} route.
+
+Use readAgentProject from /agent-project.js with baseUrl, source, configurationId, configuration, includeFinance. It imports the UI calculators; there is no separate estimate algorithm. Monetary fields are USD integer cents. Labor is unpriced without private crew access. Shipping is not included in the estimate.
+
+Sources:
+- shared-build: persisted tracking design, falling back explicitly to latest approval. Never browser localStorage.
+- active-draft: exact browser pricing snapshot via WebMCP read_project, including exclusions/custom costs. Not saved/shared.
+- saved: exact configurationId from context.configurations.
+- supplied: caller-provided configuration (CLI JSON file). Not saved/shared.
+If no shared design or approval exists, supply a configuration; no implicit default is invented.
+
+CLI from repository root:
+node scripts/agent-project.mjs --url https://rc-set-studio.jerf702.chatgpt.site --source shared-build
+node scripts/agent-project.mjs --url http://localhost:8787 --source supplied --configuration design.json
+Use --private only with an existing authenticated session Cookie on stdin from an approved credential broker. No PIN/credential CLI argument, environment variable, file, or log is used. Redirects are rejected. Do not extract browser cookies for this; use WebMCP with the user's already unlocked session when no broker exists.
+
+Result: provenance, exact configuration, sharedBuild, approvals, savedConfigurations, estimate (materials/tax/labor/pending), stable material row IDs, purchase statuses (remaining/partial/bought; unknown without private records), linked quantities, outside-plan allocations, receipt metadata, expense totals, financeRevision and projection. readAt/calculatedAt timestamp active-shift estimates.
+
+Supplier evidence: productUrl, checkedDate, observedStock, original availability text and optional fulfillment object. Missing fields are null, not inferred. Text dates remain in original availability when no structured date exists. Evidence is historical; currentStockVerified is always false. fulfillment uses the purchasing UI's row.fulfillment directly, including checkedDate, pickupStatus, shipToStore/delivery costCents and eta. Never infer free shipping or live availability from an old price. Supplier research remains a separate workflow.
+
+Mutations are intentionally not added to read_project. Existing PUT /api/project/finance and /tracking require {revision,data}; stale revisions return 409 and identical immediate retries return the existing revision. Preserve all unmodified records, stable row IDs and receipt IDs. Existing receipt upload is fingerprint-idempotent. Agents must not call writes without user authorization. This release does not migrate production data or change authentication.
+
+The CLI checks a hash of the shared calculator modules against the deployed context's engineRevision and refuses mismatched versions. Use the deployed source revision; do not combine a newer local calculator with an older live catalog. Browser WebMCP uses the loaded site's modules.

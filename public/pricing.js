@@ -1,4 +1,4 @@
-import {installCanvasTap,pricingIsolationAllowed} from './pricing-interaction.js';
+import {installCanvasTap,pricingIsolationAllowed,pricingPartOpaque} from './pricing-interaction.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
 import {panel,floorMesh,platformParts,cycloramaMesh,dispose,inch,mats,splitSkinFaces} from './model.js';
@@ -51,7 +51,7 @@ export function installPricing(api){
  // the quote and the projection live in Cost projection; only a Bought tag on purchased rows crosses over.
  const host=$('#pricing-controls'),baseMode=api.setMode,S=api.state,scope='set',excluded=[];
  let data,model,rows=[],selected=null,pricingCamera='front',customItems=[],restoring=false;
- const canIsolate=()=>pricingIsolationAllowed(S.mode,document.body.dataset.projectTab);
+ const canIsolate=()=>pricingIsolationAllowed(S.mode,document.body.dataset.projectTab,api.constructionView?.completed===true);
  const canPick=()=>canIsolate()&&!api.constructionView?.completed&&!document.body.classList.contains('picking-comment');
  // Shared project records: finance is null while the burn-down PIN is locked.
  let finance=null,tracking=null;
@@ -107,7 +107,7 @@ export function installPricing(api){
   apply();api.invalidate();
  }
  function apply(){if(!canIsolate())selected=null;if(!model)return;if(S.mode==='pricing')$('#view-hint').textContent=canPick()?'Select a price item · drag to orbit':'Drag to orbit';const available=new Set(rows.map(r=>r.id));model.traverse(o=>{if(!o.isMesh)return;
-  const tags=o.userData.pricingIds||[];o.visible=!removedPart(tags,S.floor,excluded);const inScope=(tags[0]==='laminate'?tags.some(id=>available.has(id)):available.has(tags[0]))&&true,hit=selected?tags.includes(selected)&&inScope:inScope;
+  const tags=o.userData.pricingIds||[];o.visible=!removedPart(tags,S.floor,excluded);const hit=pricingPartOpaque(tags,available,selected,api.constructionView?.completed===true);
   const m=o.material;const wall=tags.includes('wallPaint'),floorSurface=tags.includes('laminate'),seamed=wall&&['wallSeams','wallSeamTape','wallCornerCaulk'].includes(selected),painted=wall&&!seamed&&available.has('wallPaint')&&selected!=='skin',primed=wall&&!seamed&&available.has('wallPrimer')&&!painted&&selected!=='skin',rawFloor=floorSurface&&S.floor==='charcoal'&&!available.has('floorPaint'),primedFloor=rawFloor&&available.has('floorPrimer');const plat=tags.includes('platformPaint')&&!['platformDeck','platformSkin'].includes(selected),platSkim=plat&&['platformDeckSkim','platformCompound'].includes(selected),platPainted=plat&&!platSkim&&available.has('platformPaint')&&!['platformPrimer','platformDeckPrimer'].includes(selected),platPrimed=plat&&!platSkim&&!platPainted&&(available.has('platformPrimer')||available.has('platformDeckPrimer'));o.userData.wallFinishPreview=seamed?'seams':undefined;const map=painted||primed||primedFloor||platPainted||platPrimed?null:(platSkim?mats.compound.map:seamed?(S.height===120?mats.wallSeams10:mats.wallSeams8).map:wall?mats.wallRaw.map:rawFloor?mats.ply.map:o.userData.baseMap);if(m.map!==map){m.map=map;m.needsUpdate=true;}if(m.transparent!==!hit)m.needsUpdate=true;m.transparent=!hit;m.opacity=hit?1:.075;m.depthWrite=hit;m.color.copy(platSkim?new T.Color('#ddddcf'):primed||primedFloor||platPrimed||painted&&selected==='wallPrimer'?new T.Color(0xe3e0d8):platPainted?mats.platform.color:painted?mats.charcoal.color:rawFloor?mats.ply.color:floorSurface&&S.floor==='charcoal'?mats.floorGray.color:o.userData.baseColor);o.renderOrder=hit?2:0;o.castShadow=hit;o.receiveShadow=hit;
  });
  host.querySelectorAll('[data-price-item]').forEach(b=>{const on=b.dataset.priceItem===selected;b.setAttribute('aria-pressed',on);b.closest('.price-item').classList.toggle('selected',on)});

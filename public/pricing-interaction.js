@@ -1,6 +1,6 @@
 // Cost projection and tracking share the viewer, but never isolate priced parts.
-export function pricingIsolationAllowed(mode,projectTab){
- return mode==='pricing'&&projectTab==='pricing';
+export function pricingIsolationAllowed(mode,projectTab,completed=false){
+ return mode==='pricing'&&projectTab==='pricing'&&!completed;
 }
 
 // OrbitControls owns pointer capture. Watch the whole gesture, not just its endpoint:
@@ -24,4 +24,9 @@ export function installCanvasTap(canvas,{enabled,onTap,tolerance=5}){
  const handlers={pointerdown:down,pointermove:move,pointerup:up,pointercancel:cancel};
  for(const [name,handler]of Object.entries(handlers))canvas.addEventListener(name,handler);
  return {reset,dispose(){reset();for(const [name,handler]of Object.entries(handlers))canvas.removeEventListener(name,handler);}};
+}
+
+// Missing cost rows never make physical parts disappear from a complete preview.
+export function pricingPartOpaque(tags,available,selected,completed=false){
+ return completed||!selected||(tags.includes(selected)&&available.has(selected));
 }

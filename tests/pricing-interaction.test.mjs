@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {installCanvasTap,pricingIsolationAllowed} from '../public/pricing-interaction.js';
+import {installCanvasTap,pricingIsolationAllowed,pricingPartOpaque} from '../public/pricing-interaction.js';
 
 function harness(enabled=()=>true){
  const canvas=new EventTarget(),taps=[];
@@ -75,4 +75,16 @@ test('changing preview or tab during a gesture cancels selection',()=>{
  h.send('pointerdown');enabled=true;h.send('pointerup');assert.equal(h.taps.length,0,'a gesture started while disabled must remain ineligible');
  h.send('pointerdown');h.send('pointerup');assert.equal(h.taps.length,1);
  h.dispose();h.send('pointerdown');h.send('pointerup');assert.equal(h.taps.length,1,'disposing removes event listeners');
+});
+
+
+test('Finished and lighting previews keep every physical part opaque, including unpriced ballast',()=>{
+ const available=new Set(['skin','platformLumber']);
+ for(const tags of [['bags','sand','tallBallast'],['skin'],['platformLumber'],[]]){
+  for(const selected of [null,'skin','platformLumber'])assert.equal(pricingPartOpaque(tags,available,selected,true),true);
+  assert.equal(pricingPartOpaque(tags,available,null,false),true,'No isolation means full base opacity; build progress supplies its own shading');
+ }
+ assert.equal(pricingIsolationAllowed('pricing','pricing',true),false,'Complete previews cannot start row or canvas isolation');
+ assert.equal(pricingPartOpaque(['bags','sand'],new Set(['sand']),'sand',false),true,'Secondary cost tags can be selected');
+ assert.equal(pricingPartOpaque(['bags','sand'],available,'skin',false),false,'Intentional construction-view isolation still works');
 });

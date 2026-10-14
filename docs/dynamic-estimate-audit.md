@@ -1,4 +1,4 @@
-# Dynamic estimate audit — October 13, 2026
+# Dynamic estimate audit — October 14, 2026
 
 The estimate follows the active design. It does not select one saved “main” configuration, change an approval, or modify shared progress, purchases, rates, or receipts.
 
@@ -6,18 +6,18 @@ The estimate follows the active design. It does not select one saved “main” 
 
 | Cost row | Product / retailer | Unit price | Evidence |
 | --- | --- | ---: | --- |
-| cycSkin | Same Home Depot utility plywood as wall panels, #100543684 | $20.88/sheet | Existing store observation Oct 5; actual .106 × 48 × 96 inches verified against current product page |
-| cycRibPly | Home Depot Plytanium #100061386 | $52.88/sheet | Existing store observation Oct 10; actual .703 × 47.938 × 95.938 inches |
-| cycAdhesive | Same Home Depot Titebond III #100522343 | $9.98/16 oz | Existing store observation Oct 5; manufacturer spread 250 sq ft/gallon on tight bare-wood contacts |
-| cycReinforcement | Lowe’s FibaFuse #460606 / FDW8652-U, 250 ft | $7.98/roll | Public Lowe’s listing checked Oct 13; used only for both-options compound corners |
+| cycSkin | Same Home Depot utility plywood as wall panels, #100543684 | $20.88/sheet | Store price and 34 sheets checked Oct 14; actual .106 × 48 × 96 inches verified against current product page |
+| cycRibPly | Home Depot Plytanium #100061386 | $52.88/sheet | Store price and 7 sheets checked Oct 14; actual .703 × 47.938 × 95.938 inches |
+| cycAdhesive | Same Home Depot Titebond III #100522343 | $9.98/16 oz | Store price and 25 bottles checked Oct 14; manufacturer spread 250 sq ft/gallon on tight bare-wood contacts |
+| cycReinforcement | Home Depot FibaFuse #203154307, 250 ft | $7.58/roll | Checked Oct 14; free ship-to-store Oct 19–21 or free delivery Oct 19–20; both-options compound corners |
 
-Home Depot is preferred. Lowe’s is the only permitted fallback. No specialty supplier, minimum sheet order, Ace price, or non-US price enters the calculation. The FibaFuse Home Depot equivalent is #203154307; no price was exposed there. Local stock is not verified. Home Depot’s live browser returned 403, so historical store prices were not falsely relabelled as checked today.
+Home Depot is preferred. Lowe’s is the only permitted fallback. No specialty supplier, minimum sheet order, Ace price, or non-US price enters the calculation. The working in-app Home Depot session provided 33 current product prices with E Bradenton selected. Dated pickup, shipping and arrival evidence is keyed by SKU in `retailChecks`; see `retail-check-2026-10-14.json`. SKIM FLOOR uses the user-approved provisional budget of about $50 per bag including estimated 7% tax and a price/delivery cushion ($46.73 pre-tax allowance, $100 for two bags after estimated tax). This is not an observed retailer price or shipping charge. The current listing exposed no price or fulfillment quote; the earlier $38.97 price remains provenance only. The provisional allowance scales with the design and is superseded when a verified price is recorded. Later failed refreshes do not erase earlier same-day observations or turn unknown values into zero.
 
 Sources:
 - https://www.homedepot.com/p/100543684
 - https://www.homedepot.com/p/100061386
 - https://www.homedepot.com/p/100522343
-- https://www.lowes.com/pd/Saint-Gobain-ADFORS-FibaFuse-2-0625-in-x-250-ft-Mesh-Construction-Joint-Tape/4411371
+- https://www.homedepot.com/p/203154307
 - https://www.titebond.com/product/wood-glues/e8d40b45-0ab3-49f7-8a9c-b53970f736af
 - https://www.adfors.com/sites/hps-mac3-adfors-us/files/2025-01/fibafuse_sell_sheet.pdf
 
@@ -40,4 +40,4 @@ Catalog materials use 6% Florida sales tax plus 1% Manatee surtax. The county po
 
 Painted-floor configurations have prices for all modeled material rows, including all four seamless combinations. Perimeter over bare/unspecified floor or floating oak still requires a site-dependent transition and remains explicitly pending. The existing oak vapor-barrier question also remains conditional. Do not turn these unknowns into a false zero.
 
-This is a pickup-based planning estimate, not a guaranteed checkout quote. Delivery and new tool purchases are not assumed. Labor follows active crew/rates when unlocked; unknown rates remain unpriced. The 48-person-hour compound-junction allowance remains an estimate, with drying days separate.
+This is a planning estimate, not a guaranteed checkout quote. Local pickup is preferred. Explicit order-only products show “Need to order” only for positive remaining quantities; shipping fee and estimated arrival stay separate from material prices. Unknown fees and dates are labelled, and historical-price or fulfillment gaps appear beside the total. A free ship-to-store offer is not immediate store stock. Delivery offers are not summed as though they were a combined cart quote. New tool purchases are not assumed. Labor follows active crew/rates when unlocked; unknown rates remain unpriced. The 48-person-hour compound-junction allowance remains an estimate, with drying days separate.

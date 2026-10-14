@@ -867,6 +867,10 @@
     "priorPriceDate": "2026-10-10",
     "priceVerification": "historical",
     "storeId": "6319",
-    "postalCode": "34201"
+    "postalCode": "34201",
+    "provisionalUnitPriceCents": 4673,
+    "provisionalBudgetPerPackCents": 5000,
+    "provisionalDate": "2026-10-14",
+    "provisionalNote": "User-approved planning allowance: about $50 per bag including estimated 7% tax and a delivery/price cushion; $100 for two bags. This is not a retailer unit price or verified shipping quote. Replace with the supplier quote when obtained."
   }
 ]

@@ -49,3 +49,16 @@ test('Retail price updates are applied before identical SKU packs are pooled',()
  assert.equal(pooled[0].availability.includes('Shared packs across first-use, second-use'),true);
  assert.equal(pooled[1].availability.includes('this row adds 0 pack(s)'),true);
 });
+
+test('User-approved provisional budget scales with bags and yields to a verified quote',async()=>{
+ const {materialTax}=await import('../public/pricing-calc.js');
+ const check={priceCents:null,provisionalUnitPriceCents:4673,provisionalBudgetPerPackCents:5000,provisionalNote:'Provisional budget; quote pending',lastAttemptDate:'2026-10-14',fulfillment:{pickupStatus:'unknown'}};
+ const rows=['floor','deck'].map(id=>({id,productUrl:'https://www.homedepot.com/p/313474246',purchaseQuantity:1,unitPriceCents:3897,subtotalCents:3897}));
+ const provisional=applyRetailChecks({retailChecks:{'313474246':check}},rows);
+ assert.equal(provisional.reduce((n,r)=>n+r.subtotalCents,0)+materialTax(provisional),10000);
+ assert.ok(provisional.every(r=>r.priceVerification==='provisional'&&r.checkedDate===null));
+ const one=applyRetailChecks({retailChecks:{'313474246':check}},rows.slice(0,1));
+ assert.equal(one[0].subtotalCents+materialTax(one),5000);
+ const quoted=applyRetailChecks({retailChecks:{'313474246':{...check,priceCents:4000,checkedDate:'2026-10-15',store:'E Bradenton'}}},rows);
+ assert.ok(quoted.every(r=>r.unitPriceCents===4000&&r.priceVerification==='observed'));
+});

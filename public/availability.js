@@ -38,7 +38,7 @@ export function pickupUnverified(row,purchase){return remainingOrderQuantity(row
 
 export function unverifiedRetailCount(rows,purchases=[]){
  const byId=new Map(purchases.map(p=>[p.row.id,p]));
- return new Set(rows.filter(r=>remainingOrderQuantity(r,byId.get(r.id))>0&&(r.priceVerification==='historical'||pickupUnverified(r,byId.get(r.id)))).map(r=>r.productUrl||r.id)).size;
+ return new Set(rows.filter(r=>remainingOrderQuantity(r,byId.get(r.id))>0&&(['historical','provisional'].includes(r.priceVerification)||pickupUnverified(r,byId.get(r.id)))).map(r=>r.productUrl||r.id)).size;
 }
 
 export function retailDescription(row,purchase){

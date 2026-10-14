@@ -9,6 +9,11 @@ function extra(id,name,qty,price,url,note,group='floor'){return {id,name,purchas
 const SKIM_SQFT_PER_BAG=234;
 // Prices observed for Home Depot #6319 (5475 University Pkwy) on Oct 10, 2026, with that store selected.
 function stocked(row,stock){return {...row,observedStock:stock};}
+// Retail checks are sourced snapshots; lack of a check must never become an in-stock claim.
+export function applyRetailChecks(data,rows){return rows.map(row=>{const sku=row.productUrl?.match(/\/p\/(?:[^/]+\/)?(\d{9})(?:[/?#]|$)/)?.[1],check=data.retailChecks?.[sku];if(!check)return row;if(check.priceCents==null)return {...row,priceVerification:'historical',checkedDate:check.priorPriceDate??row.checkedDate??null,observedStock:null,fulfillment:check.fulfillment,availability:(row.availability||'')+` · Current price, pickup, shipping cost and ETA not verified on ${check.lastAttemptDate}; earlier price basis retained.`};
+ const planning=(row.unallocatedAvailability??row.availability??'').split(' · ').filter(s=>! /^(?:Checked|Observed|checked|Catalog checked|Unavailable|out of stock|not stocked|ship to store|nearby pickup|\$.*online listing|\d[\d,]* (?:\w+ )?in stock)/i.test(s.trim())).join(' · ');
+ return {...row,priceVerification:'observed',unitPriceCents:check.priceCents,subtotalCents:row.purchaseQuantity!=null?check.priceCents*row.purchaseQuantity:row.subtotalCents,checkedDate:check.checkedDate??row.checkedDate,observedStock:check.stock??null,fulfillment:check.fulfillment,availability:[`Checked ${check.checkedDate} at ${check.store} #${check.storeId||'6319'}. ${check.pickupNote||''} ${check.deliveryNote||''}`,check.productNote,planning].filter(Boolean).join(' · ')};
+});}
 export function floorRows(data,angle,type){const area=floorArea(angle),waste=area*1.1,rows=[];
  if(type==='wood'){
  rows.push(extra('laminate','TrafficMaster Gladstone Oak · 24.24 sq ft case',Math.ceil(waste/24.24),2399,'203315038','Observed Oct 5 at #6319 · out of stock'));
@@ -106,7 +111,7 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  const wallArea=n*4*height/12,seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),pl=platformShape==='none'?null:platformPlan(angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessPerimeter}),cy=cycloramaPlan({height,angle,seamlessCorners,seamlessPerimeter});
  const use={wallPrimer:wallArea/250,wallPaint:wallArea*2/data.wallPaint.coverageSqFtPerGallon,wallSeams:seamFt*10/12/150,wallSeamTape:seamFt*1.1,platformPrimer:pl?(pl.finishArea-pl.deckArea)/300:0,platformCompound:pl?(pl.finishArea-pl.deckArea)/150:0,platformTape:pl?(pl.tapeLength-pl.deckSeamLength)*1.1/12:0,floorPrimer:floorArea(angle)/250,platformDeckPrimer:pl?pl.deckArea/250:0,cycPrimer:cy.skinArea/250,cycPaint:cy.skinArea*2/data.wallPaint.coverageSqFtPerGallon,cycCompound:cy.skinArea/150+(cy.corners&&cy.perimeter?2:0),cycTape:cy.tapeFeet*1.1};
  for(const row of rows)if(use[row.id]!==undefined){row.needed=use[row.id];row.packSize=['wallSeamTape','platformTape','cycTape'].includes(row.id)?250:1;row.sharedSupply=true;}
- return consolidatePacks(rows);
+ return consolidatePacks(applyRetailChecks(data,rows));
 }
 export function summary(rows){return {subtotal:rows.reduce((s,r)=>s+(r.subtotalCents??0),0),pending:rows.filter(r=>r.subtotalCents===null).length};}
 

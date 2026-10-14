@@ -138,3 +138,6 @@ Full evidence/limitations: docs/cyclorama-research.md in the source repository.
 - 2026 tax:6% state +1% Manatee; county surtax capped at$5,000 per tangible item.
   https://floridarevenue.com/Forms_library/current/dr15dss_26.pdf
   https://floridarevenue.com/taxes/taxesfees/Pages/discretionary.aspx
+
+RETAIL REFRESH — OCTOBER 14, 2026
+Home Depot E Bradenton #6319, delivery ZIP 34201. Dated SKU evidence in data/flat-shopping-list.json retailChecks is shared by every design configuration and the agent read tool. 33 product prices observed in the working browser; SKIM FLOOR #313474246 retains its Oct 10 historical allowance, with current price and fulfillment explicitly unverified. Home Depot FibaFuse #203154307 is $7.58, replacing the $7.98 Lowe’s fallback. Order-only products show shipping costs and arrival estimates when observed; unknown values are not inferred free. No receipt, purchase or saved design was changed.

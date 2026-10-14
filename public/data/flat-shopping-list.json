@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "currency": "USD",
-  "checkedDate": "2026-10-05",
+  "checkedDate": "2026-10-14",
   "store": {
     "id": "6319",
     "name": "E Bradenton",
@@ -15,11 +15,19 @@
       "unitPriceCents": 1532,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/100072830",
-      "availability": "44 in stock \u00b7 aisle 25 / bay 001",
+      "availability": "Pickup Oct 14, 2026; 44 in stock. Delivery Oct 14, 2026; 59 available; $35 Van Delivery.",
       "group": "panel",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 44
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 44,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 44 in stock.",
+        "deliveryNote": "Delivery Oct 14, 2026; 59 available; $35 Van Delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "board12",
@@ -27,11 +35,19 @@
       "unitPriceCents": 784,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/203450502",
-      "availability": "181 in stock \u00b7 aisle 25 / bay 001",
+      "availability": "Pickup Oct 14, 2026; 118 in stock. Delivery Oct 14, 2026; 172 available; $35 Van Delivery.",
       "group": "panel",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 181
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 118,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 118 in stock.",
+        "deliveryNote": "Delivery Oct 14, 2026; 172 available; $35 Van Delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "board16",
@@ -39,11 +55,19 @@
       "unitPriceCents": 2040,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/100071377",
-      "availability": "89 in stock \u00b7 select straight, sound stock",
+      "availability": "Pickup; 89 in stock. Delivery; 306 available; $35 Van Delivery.",
       "group": "panel",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 89
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 89,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 89 in stock.",
+        "deliveryNote": "Delivery; 306 available; $35 Van Delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "board13",
@@ -51,11 +75,19 @@
       "unitPriceCents": 1184,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/203450507",
-      "availability": "31 in stock",
+      "availability": "Pickup; 60 in stock. Delivery Oct 14, 2026; 114 available; $35 Van Delivery.",
       "group": "panel",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 31
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 60,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 60 in stock.",
+        "deliveryNote": "Delivery Oct 14, 2026; 114 available; $35 Van Delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "skin",
@@ -63,11 +95,19 @@
       "unitPriceCents": 2088,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/100543684",
-      "availability": "Unavailable at #6319 \u00b7 nearby pickup or delivery",
+      "availability": "34 in stock; aisle18 bay003. 2,067 available; $79 truck delivery shown.",
       "group": "panel",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": null
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 34,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "34 in stock; aisle18 bay003.",
+        "deliveryNote": "2,067 available; $79 truck delivery shown.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "frameScrews",
@@ -75,11 +115,19 @@
       "unitPriceCents": 797,
       "packSize": 100,
       "productUrl": "https://www.homedepot.com/p/204275507",
-      "availability": "5 packs in stock",
+      "availability": "Pickup Oct 14, 2026; 1 in stock. Delivery Oct 15, 2026; 173 available; FREE.",
       "group": "panel",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 5
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 1,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 1 in stock.",
+        "deliveryNote": "Delivery Oct 15, 2026; 173 available; FREE.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "glue",
@@ -87,11 +135,19 @@
       "unitPriceCents": 998,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/100522343",
-      "availability": "22 bottles in stock",
+      "availability": "25 in stock; aisle09 bay009. 124 available for delivery.",
       "group": "panel",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 22
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 25,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "25 in stock; aisle09 bay009.",
+        "deliveryNote": "124 available for delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "staples",
@@ -99,11 +155,27 @@
       "unitPriceCents": 638,
       "packSize": 1000,
       "productUrl": "https://www.homedepot.com/p/316087492",
-      "availability": "Ship to store or delivery \u00b7 match stapler",
+      "availability": "No pickup stock shown; Ship to Store Oct 19-Oct 22, 5 ready to ship, FREE. Delivery Fri, Oct 16; 5 available; FREE.",
       "group": "panel",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": null
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": null,
+      "fulfillment": {
+        "pickupStatus": "ship-to-store",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "No pickup stock shown; Ship to Store Oct 19-Oct 22, 5 ready to ship, FREE.",
+        "deliveryNote": "Delivery Fri, Oct 16; 5 available; FREE.",
+        "shipToStore": {
+          "costCents": 0,
+          "eta": "Oct 19\u201322, 2026"
+        },
+        "delivery": {
+          "costCents": 0,
+          "eta": "Oct 16, 2026"
+        },
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "board14long",
@@ -111,11 +183,19 @@
       "unitPriceCents": 1972,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/100053469",
-      "availability": "73 in stock",
+      "availability": "Pickup Oct 14, 2026; 71 in stock. Delivery Oct 15, 2026; 71 available; $79 displayed.",
       "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 73
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 71,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 71 in stock.",
+        "deliveryNote": "Delivery Oct 15, 2026; 71 available; $79 displayed.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "crossbar",
@@ -123,11 +203,19 @@
       "unitPriceCents": 425,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/312528776",
-      "availability": "1,454 in stock",
+      "availability": "Pickup; 2,218 in stock. Delivery; 252,779 available; page also displayed $35 (fee label not captured).",
       "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 1454
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 2218,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 2,218 in stock.",
+        "deliveryNote": "Delivery; 252,779 available; page also displayed $35 (fee label not captured).",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "shelf",
@@ -135,11 +223,19 @@
       "unitPriceCents": 2346,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/202093833",
-      "availability": "48 in stock \u00b7 aisle 18 / bay 008",
+      "availability": "Pickup; 36 in stock. Delivery; 122 available; FREE.",
       "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 48
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 36,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 36 in stock.",
+        "deliveryNote": "Delivery; 122 available; FREE.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "shortScrews",
@@ -147,11 +243,19 @@
       "unitPriceCents": 697,
       "packSize": 100,
       "productUrl": "https://www.homedepot.com/p/204275495",
-      "availability": "22 packs in stock",
+      "availability": "Pickup; 20 in stock. Delivery; 147 available; FREE.",
       "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 22
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 20,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 20 in stock.",
+        "deliveryNote": "Delivery; 147 available; FREE.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "lapScrews",
@@ -159,11 +263,19 @@
       "unitPriceCents": 797,
       "packSize": 100,
       "productUrl": "https://www.homedepot.com/p/204275496",
-      "availability": "6 packs in stock at E Bradenton #6319 \u00b7 aisle 17 / bay 009 \u00b7 checked Oct 7, 2026",
+      "availability": "Limited pickup stock; visit E Bradenton for availability. 182 available for delivery.",
       "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-07",
-      "observedStock": 6
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": null,
+      "fulfillment": {
+        "pickupStatus": "limited",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Limited pickup stock; visit E Bradenton for availability.",
+        "deliveryNote": "182 available for delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "barScrews",
@@ -171,11 +283,19 @@
       "unitPriceCents": 1263,
       "packSize": 133,
       "productUrl": "https://www.homedepot.com/p/315169576",
-      "availability": "8 boxes in stock",
+      "availability": "Pickup; 4 in stock. Delivery; 25 available; FREE.",
       "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 8
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 4,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 4 in stock.",
+        "deliveryNote": "Delivery; 25 available; FREE.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "pads",
@@ -183,11 +303,27 @@
       "unitPriceCents": 601,
       "packSize": 1,
       "productUrl": "https://www.homedepot.com/p/314459358",
-      "availability": "Ship to store or delivery",
+      "availability": "Ship to Store Oct19\u201322;498 ready to ship; free. 498 available; delivery Oct21 free.",
       "group": "supports",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": null
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 0,
+      "fulfillment": {
+        "pickupStatus": "ship-to-store",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Ship to Store Oct19\u201322;498 ready to ship; free.",
+        "deliveryNote": "498 available; delivery Oct21 free.",
+        "shipToStore": {
+          "costCents": 0,
+          "eta": "Oct 19\u201322, 2026"
+        },
+        "delivery": {
+          "costCents": 0,
+          "eta": "Oct 21, 2026"
+        },
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "bags",
@@ -195,11 +331,19 @@
       "unitPriceCents": 1567,
       "packSize": 25,
       "productUrl": "https://www.homedepot.com/p/301980932",
-      "availability": "142 packs in stock",
+      "availability": "135 in stock; aisle24 bay001. 250 available for delivery.",
       "group": "ballast",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": 142
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 135,
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "135 in stock; aisle24 bay001.",
+        "deliveryNote": "250 available for delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     },
     {
       "id": "sand",
@@ -207,11 +351,19 @@
       "unitPriceCents": 478,
       "packSize": 50,
       "productUrl": "https://www.homedepot.com/p/100318476",
-      "availability": "Unavailable for pickup \u00b7 delivery listed",
+      "availability": "Unavailable at E Bradenton; pickup in stock24mi away. 690 available;$35 van delivery shown.",
       "group": "ballast",
-      "priceStatus": "observed-with-store-6319-selected",
-      "checkedDate": "2026-10-05",
-      "observedStock": null
+      "priceStatus": "observed-in-working-browser-store-6319",
+      "checkedDate": "2026-10-14",
+      "observedStock": 0,
+      "fulfillment": {
+        "pickupStatus": "nearby",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Unavailable at E Bradenton; pickup in stock24mi away.",
+        "deliveryNote": "690 available;$35 van delivery shown.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      }
     }
   ],
   "notes": [
@@ -226,7 +378,8 @@
     "Screw-only jack revision, Oct 7, 2026: six #8 \u00d7 1\u00bc in wood screws per jack, driven from the stile into the upright, heads flush. Two actual \u00be in boards provide \u00bd in nominal penetration into the upright. Prototype connection: verify on scrap, avoid splits/over-countersinking, and replace wood with stripped holes. Keep the flat supported during assembly and removal. Staples fasten the skin; do not substitute them or nails at the jack attachment.",
     "Only the #8 \u00d7 1\u00bc in screw pack was rechecked Oct 7, 2026: Home Depot #6319, model 801832, SKU 251429, internet 204275496, $7.97 per 100-pack, 6 packs shown in stock. Other product check dates remain as listed.",
     "Optional cyclorama retrofit: seamlessCorners and seamlessPerimeter are independent design options. The Pricing guide calculates ribs, flexible skin, timber backing, fasteners, seam reinforcement and finish from cycloramaPlan(); these extras are excluded from the per-panel list above. Skin, rib plywood, adhesive and compound reinforcement are now selected and priced; floor-substrate transitions remain conditional. Use the design-specific Pricing guide CSV for current quantities. Both options add a separate 48 person-hour compound-corner planning allowance plus 3\u20135 drying calendar days; this is not a published construction-time benchmark.",
-    "Cyclorama estimate Oct 13: uses the same Home Depot utility plywood skin and Titebond III as the walls; no specialty supplier or order minimum. Rib stock uses Home Depot 23/32 nominal, .703 actual plywood. The cut plan respects sheet size, bend direction and kerf; the optional lower junctions add sourced Lowe\u2019s FibaFuse only as a fallback. Existing store prices retain their original check dates because Home Depot blocked today\u2019s refresh. Quantities, labor and estimated 7% tax follow the active design, not a separately chosen configuration."
+    "Cyclorama estimate Oct 13: uses the same Home Depot utility plywood skin and Titebond III as the walls; no specialty supplier or order minimum. Rib stock uses Home Depot 23/32 nominal, .703 actual plywood. The cut plan respects sheet size, bend direction and kerf; the optional lower junctions add sourced Lowe\u2019s FibaFuse only as a fallback. Existing store prices retain their original check dates because Home Depot blocked today\u2019s refresh. Quantities, labor and estimated 7% tax follow the active design, not a separately chosen configuration.",
+    "Retail audit Oct 14, 2026: 33 product prices observed with E Bradenton selected. Rapid Set SKIM FLOOR remains a historical Oct 10 price allowance; current price, pickup, shipping and arrival are unverified. Fulfillment is dated supplier evidence, not a checkout promise."
   ],
   "variants": {
     "8x4": {
@@ -296,8 +449,27 @@
     "unitPriceCents": 3498,
     "coverageSqFtPerGallon": 350,
     "productUrl": "https://www.homedepot.com/p/205281370",
-    "checkedDate": "2026-10-05",
-    "availability": "$34.98 online listing checked Oct 5 \u00b7 #6319 price and stock unverified. Two coats on front wall faces at 350 sq ft/gallon; primer priced separately."
+    "checkedDate": "2026-10-14",
+    "availability": "43 in stock; aisle 07, bay 006. Free pickup Oct 14, 2026. Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+    "observedStock": 43,
+    "fulfillment": {
+      "pickupStatus": "in-stock",
+      "checkedDate": "2026-10-14",
+      "storeId": "6319",
+      "postalCode": "34201",
+      "pickupNote": "43 in stock; aisle 07, bay 006. Free pickup Oct 14, 2026.",
+      "pickup": {
+        "costCents": 0,
+        "eta": "Oct 14, 2026",
+        "stock": 43
+      },
+      "deliveryNote": "Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+      "delivery": {
+        "costCents": 0,
+        "eta": "Oct 14, 2026"
+      }
+    },
+    "priceStatus": "observed-in-working-browser-store-6319"
   },
   "platform": {
     "note": "10-inch platform floor option. Products below were observed Oct 6, 2026 with E Bradenton #6319 selected. The platform also reuses the 2\u00d74 stud, lauan skin, SPAX #8 \u00d7 2\u00bd in screws, staples, Titebond III and neoprene sheet listed in products (Oct 5 prices). Larger deck pieces span adjacent frames; sheet layouts, deck screw counts and seam tape are calculated from platformPlan(). Frames separate only after spanning decks are removed.",
@@ -308,10 +480,18 @@
         "unitPriceCents": 4492,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/100007300",
-        "availability": "50 in stock \u00b7 aisle 18 / bay 003",
-        "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-06",
-        "observedStock": 50
+        "availability": "45 in stock; aisle18 bay003. 2,930 available;$79 truck delivery shown.",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "checkedDate": "2026-10-14",
+        "observedStock": 45,
+        "fulfillment": {
+          "pickupStatus": "in-stock",
+          "checkedDate": "2026-10-14",
+          "pickupNote": "45 in stock; aisle18 bay003.",
+          "deliveryNote": "2,930 available;$79 truck delivery shown.",
+          "storeId": "6319",
+          "postalCode": "34201"
+        }
       },
       {
         "id": "platformFrameScrews",
@@ -319,10 +499,18 @@
         "unitPriceCents": 2997,
         "packSize": 365,
         "productUrl": "https://www.homedepot.com/p/306587120",
-        "availability": "70 boxes in stock \u00b7 aisle 25 / bay SC1",
-        "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-06",
-        "observedStock": 70
+        "availability": "Pickup; 61 in stock. Delivery; 1,153 available (delivery fee not captured).",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "checkedDate": "2026-10-14",
+        "observedStock": 61,
+        "fulfillment": {
+          "pickupStatus": "in-stock",
+          "checkedDate": "2026-10-14",
+          "pickupNote": "Pickup; 61 in stock.",
+          "deliveryNote": "Delivery; 1,153 available (delivery fee not captured).",
+          "storeId": "6319",
+          "postalCode": "34201"
+        }
       },
       {
         "id": "platformCompound",
@@ -330,11 +518,19 @@
         "unitPriceCents": 2368,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/100321605",
-        "availability": "184 in stock at E Bradenton #6319 \u00b7 checked Oct 12, 2026 \u00b7 premixed, may need stirring; allow each coat to dry",
-        "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-12",
-        "observedStock": 184,
-        "planningSkimSqFtPerPail": 150
+        "availability": "Pickup Oct 14, 2026; 179 in stock Delivery Oct 14, 2026; 2,102 available; $35",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "checkedDate": "2026-10-14",
+        "observedStock": 179,
+        "planningSkimSqFtPerPail": 150,
+        "fulfillment": {
+          "pickupStatus": "in-stock",
+          "checkedDate": "2026-10-14",
+          "pickupNote": "Pickup Oct 14, 2026; 179 in stock",
+          "deliveryNote": "Delivery Oct 14, 2026; 2,102 available; $35",
+          "storeId": "6319",
+          "postalCode": "34201"
+        }
       },
       {
         "id": "platformTape",
@@ -342,11 +538,19 @@
         "unitPriceCents": 328,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/100321613",
-        "availability": "107 in stock at E Bradenton #6319 \u00b7 checked Oct 12, 2026 \u00b7 embed in wet premixed compound; not self-adhesive",
-        "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-12",
-        "observedStock": 107,
-        "lengthInches": 3000
+        "availability": "Pickup Oct 14, 2026; 384 in stock Delivery Oct 15, 2026; 1,595 available; free",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "checkedDate": "2026-10-14",
+        "observedStock": 384,
+        "lengthInches": 3000,
+        "fulfillment": {
+          "pickupStatus": "in-stock",
+          "checkedDate": "2026-10-14",
+          "pickupNote": "Pickup Oct 14, 2026; 384 in stock",
+          "deliveryNote": "Delivery Oct 15, 2026; 1,595 available; free",
+          "storeId": "6319",
+          "postalCode": "34201"
+        }
       },
       {
         "id": "platformBead",
@@ -354,11 +558,19 @@
         "unitPriceCents": 288,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/311364895",
-        "availability": "161 in stock",
-        "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-06",
-        "observedStock": 161,
-        "lengthInches": 96
+        "availability": "Pickup Oct 14, 2026; 208 in stock Delivery Oct 14, 2026; 412 available; $35 Van Delivery",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "checkedDate": "2026-10-14",
+        "observedStock": 208,
+        "lengthInches": 96,
+        "fulfillment": {
+          "pickupStatus": "in-stock",
+          "checkedDate": "2026-10-14",
+          "pickupNote": "Pickup Oct 14, 2026; 208 in stock",
+          "deliveryNote": "Delivery Oct 14, 2026; 412 available; $35 Van Delivery",
+          "storeId": "6319",
+          "postalCode": "34201"
+        }
       },
       {
         "id": "platformPrimer",
@@ -366,11 +578,19 @@
         "unitPriceCents": 2398,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/100096395",
-        "availability": "144 in stock \u00b7 aisle 07 / bay 002 \u00b7 listed 400 sq ft per gallon",
-        "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-06",
-        "observedStock": 144,
-        "coverageSqFtPerGallon": 400
+        "availability": "141 in stock; pickup Oct 14, 2026. 961 available; free delivery Oct 14, 2026.",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "checkedDate": "2026-10-14",
+        "observedStock": 141,
+        "coverageSqFtPerGallon": 400,
+        "fulfillment": {
+          "pickupStatus": "in-stock",
+          "checkedDate": "2026-10-14",
+          "pickupNote": "141 in stock; pickup Oct 14, 2026.",
+          "deliveryNote": "961 available; free delivery Oct 14, 2026.",
+          "storeId": "6319",
+          "postalCode": "34201"
+        }
       },
       {
         "id": "platformPaint",
@@ -378,11 +598,29 @@
         "unitPriceCents": 3998,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/206454767",
-        "availability": "28 in stock \u00b7 aisle 07 / bay 020 \u00b7 tinted to the selected floor color \u00b7 listed 400 sq ft per gallon",
-        "priceStatus": "observed-with-store-6319-selected",
-        "checkedDate": "2026-10-06",
-        "observedStock": 28,
-        "coverageSqFtPerGallon": 400
+        "availability": "26 in stock; aisle 07, bay 020. Free pickup Oct 14, 2026. Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "checkedDate": "2026-10-14",
+        "observedStock": 26,
+        "coverageSqFtPerGallon": 400,
+        "fulfillment": {
+          "pickupStatus": "in-stock",
+          "checkedDate": "2026-10-14",
+          "storeId": "6319",
+          "postalCode": "34201",
+          "pickupNote": "26 in stock; aisle 07, bay 020. Free pickup Oct 14, 2026.",
+          "pickup": {
+            "costCents": 0,
+            "eta": "Oct 14, 2026",
+            "stock": 26
+          },
+          "deliveryNote": "Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+          "delivery": {
+            "costCents": 0,
+            "eta": "Oct 14, 2026"
+          },
+          "productNote": "Price and stock are for Ultra Pure White #605001. A dark custom color requires the appropriate tint base; confirm base and final tinted price at the paint desk."
+        }
       }
     ]
   },
@@ -396,22 +634,920 @@
         "unitPriceCents": 5288,
         "packSize": 1,
         "productUrl": "https://www.homedepot.com/p/100061386",
-        "checkedDate": "2026-10-10",
-        "priceStatus": "prior-store-observation",
-        "availability": "Last verified at #6319 Oct 10; live price refresh blocked Oct 13. Actual .703 \u00d7 47.938 \u00d7 95.938 inches. Measure sheets before templating.",
-        "thicknessInches": 0.703
+        "checkedDate": "2026-10-14",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "availability": "7 in stock; aisle18 bay003. 978 available; $79 truck delivery shown.",
+        "thicknessInches": 0.703,
+        "observedStock": 7,
+        "fulfillment": {
+          "pickupStatus": "in-stock",
+          "checkedDate": "2026-10-14",
+          "pickupNote": "7 in stock; aisle18 bay003.",
+          "deliveryNote": "978 available; $79 truck delivery shown.",
+          "storeId": "6319",
+          "postalCode": "34201"
+        }
       },
       {
         "id": "cycReinforcement",
         "name": "ADFORS FibaFuse paperless joint tape \u00b7 2-1/16 in \u00d7 250 ft",
-        "unitPriceCents": 798,
+        "unitPriceCents": 758,
         "packSize": 1,
         "lengthFeet": 250,
-        "productUrl": "https://www.lowes.com/pd/Saint-Gobain-ADFORS-FibaFuse-2-0625-in-x-250-ft-Mesh-Construction-Joint-Tape/4411371",
-        "checkedDate": "2026-10-13",
-        "priceStatus": "observed-online",
-        "availability": "Lowe\u2019s online price observed Oct 13, 2026; local stock unverified. Home Depot equivalent #203154307 preferred if available; its price refresh was blocked. Manufacturer recommends all-purpose ready-mixed compound; trial on supported curved lauan seams."
+        "productUrl": "https://www.homedepot.com/p/203154307",
+        "checkedDate": "2026-10-14",
+        "priceStatus": "observed-in-working-browser-store-6319",
+        "availability": "Ship to Store Oct19\u201321;255 ready to ship; free. 255 available; delivery Oct19\u201320 free.",
+        "observedStock": 0,
+        "fulfillment": {
+          "pickupStatus": "ship-to-store",
+          "checkedDate": "2026-10-14",
+          "pickupNote": "Ship to Store Oct19\u201321;255 ready to ship; free.",
+          "deliveryNote": "255 available; delivery Oct19\u201320 free.",
+          "shipToStore": {
+            "costCents": 0,
+            "eta": "Oct 19\u201321, 2026"
+          },
+          "delivery": {
+            "costCents": 0,
+            "eta": "Oct 19\u201320, 2026"
+          },
+          "storeId": "6319",
+          "postalCode": "34201"
+        }
       }
     ]
+  },
+  "retailChecks": {
+    "100072830": {
+      "id": "100072830",
+      "priceCents": 1532,
+      "title": "1 in. x 4 in. x 8 ft. Select Kiln-Dried Square Edge Common Softwood Whitewood Board",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup Oct 14, 2026; 44 in stock.",
+      "deliveryNote": "Delivery Oct 14, 2026; 59 available; $35 Van Delivery.",
+      "stock": 44,
+      "bulk": null,
+      "evidence": "$15.32; E Bradenton Store: 44 in stock; Pickup Oct 14, 2026, 44 in stock; Delivery Oct 14, 2026, 59 available, $35 Van Delivery.",
+      "url": "https://www.homedepot.com/p/100072830",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 44 in stock.",
+        "deliveryNote": "Delivery Oct 14, 2026; 59 available; $35 Van Delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "203450502": {
+      "id": "203450502",
+      "priceCents": 784,
+      "title": "1 in. x 2 in. x 8 ft. Select Kiln-Dried Square Edge Common Softwood Whitewood Board",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup Oct 14, 2026; 118 in stock.",
+      "deliveryNote": "Delivery Oct 14, 2026; 172 available; $35 Van Delivery.",
+      "stock": 118,
+      "bulk": null,
+      "evidence": "$7.84; E Bradenton Store: 118 in stock; Pickup Oct 14, 2026, 118 in stock; Delivery Oct 14, 2026, 172 available, $35 Van Delivery.",
+      "url": "https://www.homedepot.com/p/203450502",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 118 in stock.",
+        "deliveryNote": "Delivery Oct 14, 2026; 172 available; $35 Van Delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100071377": {
+      "id": "100071377",
+      "priceCents": 2040,
+      "title": "1 in. x 6 in. x 12 ft. Premium Kiln-Dried Square Edge Whitewood Common Softwood Board",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup; 89 in stock.",
+      "deliveryNote": "Delivery; 306 available; $35 Van Delivery.",
+      "stock": 89,
+      "bulk": null,
+      "evidence": "$20.40; E Bradenton Store: 89 in stock; Pickup, 89 in stock; Delivery, 306 available, $35 Van Delivery.",
+      "url": "https://www.homedepot.com/p/100071377",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 89 in stock.",
+        "deliveryNote": "Delivery; 306 available; $35 Van Delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "203450507": {
+      "id": "203450507",
+      "priceCents": 1184,
+      "title": "1 in. x 3 in. x 8 ft. Select Kiln-Dried Square Edge Whitewood Board",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup; 60 in stock.",
+      "deliveryNote": "Delivery Oct 14, 2026; 114 available; $35 Van Delivery.",
+      "stock": 60,
+      "bulk": null,
+      "evidence": "$11.84; Pickup, 60 in stock; Delivery Oct 14, 2026, 114 available, $35 Van Delivery.",
+      "url": "https://www.homedepot.com/p/203450507",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 60 in stock.",
+        "deliveryNote": "Delivery Oct 14, 2026; 114 available; $35 Van Delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "204275507": {
+      "id": "204275507",
+      "priceCents": 797,
+      "title": "#6 x 1-1/2 in. Phillips Flat Head Zinc Plated Wood Screw (100-Pack)",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup Oct 14, 2026; 1 in stock.",
+      "deliveryNote": "Delivery Oct 15, 2026; 173 available; FREE.",
+      "stock": 1,
+      "bulk": null,
+      "evidence": "$7.97; Spend $100.00, Get 15% Off; Add $100 more to qualify; Pickup Oct 14, 2026, 1 in stock; Delivery Oct 15, 2026, 173 available, FREE.",
+      "url": "https://www.homedepot.com/p/204275507",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 1 in stock.",
+        "deliveryNote": "Delivery Oct 15, 2026; 173 available; FREE.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "316087492": {
+      "id": "316087492",
+      "priceCents": 638,
+      "title": "1/4 in. x 1/2 in. 18-Gauge Adhesive Collated Electrogalvanized L-Style Narrow Crown Finishing Staples 1000 per Box",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "No pickup stock shown; Ship to Store Oct 19-Oct 22, 5 ready to ship, FREE.",
+      "deliveryNote": "Delivery Fri, Oct 16; 5 available; FREE.",
+      "stock": null,
+      "bulk": null,
+      "evidence": "$6.38; Ship to Store Oct 19-Oct 22, 5 ready to ship, FREE; Delivery Fri, Oct 16, 5 available, FREE.",
+      "url": "https://www.homedepot.com/p/316087492",
+      "pickupStatus": "ship-to-store",
+      "fulfillment": {
+        "pickupStatus": "ship-to-store",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "No pickup stock shown; Ship to Store Oct 19-Oct 22, 5 ready to ship, FREE.",
+        "deliveryNote": "Delivery Fri, Oct 16; 5 available; FREE.",
+        "shipToStore": {
+          "costCents": 0,
+          "eta": "Oct 19\u201322, 2026"
+        },
+        "delivery": {
+          "costCents": 0,
+          "eta": "Oct 16, 2026"
+        },
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100053469": {
+      "id": "100053469",
+      "priceCents": 1972,
+      "title": "1 in. x 4 in. x 10 ft. Select Kiln-Dried Common Softwood Boards",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup Oct 14, 2026; 71 in stock.",
+      "deliveryNote": "Delivery Oct 15, 2026; 71 available; $79 displayed.",
+      "stock": 71,
+      "bulk": null,
+      "evidence": "$19.72; E Bradenton Store: 71 in stock; Pickup Oct 14, 2026, 71 in stock, FREE; Delivery Oct 15, 2026, 71 available, $79.",
+      "url": "https://www.homedepot.com/p/100053469",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 71 in stock.",
+        "deliveryNote": "Delivery Oct 15, 2026; 71 available; $79 displayed.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "312528776": {
+      "id": "312528776",
+      "priceCents": 425,
+      "title": "2 in. x 4 in. x 96 in. #2 Premium Grade KD-HT Stud",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup; 2,218 in stock.",
+      "deliveryNote": "Delivery; 252,779 available; page also displayed $35 (fee label not captured).",
+      "stock": 2218,
+      "bulk": null,
+      "evidence": "$4.25; E Bradenton Store: 2,218 in stock; Pickup, 2,218 in stock, FREE; Delivery, 252,779 available; $35 also displayed on page.",
+      "url": "https://www.homedepot.com/p/312528776",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 2,218 in stock.",
+        "deliveryNote": "Delivery; 252,779 available; page also displayed $35 (fee label not captured).",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "202093833": {
+      "id": "202093833",
+      "priceCents": 2346,
+      "title": "1/2 in. x 2 ft. x 4 ft. BCX Sanded Plywood",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup; 36 in stock.",
+      "deliveryNote": "Delivery; 122 available; FREE.",
+      "stock": 36,
+      "bulk": null,
+      "evidence": "$23.46; Pickup, 36 in stock, FREE; Delivery, 122 available, FREE.",
+      "url": "https://www.homedepot.com/p/202093833",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 36 in stock.",
+        "deliveryNote": "Delivery; 122 available; FREE.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "204275495": {
+      "id": "204275495",
+      "priceCents": 697,
+      "title": "#8 x 1 in. Zinc Plated Phillips Flat Head Wood Screw (100-Pack)",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup; 20 in stock.",
+      "deliveryNote": "Delivery; 147 available; FREE.",
+      "stock": 20,
+      "bulk": null,
+      "evidence": "$6.97; Pickup, 20 in stock, FREE; Delivery, 147 available, FREE.",
+      "url": "https://www.homedepot.com/p/204275495",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 20 in stock.",
+        "deliveryNote": "Delivery; 147 available; FREE.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "315169576": {
+      "id": "315169576",
+      "priceCents": 1263,
+      "title": "#8 x 2-1/2 in. Interior Flat Head Wood Screws Construction Framing Torx T-Star Plus (133 Each) 1 LB Bit Included",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup; 4 in stock.",
+      "deliveryNote": "Delivery; 25 available; FREE.",
+      "stock": 4,
+      "bulk": null,
+      "evidence": "$12.63; Pickup, 4 in stock, FREE; Delivery, 25 available, FREE.",
+      "url": "https://www.homedepot.com/p/315169576",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 4 in stock.",
+        "deliveryNote": "Delivery; 25 available; FREE.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "306587120": {
+      "id": "306587120",
+      "priceCents": 2997,
+      "title": "#9 x 3 in. Tan Star Flat-Head Wood Deck Screw 5 lbs.-Box (365-Piece)",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup; 61 in stock.",
+      "deliveryNote": "Delivery; 1,153 available (delivery fee not captured).",
+      "stock": 61,
+      "bulk": null,
+      "evidence": "$29.97; E Bradenton Store: 61 in stock; Pickup, 61 in stock; Delivery, 1,153 available.",
+      "url": "https://www.homedepot.com/p/306587120",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup; 61 in stock.",
+        "deliveryNote": "Delivery; 1,153 available (delivery fee not captured).",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100321605": {
+      "id": "100321605",
+      "priceCents": 2368,
+      "title": "USG Sheetrock Brand 4.5 gal. All Purpose Ready-Mixed Joint Compound",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup Oct 14, 2026; 179 in stock",
+      "deliveryNote": "Delivery Oct 14, 2026; 2,102 available; $35",
+      "stock": 179,
+      "bulk": {
+        "minimumQuantity": 10,
+        "unitPriceCents": 2013
+      },
+      "evidence": "Displayed $23.68; Buy 10 or more $20.13. Product heading confirms 4.5 gal.",
+      "url": "https://www.homedepot.com/p/100321605",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 179 in stock",
+        "deliveryNote": "Delivery Oct 14, 2026; 2,102 available; $35",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100321613": {
+      "id": "100321613",
+      "priceCents": 328,
+      "title": "USG Sheetrock Brand 2-1/16 in. x 250 ft. Paper Drywall Joint Tape",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup Oct 14, 2026; 384 in stock",
+      "deliveryNote": "Delivery Oct 15, 2026; 1,595 available; free",
+      "stock": 384,
+      "bulk": null,
+      "evidence": "Displayed $3.28; 250-ft length is selected (75/250/500-ft options).",
+      "url": "https://www.homedepot.com/p/100321613",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 384 in stock",
+        "deliveryNote": "Delivery Oct 15, 2026; 1,595 available; free",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "311364895": {
+      "id": "311364895",
+      "priceCents": 288,
+      "title": "ClarkDietrich 1-1/4 in. x 8 ft. Vinyl Corner Bead",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Pickup Oct 14, 2026; 208 in stock",
+      "deliveryNote": "Delivery Oct 14, 2026; 412 available; $35 Van Delivery",
+      "stock": 208,
+      "bulk": null,
+      "evidence": "Displayed $2.88; 8-ft length is selected (8/9/10-ft options).",
+      "url": "https://www.homedepot.com/p/311364895",
+      "pickupStatus": "in-stock",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Pickup Oct 14, 2026; 208 in stock",
+        "deliveryNote": "Delivery Oct 14, 2026; 412 available; $35 Van Delivery",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "203315038": {
+      "id": "203315038",
+      "priceCents": 2399,
+      "title": "TrafficMaster Gladstone Oak 7 mm T x 7.6 in. W Laminate Wood Flooring (24.2 sqft / case)",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "pickupNote": "Out of Stock; product page says currently unavailable.",
+      "deliveryNote": "Out of Stock; product page says currently unavailable.",
+      "stock": null,
+      "bulk": null,
+      "evidence": "Displayed $23.99/case ($0.99/sq. ft.; covers 24.24 sq. ft.); page shows Out of Stock and currently unavailable.",
+      "url": "https://www.homedepot.com/p/203315038",
+      "pickupStatus": "unavailable",
+      "fulfillment": {
+        "pickupStatus": "unavailable",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Out of Stock; product page says currently unavailable.",
+        "deliveryNote": "Out of Stock; product page says currently unavailable.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "204275496": {
+      "id": "204275496",
+      "priceCents": 797,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": null,
+      "pickupStatus": "limited",
+      "pickupNote": "Limited pickup stock; visit E Bradenton for availability.",
+      "deliveryNote": "182 available for delivery.",
+      "evidence": "100-pack #8 \u00d7 1-1/4 in; $7.97; Limited Stock; delivery182 available",
+      "url": "https://www.homedepot.com/p/204275496",
+      "fulfillment": {
+        "pickupStatus": "limited",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Limited pickup stock; visit E Bradenton for availability.",
+        "deliveryNote": "182 available for delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100543684": {
+      "id": "100543684",
+      "priceCents": 2088,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 34,
+      "pickupStatus": "in-stock",
+      "pickupNote": "34 in stock; aisle18 bay003.",
+      "deliveryNote": "2,067 available; $79 truck delivery shown.",
+      "evidence": "Actual .106 \u00d748 \u00d796 in; $20.88;34 in stock",
+      "url": "https://www.homedepot.com/p/100543684",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "34 in stock; aisle18 bay003.",
+        "deliveryNote": "2,067 available; $79 truck delivery shown.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100061386": {
+      "id": "100061386",
+      "priceCents": 5288,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 7,
+      "pickupStatus": "in-stock",
+      "pickupNote": "7 in stock; aisle18 bay003.",
+      "deliveryNote": "978 available; $79 truck delivery shown.",
+      "evidence": "23/32 \u00d74ft \u00d78ft BC plywood; $52.88;7 in stock",
+      "url": "https://www.homedepot.com/p/100061386",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "7 in stock; aisle18 bay003.",
+        "deliveryNote": "978 available; $79 truck delivery shown.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100522343": {
+      "id": "100522343",
+      "priceCents": 998,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 25,
+      "pickupStatus": "in-stock",
+      "pickupNote": "25 in stock; aisle09 bay009.",
+      "deliveryNote": "124 available for delivery.",
+      "evidence": "Titebond III16oz; $9.98 one-time price;25 in stock; subscription price excluded",
+      "url": "https://www.homedepot.com/p/100522343",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "25 in stock; aisle09 bay009.",
+        "deliveryNote": "124 available for delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "203154307": {
+      "id": "203154307",
+      "priceCents": 758,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 0,
+      "pickupStatus": "ship-to-store",
+      "pickupNote": "Ship to Store Oct19\u201321;255 ready to ship; free.",
+      "deliveryNote": "255 available; delivery Oct19\u201320 free.",
+      "evidence": "FibaFuse250ft; $7.58; Ship to Store,255 ready to ship",
+      "url": "https://www.homedepot.com/p/203154307",
+      "fulfillment": {
+        "pickupStatus": "ship-to-store",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Ship to Store Oct19\u201321;255 ready to ship; free.",
+        "deliveryNote": "255 available; delivery Oct19\u201320 free.",
+        "shipToStore": {
+          "costCents": 0,
+          "eta": "Oct 19\u201321, 2026"
+        },
+        "delivery": {
+          "costCents": 0,
+          "eta": "Oct 19\u201320, 2026"
+        },
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "314459358": {
+      "id": "314459358",
+      "priceCents": 601,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 0,
+      "pickupStatus": "ship-to-store",
+      "pickupNote": "Ship to Store Oct19\u201322;498 ready to ship; free.",
+      "deliveryNote": "498 available; delivery Oct21 free.",
+      "evidence": "1.5sqft sheet; $4.01/sqft and($6.01) per sheet; Ship to Store",
+      "url": "https://www.homedepot.com/p/314459358",
+      "fulfillment": {
+        "pickupStatus": "ship-to-store",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Ship to Store Oct19\u201322;498 ready to ship; free.",
+        "deliveryNote": "498 available; delivery Oct21 free.",
+        "shipToStore": {
+          "costCents": 0,
+          "eta": "Oct 19\u201322, 2026"
+        },
+        "delivery": {
+          "costCents": 0,
+          "eta": "Oct 21, 2026"
+        },
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "lastAttemptDate": "2026-10-14",
+      "lastAttemptNote": "Later direct-page refresh returned retailer error; earlier same-day product/cart observation retained with its original limitations.",
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "301980932": {
+      "id": "301980932",
+      "priceCents": 1567,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 135,
+      "pickupStatus": "in-stock",
+      "pickupNote": "135 in stock; aisle24 bay001.",
+      "deliveryNote": "250 available for delivery.",
+      "evidence": "25-pack15\u00d727in bags;$15.67;135 in stock",
+      "url": "https://www.homedepot.com/p/301980932",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "135 in stock; aisle24 bay001.",
+        "deliveryNote": "250 available for delivery.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100318476": {
+      "id": "100318476",
+      "priceCents": 478,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 0,
+      "pickupStatus": "nearby",
+      "pickupNote": "Unavailable at E Bradenton; pickup in stock24mi away.",
+      "deliveryNote": "690 available;$35 van delivery shown.",
+      "evidence": "50lb play sand;$4.78; Pickup Nearby,in stock24mi away",
+      "url": "https://www.homedepot.com/p/100318476",
+      "fulfillment": {
+        "pickupStatus": "nearby",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Unavailable at E Bradenton; pickup in stock24mi away.",
+        "deliveryNote": "690 available;$35 van delivery shown.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100007300": {
+      "id": "100007300",
+      "priceCents": 4492,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 45,
+      "pickupStatus": "in-stock",
+      "pickupNote": "45 in stock; aisle18 bay003.",
+      "deliveryNote": "2,930 available;$79 truck delivery shown.",
+      "evidence": "19/32 \u00d74ft \u00d78ft BC plywood;$44.92;45 in stock",
+      "url": "https://www.homedepot.com/p/100007300",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "45 in stock; aisle18 bay003.",
+        "deliveryNote": "2,930 available;$79 truck delivery shown.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "327262533": {
+      "id": "327262533",
+      "priceCents": 3900,
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "stock": 28,
+      "pickupStatus": "in-stock",
+      "pickupNote": "28 in stock; aisle04 bay007.",
+      "deliveryNote": "1,789 available; free delivery shown.",
+      "evidence": "Selected100sqft roll;($39.00/roll);28 in stock",
+      "url": "https://www.homedepot.com/p/327262533",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "28 in stock; aisle04 bay007.",
+        "deliveryNote": "1,789 available; free delivery shown.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100096395": {
+      "id": "100096395",
+      "priceCents": 2398,
+      "stock": 141,
+      "pickupStatus": "in-stock",
+      "pickupNote": "141 in stock; pickup Oct 14, 2026.",
+      "deliveryNote": "961 available; free delivery Oct 14, 2026.",
+      "evidence": "Cart product KILZ2 1 gallon: $23.98/item; pickup141, FREE.",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "url": "https://www.homedepot.com/p/100096395",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "141 in stock; pickup Oct 14, 2026.",
+        "deliveryNote": "961 available; free delivery Oct 14, 2026.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "100129649": {
+      "id": "100129649",
+      "priceCents": 2998,
+      "stock": 17,
+      "pickupStatus": "in-stock",
+      "pickupNote": "17 in stock; pickup Oct 14, 2026.",
+      "deliveryNote": "985 available; free delivery Oct 14, 2026.",
+      "evidence": "Cart product model88001: $29.98/item; pickup17, FREE.",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "url": "https://www.homedepot.com/p/100129649",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "17 in stock; pickup Oct 14, 2026.",
+        "deliveryNote": "985 available; free delivery Oct 14, 2026.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "300751977": {
+      "id": "300751977",
+      "priceCents": 898,
+      "stock": 200,
+      "pickupStatus": "in-stock",
+      "pickupNote": "200 in stock; pickup Oct 14, 2026.",
+      "deliveryNote": "976 available; free delivery Oct 14, 2026.",
+      "bulk": {
+        "minimumQuantity": 12,
+        "unitPriceCents": 808
+      },
+      "evidence": "Cart PL40028oz: $8.98/item; bulk12+ $8.08; pickup200.",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "url": "https://www.homedepot.com/p/300751977",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "200 in stock; pickup Oct 14, 2026.",
+        "deliveryNote": "976 available; free delivery Oct 14, 2026.",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "306837487": {
+      "id": "306837487",
+      "priceCents": 5175,
+      "stock": 0,
+      "pickupStatus": "ship-to-store",
+      "pickupNote": "Ship to Store Oct19\u201322,121 ready to ship, free.",
+      "deliveryNote": "Delivery free; tile says Oct 14, 2026 but cart scheduling note says as soon as Oct 15, 2026. Confirm date at checkout.",
+      "evidence": "Cart QuietWalk1.4mm100sqft: $51.75/item; Ship to Store Oct19\u201322 FREE; delivery timing signals conflict.",
+      "store": "E Bradenton",
+      "checkedDate": "2026-10-14",
+      "url": "https://www.homedepot.com/p/306837487",
+      "fulfillment": {
+        "pickupStatus": "ship-to-store",
+        "checkedDate": "2026-10-14",
+        "pickupNote": "Ship to Store Oct19\u201322,121 ready to ship, free.",
+        "deliveryNote": "Delivery free; tile says Oct 14, 2026 but cart scheduling note says as soon as Oct 15, 2026. Confirm date at checkout.",
+        "shipToStore": {
+          "costCents": 0,
+          "eta": "Oct 19\u201322, 2026"
+        },
+        "delivery": {
+          "costCents": 0,
+          "eta": null
+        },
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "lastAttemptDate": "2026-10-14",
+      "lastAttemptNote": "Later direct-page refresh returned retailer error; earlier same-day product/cart observation retained with its original limitations.",
+      "storeId": "6319",
+      "postalCode": "34201"
+    },
+    "205281370": {
+      "id": "205281370",
+      "title": "BEHR PREMIUM PLUS Carbon N520-7 flat, 1 gallon",
+      "priceCents": 3498,
+      "store": "E Bradenton",
+      "storeId": "6319",
+      "postalCode": "34201",
+      "checkedDate": "2026-10-14",
+      "stock": 43,
+      "pickupStatus": "in-stock",
+      "pickupNote": "43 in stock; aisle 07, bay 006. Free pickup Oct 14, 2026.",
+      "deliveryNote": "Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+      "url": "https://www.homedepot.com/p/BEHR-PREMIUM-PLUS-1-gal-N520-7-Carbon-Flat-Low-Odor-Interior-Paint-Primer-130001/205281370",
+      "evidence": "Live product page with E Bradenton and ZIP 34201 selected: $34.98; 43 in stock; aisle 07, bay 006. Free pickup Oct 14, 2026. Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "storeId": "6319",
+        "postalCode": "34201",
+        "pickupNote": "43 in stock; aisle 07, bay 006. Free pickup Oct 14, 2026.",
+        "pickup": {
+          "costCents": 0,
+          "eta": "Oct 14, 2026",
+          "stock": 43
+        },
+        "deliveryNote": "Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+        "delivery": {
+          "costCents": 0,
+          "eta": "Oct 14, 2026"
+        }
+      },
+      "bulk": {
+        "minQuantity": 5,
+        "unitPriceCents": 3080,
+        "note": "Regular single-gallon price used; current remaining quantity is below threshold."
+      }
+    },
+    "206454767": {
+      "id": "206454767",
+      "title": "BEHR PREMIUM Ultra Pure White low-lustre porch and patio, 1 gallon",
+      "priceCents": 3998,
+      "store": "E Bradenton",
+      "storeId": "6319",
+      "postalCode": "34201",
+      "checkedDate": "2026-10-14",
+      "stock": 26,
+      "pickupStatus": "in-stock",
+      "pickupNote": "26 in stock; aisle 07, bay 020. Free pickup Oct 14, 2026.",
+      "deliveryNote": "Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+      "url": "https://www.homedepot.com/p/BEHR-PREMIUM-1-gal-Ultra-Pure-White-Low-Lustre-Enamel-Interior-Exterior-Porch-and-Patio-Floor-Paint-605001/206454767",
+      "evidence": "Live product page with E Bradenton and ZIP 34201 selected: $39.98; 26 in stock; aisle 07, bay 020. Free pickup Oct 14, 2026. Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "storeId": "6319",
+        "postalCode": "34201",
+        "pickupNote": "26 in stock; aisle 07, bay 020. Free pickup Oct 14, 2026.",
+        "pickup": {
+          "costCents": 0,
+          "eta": "Oct 14, 2026",
+          "stock": 26
+        },
+        "deliveryNote": "Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+        "delivery": {
+          "costCents": 0,
+          "eta": "Oct 14, 2026"
+        },
+        "productNote": "Price and stock are for Ultra Pure White #605001. A dark custom color requires the appropriate tint base; confirm base and final tinted price at the paint desk."
+      },
+      "productNote": "Price and stock are for Ultra Pure White #605001. A dark custom color requires the appropriate tint base; confirm base and final tinted price at the paint desk."
+    },
+    "302055336": {
+      "id": "302055336",
+      "title": "BEHR PREMIUM Mined Coal PPU18-18 low-lustre porch and patio, 1 gallon",
+      "priceCents": 3998,
+      "store": "E Bradenton",
+      "storeId": "6319",
+      "postalCode": "34201",
+      "checkedDate": "2026-10-14",
+      "stock": 23,
+      "pickupStatus": "in-stock",
+      "pickupNote": "23 in stock; aisle 07, bay 020. Free pickup Oct 14, 2026.",
+      "deliveryNote": "Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+      "url": "https://www.homedepot.com/p/BEHR-PREMIUM-1-gal-PPU18-18-Mined-Coal-Low-Lustre-Enamel-Interior-Exterior-Porch-and-Patio-Floor-Paint-630001/302055336",
+      "evidence": "Live product page with E Bradenton and ZIP 34201 selected: $39.98; 23 in stock; aisle 07, bay 020. Free pickup Oct 14, 2026. Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+      "fulfillment": {
+        "pickupStatus": "in-stock",
+        "checkedDate": "2026-10-14",
+        "storeId": "6319",
+        "postalCode": "34201",
+        "pickupNote": "23 in stock; aisle 07, bay 020. Free pickup Oct 14, 2026.",
+        "pickup": {
+          "costCents": 0,
+          "eta": "Oct 14, 2026",
+          "stock": 23
+        },
+        "deliveryNote": "Free delivery quoted for Oct 14, 2026 to ZIP 34201; schedule subject to checkout.",
+        "delivery": {
+          "costCents": 0,
+          "eta": "Oct 14, 2026"
+        }
+      }
+    },
+    "313474246": {
+      "id": "313474246",
+      "priceCents": null,
+      "store": "E Bradenton",
+      "checkedDate": null,
+      "lastAttemptDate": "2026-10-14",
+      "stock": null,
+      "pickupNote": "Current pickup availability not verified.",
+      "deliveryNote": "Current delivery charge and arrival not verified.",
+      "fulfillment": {
+        "pickupStatus": "unknown",
+        "checkedDate": null,
+        "lastAttemptDate": "2026-10-14",
+        "pickupNote": "Current pickup not verified",
+        "deliveryNote": "Current delivery charge and arrival not verified",
+        "delivery": {
+          "costCents": null,
+          "eta": null
+        },
+        "lastKnownPickupStatus": "ship-to-store",
+        "lastKnownPickupDate": "2026-10-10",
+        "storeId": "6319",
+        "postalCode": "34201"
+      },
+      "evidence": "Official listing confirms 35 lb / model 150110020 / store SKU 1014109994. Current product and exact-SKU search returned error; web-readable listing has no price or fulfillment. Oct 10 price is a historical planning allowance only.",
+      "url": "https://www.homedepot.com/p/Rapid-Set-35-lb-Skim-Floor-Patching-and-Underlayment-150110020/313474246",
+      "priorPriceCents": 3897,
+      "priorPriceDate": "2026-10-10",
+      "priceVerification": "historical",
+      "storeId": "6319",
+      "postalCode": "34201"
+    }
   }
 }

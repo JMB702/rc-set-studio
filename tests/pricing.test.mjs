@@ -40,7 +40,7 @@ test('Wall paint is included once, rounded by coated face area, and removable',(
   assert.ok(!priceRows(data,{...config,scope:'floor'}).some(r=>r.id==='wallPaint'));
  }
 });
-import {platformPlan,platformCuts,studCount,PLATFORM,legLength,sillLegLength} from '../public/platform.js';
+import {platformPlan,platformCuts,studCount,PLATFORM,legLength} from '../public/platform.js';
 import {platformRows} from '../public/pricing-calc.js';
 test('Platform keeps its gaps from the back and side walls at every angle',()=>{
  for(const angle of [0,30,45,60,90])for(const [back,side] of [[12,12],[0,0],[48,48],[6,30]]){
@@ -58,12 +58,12 @@ test('Platform frames tile the outline independently of larger deck sheets',()=>
   assert.ok(Math.abs(plan.modules.reduce((s,m)=>s+m.area,0)/144-plan.deckArea)<1e-6);
   const outline=Math.abs(plan.outline.reduce((s,p,i)=>{const q=plan.outline[(i+1)%plan.outline.length];return s+p[0]*q[1]-q[0]*p[1]},0))/2/144;
   assert.ok(Math.abs(outline-plan.deckArea)<1e-6);
-  for(const m of plan.modules){assert.ok(m.depth<=PLATFORM.module+1e-6);assert.ok(m.legs.length>=3);assert.equal(m.rims.length,m.edges.length);}
+  for(const m of plan.modules){assert.ok(m.depth<=PLATFORM.module+1e-6);assert.ok(m.legs.length>=3);assert.equal(m.rims.length,m.edges.filter(e=>e.len>=PLATFORM.minPiece).length);assert.deepEqual(m.bottomRims.map(r=>r.length),m.rims.map(r=>r.length),'bottom ring matches the top rims');assert.ok(m.legs.every(l=>l.length===legLength),'one leg length');assert.ok([...m.rims,...m.legs].every(p=>p.length>=PLATFORM.minPiece),'no stub cuts');}
  }
 });
 test('Platform framing uses actual 2×4 sizes and a 10″ finished height',()=>{
  assert.equal(PLATFORM.lumber.join('×'),'1.5×3.5');
- assert.ok(Math.abs(legLength+PLATFORM.deck-10)<1e-9);assert.ok(Math.abs(sillLegLength+PLATFORM.sill+PLATFORM.deck-10)<1e-9);
+ assert.ok(Math.abs(legLength+PLATFORM.deck-10)<1e-9);
  const plan=platformPlan(45,12,12);for(const l of plan.lumberLengths)assert.ok(l>0&&l<=96,`cut ${l} fits a 96″ stud`);
  assert.equal(platformCuts(plan).reduce((s,c)=>s+c.qty,0),plan.lumberLengths.length);
  assert.equal(studCount([48,48]),2);assert.equal(studCount([47.875,47.875]),1);

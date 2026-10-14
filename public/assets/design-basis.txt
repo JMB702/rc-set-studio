@@ -136,10 +136,14 @@ Its sides keep the gap from both the real wings and their own angle line. An edg
 Modules: each row of equal depth, no deeper than 48; each row divided into
 equal columns no wider than 48. Small end pieces merge into a neighbor.
 All lumber actual 1.5x3.5 (2x4). Rims stand on edge around each module,
-butted pinwheel style; joists front-to-back at 16 centers. Legs: one in
-every corner plus intermediates so no rim spans more than 48. Leg 9.422
-(9 7/16) to the deck underside; 7.922 (7 15/16) where it stands on a sill.
-Sills: 2x4 laid flat under every fascia edge. Deck: Plytanium 19/32 BC
+butted pinwheel style; joists front-to-back at 16 centers. Each module also
+has an identical bottom ring of 2x4s on edge, standing on the floor, so every
+rim length is cut twice. Rim and leg stubs under 4 at clipped corners are
+omitted. Legs: one in every corner plus intermediates so no rim spans more
+than 48, all 9.422 (9 7/16), floor to deck underside, inside both rings and
+screwed through the top and bottom rims. 2 7/16 scrap spacers set the bottom
+ring flush with the leg ends during assembly. Default square: 40 studs
+(was 30 with flat sills). Deck: Plytanium 19/32 BC
 sanded plywood, actual 0.578 x 47.938 x 95.938. Pair adjacent frame cells
 within each row into larger deck pieces up to one 4x8 sheet, long direction
 across the front-to-back joists. Default square: 4 decks over 8 frames,
@@ -150,7 +154,7 @@ Decks screwed (#8x2.5 at 6 around deck perimeters, 12 on interior rims and
 joists), not glued. Remove spanning decks and fascia BEFORE separating the frames.
 Frame seams retain #9x3 screws through adjoining rims, about every 12,
 both sides. Deck joints remain supported by rims or joists; no second deck layer.
-Fascia: 0.106 lauan, 10 tall, glued and stapled to rims, legs and sills.
+Fascia: 0.106 lauan, 10 tall, glued and stapled to the top and bottom rims.
 Finish: Rapid Set SKIM FLOOR cement skim on the horizontal walking deck,
 planning average 1/16 inch, then selected cement-compatible primer and floor
 paint. No epoxy or polyurethane. User accepts touch-up work; the paint-only

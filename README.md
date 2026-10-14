@@ -2,15 +2,14 @@
 
 An interactive 3D viewer, step-by-step **Build guide** and **Pricing guide** for a modular scenic set: a 16′ back wall and two 8′ wings built from 4′-wide panels (8′ or 10′ tall), with jacks, ballast and a 10″ plastered platform (angled or square) and an oak or painted floor, each optional and designed in one panel. Runs on a phone, with shared comments and saved estimates.
 
-Live site: https://rc-set-studio.thereallifeatheist.chatgpt.site
+Live site: https://rc-set-studio.jerf702.chatgpt.site
 
 ## Change it with an AI agent (easiest)
 
-1. On the site, open **Make changes to this project** at the bottom of the side panel and click **Copy prompt for agent**.
-2. Paste it into Claude Code, Codex, Cursor or any coding agent, then describe the change you want at the end.
-3. The agent forks this repo, runs it locally, makes the change and opens a pull request.
+1. Point Claude Code, Codex, Cursor or any coding agent at this repository (`https://github.com/JMB702/rc-set-studio`) and describe the change you want.
+2. The agent forks this repo, runs it locally, makes the change and opens a pull request.
 
-The prompt is generated from [`public/agent-prompt.js`](public/agent-prompt.js). The rules agents follow are in [`AGENTS.md`](AGENTS.md) and the [`rc-set-sync` skill](.claude/skills/rc-set-sync/SKILL.md). The headline rule: **any change to the set also updates the Build guide and the Pricing guide, and carries material changes through the whole project.**
+The rules agents follow are in [`AGENTS.md`](AGENTS.md) and the [`rc-set-sync` skill](.claude/skills/rc-set-sync/SKILL.md). The headline rule: **any change to the set also updates the Build guide and the Pricing guide, and carries material changes through the whole project.**
 
 ## Run it yourself
 

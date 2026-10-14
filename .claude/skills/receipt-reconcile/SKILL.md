@@ -41,7 +41,7 @@ A row is **bought** when any linked line has `complete: true`, or the linked qua
 
 Production finance data is behind Jeff's project PIN. Never ask Jeff for the PIN, never type it, never store it.
 
-1. Open the production site in the built-in browser: `preview_start` with `url: https://rc-set-studio.jerf702.chatgpt.site` (the live URL is also in `output/releases/last-release.json`). Then `__studio.setMode('pricing')`.
+1. Open the production site in the built-in browser: `preview_start` with `url: https://rc-set-studio.vercel.app`. Then `__studio.setMode('pricing')`.
 2. `await __studio.project.status()` → `{configured, unlocked, expenses}`. If `unlocked` is false, ask Jeff to open **Cost projection** in that browser pane and enter his PIN himself (the session lasts 12 hours), then check again.
 3. `__studio.project.plan()` → the full-set shopping list exactly as the Pricing guide prices it (Jeff's design, removals and added items applied): `{id, name, group, purchaseQuantity, packSize, unitPriceCents, subtotalCents, status}`. `status` is `bought`, `partial` or `remaining`.
 4. `await __studio.project.finance()` → existing expenses. Before creating one, look for the same store + date + total; if it exists, add line items to that entry instead (same `id`). If Jeff already uploaded this receipt with **Upload receipt**, that entry has a `receiptId`; reuse it.

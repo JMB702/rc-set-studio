@@ -1,6 +1,6 @@
 # RC Set Studio: instructions for AI agents
 
-Open-source 3D viewer, **Build guide** and **Pricing guide** for a modular scenic set (8×4 and 10×4 wall panels, jacks, floors). Plain browser modules in `public/`, one Cloudflare Worker in `worker/`, no framework.
+Open-source 3D viewer, **Build guide** and **Pricing guide** for a modular scenic set (8×4 and 10×4 wall panels, jacks, floors). Plain browser modules in `public/`, one Worker in `worker/`, no framework. Locally the Worker runs under `wrangler dev`; in production it runs as a Vercel Function (`api/index.mjs`) over a Turso (SQLite) database.
 
 ## Before you change anything
 
@@ -37,11 +37,11 @@ npm run quote            # Pricing guide subtotals; paste before and after into 
 
 - During ordinary edits, do not push to `main`. Branch and open a pull request: `gh pr create --repo JMB702/rc-set-studio --fill`.
 - Do not commit `node_modules/`, `dist/`, `.wrangler/`, or `output/`.
-- During ordinary edits, preserve `.openai/` and do not deploy. When Jeff explicitly asks to ship/publish/deploy, use `npm run ship` (see `.claude/skills/ship/SKILL.md`); this authorizes the release worker to merge verified PRs into main and publish the existing Site.
+- During ordinary edits, do not deploy. Every pull request gets a Vercel preview URL with its own empty, throwaway database. Merging into `main` deploys production at https://rc-set-studio.vercel.app. When Jeff explicitly asks to ship/publish/deploy, use `npm run ship` (see `.claude/skills/ship/SKILL.md`).
 - Never invent prices, stock or products. Unverified prices stay "pending" (see the skill).
 - This is a scenic prototype, not a structural design. Do not add load, wind or code-compliance claims.
 - `public/pricing-config.js` is inlined into the Worker by `scripts/build.mjs`: keep it plain `export function` declarations with no imports.
-- Schema changes: edit `db/schema.ts`, run `npm run db:generate`, commit the new migration.
+- Schema changes: edit `db/schema.ts`, run `npm run db:generate`, commit the new migration. Production builds apply pending migrations to Turso automatically; keep them additive.
 
 ## Structured project reads
 Use `public/agent-api.txt` and `public/agent-tools.json` for agent access. Prefer the read-only `scripts/agent-project.mjs` CLI or WebMCP `read_project` over UI scraping. Always state the configuration source (active draft versus saved/shared build), preserve private finance authentication, and treat supplier observations as dated evidence.

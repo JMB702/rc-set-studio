@@ -6,7 +6,7 @@
 // are its estimate scaled by how much of that work the Project tracker says is left.
 // Pure functions, no DOM: the Pricing breakdown, Cost projection and tests all use them directly.
 import {materialTax} from './pricing-calc.js';
-import {projectGuideStagePercent,projectGuideGroups,projectProgress,projectShiftCost} from './project-model.js';
+import {projectGuideStagePercent,projectGuideGroups,projectProgress,projectShiftCost,projectCycloramaMilestones,projectCycloramaComponents} from './project-model.js';
 import {laborTasks} from './labor.js';
 
 // Shopping-list groups bought on the wall-panel trip; everything else is the "remaining supplies" shopping.
@@ -67,13 +67,13 @@ export function supplyProgress(materials){
 // Pricing guide crew rates for work still to come and each time entry's own captured rate for work done, so
 // with nothing done or logged the projection equals the estimate.
 // Which labor tasks a tracker milestone's work belongs to: shares by the Build guide stages they have in common.
-export function milestoneTasks(design,tasks){const out={};for(const [id,stages]of Object.entries(projectGuideGroups(design))){const shares={};for(const t of tasks){const own=laborStageNumbers(t.stage),n=stages.filter(x=>own.includes(x)).length;if(n)shares[t.id]=n;}const total=Object.values(shares).reduce((a,b)=>a+b,0);if(total)out[id]=Object.fromEntries(Object.entries(shares).map(([k,v])=>[k,v/total]));}return out;}
+export function milestoneTasks(design,tasks){const out={};for(const [id,stages]of Object.entries(projectGuideGroups(design))){const shares={};for(const t of tasks){const own=laborStageNumbers(t.stage),n=stages.filter(x=>own.includes(x)).length;if(n)shares[t.id]=n;}const total=Object.values(shares).reduce((a,b)=>a+b,0);if(total)out[id]=Object.fromEntries(Object.entries(shares).map(([k,v])=>[k,v/total]));}for(const c of projectCycloramaComponents())if(out[c.id]&&!out[c.legacy])out[c.legacy]={...out[c.id]};return out;}
 // The stages a time entry worked on: a stage chosen on the entry wins; otherwise the work completed during its hours
 // (tracker progress history), weighted by that work's estimated hours. null when nothing was completed in the window.
 export function shiftStages(shift,{log=[],design,tasks,weights,now=Date.now()}){
  if(shift.taskId&&tasks.some(t=>t.id===shift.taskId))return {auto:false,shares:{[shift.taskId]:1}};
  const end=shift.end??now,map=milestoneTasks(design,tasks),hours={};
- for(const e of log)if(e.at>=shift.start&&e.at<=end&&e.to>e.from&&map[e.step]){const h=(weights[e.step]??1)*(e.to-e.from)/100;for(const [task,share]of Object.entries(map[e.step]))hours[task]=(hours[task]||0)+h*share;}
+ for(const e of log)if(e.at>=shift.start&&e.at<=end&&e.to>e.from&&map[e.step]){const legacy=projectCycloramaComponents().filter(c=>c.legacy===e.step),weight=legacy.length?legacy.reduce((n,c)=>n+(weights[c.id]||0),0):(weights[e.step]??1),h=weight*(e.to-e.from)/100;for(const [task,share]of Object.entries(map[e.step]))hours[task]=(hours[task]||0)+h*share;}
  const total=Object.values(hours).reduce((a,b)=>a+b,0);return total?{auto:true,shares:Object.fromEntries(Object.entries(hours).map(([k,v])=>[k,v/total]))}:null;
 }
 export function projectLabor(labor,{design,tracking,shifts=[],supply=0,now=Date.now()}){
@@ -129,7 +129,7 @@ export function progressWeights(design,{tracking=null,shifts=null,now=Date.now()
   const unlogged=work.filter(t=>!t.actual),guessed=unlogged.reduce((n,t)=>n+t.estimate*t.progress/100,0),loose=result.unassignedHours,scale=guessed&&loose?loose/guessed:1;
   for(const t of work)hoursFor[t.id]=(t.actual||t.estimate*t.progress/100*scale)+t.remainingExact;
  }else for(const t of tasks)hoursFor[t.id]=t.personHours;
- const groups=projectGuideGroups(design),hours={},owners={},weights=Object.fromEntries(['cyc-backing','cyc-ribs','cyc-skin','cyc-perimeter','cyc-junctions','cyc-finish'].map(id=>[id,0]));
+ const groups=projectGuideGroups(design),hours={},owners={},weights=Object.fromEntries([...Object.keys(projectCycloramaMilestones()),'cyc-ribs','cyc-skin','cyc-perimeter','cyc-junctions'].map(id=>[id,0]));
  for(const t of tasks){const stages=laborStageNumbers(t.stage);for(const n of stages)hours[n]=(hours[n]||0)+hoursFor[t.id]/stages.length;}
  for(const [id,stages]of Object.entries(groups))for(const n of stages)(owners[n]??=[]).push(id);
  for(const [n,h]of Object.entries(hours))for(const id of owners[n]||[])weights[id]=(weights[id]||0)+h/owners[n].length;

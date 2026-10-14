@@ -11,3 +11,5 @@ node_modules
 *.tar
 *.tar.gz
 .dev.vars
+.vercel
+.env*.local

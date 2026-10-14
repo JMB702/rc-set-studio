@@ -76,7 +76,8 @@ export function projectBuildDesign(input) {
  const hex=v=>{if(typeof v!=='string'||!/^#[0-9a-f]{6}$/i.test(v))throw Error('Invalid build design color.');return v.toLowerCase();},whole=(v,min,max)=>{if(!Number.isInteger(v)||v<min||v>max)throw Error('Invalid build design.');return v;};
  if(![96,120].includes(input.height)||!['none','wood','charcoal'].includes(input.floor)||!['none','angled','square'].includes(input.platformShape))throw Error('Invalid build design.');
  for(const key of ['seamlessCorners','seamlessPerimeter','floorLip'])if(input[key]!==undefined&&typeof input[key]!=='boolean')throw Error('Invalid build design.');
- return {floorLip:input.floorLip===true,seamlessCorners:input.seamlessCorners===true,seamlessPerimeter:input.seamlessPerimeter===true,height:input.height,angle:whole(input.angle,0,90),floor:input.floor,platformShape:input.platformShape,platformAngle:whole(input.platformAngle,0,90),platformBack:whole(input.platformBack,0,48),platformSide:whole(input.platformSide,0,48),wallColor:hex(input.wallColor),platformColor:hex(input.platformColor),floorColor:hex(input.floorColor)};
+ const seamlessCornerSide=input.seamlessCornerSide??'both';if(!['both','left','right'].includes(seamlessCornerSide))throw Error('Invalid build design.');
+ return {floorLip:input.floorLip===true,seamlessCorners:input.seamlessCorners===true,seamlessCornerSide,seamlessPerimeter:input.seamlessPerimeter===true,height:input.height,angle:whole(input.angle,0,90),floor:input.floor,platformShape:input.platformShape,platformAngle:whole(input.platformAngle,0,90),platformBack:whole(input.platformBack,0,48),platformSide:whole(input.platformSide,0,48),wallColor:hex(input.wallColor),platformColor:hex(input.platformColor),floorColor:hex(input.floorColor)};
 }
 export function projectValidate(kind,input,now=Date.now()) {
  const fail=message=>{throw Error(message);},str=(v,max=160)=>typeof v==='string'&&v.length<=max,id=v=>str(v,80)&&/^[\w-]+$/.test(v),money=(v,negative=false)=>Number.isSafeInteger(v)&&v<1e9&&(negative?v>-1e9:v>=0),list=(v,max)=>Array.isArray(v)&&v.length<=max;
@@ -107,7 +108,7 @@ export function projectValidate(kind,input,now=Date.now()) {
 // during them. A client may send an edited log or completedAt (to backdate work); older clients that omit them keep the
 // stored values. Dropping below 100% clears completedAt.
 export function projectStampProgress(previous,next,now){
- const before=new Map((previous?.stages||[]).flatMap(s=>s.steps).map(t=>[t.id,t])),log=(Array.isArray(next.progressLog)?next.progressLog:previous?.progressLog||[]).slice();
+ const before=new Map([...(previous?.stages||[]),...(previous?.stages?projectUpgradeCyclorama(previous).stages:[])].flatMap(s=>s.steps).map(t=>[t.id,t])),log=(Array.isArray(next.progressLog)?next.progressLog:previous?.progressLog||[]).slice();
  const stages=next.stages.map(s=>({...s,steps:s.steps.map(t=>{const was=before.get(t.id),from=was?.percent??0,stamped=Object.hasOwn(t,'completedAt')?t.completedAt:was?.completedAt??null;
   if(t.percent>from)log.push({at:now,step:t.id,from,to:t.percent});
   return {...t,completedAt:t.percent===100?(stamped??now):null};})}));
@@ -142,7 +143,12 @@ export function projectAssembly(input={}) {
 // Exact inventory is authoritative when the user explicitly saves counts. Percent edits never invent counts.
 // Exact counts are authoritative. They set the counted milestones and leave the guide's walkthrough checks alone.
 export function projectSetAssemblyCounts(input,counts){const data=structuredClone(input);data.assembly=projectAssembly(counts);return projectSyncCounts(data);}
-export function projectStepPercent(data,id){for(const s of data?.stages||[]){const step=s.steps.find(t=>t.id===id);if(step)return step.percent;}return 0;}
+export function projectStepPercent(data,id){
+ const rows=data?.stages?.flatMap(s=>s.steps)||[],row=rows.find(t=>t.id===id);if(row)return row.percent;
+ const components=projectCycloramaComponents(),component=components.find(c=>c.id===id);
+ if(component)return rows.find(t=>t.id===component.legacy)?.percent??0;
+ const children=components.filter(c=>c.legacy===id);return children.length?Math.round(children.reduce((sum,c)=>sum+(rows.find(t=>t.id===c.id)?.percent??0),0)/children.length):0;
+}
 export function projectPartStatus(part,data) {
  const counts=projectAssembly(data?.assembly),percent=id=>projectStepPercent(data,id),panel=part.panel??0;
  const unit=(id,index,total)=>index<Math.floor(percent(id)*total/100);
@@ -152,9 +158,16 @@ export function projectPartStatus(part,data) {
  // Walk from the right wing's free end, across the back, then out the left wing.
  const jackPanel=[7,6,3,2,1,0,4,5].filter(index=>index<completedPanels).indexOf(panel);
  const wall=panel<completedPanels,attached=jackPanel>=0&&jackPanel*2+(1-(part.side??0))<(counts.jacksAttached??0)&&wall;
- if(part.kind==='cyclorama'){const ids={43:'cyc-backing',44:'cyc-ribs',45:'cyc-skin',46:'cyc-perimeter',47:'cyc-junctions',48:'cyc-finish'},stage=part.stage??48;
+ if(part.kind==='cyclorama'){
+  const finish=percent('cyc-finish')===100?'paint':'raw',component=projectCycloramaComponents().find(c=>c.component===part.component&&c.phase===part.phase);
+  if(component){const ids=['cyc-backing',`cyc-${component.component}-ribs`];
+   if(component.phase==='skin')ids.push(component.id);
+   if(component.component.startsWith('compound-')){const side=component.component==='compound-1'?'left':'right',corner=component.component==='compound-1'?'corner-1':'corner-2';for(const adjacent of [corner,`perimeter-${side}`,'perimeter-back'])for(const phase of ['ribs','skin'])ids.push(`cyc-${adjacent}-${phase}`);}
+   return {assembled:ids.every(id=>percent(id)===100),finish};
+  }
+  const ids={43:'cyc-backing',44:'cyc-ribs',45:'cyc-skin',46:'cyc-perimeter',47:'cyc-junctions',48:'cyc-finish'},stage=part.stage??48;
   const dependencies=stage===43?[43]:stage===44?[43,44]:stage===45?[43,44,45]:stage===46?[43,46]:stage===47?[43,44,45,46,47]:[43,48];
-  return {assembled:dependencies.every(n=>percent(ids[n])===100),finish:percent('cyc-finish')===100?'paint':'raw'};
+  return {assembled:dependencies.every(n=>percent(ids[n])===100),finish};
  }
  if(part.kind==='panel')return {assembled:wall};
  if(part.kind==='jack')return {assembled:attached};
@@ -176,7 +189,7 @@ export function projectUpgradePlatform(input) {
  const legacy=['platform-0','platform-1','platform-2','platform-3'];if(!legacy.every(id=>stage.steps.some(t=>t.id===id)))return input;
  const groups={
   'platform-0':[['platform-cut','Lay out and number modules'],['platform-frame','Cut and assemble module frames']],
-  'platform-1':[['platform-legs','Fit legs and sills'],['platform-join','Position and join modules']],
+  'platform-1':[['platform-legs','Fit legs and bottom rings'],['platform-join','Position and join modules']],
   'platform-2':[['platform-deck','Attach the decks'],['platform-fascia','Attach the fascia']],
   'platform-3':[['platform-skim','Tape, skim and sand'],['platform-prime','Prime the platform'],['platform-paint','Paint the platform']],
  };
@@ -194,18 +207,55 @@ export function projectGuideGroups(design={}) {
  if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
  if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-upper':[42],'floor-3':[26,27]});
  if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':[33],'platform-deck':[34],'platform-fascia':[35],'platform-seams':[36],'platform-skim':[36],'platform-prime':[37],'platform-paint':[37]});
- const corners=design.seamlessCorners===true&&(design.angle??45)>0,perimeter=design.seamlessPerimeter===true;
- if(corners||perimeter)Object.assign(groups,{'cyc-backing':[43],...(corners?{'cyc-ribs':[44],'cyc-skin':[45]}:{}),...(perimeter?{'cyc-perimeter':[46]}:{}),...(corners&&perimeter?{'cyc-junctions':[47]}:{}),'cyc-finish':[48]});
+ const corners=design.seamlessCorners===true&&(design.angle??45)>0,perimeter=design.seamlessPerimeter===true,side=design.seamlessCornerSide??'both';
+ // Corner 1 is the left wing corner, corner 2 the right; a one-corner build has no rows for the other.
+ const builds=c=>!/-[12]$/.test(c.component)||side==='both'||side===(c.component.endsWith('-1')?'left':'right');
+ if(corners||perimeter){groups['cyc-backing']=[43];for(const c of projectCycloramaComponents())if((c.option==='corners'?corners:c.option==='perimeter'?perimeter:corners&&perimeter)&&builds(c))groups[c.id]=[c.stage,c.aggregate];groups['cyc-finish']=[48];}
  return groups;
 }
-export function projectCycloramaMilestones(){return {'cyc-backing':'Survey existing walls and add backing','cyc-ribs':'Fit vertical corner ribs','cyc-skin':'Skin the rounded wall corners','cyc-perimeter':'Build the floor perimeter coves','cyc-junctions':'Form the two compound floor corners','cyc-finish':'Fill, sand and paint the cyclorama'};}
-// Optional retrofit work adds independent milestones; existing panel counts, IDs and notes never change.
+// Stable component IDs connect physical meshes, tracker rows and guide stages. Aggregate stages remain aliases for
+// existing labor tasks and saved guide links; they are not a second share of a component's completion.
+export function projectCycloramaComponents(){return [
+ ['corner-1','ribs',49,44,'cyc-ribs','corners','Add ribs — Corner 1 (left)'],
+ ['corner-2','ribs',50,44,'cyc-ribs','corners','Add ribs — Corner 2 (right)'],
+ ['corner-1','skin',51,45,'cyc-skin','corners','Add skin — Corner 1 (left)'],
+ ['corner-2','skin',52,45,'cyc-skin','corners','Add skin — Corner 2 (right)'],
+ ['perimeter-left','ribs',53,46,'cyc-perimeter','perimeter','Add ribs — Left perimeter'],
+ ['perimeter-left','skin',54,46,'cyc-perimeter','perimeter','Add skin — Left perimeter'],
+ ['perimeter-right','ribs',55,46,'cyc-perimeter','perimeter','Add ribs — Right perimeter'],
+ ['perimeter-right','skin',56,46,'cyc-perimeter','perimeter','Add skin — Right perimeter'],
+ ['perimeter-back','ribs',57,46,'cyc-perimeter','perimeter','Add ribs — Back perimeter'],
+ ['perimeter-back','skin',58,46,'cyc-perimeter','perimeter','Add skin — Back perimeter'],
+ ['compound-1','ribs',59,47,'cyc-junctions','both','Add compound ribs — Floor corner 1 (left)'],
+ ['compound-1','skin',60,47,'cyc-junctions','both','Add compound skin — Floor corner 1 (left)'],
+ ['compound-2','ribs',61,47,'cyc-junctions','both','Add compound ribs — Floor corner 2 (right)'],
+ ['compound-2','skin',62,47,'cyc-junctions','both','Add compound skin — Floor corner 2 (right)'],
+].map(([component,phase,stage,aggregate,legacy,option,name])=>({id:`cyc-${component}-${phase}`,component,phase,stage,aggregate,legacy,option,name}));}
+export function projectCycloramaMilestones(){return {'cyc-backing':'Survey existing walls and add backing',...Object.fromEntries(projectCycloramaComponents().map(c=>[c.id,c.name])),'cyc-finish':'Fill, sand and paint the cyclorama'};}
+// Split old percentages equally across the corresponding work. A partial aggregate never invents a completed side.
+// Keep notes once and completed dates on all completed children. Historical logs retain their original milestone IDs.
 export function projectUpgradeCyclorama(input,design=input.design||{}){
- const names=projectCycloramaMilestones(),active=projectGuideGroups(design),missing=Object.keys(names).filter(id=>active[id]&&!input.stages.some(s=>s.steps.some(t=>t.id===id)));
- if(!missing.length)return input;
- const data=structuredClone(input);let stage=data.stages.find(s=>s.id==='cyclorama');
- if(!stage){stage={id:'cyclorama',name:'Seamless retrofit',notes:[],steps:[]};data.stages.push(stage);}
- stage.steps.push(...missing.map(id=>({id,name:names[id],percent:0,notes:[]})));return data;
+ const components=projectCycloramaComponents(),names=projectCycloramaMilestones(),active=projectGuideGroups(design),rows=input.stages.flatMap(s=>s.steps),existing=new Set(rows.map(t=>t.id));
+ const legacy=new Set(components.map(c=>c.legacy)),migrate=rows.some(t=>legacy.has(t.id));
+ const inherited=new Set(rows.flatMap(t=>components.filter(c=>c.legacy===t.id).map(c=>c.id)));
+ const missing=Object.keys(names).filter(id=>active[id]&&!existing.has(id)&&!inherited.has(id));
+ if(!migrate&&!missing.length)return input;
+ const data=structuredClone(input);
+ for(const stage of data.stages)stage.steps=stage.steps.flatMap(t=>{const children=components.filter(c=>c.legacy===t.id);if(!children.length)return [t];
+  const added=children.filter(c=>!existing.has(c.id));
+  // A partially upgraded record keeps explicit component progress. Preserve any original notes on the first child.
+  if(!added.length){const first=data.stages.flatMap(s=>s.steps).find(r=>r.id===children[0].id);if(first)first.notes=[...first.notes,...t.notes.filter(n=>!first.notes.some(saved=>saved.id===n.id))];}
+  return added.map((c,i)=>({id:c.id,name:c.name,percent:t.percent,notes:i===0?t.notes:[],...(Object.hasOwn(t,'completedAt')?{completedAt:t.percent===100?t.completedAt:null}:{})}));
+ });
+ if(missing.length){let stage=data.stages.find(s=>s.id==='cyclorama');if(!stage){stage={id:'cyclorama',name:'Seamless retrofit',notes:[],steps:[]};data.stages.push(stage);}stage.steps.push(...missing.map(id=>({id,name:names[id],percent:0,notes:[]})));}
+ // Removing legacy rows from a partially upgraded custom stage must not discard its stage notes.
+ for(const empty of data.stages.filter(s=>!s.steps.length)){const target=data.stages.find(s=>s.steps.some(t=>components.some(c=>c.id===t.id)));if(target)target.notes=[...target.notes,...empty.notes.filter(n=>!target.notes.some(saved=>saved.id===n.id))];}
+ data.stages=data.stages.filter(s=>s.steps.length);return data;
+}
+// Optional work stays stored when disabled, but only active components belong in the visible checklist.
+export function projectVisibleTracking(input,design=input.design||{}){
+ const known=new Set([...Object.keys(projectCycloramaMilestones()),...projectCycloramaComponents().map(c=>c.legacy)]),active=projectGuideGroups(design);
+ return {...input,stages:input.stages.map(s=>({...s,steps:s.steps.filter(t=>!known.has(t.id)||active[t.id])})).filter(s=>s.steps.length)};
 }
 export function projectGuideKey(stage,design){return stage<=12?`panel:${design.height===96?96:120}:${stage}`:stage<=20?`jack:${design.height===96?96:120}:${stage}`:(stage>=23&&stage<=27||stage===42)?`floor:${design.floor}:${stage}`:`set:${stage}`;}
 export function projectGuideChecks(input={}) {
@@ -219,9 +269,9 @@ export function projectCountUnits(design={}){const groups=projectGuideGroups({..
  {key:'jacksBuilt',max:16,per:2,stages:[13,14,15,16]},
  {key:'jacksAttached',max:16,per:2,stages:[17]},
  {key:'ballastAttached',max:8,per:1,stages:[18,19,20]},
- // Joining and angle-setting happen once for the whole set, so finishing the guide steps credits nothing.
- {key:'wallsJoined',max:8,per:0,stages:[21]},
- {key:'anglesSet',max:2,per:0,stages:[22]},
+ // These are whole-set operations: their checkboxes directly set or clear the shared counts.
+ {key:'wallsJoined',max:8,per:8,wholeSet:true,stages:[21]},
+ {key:'anglesSet',max:2,per:2,wholeSet:true,stages:[22]},
 ];}
 export function projectCountMilestones(){return ['walls-1','walls-2','walls-3','walls-4','walls-5'];}
 // Counted milestone percentages straight from the counts (the same for every wall height). Unchanged input is returned as is.
@@ -234,12 +284,13 @@ export function projectSyncCounts(input){
 export function projectGuideStagePercent(data,stage,design){
  const unit=projectCountUnits(design).find(u=>u.stages.includes(stage)),count=unit?projectAssembly(data?.assembly)[unit.key]:null;
  if(count!==null&&count!==undefined)return Math.round(count/unit.max*100);
+ if(stage>=43&&stage<=62){const ids=Object.entries(projectGuideGroups(design)).filter(([,stages])=>stages.includes(stage)).map(([id])=>id);return ids.length?Math.round(ids.reduce((sum,id)=>sum+projectStepPercent(data,id),0)/ids.length):0;}
  const key=projectGuideKey(stage,design),saved=unit?undefined:data.guideChecks?.[key];
  if(saved!==undefined)return typeof saved==='boolean'?(saved?100:0):saved;
  const groups=Object.entries(projectGuideGroups(design)).filter(([,stages])=>stages.includes(stage));
  return groups.length?Math.round(groups.reduce((sum,[id])=>sum+projectStepPercent(data,id),0)/groups.length):0;
 }
-export function projectGuideStageDone(data,stage,design){const saved=data?.guideChecks?.[projectGuideKey(stage,design)];if(saved!==undefined&&projectCountUnits(design).some(u=>u.stages.includes(stage)))return saved===true||saved===100;return projectGuideStagePercent(data,stage,design)===100;}
+export function projectGuideStageDone(data,stage,design){if([21,22].includes(stage))return projectGuideStagePercent(data,stage,design)===100;const saved=data?.guideChecks?.[projectGuideKey(stage,design)];if(saved!==undefined&&projectCountUnits(design).some(u=>u.stages.includes(stage)))return saved===true||saved===100;return projectGuideStagePercent(data,stage,design)===100;}
 // Finishing every Build guide step of a unit proves at least one of it exists. It raises the count to that floor and
 // never adds past it: the milestone count box is the only way to record more. Keeps the counts consistent with each
 // other: attached jacks need built jacks and a panel per pair; ballast needs both jacks.
@@ -251,11 +302,13 @@ export function projectSetGuideStage(input,stage,done,design){
  const groups=projectGuideGroups(design),affected=Object.entries(groups).filter(([,stages])=>stages.includes(stage));
  if(!affected.length||(typeof done!=='boolean'&&(!Number.isInteger(done)||done<0||done>100)))throw Error('This guide step is not part of the current design.');
  const data=structuredClone(projectUpgradeCyclorama(projectUpgradeTracking(input),design));data.guideChecks=projectGuideChecks(data.guideChecks||{});
+ if(stage>=43&&stage<=62){const value=typeof done==='boolean'?(done?100:0):done;for(const [id,stages]of affected){const row=data.stages.flatMap(s=>s.steps).find(t=>t.id===id);if(row)row.percent=value;for(const number of stages)delete data.guideChecks[projectGuideKey(number,design)];}return data;}
  const counted=new Set(projectCountUnits(design).flatMap(u=>u.stages));
  for(const [,stages]of affected)for(const number of stages){const key=projectGuideKey(number,design);if(!counted.has(number)&&!Object.hasOwn(data.guideChecks,key))data.guideChecks[key]=projectGuideStagePercent(input,number,design);}
  data.guideChecks[projectGuideKey(stage,design)]=done;
  const unit=projectCountUnits(design).find(u=>u.stages.includes(stage));
- if(unit?.per&&(done===true||done===100)&&unit.stages.every(n=>projectGuideStageDone(data,n,design))){data.assembly=projectEnsureUnit(data.assembly,unit.key,unit.per,unit.max);}
+ if(unit?.wholeSet){const assembly={...projectAssembly(data.assembly)},value=typeof done==='boolean'?(done?100:0):done;assembly[unit.key]=Math.round(unit.max*value/100);if(unit.key==='wallsJoined'&&assembly.wallsJoined>(assembly.panelsCompleted??0))throw Error('Record all completed wall panels before joining the whole set.');data.assembly=projectAssembly(assembly);}
+ else if(unit?.per&&(done===true||done===100)&&unit.stages.every(n=>projectGuideStageDone(data,n,design))){data.assembly=projectEnsureUnit(data.assembly,unit.key,unit.per,unit.max);}
  if(unit)for(const id of projectCountMilestones())if(!affected.some(([a])=>a===id)&&groups[id])affected.push([id,groups[id]]);
  for(const [id,stages]of affected){let row=data.stages.flatMap(s=>s.steps).find(t=>t.id===id);
   if(!row&&done){const defaults=projectDefaultTracking(design),source=defaults.stages.find(s=>s.steps.some(t=>t.id===id));if(source){let parent=data.stages.find(s=>s.id===source.id);if(!parent){parent={id:source.id,name:source.name,notes:[],steps:[]};data.stages.push(parent);}row=structuredClone(source.steps.find(t=>t.id===id));parent.steps.push(row);}}

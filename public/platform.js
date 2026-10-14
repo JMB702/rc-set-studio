@@ -8,8 +8,8 @@ export const PLATFORM={
  deck:.578,            // Plytanium 19/32″ BC sanded plywood, actual thickness
  sheet:[47.938,95.938],// actual sheet size
  lumber:[1.5,3.5],     // actual 2×4
- rim:3.5,              // rims and joists stand on edge
- sill:1.5,             // sills lie flat under the fascia
+ rim:3.5,              // rims, bottom rims and joists all stand on edge
+ minPiece:4,           // skip rims and legs on stub edges shorter than this at clipped corners
  module:48,            // nominal frame grid; larger decks bridge adjacent frames
  joistOC:16,
  maxLegSpan:48,
@@ -17,9 +17,9 @@ export const PLATFORM={
  stud:96,kerf:.125,
  gap:12,gapMin:0,gapMax:48
 };
-export const legLength=PLATFORM.height-PLATFORM.deck;           // 9.422″ under the deck
-export const sillLegLength=legLength-PLATFORM.sill;              // 7.922″ when standing on a sill
-export const rimBottom=legLength-PLATFORM.rim;                   // 5.922″
+export const legLength=PLATFORM.height-PLATFORM.deck;           // 9.422″, floor to deck underside: every leg is this length
+export const rimBottom=legLength-PLATFORM.rim;                   // 5.922″: the top rim's lower edge
+export const bottomRimTop=PLATFORM.rim;                          // 3.5″: the bottom ring stands on the floor
 export const clampGap=v=>Math.max(PLATFORM.gapMin,Math.min(PLATFORM.gapMax,Math.round(Number.isFinite(+v)?+v:PLATFORM.gap)));
 
 export function footprint(a){let c=Math.cos(a*Math.PI/180)*96,s=Math.sin(a*Math.PI/180)*96;return[[-96,0],[96,0],[96+c,s],[96+c,96],[-96-c,96],[-96-c,s]].filter((p,i,ar)=>!i||Math.hypot(p[0]-ar[i-1][0],p[1]-ar[i-1][1])>.001);}
@@ -78,29 +78,26 @@ export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,cfg={}){
   E.forEach(e=>{e.shared=!onOutline(e.A,e.B,outline);Object.assign(e,e.shared?{wall:null,gap:null}:wallOf(e.A,e.B,a,back,side));e.fascia=!e.shared&&!(e.wall&&e.gap===0);});
   const next=i=>E[(i+1)%n],prev=i=>E[(i+n-1)%n];
   // Rims stand on edge around every module. Each one runs into the face of the next (pinwheel butt joints).
-  const rims=E.map((e,i)=>{let pg=band(poly,e,0,T);pg=clipHalf(pg,...next(i).n,next(i).c+T);return {poly:pg,length:along(pg,e.u),edge:i};}).filter(r=>r.poly.length>2);
-  // Sills lie flat under every edge that gets a fascia; they back its lower half.
-  const sills=E.map((e,i)=>{if(!e.fascia)return null;let pg=band(poly,e,0,D);if(next(i).fascia)pg=clipHalf(pg,...next(i).n,next(i).c+D);return {poly:pg,length:along(pg,e.u),edge:i};}).filter(s=>s&&s.poly.length>2);
+  // The bottom ring is an identical copy standing on the floor, so both rings come from one cut list.
+  const rims=E.map((e,i)=>{let pg=band(poly,e,0,T);pg=clipHalf(pg,...next(i).n,next(i).c+T);return {poly:pg,length:along(pg,e.u),edge:i};}).filter(r=>r.poly.length>2&&r.length>=PLATFORM.minPiece);
+  const bottomRims=rims.map(r=>({...r}));
   // Joists run front-to-back at 16″ centers between the rims.
   let inner=poly;for(const e of E)inner=clipHalf(inner,...e.n,e.c+T);
   const joists=[];if(inner.length>2){const [x0,x1]=extent(poly,0);for(let x=x0+PLATFORM.joistOC;x<x1-8;x+=PLATFORM.joistOC){const pg=clipHalf(clipHalf(inner,1,0,x-T/2),-1,0,-(x+T/2));if(pg.length>2){const [lo,hi]=extent(pg,1);if(hi-lo>=6)joists.push({poly:pg,length:hi-lo,x});}}}
-  // Legs: one tucked into every corner, plus intermediate legs so no rim spans more than 4′.
+  // Legs: one length, floor to deck, tucked inside both rings at every corner and at least every 4′.
+  // Each leg screws through the top rim and the bottom rim, so it is fixed at both ends.
   const legs=[];
-  const leg=(e,s0,s1,onSill,clipTo=[])=>{let pg=band(poly,e,T,T+T);pg=clipHalf(pg,...e.u,s0);pg=clipHalf(pg,-e.u[0],-e.u[1],-s1);for(const f of clipTo)pg=clipHalf(pg,...f.n,f.c+T);if(pg.length>2)legs.push({poly:pg,length:onSill?sillLegLength:legLength,onSill});};
+  const leg=(e,s0,s1,clipTo=[])=>{let pg=band(poly,e,T,T+T);pg=clipHalf(pg,...e.u,s0);pg=clipHalf(pg,-e.u[0],-e.u[1],-s1);for(const f of clipTo)pg=clipHalf(pg,...f.n,f.c+T);if(pg.length>2)legs.push({poly:pg,length:legLength});};
   E.forEach((e,i)=>{
-   const p=prev(i),useEnd=p.fascia&&!e.fascia;
-   if(useEnd){// corner leg sits along the fascia edge so it lands fully on that edge's sill
-    let r=band(poly,p,T,T+T);r=clipHalf(r,...e.n,e.c+T);if(r.length>2){const s=Math.max(...r.map(q=>q[0]*p.u[0]+q[1]*p.u[1]));leg(p,s-D,s,true,[e]);}
-   }else{
-    let r=band(poly,e,T,T+T);r=clipHalf(r,...p.n,p.c+T);if(r.length>2){const s=Math.min(...r.map(q=>q[0]*e.u[0]+q[1]*e.u[1]));leg(e,s,s+D,e.fascia,[p]);}
-   }
+   if(e.len<PLATFORM.minPiece)return;
+   const p=prev(i);let r=band(poly,e,T,T+T);r=clipHalf(r,...p.n,p.c+T);if(r.length>2){const s=Math.min(...r.map(q=>q[0]*e.u[0]+q[1]*e.u[1]));leg(e,s,s+D,[p]);}
    const extra=Math.ceil(e.len/PLATFORM.maxLegSpan)-1,sA=e.A[0]*e.u[0]+e.A[1]*e.u[1];
-   for(let k=1;k<=extra;k++){const s=sA+e.len*k/(extra+1);leg(e,s-D/2,s+D/2,e.fascia);}
+   for(let k=1;k<=extra;k++){const s=sA+e.len*k/(extra+1);leg(e,s-D/2,s+D/2);}
   });
   // Lauan fascia wraps every exposed edge, floor to top, covering the deck edge.
   const fascia=E.filter(e=>e.fascia).map(e=>{const o=PLATFORM.skin,A=[e.A[0]-e.u[0]*o,e.A[1]-e.u[1]*o],B=[e.B[0]+e.u[0]*o,e.B[1]+e.u[1]*o];return {poly:[A,B,[B[0]-e.n[0]*o,B[1]-e.n[1]*o],[A[0]-e.n[0]*o,A[1]-e.n[1]*o]].reverse(),length:e.len,wall:e.wall};});
   const [mx0,mx1]=extent(poly,0),[mz0,mz1]=extent(poly,1);
-  modules.push({poly,row,col,center:centroid(poly),width:mx1-mx0,depth:mz1-mz0,area:Math.abs(area(poly)),edges:E,rims,sills,joists,legs,fascia,
+  modules.push({poly,row,col,center:centroid(poly),width:mx1-mx0,depth:mz1-mz0,area:Math.abs(area(poly)),edges:E,rims,bottomRims,joists,legs,fascia,
    full:E.length===4&&Math.abs(mx1-mx0-PLATFORM.module)<.01&&Math.abs(mz1-mz0-PLATFORM.module)<.01,inside:p=>insidePoly(poly,p)});
  }
  const decks=platformDecks(modules),sheetLayout=packDecks(decks),fasciaPieces=platformFascia(outline,modules);
@@ -161,21 +158,20 @@ export function studCount(lengths,stock=PLATFORM.stud,kerf=PLATFORM.kerf){const 
 
 function platformTotals(outline,modules,decks,sheetLayout,fasciaPieces){
  const sum=(f)=>modules.reduce((s,m)=>s+f(m),0),each=(k,f=x=>x.length)=>modules.flatMap(m=>m[k].map(f));
- const lumber=[...each('rims'),...each('joists'),...each('legs'),...each('sills')];
+ const lumber=[...each('rims'),...each('bottomRims'),...each('joists'),...each('legs')];
  const fasciaLength=sum(m=>m.fascia.reduce((s,f)=>s+f.length,0)),seamLength=sum(m=>m.edges.filter(e=>e.shared).reduce((s,e)=>s+e.len,0))/2;
  const fasciaCorners=sum(m=>m.edges.filter((e,i)=>e.fascia&&m.edges[(i+1)%m.edges.length].fascia).length);
  const deckSeamLength=decks.reduce((sum,d)=>sum+d.edges.filter(e=>!onOutline(e.A,e.B,outline)).reduce((n,e)=>n+e.len,0),0)/2;
  const deckForModule=new Map(decks.flatMap(d=>d.moduleIndices.map(i=>[modules[i],d])));
- const legs=each('legs',l=>l),fullLegs=legs.filter(l=>!l.onSill).length;
  const deckArea=sum(m=>m.area),fasciaArea=fasciaLength*PLATFORM.height;
  return {
   deckArea:deckArea/144,deckSheets:sheetLayout.length,deckSeamLength,fasciaLength,seamLength,fasciaCorners,finishArea:(deckArea+fasciaArea)/144,
   lumberLengths:lumber,studs:studCount(lumber),
-  counts:{modules:modules.length,decks:decks.length,fullModules:modules.filter(m=>m.full).length,rims:each('rims').length,joists:each('joists').length,legs:legs.length,sillLegs:legs.length-fullLegs,fullLegs,sills:each('sills').length},
-  frameScrews:sum(m=>m.rims.length*2+m.joists.length*4+m.legs.length*4+m.legs.filter(l=>l.onSill).length*2+m.sills.length*2+m.edges.filter(e=>e.shared).reduce((s,e)=>s+Math.max(2,Math.ceil(e.len/24)),0)),
+  counts:{modules:modules.length,decks:decks.length,fullModules:modules.filter(m=>m.full).length,rims:each('rims').length,joists:each('joists').length,bottomRims:each('bottomRims').length,legs:each('legs').length},
+  frameScrews:sum(m=>m.rims.length*2+m.bottomRims.length*2+m.joists.length*4+m.legs.length*4+m.edges.filter(e=>e.shared).reduce((s,e)=>s+2*Math.max(2,Math.ceil(e.len/24)),0)),
   deckScrews:sum(m=>m.rims.reduce((s,r)=>s+Math.ceil(r.length/(onOutline(m.edges[r.edge].A,m.edges[r.edge].B,deckForModule.get(m).nominalPoly)?6:12))+1,0)+m.joists.reduce((s,j)=>s+Math.ceil(j.length/12)+1,0)),
-  staples:fasciaPieces.reduce((s,f)=>s+2*(Math.ceil(f.length/4)+1),0)+sum(m=>m.legs.filter(l=>l.onSill).length*3),
-  padArea:fullLegs*PLATFORM.lumber[0]*PLATFORM.lumber[1]+sum(m=>m.sills.reduce((s,x)=>s+(Math.ceil(x.length/24)+1)*PLATFORM.lumber[1]**2,0)),
+  staples:fasciaPieces.reduce((s,f)=>s+2*(Math.ceil(f.length/4)+1),0),
+  padArea:(sum(m=>m.legs.length+m.bottomRims.reduce((s,x)=>s+Math.ceil(x.length/24)+1,0)))*PLATFORM.lumber[0]*PLATFORM.lumber[1],
   fasciaStrips:Math.max(0,...fasciaPieces.map(f=>f.strip)),fasciaSheets:Math.max(0,...fasciaPieces.map(f=>f.sheet)),
   tapeLength:deckSeamLength+fasciaPieces.filter(f=>f.joint).length*PLATFORM.height,
   beadLength:fasciaLength+fasciaCorners*PLATFORM.height
@@ -183,7 +179,7 @@ function platformTotals(outline,modules,decks,sheetLayout,fasciaPieces){
 }
 // Cut list grouped by part and length (rounded to 1/16″) for the Build guide.
 export function platformCuts(plan){const groups=new Map(),add=(part,len,note)=>{const r=Math.round(len*16)/16,k=part+'|'+r;const g=groups.get(k)||{part,length:r,qty:0,note};g.qty++;groups.set(k,g);};
- for(const m of plan.modules){m.rims.forEach(r=>add('Rim',r.length,'2×4 on edge; follow the module outline at angled corners'));m.joists.forEach(j=>add('Joist',j.length,'2×4 on edge, 16″ centers'));m.legs.forEach(l=>add(l.onSill?'Leg on sill':'Leg',l.length,'2×4 upright under the deck'));m.sills.forEach(s=>add('Sill',s.length,'2×4 laid flat under the fascia'));}
+ for(const m of plan.modules){m.rims.forEach(r=>add('Rim',r.length,'2×4 on edge; follow the module outline at angled corners'));m.bottomRims.forEach(r=>add('Bottom rim',r.length,'2×4 on edge on the floor; same as the top rims'));m.joists.forEach(j=>add('Joist',j.length,'2×4 on edge, 16″ centers'));m.legs.forEach(l=>add('Leg',l.length,'2×4 upright, floor to deck, inside both rims'));}
  return [...groups.values()].sort((a,b)=>a.part.localeCompare(b.part)||b.length-a.length);}
 export const inches=v=>{const w=Math.floor(v+1e-9),f=Math.round((v-w)*16);if(f===16)return `${w+1}″`;if(!f)return `${w}″`;let n=f,d=16;while(n%2===0){n/=2;d/=2;}return `${w?w+' ':''}${n}/${d}″`;};
 

@@ -34,7 +34,10 @@ test('Progress materials are temporary, the toggle restores the model, and camer
 });
 test('Deck seams follow larger plywood pieces while fascia follows long strip joints',()=>{
  for(const angle of [30,45,90]){const platform=model.platformFloor(angle,12,12,angle),parts=platform.children.find(o=>o.userData.progressOnly),plan=platform.userData.plan;
-  for(const o of parts.children){if(o.userData.step<34)continue;const part=o.userData.progress;assert.equal(part.seamEdges.length,o.userData.step===34?plan.decks[part.deckIndex].edges.length:1);assert.ok(part.seamEdges.length<=8);for(const edge of part.seamEdges)assert.ok(edge.every(Number.isFinite));if(o.userData.step===34)assert.equal(o.material,model.mats.platformWood);}
+  for(const o of parts.children){if(o.userData.step<34)continue;const part=o.userData.progress;assert.equal(part.seamEdges.length,o.userData.step===34?plan.decks[part.deckIndex].edges.length:1);assert.ok(part.seamEdges.length<=8);for(const edge of part.seamEdges)assert.ok(edge.every(Number.isFinite));if(o.userData.step===34)assert.equal(o.material.map,model.mats.platformWood.map);assert.ok(Number.isInteger(o.material.userData.sheetColor),'each sheet keeps its own tone');}
+  const tone=new Map(parts.children.filter(o=>o.userData.step===34).map(o=>[o.userData.progress.deckIndex,o.material.userData.sheetColor]));
+  const touches=(a,b)=>a.edges.some(e=>{const m=[(e.A[0]+e.B[0])/2,(e.A[1]+e.B[1])/2];return b.edges.some(f=>{const dx=f.B[0]-f.A[0],dz=f.B[1]-f.A[1],l=Math.hypot(dx,dz),t=((m[0]-f.A[0])*dx+(m[1]-f.A[1])*dz)/l/l;return t>0&&t<1&&Math.abs((m[0]-f.A[0])*dz-(m[1]-f.A[1])*dx)/l<1e-3;});});
+  for(let i=0;i<plan.decks.length;i++)for(let j=i+1;j<plan.decks.length;j++)if(plan.modules[plan.decks[i].moduleIndices[0]].row===plan.modules[plan.decks[j].moduleIndices[0]].row&&touches(plan.decks[i],plan.decks[j]))assert.notEqual(tone.get(i),tone.get(j),`decks ${i} and ${j} share a joint and read as separate sheets`);
   model.dispose(platform);
  }
 });
@@ -130,4 +133,13 @@ test('Platforms and floor curves meet the raised floor without lifting wall tops
   const b=new T.Box3().setFromObject(platform);close(b.min.y,top*I);close(b.max.y,(top+10)*I);
   const corner=cyc.getObjectByName('Rounded wall corner -1'),skin=new T.Box3().setFromObject(corner);close(skin.max.y,120*I);assert.ok(skin.min.y>=top*I);close(cyc.position.y,top*I);model.dispose(platform);model.dispose(cyc);
  }
+});
+
+test('Every retrofit mesh carries its exact component, and guide steps reveal ribs before skin',()=>{
+ const d={height:120,angle:90,seamlessCorners:true,seamlessPerimeter:true},expected=new Set(Array.from({length:14},(_,i)=>i+49)),all=model.cycloramaMesh(d);
+ const actual=new Set();all.traverse(o=>{if(o.userData.progress?.component){actual.add(o.userData.guideStage);assert.ok(['ribs','skin'].includes(o.userData.progress.phase));}});assert.deepEqual(actual,expected);
+ const first=model.cycloramaMesh(d,{stage:49}),seen=[];first.traverseVisible(o=>{if(o.isMesh&&o.userData.progress?.component)seen.push(o.userData.progress);});
+ assert.ok(seen.length);assert.ok(seen.every(p=>p.component==='corner-1'&&p.phase==='ribs'));
+ const skin=model.cycloramaMesh(d,{stage:51});let firstSkin=0,secondSkin=0;skin.traverseVisible(o=>{if(o.userData.progress?.phase==='skin'){if(o.userData.progress.component==='corner-1')firstSkin++;if(o.userData.progress.component==='corner-2')secondSkin++;}});assert.ok(firstSkin>0);assert.equal(secondSkin,0);
+ for(const root of [all,first,skin])model.dispose(root);
 });

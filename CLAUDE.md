@@ -4,4 +4,4 @@ Invoke the `rc-set-sync` skill before your first edit in this repo.
 
 ## Shipping
 
-When Jeff explicitly says “ship changes,” “publish,” or “deploy,” run `npm run ship` and wait for the verified deployment receipt. `/ship` invokes the same workflow. Use `npm run ship:check` for a read-only access check. This uses the installed Codex CLI with the existing Sites sign-in; it does not require credentials copied into Claude. Do not stop at a commit or GitHub push. Do not invoke for ordinary edits, and never recursively invoke it when `RC_SITES_SHIP_ACTIVE` is set.
+When Jeff explicitly says “ship changes,” “publish,” or “deploy,” make sure the work is in a pull request, then run `npm run ship` (or `npm run ship <PR number>`) and wait for it to finish. It merges the PR into `main`, waits for Vercel's production build of that merge commit, and checks the live site. Only report shipped when it prints `Shipped`. `/ship` invokes the same workflow. Do not stop at a commit or GitHub push, and do not invoke it for ordinary edits.

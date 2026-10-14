@@ -2,7 +2,7 @@ import {customizeRows,consolidatePacks} from './pricing-config.js';
 import {calculate} from './shopping-calc.js';
 import {floorPlan} from './floor-plan.js';
 import {platformPlan,PLATFORM} from './platform.js';
-import {cycloramaPlan} from './cyclorama.js';
+import {cycloramaPlan,cycloramaCornerSides} from './cyclorama.js';
 export const money=c=>c===null?'Price pending':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
 export function floorArea(angle){const c=Math.cos(angle*Math.PI/180),s=Math.sin(angle*Math.PI/180);return 128+128*c-64*c*s;}
 function extra(id,name,qty,price,url,note,group='floor'){return {id,name,purchaseQuantity:qty,unitPriceCents:price,subtotalCents:price===null||qty===null?null:price*qty,productUrl:url.startsWith('http')?url:'https://www.homedepot.com/p/'+url,availability:note,group,needed:qty,packSize:1};}
@@ -42,14 +42,14 @@ export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,plat
  const row=(id,src,name,needed,qty,note)=>({id,name,purchaseQuantity:qty,unitPriceCents:src.unitPriceCents,subtotalCents:qty*src.unitPriceCents,productUrl:src.productUrl,availability:note+' · '+src.availability,group:'platform',needed,packSize:1,observedStock:src.observedStock??null});
  const pack=(id,src,name,needed,note)=>({...row(id,src,name,needed,Math.ceil(needed/src.packSize),note),packSize:src.packSize});
  const rows=[],deckSheets=plan.deckSheets,strips=plan.fasciaStrips,finish=plan.finishArea;
- rows.push(row('platformLumber',shared('crossbar'),'2×4×96 in stud · platform rims, joists, legs and sills',plan.lumberLengths.length,plan.studs,`${plan.lumberLengths.length} cuts packed into ${plan.studs} studs with ⅛″ kerf; choose straight stock`));
+ rows.push(row('platformLumber',shared('crossbar'),'2×4×96 in stud · platform rims, bottom rims, joists and legs',plan.lumberLengths.length,plan.studs,`${plan.lumberLengths.length} cuts packed into ${plan.studs} studs with ⅛″ kerf; choose straight stock`));
  rows.push(row('platformDeck',own('platformDeck'),own('platformDeck').name,deckSheets,deckSheets,`${plan.decks.length} larger deck pieces over ${plan.counts.modules} frames (${plan.deckArea.toFixed(1)} sq ft), nested on ${deckSheets} sheets with saw kerf`));
- rows.push(pack('platformFrameScrews',own('platformFrameScrews'),own('platformFrameScrews').name,plan.frameScrews,'Build guide: 2 per rim joint, 2 per joist end, 4 per leg, 2 per sill, 2 per sill-supported leg; plus module seams'));
+ rows.push(pack('platformFrameScrews',own('platformFrameScrews'),own('platformFrameScrews').name,plan.frameScrews,'Build guide: 2 per rim joint (top and bottom rings), 2 per joist end, 4 per leg; plus module seams on both rings'));
  rows.push(pack('platformDeckScrews',shared('barScrews'),'SPAX #8×2½ in flat-head wood screws · deck to frame · 133 box',plan.deckScrews,'Remove decks before separating frames · 6″ around each deck perimeter, 12″ on interior rims and joists'));
  rows.push(row('platformSkin',shared('skin'),'1/8 in × 4×8 ft lauan utility plywood · 10″ fascia strips',plan.fasciaSheets,plan.fasciaSheets,`${(plan.fasciaLength/12).toFixed(1)} ft of fascia: ${plan.fasciaPieces.length} fitted pieces cut from ${strips} stock strips, 4 per sheet`));
- rows.push(pack('platformStaples',shared('staples'),'Grip-Rite ½ in narrow-crown staples · fascia · 1,000 box',plan.staples,'Fascia to rims, sills and legs at about 4″'));
+ rows.push(pack('platformStaples',shared('staples'),'Grip-Rite ½ in narrow-crown staples · fascia · 1,000 box',plan.staples,'Fascia to top and bottom rims at about 4″'));
  rows.push(row('platformGlue',shared('glue'),'Titebond III wood glue · fascia · 16 oz bottle',Math.max(1,Math.ceil(plan.fasciaLength/720)),Math.max(1,Math.ceil(plan.fasciaLength/720)),'Planning allowance: one bottle per 60 ft of fascia'));
- const pads=Math.max(1,Math.ceil(plan.padArea*1.15/216));rows.push(row('platformPads',shared('pads'),'⅛ in neoprene sheet · leg and sill pads',pads,pads,`${plan.counts.fullLegs} leg pads + sill pads every 24″, cut from 6×36 in sheets`));
+ const pads=Math.max(1,Math.ceil(plan.padArea*1.15/216));rows.push(row('platformPads',shared('pads'),'⅛ in neoprene sheet · leg and bottom-rim pads',pads,pads,`${plan.counts.legs} leg pads + bottom-rim pads every 24″, 1½×3½ in each, cut from 6×36 in sheets`));
  const tape=own('platformTape'),bead=own('platformBead'),compound=Math.ceil((finish-plan.deckArea)/150),primer=Math.ceil((finish-plan.deckArea)/300),paint=Math.ceil(finish*2/300);
  rows.push(row('platformTape',tape,tape.name,Math.ceil((plan.tapeLength-plan.deckSeamLength)*1.1/tape.lengthInches),Math.ceil((plan.tapeLength-plan.deckSeamLength)*1.1/tape.lengthInches),`${((plan.tapeLength-plan.deckSeamLength)/12).toFixed(0)} ft of vertical fascia joints + 10%; no drywall tape on deck`));
  rows.push(row('platformBead',bead,bead.name,Math.ceil(plan.fasciaCorners*PLATFORM.height*1.1/bead.lengthInches),Math.ceil(plan.fasciaCorners*PLATFORM.height*1.1/bead.lengthInches),`${(plan.fasciaCorners*PLATFORM.height/12).toFixed(0)} ft of vertical fascia corners + 10%`));
@@ -88,7 +88,7 @@ export function cycloramaRows(data,d,{finishes=true}={}){
 }
 // floor: 'none' | 'wood' | 'charcoal'; platformShape: 'none' | 'angled' | 'square'. Floor:'platform' is the older
 // spelling of a platform with no floor under it.
-export function priceRows(data,{scope,height,angle,floor,platformShape='none',supports=true,ballast=true,finishes=true,platformBack=PLATFORM.gap,platformSide=PLATFORM.gap,platformAngle=angle,floorLip=false,seamlessCorners=false,seamlessPerimeter=false}){
+export function priceRows(data,{scope,height,angle,floor,platformShape='none',supports=true,ballast=true,finishes=true,platformBack=PLATFORM.gap,platformSide=PLATFORM.gap,platformAngle=angle,floorLip=false,seamlessCorners=false,seamlessCornerSide='both',seamlessPerimeter=false}){
  if(floor==='platform'){floor='none';if(platformShape==='none')platformShape='angled';}if(platformShape==='square')platformAngle=90;
  const key=height===120?'10x4':'8x4',n=scope==='panel'?1:8;let rows=scope==='floor'?[]:calculate(data,key,n,supports,ballast);
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
@@ -100,7 +100,8 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  if(seamFt){const compound=own('platformCompound'),tape=own('platformTape'),bags=Math.max(1,Math.ceil(seamFt*10/12/150));
   rows.push(stocked(extra('wallSeams','USG Sheetrock All Purpose premixed compound · wall seams · 4.5 gal pail',bags,compound.unitPriceCents,compound.productUrl,`Checked Oct 12 at #6319 · 184 in stock · ${seamFt} ft of seams feathered about 10″ wide; planning 150 sq ft/pail for thin coats, not a manufacturer coverage rating`,'finish'),184));
   rows.push(stocked(extra('wallSeamTape','USG Sheetrock paper joint tape · wall seams · 250 ft roll',Math.ceil(seamFt*1.1/250),tape.unitPriceCents,tape.productUrl,`Checked Oct 12 at #6319 · 107 in stock · ${seamFt} ft of seams + 10%; embed paper in wet compound`,'finish'),107));}
- if(scope==='set'&&!(seamlessCorners&&angle>0))rows.push(stocked(extra('wallCornerCaulk','BEHR Multi-Purpose paintable siliconized acrylic caulk · 10.1 oz',Math.ceil(2*height/12*1.1/25),548,'316993414','Checked Oct 10 at #6319 · 282 in stock · the two wing corners, about 25 ft of ¼″ bead per tube; flexible, not taped','finish'),282));}
+ const sharpCorners=2-cycloramaCornerSides({angle,seamlessCorners,seamlessCornerSide}).length;
+ if(scope==='set'&&sharpCorners)rows.push(stocked(extra('wallCornerCaulk','BEHR Multi-Purpose paintable siliconized acrylic caulk · 10.1 oz',Math.ceil(sharpCorners*height/12*1.1/25),548,'316993414',`Checked Oct 10 at #6319 · 282 in stock · ${sharpCorners===2?'the two wing corners':'the one sharp wing corner'}, about 25 ft of ¼″ bead per tube; flexible, not taped`,'finish'),282));}
  if(scope==='set'){
  const p=data.products.find(p=>p.id==='lapScrews'),existing=rows.find(r=>r.id==='lapScrews'),needed=5*(height===120?5:4);
  if(existing){existing.needed+=needed;existing.purchaseQuantity=Math.ceil(existing.needed/p.packSize);existing.subtotalCents=existing.purchaseQuantity*p.unitPriceCents;}else rows.push({...p,needed,purchaseQuantity:Math.ceil(needed/p.packSize),subtotalCents:Math.ceil(needed/p.packSize)*p.unitPriceCents});
@@ -108,13 +109,13 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  const stud=data.products.find(p=>p.id==='crossbar');rows.push({...extra('corners','2×4×96 in stud · wing-corner drop',2,stud.unitPriceCents,stud.productUrl,`One per wing corner, screwed to both flats · ${stud.availability} · checked ${stud.checkedDate}`,'connections'),observedStock:stud.observedStock});
  const bar=rows.find(r=>r.id==='barScrews'),cornerScrews=16;if(bar){bar.needed+=cornerScrews;bar.purchaseQuantity=Math.ceil(bar.needed/bar.packSize);bar.subtotalCents=bar.purchaseQuantity*bar.unitPriceCents;}
  }
- if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor,{floorLip}));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessPerimeter}));}
- if(scope==='set')rows.push(...cycloramaRows(data,{height,angle,floor,seamlessCorners,seamlessPerimeter},{finishes}));
+ if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor,{floorLip}));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessCornerSide,seamlessPerimeter}));}
+ if(scope==='set')rows.push(...cycloramaRows(data,{height,angle,floor,seamlessCorners,seamlessCornerSide,seamlessPerimeter},{finishes}));
  // Pool identical consumable products by their measured use before rounding whole containers.
  // Paint colors are not pooled across different product URLs or wall/floor product families;
  // floor and platform share one tinted Porch & Patio product, so their gallons pool.
- const wallArea=n*4*height/12,seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),pl=platformShape==='none'?null:platformPlan(angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessPerimeter}),cy=cycloramaPlan({height,angle,seamlessCorners,seamlessPerimeter});
- const use={wallPrimer:wallArea/250,wallPaint:wallArea*2/data.wallPaint.coverageSqFtPerGallon,wallSeams:seamFt*10/12/150,wallSeamTape:seamFt*1.1,platformPrimer:pl?(pl.finishArea-pl.deckArea)/300:0,platformCompound:pl?(pl.finishArea-pl.deckArea)/150:0,platformTape:pl?(pl.tapeLength-pl.deckSeamLength)*1.1/12:0,floorPrimer:floorArea(angle)/250,floorPaint:floorArea(angle)*2/300,platformPaint:pl?pl.finishArea*2/300:0,platformDeckPrimer:pl?pl.deckArea/250:0,cycPrimer:cy.skinArea/250,cycPaint:cy.skinArea*2/data.wallPaint.coverageSqFtPerGallon,cycCompound:cy.skinArea/150+(cy.corners&&cy.perimeter?2:0),cycTape:cy.tapeFeet*1.1};
+ const wallArea=n*4*height/12,seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),pl=platformShape==='none'?null:platformPlan(angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessCornerSide,seamlessPerimeter}),cy=cycloramaPlan({height,angle,seamlessCorners,seamlessCornerSide,seamlessPerimeter});
+ const use={wallPrimer:wallArea/250,wallPaint:wallArea*2/data.wallPaint.coverageSqFtPerGallon,wallSeams:seamFt*10/12/150,wallSeamTape:seamFt*1.1,platformPrimer:pl?(pl.finishArea-pl.deckArea)/300:0,platformCompound:pl?(pl.finishArea-pl.deckArea)/150:0,platformTape:pl?(pl.tapeLength-pl.deckSeamLength)*1.1/12:0,floorPrimer:floorArea(angle)/250,floorPaint:floorArea(angle)*2/300,platformPaint:pl?pl.finishArea*2/300:0,platformDeckPrimer:pl?pl.deckArea/250:0,cycPrimer:cy.skinArea/250,cycPaint:cy.skinArea*2/data.wallPaint.coverageSqFtPerGallon,cycCompound:cy.skinArea/150+(cy.perimeter?cy.corners:0),cycTape:cy.tapeFeet*1.1};
  for(const row of rows)if(use[row.id]!==undefined){row.needed=use[row.id];row.packSize=['wallSeamTape','platformTape','cycTape'].includes(row.id)?250:1;row.sharedSupply=true;}
  return consolidatePacks(applyRetailChecks(data,rows));
 }

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {normalizeWorkspace,readWorkspace,saveWorkspace,workspaceKey} from '../public/workspace-state.js';
 import {installWorkspaceSession} from '../public/workspace-session.js';
-const design={floorLip:false,seamlessCorners:false,seamlessPerimeter:false,height:120,angle:60,wallColor:'#34383b',platformShape:'angled',platformAngle:70,platformBack:24,platformSide:18,platformColor:'#34383b',floor:'wood',floorColor:'#34383b',figures:'rap',figureScale:1.1,clothing:{rapper:{shirt:'#112233',pants:'#445566'}}};
+const design={floorLip:false,seamlessCorners:false,seamlessCornerSide:'both',seamlessPerimeter:false,height:120,angle:60,wallColor:'#34383b',platformShape:'angled',platformAngle:70,platformBack:24,platformSide:18,platformColor:'#34383b',floor:'wood',floorColor:'#34383b',figures:'rap',figureScale:1.1,clothing:{rapper:{shirt:'#112233',pants:'#445566'}}};
 const saved={version:1,jackViewRevision:1,mode:'build',stage:17,design,scrollY:427,panelScroll:0,openDetails:['cut-details'],camera:{position:[1,2,3],target:[0,1,0],on:false,mm:50,ratio:'16:9'}};
 function storage(initial={}){const values=new Map(Object.entries(initial));return {getItem:k=>values.get(k)??null,setItem:(k,v)=>values.set(k,v),values};}
 test('Workspace preserves each tab, stable build stage, full design, lens and reading position',()=>{
@@ -29,3 +29,14 @@ test('Stage/mode actions persist before backgrounding; startup restores without 
 });
 
 test('Old upside-down jack views reset without losing their build step, design or scroll',()=>{const old=normalizeWorkspace({...saved,stage:14,jackViewRevision:0});assert.equal(old.camera,null);assert.equal(old.stage,14);assert.equal(old.scrollY,saved.scrollY);assert.deepEqual(old.design,saved.design);assert.deepEqual(normalizeWorkspace({...saved,stage:14}).camera,saved.camera);assert.deepEqual(normalizeWorkspace({...saved,stage:17,jackViewRevision:0}).camera,saved.camera);});
+
+test('Granular seamless stages restore and coarse stages migrate to their first component',()=>{
+ for(let stage=49;stage<=62;stage++)assert.equal(normalizeWorkspace({...saved,stage}).stage,stage);
+ for(const [oldStage,newStage] of [[44,49],[45,51],[46,53],[47,59]]){
+  assert.equal(normalizeWorkspace({...saved,stage:oldStage}).stage,newStage);
+  const store=storage({'rc-set-build-progress-v1':JSON.stringify({...design,stage:oldStage})});
+  assert.equal(readWorkspace(design,store).stage,newStage);
+ }
+ for(const stage of [43,48])assert.equal(normalizeWorkspace({...saved,stage}).stage,stage);
+ assert.throws(()=>normalizeWorkspace({...saved,stage:63}));
+});

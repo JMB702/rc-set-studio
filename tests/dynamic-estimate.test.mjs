@@ -9,7 +9,7 @@ const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list
 const base={scope:'set',height:120,angle:90,floor:'charcoal',platformShape:'square',platformAngle:90,platformBack:12,platformSide:12};
 test('Configured painted sets have priced retrofit materials from allowed stores, no fixed design or order minimum',()=>{
  for(const height of [96,120])for(const angle of [0,45,90])for(const platformShape of ['none','angled','square'])for(const seamlessCorners of [false,true])for(const seamlessPerimeter of [false,true]){
-  const d={...base,height,angle,platformShape,seamlessCorners,seamlessPerimeter},p=cycloramaPlan(d),rows=priceRows(data,d);assert.equal(summary(rows).pending,0);
+  const d={...base,height,angle,platformShape,seamlessCorners,seamlessPerimeter},p=cycloramaPlan(d),rows=priceRows(data,d);assert.deepEqual(rows.filter(r=>r.subtotalCents===null).map(r=>r.id),p.corners&&height===120?['cycRibScrews']:[],'only the unchecked 3½″ rib screw box may be pending');
   for(const row of rows)assert.match(new URL(row.productUrl).hostname,/(^|\.)(homedepot|lowes)\.com$/);
   const skin=rows.find(r=>r.id==='cycSkin');if(skin){assert.equal(skin.purchaseQuantity,p.skinSheets);assert.equal(skin.unitPriceCents,data.products.find(p=>p.id==='skin').unitPriceCents);assert.equal(skin.productUrl,data.products.find(p=>p.id==='skin').productUrl);}else assert.equal(p.skinSheets,0);
   assert.equal(rows.some(r=>r.id==='cycReinforcement'),!!(p.corners&&p.perimeter));assert.equal(rows.some(r=>r.id==='cycAdhesive'),!!p.ribCount);

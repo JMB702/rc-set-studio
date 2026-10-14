@@ -47,3 +47,18 @@ test('Retrofit meshes have finite geometry, inward corner normals, and floor-hei
   });if(!seamlessPerimeter&&(!seamlessCorners||angle===0))assert.equal(root.children.length,0);model.dispose(root);
  }
 });
+
+test('Cost preview hides cyclorama framing in finished and lighting views but retains progress and guide framing',async()=>{
+ const originals={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch},nodes=[];
+ const element=()=>({hidden:false,classList:{add(){},remove(){},toggle(){}},setAttribute(){},append(o){nodes.push(o);}});
+ globalThis.document={querySelector:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,createElement:element};globalThis.window=new EventTarget();globalThis.fetch=async()=>({ok:true,json:async()=>({data,revision:1})});
+ const d={height:120,angle:90,seamlessCorners:true,seamlessPerimeter:true},scene=new T.Scene(),cyc=model.cycloramaMesh(d,{construction:true,progressSupports:true}),guide=model.cycloramaMesh(d,{construction:true,stage:44});scene.add(cyc);
+ const api={scene,state:{...d,mode:'pricing',floor:'charcoal'},invalidate(){}};
+ const framing=()=>{let count=0;scene.traverseVisible(o=>{if(o.isMesh&&['cycRibPly','cycBacking'].includes(o.userData.pricingIds?.[0]))count++;});return count;};
+ try{installConstructionView(api);await new Promise(setImmediate);const toggle=nodes.find(n=>n.id==='construction-view-toggle');
+ scene.onBeforeRender();assert.ok(framing()>0);scene.onAfterRender();
+ for(let i=0;i<2;i++){toggle.onclick();scene.onBeforeRender();assert.equal(framing(),0);let skins=0;scene.traverseVisible(o=>{if(o.userData.pricingIds?.[0]==='cycSkin')skins++;});assert.ok(skins>0);scene.onAfterRender();}
+ toggle.onclick();scene.onBeforeRender();assert.ok(framing()>0);scene.onAfterRender();
+ let guideRibs=0;guide.traverseVisible(o=>{if(o.userData.pricingIds?.[0]==='cycRibPly')guideRibs++;});assert.ok(guideRibs>0);
+ }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(cyc);model.dispose(guide);Object.assign(globalThis,originals);}
+});

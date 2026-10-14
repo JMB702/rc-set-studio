@@ -215,3 +215,15 @@ junction and update the remaining estimate. Corners only, repeatable router/CNC
 rib templates, or a quoted compatible prefab junction may simplify the build.
 Changing a design option is reversible; physically removing finished coves
 requires releasing fixings and repairing plastered joints and existing faces.
+
+Physical cyclorama model correction (2026-10-13)
+- Ribs and rear backing remain physically present in Explore, Cost & Tracking,
+  finished and lighting views. Normal opaque-surface occlusion hides them from
+  the room; open above/behind views show the construction. No view-only hiding.
+- The nominal 36in / 24in curves describe rib bearing surfaces. Modelled 1/8in
+  skin has rear/front faces and closed edges, with its front offset into the room;
+  feather the proud sheet edge into the existing surfaces as already allowed.
+- Rear 2x4 backing sits behind the existing .106in wall facing, not across the
+  curved finish. Compound radial ribs are actual 3/4in extrusions, not triangles.
+- Existing rib counts, sheet allowances, fasteners, pricing and labor are retained;
+  this corrects the representation of already specified materials, not quantities.

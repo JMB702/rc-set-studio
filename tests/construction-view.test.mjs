@@ -43,22 +43,58 @@ test('Retrofit meshes have finite geometry, inward corner normals, and floor-hei
  for(const height of [96,120])for(const angle of [0,45,90])for(const seamlessCorners of [false,true])for(const seamlessPerimeter of [false,true]){
   const d={height,angle,seamlessCorners,seamlessPerimeter},root=model.cycloramaMesh(d,{construction:true});
   root.traverse(o=>{if(!o.isMesh)return;for(const key of ['position','normal'])assert.ok([...o.geometry.attributes[key].array].every(Number.isFinite),o.name);assert.equal(o.userData.progress.kind,'cyclorama');
-   if(o.name.startsWith('Rounded wall corner')){o.geometry.computeBoundingBox();assert.ok(Math.abs(o.geometry.boundingBox.min.y-(seamlessPerimeter?24:0)*model.inch)<1e-6);assert.ok(o.geometry.attributes.normal.getZ(0)>0,'corner faces the room, preventing inverted shadow bias');}
+   if(o.name.startsWith('Rounded wall corner')){o.geometry.computeBoundingBox();assert.ok(Math.abs(o.geometry.boundingBox.min.y-(seamlessPerimeter?24:0)*model.inch)<1e-6);assert.ok(o.geometry.attributes.normal.getZ(o.geometry.userData.skinVertexCount)>0,'corner faces the room, preventing inverted shadow bias');}
   });if(!seamlessPerimeter&&(!seamlessCorners||angle===0))assert.equal(root.children.length,0);model.dispose(root);
  }
 });
 
-test('Cost preview hides cyclorama framing in finished and lighting views but retains progress and guide framing',async()=>{
+test('Cost preview retains physical cyclorama framing in progress, finished, lighting and guide views',async()=>{
  const originals={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch},nodes=[];
  const element=()=>({hidden:false,classList:{add(){},remove(){},toggle(){}},setAttribute(){},append(o){nodes.push(o);}});
  globalThis.document={querySelector:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,createElement:element};globalThis.window=new EventTarget();globalThis.fetch=async()=>({ok:true,json:async()=>({data,revision:1})});
- const d={height:120,angle:90,seamlessCorners:true,seamlessPerimeter:true},scene=new T.Scene(),cyc=model.cycloramaMesh(d,{construction:true,progressSupports:true}),guide=model.cycloramaMesh(d,{construction:true,stage:44});scene.add(cyc);
+ const d={height:120,angle:90,seamlessCorners:true,seamlessPerimeter:true},scene=new T.Scene(),cyc=model.cycloramaMesh(d,{construction:true}),guide=model.cycloramaMesh(d,{construction:true,stage:44});scene.add(cyc);
  const api={scene,state:{...d,mode:'pricing',floor:'charcoal'},invalidate(){}};
  const framing=()=>{let count=0;scene.traverseVisible(o=>{if(o.isMesh&&['cycRibPly','cycBacking'].includes(o.userData.pricingIds?.[0]))count++;});return count;};
  try{installConstructionView(api);await new Promise(setImmediate);const toggle=nodes.find(n=>n.id==='construction-view-toggle');
  scene.onBeforeRender();assert.ok(framing()>0);scene.onAfterRender();
- for(let i=0;i<2;i++){toggle.onclick();scene.onBeforeRender();assert.equal(framing(),0);let skins=0;scene.traverseVisible(o=>{if(o.userData.pricingIds?.[0]==='cycSkin')skins++;});assert.ok(skins>0);scene.onAfterRender();}
+ for(let i=0;i<2;i++){toggle.onclick();scene.onBeforeRender();assert.ok(framing()>0);let skins=0;scene.traverseVisible(o=>{if(o.userData.pricingIds?.[0]==='cycSkin')skins++;});assert.ok(skins>0);scene.onAfterRender();}
  toggle.onclick();scene.onBeforeRender();assert.ok(framing()>0);scene.onAfterRender();
  let guideRibs=0;guide.traverseVisible(o=>{if(o.userData.pricingIds?.[0]==='cycRibPly')guideRibs++;});assert.ok(guideRibs>0);
  }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(cyc);model.dispose(guide);Object.assign(globalThis,originals);}
+});
+
+
+test('Opaque skin covers rib faces from the room while ribs remain real solid geometry',()=>{
+ for(const angle of [45,90])for(const seamlessPerimeter of [false,true]){
+  const d={height:120,angle,seamlessCorners:true,seamlessPerimeter},root=model.cycloramaMesh(d),rib=[];root.updateMatrixWorld(true);root.traverse(o=>{if(o.name.startsWith('Corner rib'))rib.push(o);});assert.ok(rib.length>0,'finished model must include framing');
+  const a=angle*Math.PI/360,R=36,t=R*Math.tan(a),center=new T.Vector3((96-t)*model.inch,0,R*model.inch),outward=new T.Vector3(Math.sin(a),0,-Math.cos(a));
+  for(const mesh of rib.filter(o=>o.name.startsWith('Corner rib 1 '))){mesh.geometry.computeBoundingBox();const y=mesh.geometry.boundingBox.getCenter(new T.Vector3()).y,origin=center.clone().addScaledVector(outward,20*model.inch);origin.y=y;
+   const hits=new T.Raycaster(origin,outward).intersectObject(root,true);assert.ok(hits.length);assert.equal(hits[0].object.userData.pricingIds[0],'cycSkin','skin must physically occlude rib from front');assert.ok(hits.some(h=>h.object===mesh),'rib remains behind skin, not hidden');}
+  const solids=[];root.traverse(o=>{if(o.name.startsWith('Compound corner rib'))solids.push(o);});for(const o of solids){assert.ok(o.geometry.attributes.position.count>100);assert.ok(!o.userData.progressOnly);}
+  model.dispose(root);
+ }
+});
+
+test('Cyclorama skin has a measurable eighth-inch front/back separation',()=>{
+ const g=new T.PlaneGeometry(1,1),shell=model.cycloramaSkin(g),p=shell.attributes.position,c=shell.userData.skinVertexCount;
+ for(let i=0;i<c;i++)assert.ok(Math.abs(new T.Vector3().fromBufferAttribute(p,i).distanceTo(new T.Vector3().fromBufferAttribute(p,i+c))-.125*model.inch)<1e-7);
+ shell.dispose();
+});
+
+test('Floor and compound skins physically occlude their solid ribs',()=>{
+ for(const angle of [45,90]){
+  const d={height:120,angle,seamlessCorners:true,seamlessPerimeter:true},root=model.cycloramaMesh(d);root.updateMatrixWorld(true);
+  const u=angle*Math.PI/360,t=Math.PI/4,R=36,r=24,cx=96-R*Math.tan(u),rho=R-r+r*Math.cos(t);
+  const point=new T.Vector3(cx+rho*Math.sin(u),r*(1-Math.sin(t)),R-rho*Math.cos(u)).multiplyScalar(model.inch),normal=new T.Vector3(-Math.sin(u)*Math.cos(t),Math.sin(t),Math.cos(u)*Math.cos(t));
+  const hits=new T.Raycaster(point.clone().addScaledVector(normal,4*model.inch),normal.clone().negate()).intersectObject(root,true);
+  assert.equal(hits[0].object.userData.pricingIds[0],'cycSkin');assert.ok(hits.some(h=>h.object.name.startsWith('Compound corner rib')),'compound rib must remain behind the sheet');
+  model.dispose(root);
+ }
+});
+
+test('Above-corner view hits the top plywood rib rather than an empty hidden cavity',()=>{
+ for(const angle of [45,90]){const root=model.cycloramaMesh({height:120,angle,seamlessCorners:true,seamlessPerimeter:false}),u=angle*Math.PI/360,inset=18*(1/Math.cos(u)-1);root.updateMatrixWorld(true);
+  const origin=new T.Vector3((96-inset*Math.sin(u))*model.inch,130*model.inch,inset*Math.cos(u)*model.inch),hits=new T.Raycaster(origin,new T.Vector3(0,-1,0)).intersectObject(root,true);
+  assert.ok(hits[0].object.name.startsWith('Corner rib'),'top support must remain physically present and visible');model.dispose(root);
+ }
 });

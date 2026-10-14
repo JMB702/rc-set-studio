@@ -1,6 +1,6 @@
 // Retrofit planning geometry in inches. Actual rib/skin fit must be templated on the assembled set.
 // 36″ vertical radius leaves a 12″ corner radius at the toe of a 24″ floor sweep.
-export const CYC={cornerRadius:36,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
+export const CYC={skinThickness:.125,ribThickness:.75,cornerRadius:36,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
 export function cycloramaGaps(d={}){const a=Math.max(0,Math.min(90,Number(d.angle??45)))*Math.PI/180,corners=d.seamlessCorners&&a>0,r=d.seamlessPerimeter?CYC.floorRadius:0,margin=d.seamlessPerimeter?CYC.feather+CYC.clearance:CYC.clearance;
  const minimum=Math.ceil(corners?CYC.cornerRadius-(CYC.cornerRadius-r-margin)*Math.cos(a/2):d.seamlessPerimeter?r+margin:0);
  return {back:Math.max(d.platformBack??12,minimum),side:Math.max(d.platformSide??12,minimum),minimum};}

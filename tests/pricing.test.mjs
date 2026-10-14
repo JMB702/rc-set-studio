@@ -151,3 +151,12 @@ test('Four bags per 8-foot panel round to two retail packs for the full set with
  assert.equal(bags.needed,32);assert.equal(bags.purchaseQuantity,2);assert.equal(sand.needed,600);
  assert.ok(!priceRows(data,{scope:'set',height:120,angle:45,floor:'wood',supports:true,ballast:true}).some(r=>r.id==='bags'));
 });
+
+test('Floor and platform buy one Porch & Patio paint tinted to the wall color, pooled by measured use',()=>{
+ const rows=priceRows(data,{scope:'set',height:120,angle:45,floor:'charcoal',platformShape:'square'}),get=id=>rows.find(r=>r.id===id);
+ const floor=get('floorPaint'),platform=get('platformPaint'),wall=get('wallPaint');
+ for(const r of [floor,platform,wall])assert.match(r.name,/Carbon N520-7/);
+ for(const r of [floor,platform])assert.match(r.name,/Porch & Patio.*low-lustre/);
+ assert.equal(floor.productUrl,platform.productUrl);
+ assert.equal(floor.purchaseQuantity+platform.purchaseQuantity,Math.ceil(floor.needed+platform.needed));
+});

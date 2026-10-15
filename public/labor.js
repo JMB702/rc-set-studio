@@ -43,7 +43,7 @@ export function laborTasks(d){
  if(platformShape!=='none'){const pl=platformPlan(d.angle,d.platformBack??12,d.platformSide??12,platformShape==='square'?90:Math.max(d.angle,d.platformAngle??d.angle),d),c=pl.counts,ft=v=>v/12;
   add('platformFrame','30–31',`Cut and frame the platform · ${c.modules} modules`,.5+pl.lumberLengths.length*.06+c.modules,`${pl.lumberLengths.length} cuts, ${c.modules} module frames`);
   add('platformLegs','32–33','Legs and bottom rings, then set and join the modules',c.legs*.15+c.bottomRims*.1+c.modules*.35,`${c.legs} legs, ${c.bottomRims} bottom rims`);
-  add('platformDeck','34–35','Deck and fascia',pl.deckSheets*.6+pl.deckScrews*.005+ft(pl.fasciaLength)*.12,`${pl.decks.length} deck pieces from ${pl.deckSheets} sheets, ${ft(pl.fasciaLength).toFixed(0)} ft of fascia`);
+  add('platformDeck','34–35','Deck and fascia',pl.deckSheets*.4+pl.deckCuts*.1+pl.deckScrews*.005+ft(pl.fasciaLength)*.12,`${pl.decks.length} deck pieces from ${pl.deckSheets} sheets (${pl.deckCuts} saw cuts), ${ft(pl.fasciaLength).toFixed(0)} ft of fascia`);
   add('platformFinish','36–37',`Tape, skim, prime and paint the platform · ${pl.finishArea.toFixed(0)} sq ft`,ft(pl.tapeLength+pl.beadLength)*JOINT_HOURS_PER_FT+pl.finishArea*.03+pl.finishArea*3/120,`${ft(pl.tapeLength+pl.beadLength).toFixed(0)} ft of taped joints and corner bead at ${JOINT_HOURS_PER_FT} h/ft, deck cement skim and scenic fascia finishing, primer, two paint coats; excludes curing and future touch-ups`);
  }
  const cyc=cycloramaPlan(d);

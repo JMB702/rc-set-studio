@@ -39,3 +39,10 @@ test('Shopping keeps reported time separate from remaining allowance and does no
  assert.equal(two.tasks.find(t=>t.id==='shoppingDone').personHours,3.5);assert.equal(two.tasks.find(t=>t.id==='shoppingRemaining').personHours,5);
  assert.doesNotMatch(two.tasks.find(t=>t.id==='setup').name,/pickup/i);
 });
+
+test('Platform build hours follow the actual cuts, joints, legs, sheets and fascia pieces',()=>{
+ const approved={height:120,angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,floor:'charcoal',floorLip:true,seamlessCorners:true,seamlessPerimeter:false,seamlessCornerSide:'right',figures:'rap'};
+ const hours=id=>laborTasks(approved).find(t=>t.id===id).personHours;
+ assert.deepEqual(['platformFrame','platformLegs','platformDeck'].map(hours),[3.9,2.8,4.6]);
+ assert.match(laborTasks(approved).find(t=>t.id==='platformFrame').note,/45 cuts in 5 lengths/);
+});

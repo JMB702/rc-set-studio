@@ -58,7 +58,7 @@ test('Platform frames tile the outline independently of larger deck sheets',()=>
   assert.ok(Math.abs(plan.modules.reduce((s,m)=>s+m.area,0)/144-plan.deckArea)<1e-6);
   const outline=Math.abs(plan.outline.reduce((s,p,i)=>{const q=plan.outline[(i+1)%plan.outline.length];return s+p[0]*q[1]-q[0]*p[1]},0))/2/144;
   assert.ok(Math.abs(outline-plan.deckArea)<1e-6);
-  for(const m of plan.modules){assert.ok(m.depth<=PLATFORM.module+1e-6);assert.ok(m.legs.length>=3);assert.equal(m.rims.length,m.edges.filter(e=>e.len>=PLATFORM.minPiece).length);assert.deepEqual(m.bottomRims.map(r=>r.length),m.rims.map(r=>r.length),'bottom ring matches the top rims');assert.ok(m.legs.every(l=>l.length===legLength),'one leg length');assert.ok([...m.rims,...m.legs].every(p=>p.length>=PLATFORM.minPiece),'no stub cuts');}
+  for(const m of plan.modules){assert.ok(m.depth<=PLATFORM.stud+1e-6);assert.ok(m.legs.length>=3);assert.equal(m.rims.length,m.edges.filter(e=>e.len>=PLATFORM.minPiece).length);assert.deepEqual(m.bottomRims.map(r=>r.length),m.rims.map(r=>r.length),'bottom ring matches the top rims');assert.ok(m.legs.every(l=>l.length===legLength),'one leg length');assert.ok([...m.rims,...m.legs].every(p=>p.length>=PLATFORM.minPiece),'no stub cuts');}
  }
 });
 test('Platform framing uses actual 2×4 sizes and a 10″ finished height',()=>{
@@ -68,8 +68,8 @@ test('Platform framing uses actual 2×4 sizes and a 10″ finished height',()=>{
  assert.equal(platformCuts(plan).reduce((s,c)=>s+c.qty,0),plan.lumberLengths.length);
  assert.equal(studCount([48,48]),2);assert.equal(studCount([47.875,47.875]),1);
 });
-test('Flush gaps drop the fascia on the wall side; a 90° flush platform is four by two full modules',()=>{
- const plan=platformPlan(90,0,0);assert.equal(plan.counts.modules,8);assert.equal(plan.counts.fullModules,8);
+test('Flush gaps drop the fascia on the wall side; a 90° flush platform is two 8′ × 8′ frames',()=>{
+ const plan=platformPlan(90,0,0);assert.equal(plan.counts.modules,2);assert.equal(plan.counts.fullModules,2);
  assert.equal(Math.round(plan.fasciaLength),192,'only the open front is skinned; both wings and the back wall hide the other sides');
  assert.equal(Math.round(platformPlan(90,12,12).fasciaLength),2*168+2*84);
 });

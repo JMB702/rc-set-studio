@@ -10,7 +10,7 @@ export const PLATFORM={
  lumber:[1.5,3.5],     // actual 2×4
  rim:3.5,              // rims, bottom rims and joists all stand on edge
  minPiece:4,           // skip rims and legs on stub edges shorter than this at clipped corners
- module:48,            // frame columns follow the 4′ plywood width; rows are no deeper than this
+ module:48,            // frame columns follow the 4′ plywood width and run the full depth
  joistOC:16,           // joists run side to side, across the front-to-back face grain
  maxLegSpan:48,
  skin:.106,            // lauan fascia, actual thickness
@@ -64,19 +64,31 @@ const centroid=pg=>[pg.reduce((s,p)=>s+p[0],0)/pg.length,pg.reduce((s,p)=>s+p[1]
 // These x positions are the sheet joints, and every frame column follows them.
 // A leftover narrower than 12″ is too small to frame under, so the last two decks share it evenly instead.
 export function deckColumns(outline){const [x0,x1]=extent(outline,0),W=PLATFORM.module,cols=[x0];while(x1-cols.at(-1)>W+1e-6)cols.push(cols.at(-1)+W);if(cols.length>1&&x1-cols.at(-1)<12-1e-6)cols[cols.length-1]=(cols.at(-2)+x1)/2;cols.push(x1);return cols;}
-// Split the outline into movable modules: rows of equal depth, none deeper than 48″, and columns on the
-// deck sheet joints. A sliver at either end merges into its neighbor and gets a seam joist under its deck joint.
+// Rims stand on edge around a frame with the same joint at every corner: the side-to-side (front and back)
+// rims run the full width and the other rims fit between them. Where two neighbors are the same kind
+// (odd angled frames), the earlier one butts into the later one.
+const runsThrough=e=>Math.abs(e.u[0])>Math.abs(e.u[1])+1e-9;
+function rimPieces(poly){const T=PLATFORM.lumber[0],E=edgeFrames(poly),n=E.length,owner=(a,b)=>runsThrough(a)!==runsThrough(b)?(runsThrough(a)?a:b):b;
+ return E.map((e,i)=>{const p=E[(i+n-1)%n],f=E[(i+1)%n];let pg=band(poly,e,0,T);if(owner(p,e)!==e)pg=clipHalf(pg,...p.n,p.c+T);if(owner(e,f)!==e)pg=clipHalf(pg,...f.n,f.c+T);return {poly:pg,length:along(pg,e.u),edge:i};}).filter(r=>r.poly.length>2&&r.length>=PLATFORM.minPiece);}
+// Split the outline into movable modules. Frames run the full depth and group whole deck sheet columns,
+// as wide as one 8′ stud allows, so rims are single studs and a plywood joint inside a frame sits on a
+// doubled pair of seam joists, just like the doubled rims where two frames meet. Rows appear only if an edge would outgrow a stud. A sliver at
+// either end merges into its neighbor.
 function moduleCells(outline){
- const M=PLATFORM.module,[z0,z1]=extent(outline,1),depth=z1-z0,rows=Math.max(1,Math.ceil(depth/M-1e-6)),cells=[];
- for(let r=0;r<rows;r++){
-  const lo=z0+depth*r/rows,hi=z0+depth*(r+1)/rows,strip=clipHalf(clipHalf(outline,0,1,lo),0,-1,-hi);if(strip.length<3)continue;
-  const cuts=deckColumns(outline);
-  const cell=(a,b)=>ccw(clipHalf(clipHalf(strip,1,0,a),-1,0,-b));
-  let small=i=>{const pg=cell(cuts[i],cuts[i+1]);if(pg.length<3)return true;const [a,b]=extent(pg,0);return b-a<16||Math.abs(area(pg))<288;};
-  while(cuts.length>2&&small(0))cuts.splice(1,1);while(cuts.length>2&&small(cuts.length-2))cuts.splice(cuts.length-2,1);
-  for(let i=0;i<cuts.length-1;i++){const pg=cell(cuts[i],cuts[i+1]);if(pg.length>=3&&Math.abs(area(pg))>1)cells.push({poly:pg,row:r,col:i});}
+ const [z0,z1]=extent(outline,1),depth=z1-z0,fits=pg=>rimPieces(pg).every(r=>r.length<=PLATFORM.stud+1e-6);
+ for(let rows=Math.max(1,Math.ceil(depth/PLATFORM.stud-1e-6));;rows++){
+  const cells=[];let ok=true;
+  for(let r=0;r<rows;r++){
+   const lo=z0+depth*r/rows,hi=z0+depth*(r+1)/rows,strip=clipHalf(clipHalf(outline,0,1,lo),0,-1,-hi);if(strip.length<3)continue;
+   const cuts=deckColumns(outline);
+   const cell=(a,b)=>ccw(clipHalf(clipHalf(strip,1,0,a),-1,0,-b));
+   let small=i=>{const pg=cell(cuts[i],cuts[i+1]);if(pg.length<3)return true;const [a,b]=extent(pg,0);return b-a<16||Math.abs(area(pg))<288;};
+   while(cuts.length>2&&small(0))cuts.splice(1,1);while(cuts.length>2&&small(cuts.length-2))cuts.splice(cuts.length-2,1);
+   const keep=[cuts[0]];for(let i=1;i<cuts.length-1;i++){const pg=cell(keep.at(-1),cuts[i+1]);if(!(pg.length>=3&&fits(pg)))keep.push(cuts[i]);}keep.push(cuts.at(-1));
+   for(let i=0;i<keep.length-1;i++){const pg=cell(keep[i],keep[i+1]);if(pg.length>=3&&Math.abs(area(pg))>1){if(!fits(pg))ok=false;cells.push({poly:pg,row:r,col:i});}}
+  }
+  if(ok||rows>=4)return cells;
  }
- return cells;
 }
 
 export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,cfg={}){
@@ -89,33 +101,46 @@ export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,cfg={}){
   const next=i=>E[(i+1)%n],prev=i=>E[(i+n-1)%n];
   // Rims stand on edge around every module. Each one runs into the face of the next (pinwheel butt joints).
   // The bottom ring is an identical copy standing on the floor, so both rings come from one cut list.
-  const rims=E.map((e,i)=>{let pg=band(poly,e,0,T);pg=clipHalf(pg,...next(i).n,next(i).c+T);return {poly:pg,length:along(pg,e.u),edge:i};}).filter(r=>r.poly.length>2&&r.length>=PLATFORM.minPiece);
+  const rims=rimPieces(poly);
   const bottomRims=rims.map(r=>({...r}));
-  // A deck joint inside the frame lands on a seam joist running front to back.
+  // A deck joint inside the frame lands on a doubled pair of seam joists running front to back, one under
+  // each sheet edge, the same as the doubled rims where two frames meet.
   // Joists run side to side at 16″ centers, across the deck grain, between the rims and any seam joist.
+  // A bay under 16″ wide already holds its deck on both long edges, so it gets no joist stubs.
   let inner=poly;for(const e of E)inner=clipHalf(inner,...e.n,e.c+T);
-  const [px0,px1]=extent(poly,0),seams=columns.filter(c=>c>px0+T+1e-6&&c<px1-T-1e-6),seamJoists=[],joists=[];
+  const [px0,px1]=extent(poly,0),seams=columns.filter(c=>c>px0+2*T+1e-6&&c<px1-2*T-1e-6),seamJoists=[],joists=[];
   if(inner.length>2){
-   for(const c of seams){const pg=clipHalf(clipHalf(inner,1,0,c-T/2),-1,0,-(c+T/2));if(pg.length>2){const [lo,hi]=extent(pg,1);if(hi-lo>=PLATFORM.minPiece)seamJoists.push({poly:pg,length:hi-lo,x:c});}}
-   const bays=[-Infinity,...seams.flatMap(c=>[c-T/2,c+T/2]),Infinity],[z0,z1]=extent(poly,1);
+   for(const c of seams)for(const [a,b] of [[c-T,c],[c,c+T]]){const pg=clipHalf(clipHalf(inner,1,0,a),-1,0,-b);if(pg.length>2){const [lo,hi]=extent(pg,1);if(hi-lo>=PLATFORM.minPiece)seamJoists.push({poly:pg,length:hi-lo,x:c,side:a<c?-1:1});}}
+   const bays=[-Infinity,...seams.flatMap(c=>[c-T,c+T]),Infinity],[z0,z1]=extent(poly,1);
    for(let z=z0+PLATFORM.joistOC;z<z1-8;z+=PLATFORM.joistOC){const row=clipHalf(clipHalf(inner,0,1,z-T/2),0,-1,-(z+T/2));
-    for(let k=0;k<bays.length;k+=2){let pg=row;if(bays[k]>-Infinity)pg=clipHalf(pg,1,0,bays[k]);if(bays[k+1]<Infinity)pg=clipHalf(pg,-1,0,-bays[k+1]);if(pg.length>2){const [lo,hi]=extent(pg,0);if(hi-lo>=PLATFORM.minPiece)joists.push({poly:pg,length:hi-lo,z});}}}
+    for(let k=0;k<bays.length;k+=2){let pg=row;if(bays[k]>-Infinity)pg=clipHalf(pg,1,0,bays[k]);if(bays[k+1]<Infinity)pg=clipHalf(pg,-1,0,-bays[k+1]);if(pg.length>2){const [lo,hi]=extent(pg,0);if(hi-lo>=PLATFORM.joistOC)joists.push({poly:pg,length:hi-lo,z});}}}
   }
   // Legs: one length, floor to deck, tucked inside both rings at every corner and at least every 4′.
   // Each leg screws through the top rim and the bottom rim, so it is fixed at both ends.
   const legs=[];
-  const leg=(e,s0,s1,clipTo=[])=>{let pg=band(poly,e,T,T+T);pg=clipHalf(pg,...e.u,s0);pg=clipHalf(pg,-e.u[0],-e.u[1],-s1);for(const f of clipTo)pg=clipHalf(pg,...f.n,f.c+T);if(pg.length>2)legs.push({poly:pg,length:legLength});};
+  const legPoly=(e,s0,s1,clipTo=[])=>{let pg=band(poly,e,T,T+T);pg=clipHalf(pg,...e.u,s0);pg=clipHalf(pg,-e.u[0],-e.u[1],-s1);for(const f of clipTo)pg=clipHalf(pg,...f.n,f.c+T);return pg;};
+  const leg=(e,s0,s1,clipTo=[])=>{const pg=legPoly(e,s0,s1,clipTo);if(pg.length>2)legs.push({poly:pg,length:legLength});};
+  // Boxes of the joists and seam joists, so legs can stay out of their way.
+  const box=pg=>{const xs=pg.map(q=>q[0]),zs=pg.map(q=>q[1]);return [Math.min(...xs),Math.max(...xs),Math.min(...zs),Math.max(...zs)];};
+  const hits=(a,b)=>a[0]<b[1]-1e-6&&a[1]>b[0]+1e-6&&a[2]<b[3]-1e-6&&a[3]>b[2]+1e-6;
+  const blocked=pg=>pg.length>2&&[...joists,...seamJoists].some(j=>hits(box(pg),box(j.poly)));
   E.forEach((e,i)=>{
    if(e.len<PLATFORM.minPiece)return;
    const p=prev(i);let r=band(poly,e,T,T+T);r=clipHalf(r,...p.n,p.c+T);if(r.length>2){const s=Math.min(...r.map(q=>q[0]*e.u[0]+q[1]*e.u[1]));leg(e,s,s+D,[p]);}
    const extra=Math.ceil(e.len/PLATFORM.maxLegSpan)-1,sA=e.A[0]*e.u[0]+e.A[1]*e.u[1];
-   for(let k=1;k<=extra;k++){const s=sA+e.len*k/(extra+1);leg(e,s-D/2,s+D/2);}
+   // An intermediate leg that would land on a joist or seam joist end slides along the rim to sit beside it.
+   for(let k=1;k<=extra;k++){const s0=sA+e.len*k/(extra+1);let s=s0;for(let t=1;t<=60&&blocked(legPoly(e,s-D/2,s+D/2));t++)s=s0+(t%2?1:-1)*Math.ceil(t/2)*.25;leg(e,s-D/2,s+D/2);}
   });
+  // A corner leg on an odd-shaped frame can still meet a joist end; that joist stops at the leg's face.
+  for(const j of [...joists,...seamJoists]){const alongX=j.z!==undefined;for(const l of legs){const a=box(l.poly),b=box(j.poly);if(!hits(a,b))continue;
+   if(alongX){const mid=(b[0]+b[1])/2;j.poly=(a[0]+a[1])/2<mid?clipHalf(j.poly,1,0,a[1]):clipHalf(j.poly,-1,0,-a[0]);}
+   else{const mid=(b[2]+b[3])/2;j.poly=(a[2]+a[3])/2<mid?clipHalf(j.poly,0,1,a[3]):clipHalf(j.poly,0,-1,-a[2]);}
+   const c=box(j.poly);j.length=alongX?c[1]-c[0]:c[3]-c[2];}}
   // Lauan fascia wraps every exposed edge, floor to top, covering the deck edge.
   const fascia=E.filter(e=>e.fascia).map(e=>{const o=PLATFORM.skin,A=[e.A[0]-e.u[0]*o,e.A[1]-e.u[1]*o],B=[e.B[0]+e.u[0]*o,e.B[1]+e.u[1]*o];return {poly:[A,B,[B[0]-e.n[0]*o,B[1]-e.n[1]*o],[A[0]-e.n[0]*o,A[1]-e.n[1]*o]].reverse(),length:e.len,wall:e.wall};});
   const [mx0,mx1]=extent(poly,0),[mz0,mz1]=extent(poly,1);
   modules.push({poly,row,col,center:centroid(poly),width:mx1-mx0,depth:mz1-mz0,area:Math.abs(area(poly)),edges:E,rims,bottomRims,joists,seamJoists,legs,fascia,
-   full:E.length===4&&Math.abs(mx1-mx0-PLATFORM.module)<.01&&Math.abs(mz1-mz0-PLATFORM.module)<.01,inside:p=>insidePoly(poly,p)});
+   full:E.length===4&&Math.abs((mx1-mx0)/PLATFORM.module-Math.round((mx1-mx0)/PLATFORM.module))<.001,inside:p=>insidePoly(poly,p)});
  }
  const decks=platformDecks(outline,modules,columns),sheetLayout=packDecks(decks),fasciaPieces=platformFascia(outline,modules);
  return {angle:a,platformAngle:pa,back,side,front,outline,columns,modules,decks,sheetLayout,fasciaPieces,...platformTotals(outline,modules,decks,sheetLayout,fasciaPieces,columns)};
@@ -191,7 +216,7 @@ function platformTotals(outline,modules,decks,sheetLayout,fasciaPieces,columns){
   lumberLengths:lumber,studs:studCount(lumber),
   counts:{modules:modules.length,decks:decks.length,fullModules:modules.filter(m=>m.full).length,rims:each('rims').length,joists:each('joists').length,seamJoists:each('seamJoists').length,bottomRims:each('bottomRims').length,legs:each('legs').length},
   frameScrews:sum(m=>m.rims.length*2+m.bottomRims.length*2+(m.joists.length+m.seamJoists.length)*4+m.legs.length*4+m.edges.filter(e=>e.shared).reduce((s,e)=>s+2*Math.max(2,Math.ceil(e.len/24)),0)),
-  deckScrews:sum(m=>m.rims.reduce((s,r)=>s+Math.ceil(r.length/(deckEdge(m.edges[r.edge])?6:12))+1,0)+m.joists.reduce((s,j)=>s+Math.ceil(j.length/12)+1,0)+m.seamJoists.reduce((s,j)=>s+2*(Math.ceil(j.length/6)+1),0)),
+  deckScrews:sum(m=>m.rims.reduce((s,r)=>s+Math.ceil(r.length/(deckEdge(m.edges[r.edge])?6:12))+1,0)+m.joists.reduce((s,j)=>s+Math.ceil(j.length/12)+1,0)+m.seamJoists.reduce((s,j)=>s+Math.ceil(j.length/6)+1,0)),
   deckCuts:decks.reduce((s,d)=>s+d.sawCuts,0),
   staples:fasciaPieces.reduce((s,f)=>s+2*(Math.ceil(f.length/4)+1),0),
   padArea:(sum(m=>m.legs.length+m.bottomRims.reduce((s,x)=>s+Math.ceil(x.length/24)+1,0)))*PLATFORM.lumber[0]*PLATFORM.lumber[1],
@@ -202,7 +227,7 @@ function platformTotals(outline,modules,decks,sheetLayout,fasciaPieces,columns){
 }
 // Cut list grouped by part and length (rounded to 1/16″) for the Build guide.
 export function platformCuts(plan){const groups=new Map(),add=(part,len,note)=>{const r=Math.round(len*16)/16,k=part+'|'+r;const g=groups.get(k)||{part,length:r,qty:0,note};g.qty++;groups.set(k,g);};
- for(const m of plan.modules){m.rims.forEach(r=>add('Rim',r.length,'2×4 on edge; follow the module outline at angled corners'));m.bottomRims.forEach(r=>add('Bottom rim',r.length,'2×4 on edge on the floor; same as the top rims'));m.joists.forEach(j=>add('Joist',j.length,'2×4 on edge, side to side at 16″ centers'));m.seamJoists.forEach(j=>add('Seam joist',j.length,'2×4 on edge, front to back under a deck joint'));m.legs.forEach(l=>add('Leg',l.length,'2×4 upright, floor to deck, inside both rims'));}
+ for(const m of plan.modules){m.rims.forEach(r=>add('Rim',r.length,'2×4 on edge; follow the module outline at angled corners'));m.bottomRims.forEach(r=>add('Bottom rim',r.length,'2×4 on edge on the floor; same as the top rims'));m.joists.forEach(j=>add('Joist',j.length,'2×4 on edge, side to side at 16″ centers'));m.seamJoists.forEach(j=>add('Seam joist',j.length,'2×4 on edge, doubled front to back under a plywood joint'));m.legs.forEach(l=>add('Leg',l.length,'2×4 upright, floor to deck, inside both rims'));}
  return [...groups.values()].sort((a,b)=>a.part.localeCompare(b.part)||b.length-a.length);}
 export const inches=v=>{const w=Math.floor(v+1e-9),f=Math.round((v-w)*16);if(f===16)return `${w+1}″`;if(!f)return `${w}″`;let n=f,d=16;while(n%2===0){n/=2;d/=2;}return `${w?w+' ':''}${n}/${d}″`;};
 

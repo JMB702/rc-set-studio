@@ -16,6 +16,9 @@ const PANEL={
  120:{cut:.9,frame:1,skin:.75,jacks:1.5,attach:.75,shelf:.45},
 };
 const r1=v=>Math.round(v*10)/10;
+// Person-hours per foot of taped joint or corner bead: bed the paper tape, two or three feathered coats, sanding.
+// About 0.02 h per sq ft of wall at this joint spacing: above pro production rates, below contractor guides' 0.03–0.05.
+export const JOINT_HOURS_PER_FT=.075;
 
 // Each task: {id, stage, name, personHours, note}. Steps are the Build guide stages the task covers.
 export function laborTasks(d){
@@ -31,22 +34,23 @@ export function laborTasks(d){
  add('boltJacks','17','Screw the jacks to the flats',p.attach*n,`${p.attach} h per panel: clamp, pilot-drill and drive 12 wood screws${tall?' · taller lift':''}. Allowance retained pending a timed prototype.`);
  add('shelves','18–20','Crossbars, shelf and ballast',p.shelf*n,`${p.shelf} h per panel`);
  add('assemble','21–22','Join the seams and set the wing angles',LABOR.seams*(tall?.5:.4)+LABOR.corners*(tall?1.25:1),`${LABOR.seams} straight seams and ${LABOR.corners} corners, braced while setting the angle`);
- add('wallFinish','28',`Dress, prime and paint the walls · ${wallArea} sq ft`,(tall?2:1.5)+wallArea/150+wallArea*2/200,'Seams and corners, one primer coat, two finish coats');
+ const jointFt=LABOR.seams*h/12+(tall?n*4:0);
+ add('wallFinish','28',`Dress, prime and paint the walls · ${wallArea} sq ft`,1+jointFt*JOINT_HOURS_PER_FT+wallArea/150+wallArea*2/200,`${jointFt} ft of taped joints (${LABOR.seams} flat-to-flat seams${tall?' + the 8′ sheet joint on every flat':''}) at ${JOINT_HOURS_PER_FT} h/ft for tape, coats and sanding; 1 h staple spotting and corner caulk; one primer coat, two finish coats`);
  if(floorType!=='none'){const area=floorArea(d.angle);
   if(floorType==='wood')add('floor','23–27',`Lay the oak laminate floor · ${area.toFixed(0)} sq ft`,1+area*.06+1.5,'Footprint, underlay, click-lock rows at about 17 sq ft per person-hour, expansion-gap check and cleanup');
-  else{const plan=floorPlan(d.angle,d),sheets=plan.sheetCount;add('floor','23–27, 42',`Build and paint the double-layer plywood floor · ${area.toFixed(0)} sq ft`,1+plan.pieces.length*.20+plan.cutCount*.06+2+area/60+area*3/200,`Footprint, ${sheets} sheets → ${plan.pieces.length} placed pieces, ${plan.cutCount} edge cuts (0.2 h per placed piece + 0.06 h per cut), ${plan.lip?"12″ joining ledge, ":""}two bonded layers, cement skim, primer, two paint coats; planning labor, excludes cure time and future touch-ups`);}
+  else{const plan=floorPlan(d.angle,d),sheets=plan.sheetCount,layers=(plan.pieces.length*.20+plan.cutCount*.06+2)/2,skim=area/60,coat=area/200;add('floor','23–27, 42',`Build and paint the double-layer plywood floor · ${area.toFixed(0)} sq ft`,1+layers*2+skim+coat*3,`Footprint, ${sheets} sheets → ${plan.pieces.length} placed pieces, ${plan.cutCount} edge cuts (0.2 h per placed piece + 0.06 h per cut), ${plan.lip?"12″ joining ledge, ":""}two bonded layers, cement skim, primer, two paint coats; planning labor, excludes cure time and future touch-ups`);tasks.at(-1).stageHours={23:1,24:layers,42:layers,25:skim,26:coat,27:coat*2};}
  }
  if(platformShape!=='none'){const pl=platformPlan(d.angle,d.platformBack??12,d.platformSide??12,platformShape==='square'?90:Math.max(d.angle,d.platformAngle??d.angle),d),c=pl.counts,ft=v=>v/12;
   add('platformFrame','30–31',`Cut and frame the platform · ${c.modules} modules`,.5+pl.lumberLengths.length*.06+c.modules,`${pl.lumberLengths.length} cuts, ${c.modules} module frames`);
   add('platformLegs','32–33','Legs and bottom rings, then set and join the modules',c.legs*.15+c.bottomRims*.1+c.modules*.35,`${c.legs} legs, ${c.bottomRims} bottom rims`);
   add('platformDeck','34–35','Deck and fascia',pl.deckSheets*.6+pl.deckScrews*.005+ft(pl.fasciaLength)*.12,`${pl.decks.length} deck pieces from ${pl.deckSheets} sheets, ${ft(pl.fasciaLength).toFixed(0)} ft of fascia`);
-  add('platformFinish','36–37',`Tape, skim, prime and paint the platform · ${pl.finishArea.toFixed(0)} sq ft`,ft(pl.tapeLength+pl.beadLength)*.04+pl.finishArea*.03+pl.finishArea*3/120,'Deck cement skim and scenic fascia finishing, primer, two paint coats; excludes curing and future touch-ups');
+  add('platformFinish','36–37',`Tape, skim, prime and paint the platform · ${pl.finishArea.toFixed(0)} sq ft`,ft(pl.tapeLength+pl.beadLength)*JOINT_HOURS_PER_FT+pl.finishArea*.03+pl.finishArea*3/120,`${ft(pl.tapeLength+pl.beadLength).toFixed(0)} ft of taped joints and corner bead at ${JOINT_HOURS_PER_FT} h/ft, deck cement skim and scenic fascia finishing, primer, two paint coats; excludes curing and future touch-ups`);
  }
  const cyc=cycloramaPlan(d);
  if(cyc.corners||cyc.perimeter){
-  add('cycBacking','43',cyc.addedCrossbars?`Locate framing and add ${cyc.addedCrossbars} wall crossbars`:'Locate framing and install retrofit backing',1+cyc.blockingFeet*.08+cyc.addedCrossbars*.35,'Existing walls stay assembled; fit added crossbars between the stiles from behind (glue, toe-screw, staple through the face), add rear blocking and supported cleats over the facing');
+  add('cycBacking','43',cyc.addedCrossbars?`Locate framing and add ${cyc.addedCrossbars} wall crossbars`:'Locate framing and install retrofit backing',1+cyc.blockingFeet*.08+cyc.addedCrossbars*.35,'Existing walls stay assembled; fit added crossbars flat between the stiles from behind (glue, toe-screw, staple through the face)');
   if(cyc.corners){
-   add('cycVerticalRibs','44',`Template, cut and fit ${cyc.verticalRibs} vertical-corner ribs`,1+cyc.verticalRibs*.3+cyc.ribBackScrews*.04,'Full-size bend test and a master rib template; hand-cut allowance, CNC is an optional quoted alternative');
+   add('cycVerticalRibs','44',`Template, cut and fit ${cyc.verticalRibs} vertical-corner ribs`,1+cyc.verticalRibs*.3+(cyc.ribBackScrews+(cyc.ribFlatScrews??0))*.04,`Full-size bend test and a master rib template; hand-cut ribs centered on the crossbars, glued and screwed from behind (${cyc.ribBackScrews+(cyc.ribFlatScrews??0)} screws at 0.04 h each)`);
    add('cycCornerSkin','45',cyc.corners===2?'Skin the two rounded wall corners':`Skin the rounded ${cyc.cornerSides[0]} wall corner`,cyc.corners*cyc.cornerArc*cyc.cornerHeight/144*.08,'Flexible facing, supported sheet seams and flush fasteners; corners-only runs straight down to the floor');
   }
   if(cyc.perimeter)add('cycFloorSweep','46',`Build the wall-to-floor sweeps · ${(cyc.straightLength/12).toFixed(1)} ft`,2+cyc.floorRibs*.25+cyc.straightLength/12*.2,'Template ribs, cleats and bent facing; includes straight sweep framing and skin, excludes compound corner junctions');

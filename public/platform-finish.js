@@ -1,13 +1,15 @@
 // Use physical module joints rather than a painted-on grid that drifts when the layout changes.
-export function applyPlatformSeamTexture(material,part,texture){
+// tint scales the filler: 1 for white drywall compound, SKIM_TINT for gray cement skim.
+export const SKIM_TINT=.42;
+export function applyPlatformSeamTexture(material,part,texture,tint=1){
  const edges=new Float32Array(32);edges.set((part.seamEdges||[]).slice(0,8).flat());
  material.customProgramCacheKey=()=> 'platform-seam-compound-v1';
  material.onBeforeCompile=shader=>{
-  shader.uniforms.platformSeamMap={value:texture};shader.uniforms.platformSeamEdges={value:edges};shader.uniforms.platformSeamCount={value:Math.min(8,(part.seamEdges||[]).length)};
+  shader.uniforms.platformSeamMap={value:texture};shader.uniforms.platformSeamTint={value:tint};shader.uniforms.platformSeamEdges={value:edges};shader.uniforms.platformSeamCount={value:Math.min(8,(part.seamEdges||[]).length)};
   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vPlatformLocal;\nvarying float vPlatformTop;').replace('#include <begin_vertex>','#include <begin_vertex>\nvPlatformLocal = position / 0.0254;\nvPlatformTop = abs(normal.y);');
   shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
    varying vec3 vPlatformLocal; varying float vPlatformTop;
-   uniform sampler2D platformSeamMap; uniform vec4 platformSeamEdges[8]; uniform int platformSeamCount;
+   uniform sampler2D platformSeamMap; uniform vec4 platformSeamEdges[8]; uniform int platformSeamCount; uniform float platformSeamTint;
    float platformSegmentDistance(vec2 p,vec2 a,vec2 b){vec2 ab=b-a;float t=clamp(dot(p-a,ab)/max(dot(ab,ab),0.0001),0.0,1.0);return length(p-a-t*ab);}
   `).replace('#include <map_fragment>',`#include <map_fragment>
    vec2 platformPoint=vec2(vPlatformLocal.x,vPlatformLocal.z);float jointDistance=10000.0;
@@ -19,7 +21,7 @@ export function applyPlatformSeamTexture(material,part,texture){
    vec2 compoundUV=vPlatformTop>0.5?platformPoint/24.0:vec2(vPlatformLocal.x-vPlatformLocal.z,vPlatformLocal.y)/24.0;
    vec3 compoundSample=mix(texture2D(platformSeamMap,compoundUV).rgb,vec3(0.88),0.45);
    float feather=1.0-smoothstep(1.4,3.8+(compoundSample.r-0.5)*0.7,jointDistance);
-   diffuseColor.rgb=mix(diffuseColor.rgb,pow(compoundSample,vec3(2.2)),feather);
+   diffuseColor.rgb=mix(diffuseColor.rgb,pow(compoundSample,vec3(2.2))*platformSeamTint,feather);
   `);
  };
  material.needsUpdate=true;return material;

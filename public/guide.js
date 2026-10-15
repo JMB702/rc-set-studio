@@ -1,5 +1,5 @@
 export function instructionSentences(description){return (description.match(/.+?(?:[.!?](?=\s|$)|$)/g)||[description]).map(t=>t.trim()).filter(Boolean);}
-import {applyPlatformSeamTexture,COMPOUND_TINT} from './platform-finish.js';
+import {applyPlatformSeamTexture,applyFasciaCompound} from './platform-finish.js';
 import * as T from 'three';
 import {stepFasteners} from './step-fasteners.js';
 import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,cycloramaMesh,slab,dispose,grain,footprint} from './model.js';
@@ -217,7 +217,7 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
   model.add(lines([-96*inch,.003,0,96*inch,.003,0,96*inch,.003,0,(96+c)*inch,.003,sn*inch,-96*inch,.003,0,(-96-c)*inch,.003,sn*inch],0x273e2e));
   if(stage===30){model.add(lines(outlines(plan.modules.map(m=>m.poly),.004)));const pad=new T.Mesh(slab(plan.outline,0,.05),new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}));pad.userData.step=30;model.add(pad);}
   else if(stage>=36){
-   if(stage===36){const parts=platformParts(plan);model.add(parts);for(const o of parts.children){o.userData.guideMaterial=true;if(o.userData.step===34)o.material=mats.skim.clone();else if(o.userData.step===35)applyPlatformSeamTexture(o.material,o.userData.progress,mats.compound.map,COMPOUND_TINT);}}
+   if(stage===36){const parts=platformParts(plan);model.add(parts);for(const o of parts.children){o.userData.guideMaterial=true;if(o.userData.step===34)o.material=mats.skim.clone();else if(o.userData.step===35)applyFasciaCompound(o.material,o.userData.progress);}}
    else{const m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.step=stage;block.userData.progress={kind:'platform',stage:35,total:1,module:0};block.userData.guideMaterial=true;block.castShadow=block.receiveShadow=true;model.add(block);}
   }
   else{

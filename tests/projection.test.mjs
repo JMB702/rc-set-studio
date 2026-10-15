@@ -67,7 +67,7 @@ test('Hours: logged time is actual, the tracker sets what is left, unassigned ti
  let t=projectSetAssemblyCounts(projectDefaultTracking(),{panelsCompleted:8,jacksBuilt:8},design);
  const l=labor(),shifts=[{id:'a',personId:'person-1',start:now-6*H,end:now,rateCents:5000,note:'',taskId:'jacks'},{id:'b',personId:'person-2',start:now-2*H,end:now,rateCents:0,note:'',taskId:null}];
  const p=projectLabor(l,{design,tracking:t,shifts,now}),jacks=p.tasks.find(x=>x.id==='jacks'),estimate=l.tasks.find(x=>x.id==='jacks').personHours;
- assert.equal(jacks.actual,6);assert.equal(jacks.progress,50);assert.equal(jacks.remaining,estimate/2);assert.equal(jacks.projected,6+estimate/2);assert.equal(jacks.actualCents,30000);
+ const pace=p.pace??1;assert.equal(jacks.actual,6);assert.equal(jacks.progress,50);assert.ok(Math.abs(jacks.remaining-estimate/2*pace)<.01);assert.ok(Math.abs(jacks.projected-(6+estimate/2*pace))<.01);assert.equal(jacks.actualCents,30000);
  assert.equal(p.unassignedHours,2);assert.equal(p.unassignedCount,1);assert.equal(p.actualCents,30000);
  // Shopping is never added on top of logged time; explicit shopping entries count once.
  assert.equal(p.tasks.find(x=>x.id==='shoppingDone').actual,0);

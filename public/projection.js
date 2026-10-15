@@ -88,38 +88,54 @@ export function shiftStages(shift,{log=[],design,tasks,weights,now=Date.now()}){
  for(const e of log)if(e.at>=shift.start&&e.at<=end&&e.to>e.from&&map[e.step]){const legacy=projectCycloramaComponents().filter(c=>c.legacy===e.step),weight=legacy.length?legacy.reduce((n,c)=>n+(weights[c.id]||0),0):(weights[e.step]??1),h=weight*(e.to-e.from)/100;for(const [task,share]of Object.entries(map[e.step]))hours[task]=(hours[task]||0)+h*share;}
  const total=Object.values(hours).reduce((a,b)=>a+b,0);return total?{auto:true,shares:Object.fromEntries(Object.entries(hours).map(([k,v])=>[k,v/total]))}:null;
 }
-// Logged hours needed before remaining work is priced at the crew's actual cost per person-hour.
-export const OBSERVED_RATE_MIN_HOURS=8;
-export function projectLabor(labor,{design,tracking,shifts=[],supply=0,now=Date.now()}){
+// Logged hours needed before the projection uses the crew's own history (pace and who works when).
+export const HISTORY_MIN_HOURS=8;
+export const OBSERVED_RATE_MIN_HOURS=HISTORY_MIN_HOURS;
+// Effective workers from participation shares: each extra person past two adds less, as in the estimate (crewFactor).
+export const effectiveCrew=n=>n<=2?n:2+(n-2)*.75;
+// How the active crew splits the work still to come, from their logged build time: the person who has logged the most
+// works every on-site hour (share 1) and everyone else in proportion. Someone with no build time yet counts as full time,
+// as the estimate assumes, so adding a person shortens and cheapens the work left and removing one lengthens it.
+export function crewShares(crew,buildHoursBy){const active=(crew||[]).filter(c=>!c.archived),lead=Math.max(0,...active.map(c=>buildHoursBy[c.id]||0));
+ return active.map(c=>({id:c.id,name:c.name,rateCents:c.rateCents,share:lead>0&&buildHoursBy[c.id]>0?buildHoursBy[c.id]/lead:1}));}
+export function projectLabor(labor,{design,tracking,shifts=[],crew=null,supply=0,now=Date.now(),usePace=true}){
  const onSite=labor.tasks.filter(t=>t.stage!=='Shopping'),onSiteHours=onSite.reduce((n,t)=>n+t.personHours,0);
  const scale=labor.defaultHours>0?labor.hours/labor.defaultHours:1;
  const perPersonHour=labor.crewRateCents==null||!onSiteHours?null:labor.hours*labor.crewRateCents/(onSiteHours*scale);
  // Serialized phases use more crew elapsed time per person-hour than parallel work. Keep that
  // cost on the phase that causes it, so completing the corners removes its scheduling premium.
- // Once the crew has logged a working day, price the work still to come at what a person-hour has actually cost:
- // the estimate assumes every active crew member works every on-site hour, which overstates unpaid helpers' share.
- const loggedHours=shifts.reduce((n,s)=>n+projectShiftCost(s,now).hours,0),paidCents=shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents,0);
- const observedRate=labor.crewRateCents!=null&&loggedHours>=OBSERVED_RATE_MIN_HOURS&&paidCents>0?paidCents/loggedHours:null;
- const taskRate=task=>task.stage==='Shopping'?labor.shoppingRateCents:observedRate!==null?observedRate:perPersonHour===null?null:labor.taskOnSiteHours?.[task.id]!==undefined&&task.personHours>0?labor.taskOnSiteHours[task.id]*labor.crewRateCents/task.personHours:perPersonHour;
+ const estimateRate=task=>task.stage==='Shopping'?labor.shoppingRateCents:perPersonHour===null?null:labor.taskOnSiteHours?.[task.id]!==undefined&&task.personHours>0?labor.taskOnSiteHours[task.id]*labor.crewRateCents/task.personHours:perPersonHour;
  const shiftHours=s=>projectShiftCost(s,now).hours,weights=progressWeights(design),stagesOf=new Map(shifts.map(s=>[s.id,shiftStages(s,{log:tracking?.progressLog||[],design,tasks:labor.tasks,weights,now})])),share=(s,id)=>stagesOf.get(s.id)?.shares[id]??0;
- const tasks=labor.tasks.map(task=>{
-  const shopping=task.stage==='Shopping',estimateExact=task.personHours*(shopping?1:scale),estimate=Math.round(estimateExact*10)/10,progress=laborTaskProgress(task,{design,tracking,supplyProgress:supply});
-  const loggedHours=shifts.reduce((n,s)=>n+shiftHours(s)*share(s,task.id),0);
-  // Actual spending comes only from recorded shifts. Shopping already included in logged time must not be synthesized again.
-  const reported=false,actual=loggedHours;
-  const remaining=estimateExact*(1-progress/100),rate=taskRate(task);
-  return {id:task.id,name:task.name,stage:task.stage,estimate,progress,remainingExact:remaining,actual:Math.round(actual*100)/100,reported,remaining:Math.round(remaining*100)/100,projected:Math.round((actual+remaining)*100)/100,
+ const shoppingIds=new Set(labor.tasks.filter(t=>t.stage==='Shopping').map(t=>t.id));
+ const base=labor.tasks.map(task=>{const shopping=task.stage==='Shopping',estimateExact=task.personHours*(shopping?1:scale);
+  return {task,shopping,estimateExact,progress:laborTaskProgress(task,{design,tracking,supplyProgress:supply}),actual:shifts.reduce((n,s)=>n+shiftHours(s)*share(s,task.id),0)};});
+ const unassigned=shifts.filter(s=>!stagesOf.get(s.id)),unassignedHours=unassigned.reduce((n,s)=>n+shiftHours(s),0),nonBuildHours=shifts.filter(s=>stagesOf.get(s.id)?.nonBuild).reduce((n,s)=>n+shiftHours(s),0);
+ // Build time only: shopping runs and not-build work say nothing about building pace or who builds.
+ const buildShift=s=>!stagesOf.get(s.id)?.nonBuild&&!shoppingIds.has(s.taskId),buildHoursBy={};for(const s of shifts)if(buildShift(s))buildHoursBy[s.personId]=(buildHoursBy[s.personId]||0)+shiftHours(s)*(1-[...shoppingIds].reduce((n,id)=>n+share(s,id),0));
+ // Only work that has time logged against it (plus setup, which is never logged directly) measures pace: work marked
+ // done without logged time would make the crew look faster than it is.
+ const buildLogged=Object.values(buildHoursBy).reduce((a,b)=>a+b,0),doneEstimate=base.filter(b=>!b.shopping&&(b.actual>0||b.task.stage==='All')).reduce((n,b)=>n+b.estimateExact*b.progress/100,0);
+ // Pace: build hours logged per estimated hour of the build work done so far. It scales the build work still to come.
+ const pace=usePace&&buildLogged>=HISTORY_MIN_HOURS&&doneEstimate>=HISTORY_MIN_HOURS?Math.min(2,Math.max(.5,buildLogged/doneEstimate)):null;
+ const paidCents=shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents,0),loggedHours=shifts.reduce((n,s)=>n+shiftHours(s),0);
+ const people=Array.isArray(crew)&&loggedHours>=HISTORY_MIN_HOURS&&paidCents>0?crewShares(crew,buildHoursBy):null,workers=people?.length?effectiveCrew(people.reduce((n,p)=>n+p.share,0)):null;
+ const crewRate=workers?people.reduce((n,p)=>n+p.share*p.rateCents,0)/workers:null;
+ const tasks=base.map(({task,shopping,estimateExact,progress,actual})=>{
+  const estimate=Math.round(estimateExact*10)/10,remaining=estimateExact*(1-progress/100)*(shopping||pace===null?1:pace),rate=shopping?labor.shoppingRateCents:crewRate??estimateRate(task);
+  return {id:task.id,name:task.name,stage:task.stage,estimate,progress,remainingExact:remaining,actual:Math.round(actual*100)/100,reported:false,remaining:Math.round(remaining*100)/100,projected:Math.round((actual+remaining)*100)/100,
    actualCents:Math.round(shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents*share(s,task.id),0)),
    remainingCents:remaining<=0?0:rate==null?null:Math.round(remaining*rate)};
  });
-const unassigned=shifts.filter(s=>!stagesOf.get(s.id)),unassignedHours=unassigned.reduce((n,s)=>n+shiftHours(s),0),nonBuildHours=shifts.filter(s=>stagesOf.get(s.id)?.nonBuild).reduce((n,s)=>n+shiftHours(s),0);
- const sum=key=>tasks.reduce((n,t)=>n+(t[key]??0),0),actualCents=shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents,0); // every entry once, however it splits across stages
+ const sum=key=>tasks.reduce((n,t)=>n+(t[key]??0),0),actualCents=paidCents; // every entry once, however it splits across stages
  // Tasks without a rate are left out of the cost, as in the estimate, and counted in unpricedTasks. Summing
  // unrounded hours before pricing keeps a fresh projection equal to the estimate to the cent.
  const priced=(shop,rate)=>rate==null?0:Math.round(tasks.filter(t=>(t.stage==='Shopping')===shop).reduce((n,t)=>n+t.remainingExact,0)*rate);
- const remainingCents=Math.round(tasks.filter(t=>t.stage!=='Shopping').reduce((n,t)=>n+t.remainingExact*(taskRate(labor.tasks.find(x=>x.id===t.id))??0),0))+priced(true,labor.shoppingRateCents);
+ const buildRemaining=tasks.filter(t=>t.stage!=='Shopping').reduce((n,t)=>n+t.remainingExact,0);
+ const remainingCents=(crewRate!==null?Math.round(buildRemaining*crewRate):Math.round(tasks.filter(t=>t.stage!=='Shopping').reduce((n,t)=>n+t.remainingExact*(estimateRate(labor.tasks.find(x=>x.id===t.id))??0),0)))+priced(true,labor.shoppingRateCents);
  const actualHours=sum('actual')+unassignedHours+nonBuildHours,remainingHours=sum('remainingExact');
- return {tasks,nonBuildHours:Math.round(nonBuildHours*100)/100,observedRateCents:observedRate===null?null:Math.round(observedRate),shiftStages:Object.fromEntries(stagesOf),unassignedHours:Math.round(unassignedHours*100)/100,unassignedCount:unassigned.length,
+ return {tasks,nonBuildHours:Math.round(nonBuildHours*100)/100,pace:pace===null?null:Math.round(pace*1000)/1000,crew:people,effectiveWorkers:workers===null?null:Math.round(workers*100)/100,
+  ratePerPersonHourCents:crewRate===null?null:Math.round(crewRate),observedRateCents:crewRate===null?null:Math.round(crewRate),remainingOnSiteHours:workers?Math.round(buildRemaining/workers*10)/10:null,
+  shiftStages:Object.fromEntries(stagesOf),unassignedHours:Math.round(unassignedHours*100)/100,unassignedCount:unassigned.length,
   estimateHours:Math.round(sum('estimate')*10)/10,actualHours:Math.round(actualHours*100)/100,remainingHours:Math.round(remainingHours*100)/100,projectedHours:Math.round((actualHours+remainingHours)*100)/100,
   estimateCents:labor.costCents,actualCents,remainingCents,unpricedTasks:tasks.filter(t=>t.remainingCents===null).length,projectedCents:actualCents+remainingCents};
 }
@@ -129,7 +145,7 @@ const unassigned=shifts.filter(s=>!stagesOf.get(s.id)),unassignedHours=unassigne
 // instead of the live Pricing guide estimate, which keeps moving as prices and the design change.
 export function projectCost({rows,finance,tracking,design,labor,now=Date.now()}){
  const materials=projectMaterials(rows,finance?.expenses||[],finance?.notNeeded||[]);
- const work=projectLabor(labor,{design,tracking,shifts:finance?.shifts||[],supply:supplyProgress(materials),now});
+ const work=projectLabor(labor,{design,tracking,shifts:finance?.shifts||[],crew:finance?.crew||null,supply:supplyProgress(materials),now});
  const estimateCents=materials.estimateCents+(labor.costCents??0),spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents+work.remainingCents;
  const quoteCents=finance?.budgetCents??null,baselineCents=quoteCents??estimateCents;
  return {materials,labor:work,estimateCents,quoteCents,baselineCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-baselineCents,estimateVarianceCents:spentCents+toGoCents-estimateCents};
@@ -143,7 +159,7 @@ export function projectCost({rows,finance,tracking,design,labor,now=Date.now()})
 export function progressWeights(design,{tracking=null,shifts=null,now=Date.now()}={}){
  const tasks=laborTasks(design).filter(t=>!['All','Shopping'].includes(t.stage)),hoursFor={};
  if(tracking&&shifts){
-  const result=projectLabor({tasks,hours:1,defaultHours:1,crewRateCents:null,shoppingRateCents:null,costCents:null},{design,tracking,shifts,now}),work=result.tasks;
+  const result=projectLabor({tasks,hours:1,defaultHours:1,crewRateCents:null,shoppingRateCents:null,costCents:null},{design,tracking,shifts,now,usePace:false}),work=result.tasks;
   const unlogged=work.filter(t=>!t.actual),guessed=unlogged.reduce((n,t)=>n+t.estimate*t.progress/100,0),loose=result.unassignedHours,scale=guessed&&loose?loose/guessed:1;
   for(const t of work)hoursFor[t.id]=(t.actual||t.estimate*t.progress/100*scale)+t.remainingExact;
  }else for(const t of tasks)hoursFor[t.id]=t.personHours;

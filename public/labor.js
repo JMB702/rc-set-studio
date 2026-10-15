@@ -59,7 +59,7 @@ export function laborTasks(d){
   }
   if(cyc.perimeter)add('cycFloorSweep','46',`Build the wall-to-floor sweeps · ${(cyc.straightLength/12).toFixed(1)} ft`,2+cyc.floorRibs*.25+cyc.straightLength/12*.2,'Template ribs, cleats and bent facing; includes straight sweep framing and skin, excludes compound corner junctions');
   if(cyc.corners&&cyc.perimeter)add('cycJunctions','47',cyc.corners===2?'Form and finish the two compound floor corners':`Form and finish the ${cyc.cornerSides[0]} compound floor corner`,24*cyc.corners,`Conservative planning allowance: 24 person-hours EACH (${24*cyc.corners} total), not a published benchmark. Includes radial ribs, separate tapered gores, repeated thin filling, sanding and raking-light corrections. At most two effective workers in this phase; drying is additional calendar time`);
-  add('cycFinish','48','Finish, prime and paint the cyclorama',1+cyc.skinArea*.06,'Straight seams and fastener fills, sanding, primer and two coats; compound-junction shaping is counted separately. Plan 3–5 additional drying days, weather and product dependent');
+  add('cycFinish','48','Fill and fair the cyclorama; prime and paint it with the walls',1+cyc.skinArea*.06,'Straight seams and fastener fills, sanding, primer and two coats; compound-junction shaping is counted separately. Plan 3–5 additional drying days, weather and product dependent');
  }
  add('shoppingDone','Shopping','Wall panels and jacks · shopping completed',3.5,'Jeff reported 3.5 hours for one shopper; included in project estimate, not automatically entered as paid time');
  add('shoppingRemaining','Shopping','Remaining supplies · shopping allowance',5,'One shopper: 3 hours bulk floor/platform pickup + 2 hours finish supplies and follow-up pickups');

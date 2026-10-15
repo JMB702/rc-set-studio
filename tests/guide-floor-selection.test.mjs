@@ -78,3 +78,12 @@ test('Platform frames go together inside out, with joist centers measured from t
  assert.match(lines[at(/Mark the joist centers/)],/14 1\/2″, 30 1\/2″ and 46 1\/2″ from the back end.*16″, 32″ and 48″ from its outside edge/);
  assert.deepEqual(Array.from(context.joistMarks(platform.platformPlan(90,18,18,90,{platformFront:12}))),[16,32,48]);
 });
+test('The seamless retrofit goes in before the walls are plastered, primed and painted',()=>{
+ const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,seamlessCorners:true,seamlessCornerSide:'right',floorLip:true};
+ const all=Array.from(context.steps(120,'charcoal',cfg)),at=stage=>all.findIndex(s=>s.stage===stage);
+ assert.ok(all.filter(s=>s.stage>=43).every(s=>at(s.stage)<at(28)),'every retrofit step comes before the wall finish');
+ assert.equal(all.at(-1).stage,28);assert.equal(all[at(28)].section,'finish');
+ assert.equal(all[at(48)].title,'Fill and fair the seamless surfaces');assert.doesNotMatch(all[at(48)].description,/Prime and paint the curved/);
+ assert.match(all[at(28)].description,/right rounded corner is already filled and faired; prime and paint it with the walls/);
+ const plain=Array.from(context.steps(120,'charcoal',{angle:90,platformShape:'none'}));assert.equal(plain.at(-1).stage,28,'without a retrofit the wall finish is still last');
+});

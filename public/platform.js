@@ -15,11 +15,16 @@ export const PLATFORM={
  maxLegSpan:48,
  skin:.106,            // lauan fascia, actual thickness
  stud:96,kerf:.125,
- gap:12,gapMin:0,gapMax:48
+ gap:12,gapMin:0,gapMax:48,
+ front:0,frontMax:48,   // setback of the front edge from the floor's front edge (not the lip)
+ minDepth:24            // the platform always keeps at least this much depth front to back
 };
 export const legLength=PLATFORM.height-PLATFORM.deck;           // 9.422″, floor to deck underside: every leg is this length
 export const rimBottom=legLength-PLATFORM.rim;                   // 5.922″: the top rim's lower edge
 export const bottomRimTop=PLATFORM.rim;                          // 3.5″: the bottom ring stands on the floor
+export const clampFront=v=>Math.max(0,Math.min(PLATFORM.frontMax,Math.round(Number.isFinite(+v)?+v:PLATFORM.front)));
+// A front setback never leaves the platform shallower than minDepth behind the back clearance.
+export const frontFor=(back,front)=>Math.max(0,Math.min(clampFront(front),96-back-PLATFORM.minDepth));
 export const clampGap=v=>Math.max(PLATFORM.gapMin,Math.min(PLATFORM.gapMax,Math.round(Number.isFinite(+v)?+v:PLATFORM.gap)));
 
 export function footprint(a){let c=Math.cos(a*Math.PI/180)*96,s=Math.sin(a*Math.PI/180)*96;return[[-96,0],[96,0],[96+c,s],[96+c,96],[-96-c,96],[-96-c,s]].filter((p,i,ar)=>!i||Math.hypot(p[0]-ar[i-1][0],p[1]-ar[i-1][1])>.001);}
@@ -36,9 +41,10 @@ function wallLines(a){const r=a*Math.PI/180,s=Math.sin(r),c=Math.cos(r);return {
 // further out: wall angle a, platform angle pa >= a. Both the real wing lines and the platform's own
 // lines keep the side gap, so the platform never comes closer to a wall than the gap.
 export const platformAngleFor=(a,pa)=>Math.min(90,Math.max(a,Number.isFinite(+pa)?+pa:a));
-export function platformOutline(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a){
+export function platformOutline(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,front=PLATFORM.front){
  pa=platformAngleFor(a,pa);const L=wallLines(a),P=wallLines(pa);let p=footprint(a);
  p=clipHalf(p,...L.back.n,L.back.c+back);
+ p=clipHalf(p,0,-1,-(96-frontFor(back,front)));
  for(const l of [L.right,L.left,P.right,P.left])p=clipHalf(p,...l.n,l.c+side);
  return ccw(p);
 }
@@ -71,8 +77,8 @@ function moduleCells(outline){
 
 export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,cfg={}){
  ({back,side}=cycloramaGaps({...cfg,angle:a,platformBack:back,platformSide:side}));
- back=clampGap(back);side=clampGap(side);pa=platformAngleFor(a,pa);
- const outline=platformOutline(a,back,side,pa),T=PLATFORM.lumber[0],D=PLATFORM.lumber[1],modules=[];
+ back=clampGap(back);side=clampGap(side);pa=platformAngleFor(a,pa);const front=frontFor(back,cfg.platformFront);
+ const outline=platformOutline(a,back,side,pa,front),T=PLATFORM.lumber[0],D=PLATFORM.lumber[1],modules=[];
  for(const {poly,row,col} of moduleCells(outline)){
   const E=edgeFrames(poly),n=E.length;
   E.forEach(e=>{e.shared=!onOutline(e.A,e.B,outline);Object.assign(e,e.shared?{wall:null,gap:null}:wallOf(e.A,e.B,a,back,side));e.fascia=!e.shared&&!(e.wall&&e.gap===0);});
@@ -101,7 +107,7 @@ export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,cfg={}){
    full:E.length===4&&Math.abs(mx1-mx0-PLATFORM.module)<.01&&Math.abs(mz1-mz0-PLATFORM.module)<.01,inside:p=>insidePoly(poly,p)});
  }
  const decks=platformDecks(modules),sheetLayout=packDecks(decks),fasciaPieces=platformFascia(outline,modules);
- return {angle:a,platformAngle:pa,back,side,outline,modules,decks,sheetLayout,fasciaPieces,...platformTotals(outline,modules,decks,sheetLayout,fasciaPieces)};
+ return {angle:a,platformAngle:pa,back,side,front,outline,modules,decks,sheetLayout,fasciaPieces,...platformTotals(outline,modules,decks,sheetLayout,fasciaPieces)};
 }
 
 // Long side strips bridge frames. Every butt joint stays on an existing corner leg.

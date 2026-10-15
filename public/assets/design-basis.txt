@@ -130,7 +130,10 @@ Optional and independent of the floor: none, angled or square. When a
 floor is also chosen it runs under the platform, wall to wall, and the
 platform stands on it. Finished top 10 above the floor it stands on.
 Outline: the 8ft floor footprint, kept a set gap from the back wall line and
-from both wing lines (each 0 to 48, default 12), out to the 96 front line.
+from both wing lines (each 0 to 48, default 12). Its front edge sits a set
+distance back from the floor's 96 front line (0 to 48, default 0; measured
+from the floor edge, never from the joining lip), always leaving at least 24
+of depth behind it.
 Wing gaps are measured from the full wing line. The platform's sides have
 their own angle, never wider than the walls: walls coming in push it in,
 while it can turn further in on its own (walls 45, platform 90 = square).

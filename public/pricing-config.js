@@ -20,14 +20,14 @@ export function normalizeConfiguration(input){
  // floor:'platform' was the earlier way to save a platform with no floor under it.
  const legacy=input.floor==='platform',floor=legacy?'none':input.floor,platformShape=input.platformShape??(legacy?((input.platformAngle??input.angle)>=90?'square':'angled'):'none');if(!['none','angled','square'].includes(platformShape))throw Error('Invalid platform shape.');
  const platformColor=input.platformColor??'#34383b';if(typeof platformColor!=='string'||!/^#[0-9a-f]{6}$/i.test(platformColor))throw Error('Invalid platform color.');
- const platformBack=input.platformBack??12,platformSide=input.platformSide??12;if(![platformBack,platformSide].every(v=>Number.isInteger(v)&&v>=0&&v<=48))throw Error('Invalid platform gap.');
+ const platformBack=input.platformBack??12,platformSide=input.platformSide??12,platformFront=input.platformFront??0;if(![platformBack,platformSide,platformFront].every(v=>Number.isInteger(v)&&v>=0&&v<=48))throw Error('Invalid platform gap.');
  const platformAngle=platformShape==='square'?90:Math.max(input.angle,input.platformAngle??input.angle);if(!Number.isInteger(platformAngle)||platformAngle>90)throw Error('Invalid platform angle.');
  const floorColor=input.floorColor??'#34383b';if(typeof floorColor!=='string'||!/^#[0-9a-f]{6}$/i.test(floorColor))throw Error('Invalid floor color.');
  const wallColor=input.wallColor??'#34383b';if(typeof wallColor!=='string'||!/^#[0-9a-f]{6}$/i.test(wallColor))throw Error('Invalid wall color.');
  if(!['supports','ballast','finishes'].every(k=>typeof input[k]==='boolean'))throw Error('Invalid material options.');
  if(!Array.isArray(input.excluded)||input.excluded.length>200||input.excluded.some(id=>typeof id!=='string'||!/^[-a-zA-Z\d]{1,80}$/.test(id)))throw Error('Invalid removed items.');
  if(!Array.isArray(input.customItems)||input.customItems.length>100)throw Error('Too many custom items.');const customItems=input.customItems.map(normalizeCustom);if(new Set(customItems.map(i=>i.id)).size!==customItems.length)throw Error('Duplicate custom item IDs.');
- return {floorLip:normalizeFloorLip(input),...normalizeSeamless(input),version:1,scope:input.scope,height:input.height,angle:input.angle,floor,platformShape,platformBack,platformSide,platformAngle,platformColor:platformColor.toLowerCase(),wallColor:wallColor.toLowerCase(),floorColor:floorColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
+ return {floorLip:normalizeFloorLip(input),...normalizeSeamless(input),version:1,scope:input.scope,height:input.height,angle:input.angle,floor,platformShape,platformBack,platformSide,platformFront,platformAngle,platformColor:platformColor.toLowerCase(),wallColor:wallColor.toLowerCase(),floorColor:floorColor.toLowerCase(),supports:input.supports,ballast:input.ballast,finishes:input.finishes,excluded:[...new Set(input.excluded)],customItems};
 }
 export function customizeRows(rows,configuration){const excluded=new Set(configuration.excluded);return consolidatePacks([...rows.filter(r=>!excluded.has(r.id)),...configuration.customItems.map(i=>({id:i.id,custom:true,name:i.title,description:i.description,availability:i.description,productUrl:i.link,purchaseQuantity:i.quantity,packSize:1,needed:i.quantity,unitPriceCents:i.unitPriceCents,subtotalCents:i.quantity*i.unitPriceCents,group:'custom',taxable:i.taxable===true}))]);}
 export function removedPart(tags,floor,excluded){const physical=tags.includes('laminate')?(floor==='wood'?'laminate':'floorPly'):tags[0];return excluded.includes(physical);}
@@ -38,10 +38,10 @@ export function normalizeDesign(input){
  const angle=Number(input.angle);if(![96,120].includes(input.height)||!Number.isFinite(angle)||angle<0||angle>90)throw Error('Invalid wall height or angle.');
  const legacy=input.floor==='platform',floor=legacy?'none':input.floor,platformShape=input.platformShape??(legacy?'angled':'none');
  if(!['none','wood','charcoal'].includes(floor)||!['none','angled','square'].includes(platformShape))throw Error('Invalid floor or platform.');
- const platformBack=input.platformBack??12,platformSide=input.platformSide??12;if(![platformBack,platformSide].every(v=>Number.isInteger(v)&&v>=0&&v<=48))throw Error('Invalid platform gap.');
+ const platformBack=input.platformBack??12,platformSide=input.platformSide??12,platformFront=input.platformFront??0;if(![platformBack,platformSide,platformFront].every(v=>Number.isInteger(v)&&v>=0&&v<=48))throw Error('Invalid platform gap.');
  const a=Math.round(angle),pa=platformShape==='square'?90:Math.round(Math.max(a,Number(input.platformAngle??a)));if(!Number.isFinite(pa)||pa>90)throw Error('Invalid platform angle.');
  const figures=input.figures??'rap';if(!['podcast','rap'].includes(figures))throw Error('Invalid figures.');
- return {floorLip:normalizeFloorLip(input),...normalizeSeamless(input),height:input.height,angle:a,wallColor:hex(input.wallColor,'wall'),platformShape,platformAngle:pa,platformBack,platformSide,platformColor:hex(input.platformColor??'#34383b','platform'),floor,floorColor:hex(input.floorColor??'#34383b','floor'),figures};
+ return {floorLip:normalizeFloorLip(input),...normalizeSeamless(input),height:input.height,angle:a,wallColor:hex(input.wallColor,'wall'),platformShape,platformAngle:pa,platformBack,platformSide,platformFront,platformColor:hex(input.platformColor??'#34383b','platform'),floor,floorColor:hex(input.floorColor??'#34383b','floor'),figures};
 }
 
 // The estimate actually reviewed with an approval. Older approvals have no recorded estimate.

@@ -6,7 +6,7 @@ export function guideCompletionMatchesDesign(data,design,stage){
  else if(stage===21||stage===22)keys=['height','angle'];
  else if(stage===28)keys=['height','angle','seamlessCorners','seamlessCornerSide'];
  else if(stage>=23&&stage<=27||stage===42)keys=['floor','angle','floorLip'];
- else if(stage>=30&&stage<=37)keys=['floor','angle','platformShape','platformAngle','platformBack','platformSide','seamlessCorners','seamlessPerimeter'];
+ else if(stage>=30&&stage<=37)keys=['floor','angle','platformShape','platformAngle','platformBack','platformSide','platformFront','seamlessCorners','seamlessPerimeter'];
  else if(stage>=43)keys=['height','angle','floor','seamlessCorners','seamlessCornerSide','seamlessPerimeter'];
  // The corner side only matters while rounded corners are on; older records have no side and meant both.
  const side=d=>d.seamlessCorners===true?d.seamlessCornerSide??'both':null;

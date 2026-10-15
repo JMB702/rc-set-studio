@@ -96,7 +96,7 @@ export function cycloramaRows(data,d,{finishes=true}={}){
 }
 // floor: 'none' | 'wood' | 'charcoal'; platformShape: 'none' | 'angled' | 'square'. Floor:'platform' is the older
 // spelling of a platform with no floor under it.
-export function priceRows(data,{scope,height,angle,floor,platformShape='none',supports=true,ballast=true,finishes=true,platformBack=PLATFORM.gap,platformSide=PLATFORM.gap,platformAngle=angle,floorLip=false,seamlessCorners=false,seamlessCornerSide='both',seamlessPerimeter=false}){
+export function priceRows(data,{scope,height,angle,floor,platformShape='none',supports=true,ballast=true,finishes=true,platformBack=PLATFORM.gap,platformSide=PLATFORM.gap,platformAngle=angle,platformFront=0,floorLip=false,seamlessCorners=false,seamlessCornerSide='both',seamlessPerimeter=false}){
  if(floor==='platform'){floor='none';if(platformShape==='none')platformShape='angled';}if(platformShape==='square')platformAngle=90;
  const key=height===120?'10x4':'8x4',n=scope==='panel'?1:8;let rows=scope==='floor'?[]:calculate(data,key,n,supports,ballast);
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
@@ -117,12 +117,12 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  const stud=data.products.find(p=>p.id==='crossbar');rows.push({...extra('corners','2×4×96 in stud · wing-corner drop',2,stud.unitPriceCents,stud.productUrl,`One per wing corner, screwed to both flats · ${stud.availability} · checked ${stud.checkedDate}`,'connections'),observedStock:stud.observedStock});
  const bar=rows.find(r=>r.id==='barScrews'),cornerScrews=16;if(bar){bar.needed+=cornerScrews;bar.purchaseQuantity=Math.ceil(bar.needed/bar.packSize);bar.subtotalCents=bar.purchaseQuantity*bar.unitPriceCents;}
  }
- if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor,{floorLip}));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessCornerSide,seamlessPerimeter}));}
+ if(scope!=='panel'){if(floor!=='none')rows.push(...floorRows(data,angle,floor,{floorLip}));if(platformShape!=='none')rows.push(...platformRows(data,angle,platformBack,platformSide,platformAngle,{platformFront,seamlessCorners,seamlessCornerSide,seamlessPerimeter}));}
  if(scope==='set')rows.push(...cycloramaRows(data,{height,angle,floor,seamlessCorners,seamlessCornerSide,seamlessPerimeter},{finishes}));
  // Pool identical consumable products by their measured use before rounding whole containers.
  // Paint colors are not pooled across different product URLs or wall/floor product families;
  // floor and platform share one tinted Porch & Patio product, so their gallons pool.
- const wallArea=n*4*height/12,seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),pl=platformShape==='none'?null:platformPlan(angle,platformBack,platformSide,platformAngle,{seamlessCorners,seamlessCornerSide,seamlessPerimeter}),cy=cycloramaPlan({height,angle,seamlessCorners,seamlessCornerSide,seamlessPerimeter});
+ const wallArea=n*4*height/12,seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),pl=platformShape==='none'?null:platformPlan(angle,platformBack,platformSide,platformAngle,{platformFront,seamlessCorners,seamlessCornerSide,seamlessPerimeter}),cy=cycloramaPlan({height,angle,seamlessCorners,seamlessCornerSide,seamlessPerimeter});
  const use={wallPrimer:wallArea/250,wallPaint:wallArea*2/data.wallPaint.coverageSqFtPerGallon,wallSeams:seamFt*10/12/150,wallSeamTape:seamFt*1.1,platformPrimer:pl?(pl.finishArea-pl.deckArea)/300:0,platformCompound:pl?(pl.finishArea-pl.deckArea)/150:0,platformTape:pl?(pl.tapeLength-pl.deckSeamLength)*1.1/12:0,floorPrimer:floorArea(angle)/250,floorPaint:floorArea(angle)*2/300,platformPaint:pl?pl.finishArea*2/300:0,platformDeckPrimer:pl?pl.deckArea/250:0,cycPrimer:cy.skinArea/250,cycPaint:cy.skinArea*2/data.wallPaint.coverageSqFtPerGallon,cycCompound:cy.skinArea/150+(cy.perimeter?cy.corners:0),cycTape:cy.tapeFeet*1.1};
  for(const row of rows)if(use[row.id]!==undefined){row.needed=use[row.id];row.packSize=['wallSeamTape','platformTape','cycTape'].includes(row.id)?250:1;row.sharedSupply=true;}
  return consolidatePacks(applyRetailChecks(data,rows));

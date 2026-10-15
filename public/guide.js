@@ -255,7 +255,18 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
    slabAt([[0,0],[L,0],[L,W],[0,W]]);
    draw([[0,s+rc.kerf/2],[L,s+rc.kerf/2]],cut);for(let k=1;k<=rc.along;k++){const x=k*s+(k-.5)*rc.kerf;draw([[x,0],[x,s]],cut);}
    for(let k=0;k<rc.along;k++){const x0=k*(s+rc.kerf);draw(arc(0,0,0,90,x0,0),pencil);draw(arc(s,s,180,270,x0,0),pencil);draw([[x0+s,0],[x0,s]],pencil);model.add(dimLabel(`Square ${k+1}`,x0+s/2,top+1,s/2,dark));model.add(dimLabel('rib',x0+6,top+1,6,dark));model.add(dimLabel('rib',x0+s-6,top+1,s-6,dark));}
-   model.add(dimLabel(`${inches(s)} rip`,L/2,top+1,s+(W-s)/2));model.add(dimLabel('offcut',rc.along*(s+rc.kerf)+rc.leftover/2,top+1,s/2,dark));
+   model.add(dimLabel('offcut strip',L/2,top+1,s+(W-s)/2,dark));model.add(dimLabel('offcut',rc.along*(s+rc.kerf)+rc.leftover/2,top+1,s/2,dark));
+   // Dimension lines outside the sheet: each piece along the length and across the width, then the whole sheet.
+   const tick=1.2,dim=(a,b,at,horizontal,text)=>{const p=horizontal?[[a,at],[b,at],[a,at-tick],[a,at+tick],[b,at-tick],[b,at+tick]]:[[at,a],[at,b],[at-tick,a],[at+tick,a],[at-tick,b],[at+tick,b]];
+    const flat=[];for(let i=0;i<p.length;i+=2)flat.push(p[i][0]*inch,top*inch,p[i][1]*inch,p[i+1][0]*inch,top*inch,p[i+1][1]*inch);model.add(lines(flat,cut));
+    model.add(horizontal?dimLabel(text,(a+b)/2,top+1,at-3.2):dimLabel(text,at-8,top+1,(a+b)/2));};
+   const ext=(x0,z0,x1,z1)=>draw([[x0,z0],[x1,z1]],0x9aa0a6);
+   for(let k=0;k<rc.along;k++){const x0=k*(s+rc.kerf);dim(x0,x0+s,-5,true,inches(s));ext(x0,0,x0,-12);ext(x0+s,0,x0+s,-12);}
+   const end=rc.along*(s+rc.kerf);dim(end,L,-5,true,inches(L-end));ext(L,0,L,-12);
+   dim(0,L,-12,true,`${inches(L)} sheet`);
+   dim(0,s,-5,false,inches(s));dim(s+rc.kerf,W,-5,false,inches(W-s-rc.kerf));ext(0,s+rc.kerf/2,-8,s+rc.kerf/2);ext(0,0,-28,0);ext(0,W,-28,W);
+   dim(0,W,-26,false,inches(W));
+   model.add(dimLabel(`${inches(r)} radius curves`,s/2,top+1,s/2+6,dark));
   }else if(stage===67||stage===68){
    slabAt([[0,0],[s,0],[s,s],[0,s]]);draw(arc(0,0,0,90),pencil);
    const pin=stage===67?[0,0]:[s,s],a=stage===67?45:225,pen=[pin[0]+r*Math.cos(a*Math.PI/180),pin[1]+r*Math.sin(a*Math.PI/180)];
@@ -271,7 +282,7 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
    slabAt([[s,0],...arc(s,s,270,180),[0,s]],ghost,-o,-o);slabAt([[0,s],...arc(0,0,90,0),[s,0]],ghost,o,o);
    model.add(dimLabel('rib',s*.22-o-w,top+1,s*.22-o-w,dark));model.add(dimLabel('rib',s*.78+o+w,top+1,s*.78+o+w,dark));
   }
-  bounds=visibleBounds(model);
+  bounds=visibleBounds(model);if(stage===66){bounds.min.x-=40*inch;bounds.min.z-=16*inch;}
  }
  function buildSet(stage){
   if(stage>=66&&stage<=70)return buildRibCut(stage);

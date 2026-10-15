@@ -85,3 +85,28 @@ export function applyFasciaCompound(material,part){
  };
  material.needsUpdate=true;return material;
 }
+
+// The rounded wall corner's skin at the wall finish: bare lauan like the walls, with the same feathered joint
+// compound as the wall seams (wallSeamCoverage) only at its seams: both edges where the curve meets the flat
+// walls, the vertical joints between skin sheets and the horizontal joint where the 8′ sheet meets the top piece.
+// Uses the skin grid's UVs: u runs along the developed arc, v up the height.
+export function applyCornerSkinSeams(material,{arc,height,uJoints,vJoints}){
+ const u=new Float32Array(8),v=new Float32Array(4);u.set(uJoints.slice(0,8));v.set(vJoints.slice(0,4));
+ material.customProgramCacheKey=()=>'corner-skin-seams-v1';
+ material.onBeforeCompile=shader=>{
+  Object.assign(shader.uniforms,{seamArc:{value:arc},seamHeight:{value:height},seamU:{value:u},seamUCount:{value:Math.min(8,uJoints.length)},seamV:{value:v},seamVCount:{value:Math.min(4,vJoints.length)}});
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vSeamUv;').replace('#include <begin_vertex>','#include <begin_vertex>\nvSeamUv = uv;');
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
+   varying vec2 vSeamUv; uniform float seamArc,seamHeight,seamU[8],seamV[4]; uniform int seamUCount,seamVCount;
+   float seamFeather(float d,float w){float t=clamp(1.0-d/w,0.0,1.0);return t*t*(3.0-2.0*t);}
+  `).replace('#include <map_fragment>',`#include <map_fragment>
+   float x=vSeamUv.x*seamArc,y=vSeamUv.y*seamHeight,a=0.0;
+   float wave=.28*sin(y*.31)+.14*sin(y*1.13),width=4.4+.3*sin(y*.21);
+   for(int i=0;i<8;i++){if(i>=seamUCount)break;a=max(a,seamFeather(abs(x-seamU[i]*seamArc+wave),width));}
+   for(int i=0;i<4;i++){if(i>=seamVCount)break;a=max(a,seamFeather(abs(y-seamV[i]+.22*sin(x*.45)),4.6));}
+   a*=.94+.04*sin(y*1.7+x*.31);
+   diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.863,.855,.799)*(1.0+.007*sin(x*.7+y*.31)),clamp(a,0.0,1.0));
+  `);
+ };
+ material.needsUpdate=true;return material;
+}

@@ -1,5 +1,5 @@
 export function instructionSentences(description){return (description.match(/.+?(?:[.!?](?=\s|$)|$)/g)||[description]).map(t=>t.trim()).filter(Boolean);}
-import {applyPlatformSeamTexture,applyFasciaCompound} from './platform-finish.js';
+import {applyPlatformSeamTexture,applyFasciaCompound,applyCornerSkinSeams} from './platform-finish.js';
 import * as T from 'three';
 import {stepFasteners} from './step-fasteners.js';
 import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,cycloramaMesh,slab,dispose,grain,footprint} from './model.js';
@@ -320,7 +320,10 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
   if(stage===21)for(const seam of [-48,0,48])for(const h of [12,36,60,84,...(S.height===120?[108]:[])]){const marker=new T.Mesh(new T.SphereGeometry(.026,8,5),mats.highlight);marker.position.set(seam*inch,h*inch,-.85*inch);markers.add(marker);}
   if(stage>=43||stage===28){const cyc=cycloramaMesh(S,{stage:stage===28?48:stage,construction:true});model.add(cyc);cyc.traverse(o=>{if(o.isMesh){o.userData.guideMaterial=true;
    // The curved skin is raw plywood while it goes on, then filled and faired compound; it is primed and painted with the walls.
-   if(o.material.userData.surface==='wall'){const filled=stage===48||stage===28,m=(filled?mats.compound:mats.ply).clone();m.side=T.DoubleSide;if(filled)m.color.setRGB(1.4,1.4,1.4);o.material.dispose();o.material=m;}
+   if(o.material.userData.surface==='wall'){const corner=stage===28&&o.name.startsWith('Rounded wall corner'),filled=!corner&&(stage===48||stage===28),m=(filled?mats.compound:mats.ply).clone();m.side=T.DoubleSide;if(filled)m.color.setRGB(1.4,1.4,1.4);
+    // At the wall finish the rounded corner is bare lauan plastered only at its seams, exactly like the walls.
+    if(corner){m.color.set(0xf5edd6);const plan=cyc.userData.plan,columns=Math.max(1,Math.ceil(plan.cornerArc/47)),box=new T.Box3().setFromBufferAttribute(o.geometry.attributes.position),height=(box.max.y-box.min.y)/inch;applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:Array.from({length:columns+1},(_,k)=>k/columns),vJoints:height>96?[96]:[]});}
+    o.material.dispose();o.material=m;}
    if(stage>=43&&(o.userData.guideStage??o.userData.step)===stage&&stage!==48||(stage===63||stage===64)&&o.name.startsWith('Added crossbar'))outlinePiece(o);}});}
   bounds=visibleBounds(model);
   // Floor work is viewed from above; frame the footprint rather than empty wall height.

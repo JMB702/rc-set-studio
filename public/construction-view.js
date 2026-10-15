@@ -8,18 +8,24 @@ export function installConstructionView(api){
  const viewport=document.querySelector('.viewport'),toggle=document.createElement('button');toggle.id='construction-view-toggle';toggle.type='button';toggle.setAttribute('aria-pressed','false');
  toggle.innerHTML='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Z M3 8v8l9 5 9-5V8 M12 13v8"/><path d="m7 5 9 5" stroke-dasharray="2 2"/></svg>';
  viewport.append(toggle);
+ // Explore shows the three views as a labeled switch instead of the icon button.
+ const switcher=document.createElement('div');switcher.id='view-switch';switcher.setAttribute('role','group');switcher.setAttribute('aria-label','3D view');
+ switcher.innerHTML=[['finished','Finished'],['progress','Progress'],['lighting','Lit']].map(([v,t])=>`<button type="button" data-view-mode="${v}" aria-pressed="false">${t}</button>`).join('');viewport.append(switcher);
  const status=document.createElement('span');status.id='construction-view-status';status.setAttribute('role','status');viewport.append(status);
  let statusTimer;
  function announceView(){clearTimeout(statusTimer);status.classList.add('view-notice-visible');statusTimer=setTimeout(()=>status.classList.remove('view-notice-visible'),2600);}
- let view='progress',defaultRig,guideColor=true,tracking=null,revision=-1,materials=new Map(),watched=new WeakSet(),disposed=false,loading=false,generation=0;
+ // Each tab remembers its own view: Explore opens on the finished set, Cost & Tracking on build progress.
+ const viewBy={finished:'finished',pricing:'progress'},current=()=>viewBy[api.state.mode]??'progress',setView=v=>{viewBy[api.state.mode==='pricing'?'pricing':'finished']=v;};
+ let defaultRig,guideColor=true,tracking=null,revision=-1,materials=new Map(),watched=new WeakSet(),disposed=false,loading=false,generation=0;
  const originalBefore=api.scene.onBeforeRender,originalAfter=api.scene.onAfterRender;let restored=[];
  const views=['progress','finished','lighting'],names={progress:'Build progress',finished:'Finished set',lighting:'Lighting preview'};
- function mode(){return api.state.mode==='cameras'||(api.state.mode==='build'?guideColor:view!=='progress');}
- const lighting=()=>!['build','cameras'].includes(api.state.mode)&&view==='lighting';
- function sync(){const color=mode(),build=api.state.mode==='build';toggle.hidden=api.state.mode==='cameras';toggle.setAttribute('aria-pressed',String(color));toggle.classList.toggle('lighting-view',lighting());
-  const now=build?(color?'This step':'Build progress'):names[view],next=build?(color?'Build progress':'This step'):names[views[(views.indexOf(view)+1)%3]];toggle.setAttribute('aria-label','Show '+next.toLowerCase());toggle.title=now+' · show '+next.toLowerCase();
+ function mode(){return api.state.mode==='cameras'||(api.state.mode==='build'?guideColor:current()!=='progress');}
+ const lighting=()=>!['build','cameras'].includes(api.state.mode)&&current()==='lighting';
+ function sync(){const color=mode(),build=api.state.mode==='build',explore=api.state.mode==='finished';toggle.hidden=api.state.mode==='cameras'||explore;switcher.hidden=!explore;for(const b of switcher.querySelectorAll?.('[data-view-mode]')??[])b.setAttribute('aria-pressed',String(b.dataset.viewMode===current()));toggle.setAttribute('aria-pressed',String(color));toggle.classList.toggle('lighting-view',lighting());
+  const now=build?(color?'This step':'Build progress'):names[current()],next=build?(color?'Build progress':'This step'):names[views[(views.indexOf(current())+1)%3]];toggle.setAttribute('aria-label','Show '+next.toLowerCase());toggle.title=now+' · show '+next.toLowerCase();
   status.textContent=api.state.mode==='cameras'?'':now==='Build progress'&&!tracking?'Progress unavailable':lighting()&&defaultRig===null?'Lighting preview · no default setup':now;status.hidden=api.state.mode==='cameras';api.invalidate();}
- toggle.onclick=()=>{if(api.state.mode==='build')guideColor=!guideColor;else view=views[(views.indexOf(view)+1)%3];applyLighting();sync();announceView();window.dispatchEvent(new Event('studio-view-changed'));};
+ switcher.onclick=e=>{const b=e.target.closest('[data-view-mode]');if(!b)return;setView(b.dataset.viewMode);applyLighting();sync();window.dispatchEvent(new Event('studio-view-changed'));};
+ toggle.onclick=()=>{if(api.state.mode==='build')guideColor=!guideColor;else setView(views[(views.indexOf(current())+1)%3]);applyLighting();sync();announceView();window.dispatchEvent(new Event('studio-view-changed'));};
  // Lighting preview lights the finished set with the default saved lighting setup, shared across devices.
  async function loadDefault(){try{const r=await fetch('/api/lighting-setups',{signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error();defaultRig=(await r.json()).setups.find(s=>s.isDefault)?.rig??null;}catch{defaultRig=null;}}
  async function applyLighting(){if(!lighting()){api.lighting?.preview(null);return;}if(defaultRig===undefined)await loadDefault();if(lighting())api.lighting?.preview(defaultRig);sync();if(defaultRig===null){status.title='Set a default in Camera positions › Lighting controls › Saved setups.';announceView();}}
@@ -30,7 +36,7 @@ export function installConstructionView(api){
  function accept(data,nextRevision){if(nextRevision!==undefined&&nextRevision<revision)return;tracking=projectUpgradeTracking(data);if(nextRevision!==undefined)revision=nextRevision;pinBuildDesign();sync();window.dispatchEvent(new CustomEvent('project-tracking-loaded',{detail:tracking}));}
  async function refresh(){if(loading||disposed)return;loading=true;const version=generation;try{let data=await window.__rcEarlyTracking?.('construction-view');if(!data){const r=await fetch('/api/project/tracking',{signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('Progress unavailable');data=await r.json();}if(version===generation)accept(data.data,data.revision);}catch{if(!tracking&&!mode()){status.textContent='Progress unavailable';status.title='Could not load saved progress. Unconfirmed parts remain gray.';}}finally{loading=false;}}
  window.addEventListener('project-tracking-changed',e=>{generation++;revision=-1;accept(e.detail);});
- window.addEventListener('studio-view-changed',()=>{toggle.hidden=api.state.mode==='cameras';status.hidden=api.state.mode==='cameras';});
+ window.addEventListener('studio-view-changed',()=>{toggle.hidden=api.state.mode==='cameras'||api.state.mode==='finished';switcher.hidden=api.state.mode!=='finished';status.hidden=api.state.mode==='cameras';});
  const baseMode=api.setMode;api.setMode=m=>{const changed=m!==api.state.mode,result=baseMode(m);pinBuildDesign();applyLighting();sync();if(changed)announceView();return result;};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>api.setMode(b.dataset.mode));
  function inheritedPanel(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
  function finishMaterial(base,part,result){const ghost=!result.assembled,finish=part.rawOnly?'base':result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish)+(finish==='seams'&&!ghost?':'+JSON.stringify(part.seamEdges||[]):'');if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();if(!ghost&&finish==='seams'&&part.kind==='platform')applyPlatformSeamTexture(m,part,mats.compound.map);materials.set(key,m);}

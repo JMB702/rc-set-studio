@@ -829,3 +829,53 @@ body.camera-positions main .controls{padding-bottom:180px}
 #price-add-form .price-tax-choice{display:flex;align-items:center;gap:8px}#price-add-form #price-taxable{width:18px;height:18px;padding:0;flex:none}
 
 .price-pickup-unknown{font-size:11px;color:#687267}
+
+/* Design panel, Oct 15 redesign: an accordion whose closed headers are the design summary. */
+.design-head{align-items:center;margin-bottom:12px}
+.design-head h2{margin:0;font-size:22px}
+.acc{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+#figure-controls.acc{margin-top:12px;padding:0;border-top:1px solid var(--line)}
+.acc-item+.acc-item{border-top:1px solid var(--line)}
+.acc-heading{margin:0;font:inherit}
+.acc-head{width:100%;display:grid;grid-template-columns:auto minmax(0,1fr) auto 16px;align-items:center;gap:10px;min-height:58px;padding:0 16px;background:none;text-align:left;color:var(--ink)}
+.acc-head:hover{background:#f6f8f4}
+.acc-title{font-size:16px;font-weight:650;letter-spacing:-.2px}
+.acc-value{font-size:14px;color:#4a5856;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acc-dot{width:14px;height:14px;border-radius:50%;border:1px solid #0000002a}
+.acc-dot[hidden]{display:block;visibility:hidden}
+.acc-dot.oak{background:linear-gradient(135deg,#c9a173,#9a7148)}
+.acc-chevron{width:16px;height:16px;color:#6b7774;transition:transform .18s}
+.acc-item.open>.acc-heading .acc-chevron{transform:rotate(180deg)}
+.acc-item.open>.acc-heading .acc-head{background:#f6f8f4}
+.acc-body{padding:4px 16px 20px;background:#fff}
+.acc-body>.field:first-child,.acc-body>div>.field:first-child{margin-top:12px}
+#figure-controls .acc-head{grid-template-columns:auto minmax(0,1fr) 16px}
+.figure-section{border-top:0;padding-top:0}
+.choice button.has-icon{align-items:center;text-align:center;gap:4px;padding:8px 6px}
+.choice-icon{width:40px;height:28px;color:#5c6966}
+.choice button[aria-pressed=true] .choice-icon{color:var(--ink)}
+.choice button{min-height:46px}
+.slider-field input[type=range]{width:100%}
+.ticks{position:relative;height:30px;margin-top:4px}
+.ticks button{position:absolute;top:0;transform:translateX(-50%);min-height:28px;padding:0 10px;border-radius:14px;background:#eef1ec;color:#3b4a47;font-size:13px;font-weight:600}
+.ticks button:nth-child(1){left:9px;transform:none;left:0}
+.ticks button:nth-child(2){left:50%}
+.ticks button:nth-child(3){left:auto;right:0;transform:none}
+.ticks button[aria-pressed=true]{background:var(--ink);color:#fff}
+.plan-wrap{margin:14px 0 4px;padding:10px;border-radius:10px;background:#f4f6f2}
+.plan{display:block;width:100%;height:auto;max-height:280px;overflow:hidden}
+.plan-floor{fill:#e1e5de;stroke:#b9c2b6;stroke-width:1}
+.plan-floor.bare{fill:none;stroke-dasharray:4 4}
+.plan-lip{fill:#e1e5de;opacity:.55;stroke:#b9c2b6;stroke-dasharray:4 3}
+.plan-wall{fill:none;stroke:var(--ink);stroke-width:5;stroke-linejoin:round;stroke-linecap:round}
+.plan-platform{fill:var(--c);fill-opacity:.8;stroke:var(--ink);stroke-width:1.5}
+.plan-dim{stroke:#4f8a24;stroke-width:2.5;stroke-dasharray:5 3}
+.plan-label{fill:#244a0c;font-weight:700;paint-order:stroke;stroke:#ffffffe6;stroke-width:.32em;stroke-linejoin:round}
+body:not(.building):not(.pricing):not(.camera-positions) #view-hint{display:none}
+@media(max-width:850px){.acc-head{min-height:54px;padding:0 14px}.acc-body{padding:2px 14px 18px}.acc-value{font-size:13px}}
+#view-switch{position:absolute;right:16px;top:16px;z-index:7;display:flex;padding:3px;gap:2px;border-radius:999px;background:#ffffffd9;border:1px solid #c9d3c6;box-shadow:0 2px 10px #17202414;backdrop-filter:blur(6px)}
+#view-switch[hidden]{display:none}
+#view-switch button{min-height:34px;padding:0 14px;border-radius:999px;background:none;color:#3b4a47;font-size:13px;font-weight:600}
+#view-switch button[aria-pressed=true]{background:var(--ink);color:#fff}
+body:not(.building):not(.pricing):not(.camera-positions) #construction-view-status{top:62px;right:18px}
+@media(max-width:850px){#view-switch{right:10px;top:10px}#view-switch button{min-height:32px;padding:0 11px;font-size:12px}}

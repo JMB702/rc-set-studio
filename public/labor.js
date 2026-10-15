@@ -95,7 +95,7 @@ export function mountLabor(host,api){
 
 // Materials and labor for the full set, for the approval gate.
 export function costSummary(data,d){
- const rows=priceRows(data,{scope:'set',height:d.height,angle:d.angle,floor:d.floor,platformShape:d.platformShape,platformBack:d.platformBack,platformSide:d.platformSide,platformAngle:d.platformAngle,seamlessCorners:d.seamlessCorners,seamlessCornerSide:d.seamlessCornerSide??'both',seamlessPerimeter:d.seamlessPerimeter}),m=summary(rows),labor=laborFor(d);
+ const rows=priceRows(data,{scope:'set',height:d.height,angle:d.angle,floor:d.floor,platformShape:d.platformShape,platformBack:d.platformBack,platformSide:d.platformSide,platformAngle:d.platformAngle,platformFront:d.platformFront??0,seamlessCorners:d.seamlessCorners,seamlessCornerSide:d.seamlessCornerSide??'both',seamlessPerimeter:d.seamlessPerimeter}),m=summary(rows),labor=laborFor(d);
  return {taxCents:materialTax(rows),materialsCents:m.subtotal,pending:m.pending,lines:rows.length,labor,totalCents:m.subtotal+materialTax(rows)+(labor.costCents??0)};
 }
 

@@ -41,9 +41,13 @@ export function laborTasks(d){
   else{const plan=floorPlan(d.angle,d),sheets=plan.sheetCount,layers=(plan.pieces.length*.20+plan.cutCount*.06+2)/2,skim=area/60,coat=area/200;add('floor','23–27, 42',`Build and paint the double-layer plywood floor · ${area.toFixed(0)} sq ft`,1+layers*2+skim+coat*3,`Footprint, ${sheets} sheets → ${plan.pieces.length} placed pieces, ${plan.cutCount} edge cuts (0.2 h per placed piece + 0.06 h per cut), ${plan.lip?"12″ joining ledge, ":""}two bonded layers, cement skim, primer, two paint coats; planning labor, excludes cure time and future touch-ups`);tasks.at(-1).stageHours={23:1,24:layers,42:layers,25:skim,26:coat,27:coat*2};}
  }
  if(platformShape!=='none'){const pl=platformPlan(d.angle,d.platformBack??12,d.platformSide??12,platformShape==='square'?90:Math.max(d.angle,d.platformAngle??d.angle),d),c=pl.counts,ft=v=>v/12;
-  add('platformFrame','30–31',`Cut and frame the platform · ${c.modules} modules`,.5+pl.lumberLengths.length*.06+c.modules,`${pl.lumberLengths.length} cuts, ${c.modules} module frames`);
-  add('platformLegs','32–33','Legs and bottom rings, then set and join the modules',c.legs*.15+c.bottomRims*.1+c.modules*.35,`${c.legs} legs, ${c.bottomRims} bottom rims`);
-  add('platformDeck','34–35','Deck and fascia',pl.deckSheets*.4+pl.deckCuts*.1+pl.deckScrews*.005+ft(pl.fasciaLength)*.12,`${pl.decks.length} deck pieces from ${pl.deckSheets} sheets (${pl.deckCuts} saw cuts), ${ft(pl.fasciaLength).toFixed(0)} ft of fascia`);
+  // Platform build allowances come from the work itself: one stop-block setup per distinct cut length and
+  // quick repeated cuts, about 3 minutes per screwed frame joint, about 4 minutes per leg, half an hour per frame
+  // to flip, set and level it, and the deck and fascia by sheet, saw cut, screw and fitted strip.
+  const lengths=new Set(pl.lumberLengths.map(l=>Math.round(l*16))).size,joints=c.rims+2*(c.joists+c.seamJoists);
+  add('platformFrame','30–31',`Lay out, cut and frame the platform · ${c.modules} frames`,.75+lengths*.1+pl.lumberLengths.length*.02+joints*.05,`Layout; ${pl.lumberLengths.length} cuts in ${lengths} lengths with a stop block; ${joints} screwed frame joints`);
+  add('platformLegs','32–33','Legs and bottom rings, then set and join the frames',c.legs*.07+c.bottomRims*.05+c.modules*.5+ft(pl.seamLength)*.05,`${c.legs} legs, ${c.bottomRims} bottom rims, ${c.modules} frames to flip, level and join`);
+  add('platformDeck','34–35','Deck and fascia',pl.deckSheets*.25+pl.deckCuts*.15+pl.deckScrews*.004+pl.fasciaStrips*.1+pl.fasciaPieces.length*.25,`${pl.decks.length} deck pieces from ${pl.deckSheets} sheets (${pl.deckCuts} saw cuts, ${pl.deckScrews} screws); ${pl.fasciaPieces.length} fascia pieces from ${pl.fasciaStrips} ripped strips`);
   add('platformFinish','36–37',`Tape, skim, prime and paint the platform · ${pl.finishArea.toFixed(0)} sq ft`,ft(pl.tapeLength+pl.beadLength)*JOINT_HOURS_PER_FT+pl.finishArea*.03+pl.finishArea*3/120,`${ft(pl.tapeLength+pl.beadLength).toFixed(0)} ft of taped joints and corner bead at ${JOINT_HOURS_PER_FT} h/ft, deck cement skim and scenic fascia finishing, primer, two paint coats; excludes curing and future touch-ups`);
  }
  const cyc=cycloramaPlan(d);

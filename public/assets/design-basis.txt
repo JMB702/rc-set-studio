@@ -138,10 +138,11 @@ Wing gaps are measured from the full wing line. The platform's sides have
 their own angle, never wider than the walls: walls coming in push it in,
 while it can turn further in on its own (walls 45, platform 90 = square).
 Its sides keep the gap from both the real wings and their own angle line. An edge set flush (0 gap) against a wall gets no fascia.
-Modules: each row of equal depth, no deeper than 48; each row divided into
-equal columns no wider than 48. Small end pieces merge into a neighbor.
+Modules: each row of equal depth, no deeper than 48. Columns follow the deck
+sheet joints every 48 from the left edge; a leftover under 16 wide merges into
+the last column, with a seam joist under its deck joint.
 All lumber actual 1.5x3.5 (2x4). Rims stand on edge around each module,
-butted pinwheel style; joists front-to-back at 16 centers. Each module also
+butted pinwheel style; joists side to side at 16 centers. Each module also
 has an identical bottom ring of 2x4s on edge, standing on the floor, so every
 rim length is cut twice. Rim and leg stubs under 4 at clipped corners are
 omitted. Legs: one in every corner plus intermediates so no rim spans more
@@ -149,14 +150,18 @@ than 48, all 9.422 (9 7/16), floor to deck underside, inside both rings and
 screwed through the top and bottom rims. 2 7/16 scrap spacers set the bottom
 ring flush with the leg ends during assembly. Default square: 40 studs
 (was 30 with flat sills). Deck: Plytanium 19/32 BC
-sanded plywood, actual 0.578 x 47.938 x 95.938. Pair adjacent frame cells
-within each row into larger deck pieces up to one 4x8 sheet, long direction
-across the front-to-back joists. Default square: 4 decks over 8 frames,
-4 sheets. Default 45-degree angled: 7 decks over 13 frames, 7 sheets.
+sanded plywood, actual 0.578 x 47.938 x 95.938. Rotated Oct 15 to cut less:
+each sheet keeps its full 4 width, 8 length and face grain front to back across
+the side-to-side joists, one crosscut to depth; only the last deck is ripped.
+Approved square (18 back/sides, 12 front setback): 4 decks over 6 frames from
+4 sheets with 5 saw cuts (the paired layout needed 8). Default 45-degree
+angled: 7 decks over 12 frames, 7 sheets.
 The cut plan centers undersized stock over supporting rims, at most 3/64
 allowance per edge; scribe angled boundaries to the joined frames.
 Decks screwed (#8x2.5 at 6 around deck perimeters, 12 on interior rims and
-joists), not glued. Remove spanning decks and fascia BEFORE separating the frames.
+joists, both sides of seam joists), not glued. Remove spanning decks and fascia
+BEFORE separating the frames. Fascia runs split into the fewest equal strips
+that fit 96 stock; joints land anywhere on the top and bottom rims.
 Frame seams retain #9x3 screws through adjoining rims, about every 12,
 both sides. Deck joints remain supported by rims or joists; no second deck layer.
 Fascia: 0.106 lauan, 10 tall, glued and stapled to the top and bottom rims.

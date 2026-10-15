@@ -90,8 +90,12 @@ export function dispose(r){r?.traverse(o=>{o.geometry?.dispose();if(o.material&&
 export function slab(pg,y0,y1){const shape=new T.Shape(pg.map(([x,z])=>new T.Vector2(x*inch,z*inch)));const g=new T.ExtrudeGeometry(shape,{depth:(y1-y0)*inch,bevelEnabled:false});g.rotateX(Math.PI/2);g.translate(0,y1*inch,0);g.computeBoundingBox();const s=g.boundingBox.getSize(new T.Vector3());return grain(g,[s.x/inch,s.y/inch,s.z/inch],pg.length);}
 // Deck and fascia pieces are separate sheets: each gets its own grain offset and a slight tone shift,
 // so joints read in raw plywood the way they do on the wall skins. Neighbors alternate light and dark.
-function slabMesh(G,id,pg,y0,y1,mat,step,sheet=null,shade=0){const g=slab(pg,y0,y1),v=sheet==null?null:sheetVariation(sheet,step===35);if(step===34||step===35){const p=g.attributes.position,n=g.attributes.normal,uv=g.attributes.uv,du=v?v.offsetX:0,dv=v?v.offsetY:0;// Grain follows texture V, along the 96″ sheet length: across the joists on top, along each strip on the sides.
-for(let i=0;i<p.count;i++){const top=Math.abs(n.getY(i))>.5,along=p.getZ(i)*n.getX(i)-p.getX(i)*n.getZ(i);uv.setXY(i,(top?p.getZ(i)/(48*inch):p.getY(i)/(48*inch))+du,(top?p.getX(i):along)/(96*inch)+dv);}}
+function slabMesh(G,id,pg,y0,y1,mat,step,sheet=null,shade=0){const g=slab(pg,y0,y1),v=sheet==null?null:sheetVariation(sheet,step===35);if(step===34||step===35){const p=g.attributes.position,n=g.attributes.normal,uv=g.attributes.uv,du=v?v.offsetX:0,dv=v?v.offsetY:0;// Grain follows texture V, along the 96″ sheet length: front to back on the deck, along each strip on the sides.
+// Each piece starts at its own sheet corner and is offset only within the tile's spare room, so no tile seam lands inside a sheet.
+const span=k=>{const a=pg.map(q=>q[k]);return [Math.min(...a),Math.max(...a)-Math.min(...a)];},[x0,w]=span(0),[z0,d]=span(1),room=(len,tile)=>Math.max(0,1-len/tile);
+for(let i=0;i<p.count;i++){const X=p.getX(i)/inch,Y=p.getY(i)/inch,Z=p.getZ(i)/inch,nx=n.getX(i),nz=n.getZ(i);
+ if(Math.abs(n.getY(i))>.5){const deck=step===34;uv.setXY(i,(X-x0)/48+du*room(w,48),deck?(Z-z0)/96+dv*room(d,96):(X-x0)/96+dv*room(w,96));}
+ else{const al=pg.map(q=>q[1]*nx-q[0]*nz),a0=Math.min(...al),len=Math.max(...al)-a0;uv.setXY(i,(Y-y0)/48+du*room(y1-y0,48),(Z*nx-X*nz-a0)/96+dv*room(len,96));}}}
  const o=mesh(G,id,g,mat,step);if(v){const m=o.material.clone(),c=m.color;c.multiplyScalar(Math.min(1,(shade?.8:1)*(1+v.tone)));c.b*=1-Math.max(0,v.warmth)*3;c.r*=1-Math.max(0,-v.warmth)*3;m.userData.sheetColor=c.getHex();o.material=m;}return o;}
 // The finished platform reads as one plastered block in its own color.
 export function platformFloor(a,back,side,pa=a,cfg={}){const plan=platformPlan(a,back,side,pa,cfg),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan);parts.userData.progressOnly=true;parts.visible=false;root.add(parts);root.userData.area=plan.deckArea;root.userData.plan=plan;root.position.y=floorSurfaceHeight(cfg)*inch;return root;}
@@ -101,6 +105,7 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
   const first=G.children.length;
   for(const r of m.rims)slabMesh(G,'Platform rim',r.poly,rimBottom,legLength,'wood',31).userData.cutLength=r.length;
   for(const j of m.joists)slabMesh(G,'Platform joist',j.poly,rimBottom,legLength,'wood',31).userData.cutLength=j.length;
+  for(const j of m.seamJoists)slabMesh(G,'Platform seam joist',j.poly,rimBottom,legLength,'wood',31).userData.cutLength=j.length;
   for(const l of m.legs)slabMesh(G,'Platform leg',l.poly,0,legLength,'wood',32).userData.cutLength=l.length;
   for(const r of m.bottomRims)slabMesh(G,'Platform bottom rim',r.poly,0,bottomRimTop,'wood',32).userData.cutLength=r.length;
   for(const o of G.children.slice(first))o.userData.progress={kind:'platform',stage:o.userData.step,module:moduleIndex,total:plan.modules.length,deckIndex:plan.decks.findIndex(d=>d.moduleIndices.includes(moduleIndex)),deckTotal:plan.decks.length,seamEdges:m.edges.map(e=>[...e.A,...e.B])};

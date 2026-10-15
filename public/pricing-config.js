@@ -55,7 +55,7 @@ export function normalizeApprovalEstimate(input){
  const rates=input.rates.map(r=>{if(r===null)return null;n(r,'hourly rate',10000000);if(!Number.isInteger(r))throw Error('Rates must be whole cents.');return r;});
  const materialsCents=n(input.materialsCents,'material total'),pending=n(input.pending,'pending materials',10000);
  if(!Number.isInteger(materialsCents)||!Number.isInteger(pending))throw Error('Invalid material total.');
- if(input.deckLayoutRevision!==undefined&&input.deckLayoutRevision!=='paired-v1')throw Error('Invalid deck layout revision.');
+ if(input.deckLayoutRevision!==undefined&&!['paired-v1','rotated-v1'].includes(input.deckLayoutRevision))throw Error('Invalid deck layout revision.');
  const shoppingHours=n(input.shoppingHours??0,'shopping hours',10000),shoppingRateCents=input.shoppingRateCents==null?null:n(input.shoppingRateCents,'shopping rate',10000000),taxCents=n(input.taxCents??0,'estimated tax');if(!Number.isInteger(taxCents)||shoppingRateCents!==null&&!Number.isInteger(shoppingRateCents))throw Error('Use whole cents for tax and shopping rate.');
  const priced=rates.filter(r=>r!==null),laborCents=priced.length||shoppingRateCents!==null?Math.round(hours*priced.reduce((s,r)=>s+r,0)+shoppingHours*(shoppingRateCents??0)):null;
  return {...(input.deckLayoutRevision?{deckLayoutRevision:input.deckLayoutRevision}:{}),crew,hours,defaultHours,personHours,rates,shoppingHours,shoppingRateCents,taxCents,materialsCents,pending,laborCents,totalCents:materialsCents+taxCents+(laborCents??0)};
@@ -63,7 +63,7 @@ export function normalizeApprovalEstimate(input){
 
 // UI equality follows saved settings; estimate-format revisions do not change those settings.
 export function approvalSettingsMatch(approval,design){return !!approval&&JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design));}
-export function approvalMatchesDesign(approval,design){return JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design))&&(normalizeDesign(design).platformShape==='none'||approval.estimate?.deckLayoutRevision==='paired-v1');}
+export function approvalMatchesDesign(approval,design){return JSON.stringify(normalizeDesign(approval.design))===JSON.stringify(normalizeDesign(design))&&(normalizeDesign(design).platformShape==='none'||approval.estimate?.deckLayoutRevision==='rotated-v1');}
 
 // Stable cost-row IDs remain intact while identical hardware packs and finishing containers are rounded only once.
 export function consolidatePacks(rows){const out=rows.map(r=>({...r})),groups=new Map();for(const r of out){if(r.custom||!(r.packSize>1||r.sharedSupply)||!Number.isFinite(r.needed)||r.unitPriceCents===null)continue;r.purchaseQuantity=Math.ceil(r.needed/r.packSize);r.subtotalCents=r.purchaseQuantity*r.unitPriceCents;if(r.unallocatedAvailability)r.availability=r.unallocatedAvailability;const key=[r.productUrl,r.packSize,r.unitPriceCents].join('|');if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}

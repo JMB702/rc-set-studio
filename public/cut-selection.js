@@ -10,7 +10,7 @@ const panelParts={
 };
 export function matchesCutPart(selection,name,length,deckId){
  if(selection.family==='panel')return panelParts[selection.part]?.test(name)||false;
- const names={'Rim':'Platform rim','Joist':'Platform joist','Bottom rim':'Platform bottom rim','Leg':'Platform leg','Decks':'Platform deck','Fascia strips':'Platform fascia'};
+ const names={'Rim':'Platform rim','Joist':'Platform joist','Seam joist':'Platform seam joist','Bottom rim':'Platform bottom rim','Leg':'Platform leg','Decks':'Platform deck','Fascia strips':'Platform fascia'};
  if(name!==names[selection.part]||selection.deckId&&selection.deckId!==deckId)return false;
  return selection.length==null||Math.round(length*16)===Math.round(selection.length*16);
 }

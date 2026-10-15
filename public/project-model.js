@@ -1,6 +1,6 @@
 // Shared validation and accounting. All money is integer cents; rates are captured per shift.
 export function projectDefaultFinance() {
- return {budgetCents:null,expenses:[],crew:[{id:'person-1',name:'Person 1',rateCents:0,archived:false},{id:'person-2',name:'Person 2',rateCents:0,archived:false}],shifts:[]};
+ return {budgetCents:null,expenses:[],notNeeded:[],crew:[{id:'person-1',name:'Person 1',rateCents:0,archived:false},{id:'person-2',name:'Person 2',rateCents:0,archived:false}],shifts:[]};
 }
 export function projectDefaultTracking(design) {
  const groups=[['walls','Walls',['Cut and label parts','Assemble the frames','Skin the panels','Build and attach jacks','Add shelves and ballast','Join walls and set angles','Dress, prime and paint']],['floor','Floor',['Mark the footprint','Prepare the base','Lay the flooring','Finish and trim']],['platform','Platform',['Cut and frame modules','Fit legs and join modules','Install decks and fascia','Skim, prime and paint']]];
@@ -98,10 +98,12 @@ export function projectValidate(kind,input,now=Date.now()) {
  // Receipt line items link a purchase to shopping-list rows by materialId; null means not on the list.
  const item=i=>i&&typeof i==='object'&&id(i.id)&&(i.materialId===null||id(i.materialId))&&str(i.description)&&(i.materialId!==null||i.description.trim())&&(i.quantity===null||Number.isFinite(i.quantity)&&i.quantity>0&&i.quantity<=100000)&&(i.amountCents===null||money(i.amountCents,true))&&typeof i.complete==='boolean'&&typeof i.substitute==='boolean'&&str(i.note,500);
  for(const e of input.expenses)if(e.items!==undefined&&(!list(e.items,200)||!unique(e.items)||!e.items.every(item)))fail('Check the receipt line items: each needs a shopping-list item or a description.');
+ // Shopping-list rows marked as not being bought. They stay on the list but drop out of still to buy.
+ const notNeeded=input.notNeeded??[];if(!list(notNeeded,500)||new Set(notNeeded.map(n=>n?.materialId)).size!==notNeeded.length||!notNeeded.every(n=>n&&typeof n==='object'&&id(n.materialId)&&str(n.note??'',500)))fail('Check the items marked as not needed.');
  for(const c of input.crew)if(!id(c.id)||!str(c.name,80)||!c.name.trim()||!money(c.rateCents)||typeof c.archived!=='boolean')fail('Check the crew name and hourly rate.');
  for(const s of input.shifts){const c=input.crew.find(c=>c.id===s.personId);if(!id(s.id)||!c||(s.taskId!=null&&!id(s.taskId))||!money(s.rateCents)||!str(s.note,2000)||!Number.isSafeInteger(s.start)||s.start<0||s.start>now+60000||s.end!==null&&(!Number.isSafeInteger(s.end)||s.end<s.start||s.end>now+60000)||s.end===null&&c.archived)fail('Check the shift times. Clock out before removing a person.');}
  for(const c of input.crew){const shifts=input.shifts.filter(s=>s.personId===c.id).sort((a,b)=>a.start-b.start);for(let i=1;i<shifts.length;i++)if(shifts[i-1].end===null||shifts[i].start<shifts[i-1].end)fail(`${c.name} has overlapping shifts. Correct the times first.`);}
- return {budgetCents:input.budgetCents,expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId,items:(e.items||[]).map(i=>({id:i.id,materialId:i.materialId,description:i.description.trim(),quantity:i.quantity===null?null:Math.round(i.quantity*100)/100,amountCents:i.amountCents,complete:i.materialId!==null&&i.complete,substitute:i.materialId!==null&&i.substitute,note:i.note.trim()}))})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note,taskId:s.taskId??null}))};
+ return {budgetCents:input.budgetCents,expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId,items:(e.items||[]).map(i=>({id:i.id,materialId:i.materialId,description:i.description.trim(),quantity:i.quantity===null?null:Math.round(i.quantity*100)/100,amountCents:i.amountCents,complete:i.materialId!==null&&i.complete,substitute:i.materialId!==null&&i.substitute,note:i.note.trim()}))})),notNeeded:notNeeded.map(n=>({materialId:n.materialId,note:(n.note??'').trim()})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note,taskId:s.taskId??null}))};
 }
 // Work history. When a tracker step's progress goes up, the server records when and by how much (progressLog), and a
 // step that reaches 100% is stamped completedAt unless it already has a time. Hours are matched to the work completed
@@ -114,12 +116,12 @@ export function projectStampProgress(previous,next,now){
   return {...t,completedAt:t.percent===100?(stamped??now):null};})}));
  return {...next,stages,progressLog:log.slice(-5000)};
 }
-// A window opened before line items and work stages existed saves expenses and shifts without those
-// fields. Carry them over from the stored record instead of erasing them.
+// A window opened before line items, work stages or not-needed rows existed saves without those fields.
+// Carry them over from the stored record instead of erasing them.
 export function projectPreserveFinance(previous,next){
  if(!next||!Array.isArray(next.expenses)||!Array.isArray(next.shifts))return next;
  const expenses=new Map((previous?.expenses||[]).map(e=>[e.id,e])),shifts=new Map((previous?.shifts||[]).map(s=>[s.id,s]));
- return {...next,expenses:next.expenses.map(e=>e&&typeof e==='object'&&!Object.hasOwn(e,'items')?{...e,items:expenses.get(e.id)?.items||[]}:e),shifts:next.shifts.map(s=>s&&typeof s==='object'&&!Object.hasOwn(s,'taskId')?{...s,taskId:shifts.get(s.id)?.taskId??null}:s)};
+ return {...next,...(Object.hasOwn(next,'notNeeded')?{}:{notNeeded:previous?.notNeeded||[]}),expenses:next.expenses.map(e=>e&&typeof e==='object'&&!Object.hasOwn(e,'items')?{...e,items:expenses.get(e.id)?.items||[]}:e),shifts:next.shifts.map(s=>s&&typeof s==='object'&&!Object.hasOwn(s,'taskId')?{...s,taskId:shifts.get(s.id)?.taskId??null}:s)};
 }
 // Prefer a labelled total, never a card number, tendered cash, savings or subtotal.
 export function projectParseReceipt(text) {

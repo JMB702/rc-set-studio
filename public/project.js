@@ -274,8 +274,13 @@ export function installProject(api){
   // expense: {id?, vendor, date 'YYYY-MM-DD', amountCents, note?, receiptId?, items:[{materialId|null, description, quantity, amountCents, complete, substitute, note}]}
   saveExpense:async expense=>{await ensureFinance();const current=get('finance').expenses.find(e=>e.id===expense.id),row={id:expense.id||crypto.randomUUID(),vendor:String(expense.vendor??current?.vendor??'').trim(),date:expense.date??current?.date,amountCents:expense.amountCents??current?.amountCents,note:String(expense.note??current?.note??''),receiptId:expense.receiptId??current?.receiptId??null,items:(expense.items??current?.items??[]).map(lineItem)};
    await mutate('finance',d=>{const i=d.expenses.findIndex(e=>e.id===row.id);if(i<0)d.expenses.push(row);else d.expenses[i]=row;});return structuredClone(get('finance').expenses.find(e=>e.id===row.id));},
+  // Mark a shopping-list row as not being bought (or needed after all). It stays on the list at $0 still to buy.
+  setNotNeeded:async(materialId,notNeeded=true,note='')=>{await ensureFinance();await mutate('finance',d=>{const list=(d.notNeeded||[]).filter(n=>n.materialId!==materialId);d.notNeeded=notNeeded?[...list,{materialId,note:String(note).trim()}]:list;});return structuredClone(get('finance').notNeeded||[]);},
   setQuote:async cents=>{await ensureFinance();await mutate('finance',d=>{d.budgetCents=cents;});return get('finance').budgetCents;},
+  notNeeded:async()=>structuredClone((await ensureFinance()).notNeeded||[]),
   open:async id=>{await ensureFinance();if(selected!=='finance')await select('finance');expenseForm(get('finance').expenses.find(e=>e.id===id));},
  };
+ // The Pricing breakdown's Not needed / Needed after all buttons.
+ api.setMaterialNeeded=(materialId,needed)=>run(()=>api.project.setNotNeeded(materialId,!needed));
  layout();if(selected!=='pricing'&&api.state.mode==='pricing')run(load);else if(api.state.mode==='pricing')refreshPricingFinance(true);
 }

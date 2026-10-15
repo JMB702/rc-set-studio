@@ -160,3 +160,37 @@ test('Granular retrofit completion preserves total labor weight and old log allo
  let partial=projectSetGuideStage(old,59,true,design);assert.equal(laborTaskProgress(tasks.find(t=>t.id==='cycJunctions'),{design,tracking:partial}),25);
  const off=progressWeights({...design,seamlessCorners:false,seamlessPerimeter:false});assert.ok(Object.entries(off).filter(([id])=>id.startsWith('cyc-')).every(([,weight])=>weight===0));
 });
+
+test('Rows marked not needed stay on the list but add nothing to still to buy',()=>{
+ const vapor=rows.find(r=>r.id==='vapor'),deck=rows.find(r=>r.id==='platformDeck'),pads=rows.find(r=>r.id==='platformPads');
+ const before=projectMaterials(rows,[]),after=projectMaterials(rows,[],[{materialId:'vapor',note:''},{materialId:'platformPads',note:'Have rubber'}]);
+ assert.equal(after.plan.find(p=>p.row.id==='vapor').status,'notNeeded');
+ assert.equal(after.plan.length,before.plan.length,'not-needed rows stay in the plan');
+ assert.equal(after.remainingCents,before.remainingCents-vapor.subtotalCents-pads.subtotalCents);
+ assert.ok(after.remainingTaxCents<before.remainingTaxCents);
+ assert.equal(after.estimateCents,before.estimateCents,'the Pricing guide estimate is unchanged');
+ assert.equal(after.counts.notNeeded,2);assert.equal(after.counts.remaining,before.counts.remaining-2);
+ // A partly bought row marked not needed: what was bought stays spent, the rest drops out.
+ const partial=projectMaterials(rows,[expense([item('platformDeck',{quantity:1,amountCents:4492,complete:false})],4800)],[{materialId:'platformDeck',note:''}]).plan.find(p=>p.row.id==='platformDeck');
+ assert.equal(partial.status,'notNeeded');assert.equal(partial.remainingCents,0);assert.equal(partial.boughtQuantity,1);
+ // Bought wins: a row that has been bought is bought, whatever the mark says.
+ assert.equal(projectMaterials(rows,[expense([item('platformDeck')])],[{materialId:'platformDeck',note:''}]).plan.find(p=>p.row.id==='platformDeck').status,'bought');
+ // Not-needed rows count as done for the shopping labor still to come.
+ assert.ok(supplyProgress(after)>supplyProgress(before));
+ // And the full projection drops them.
+ const l=labor(),base=projectCost({rows,finance:{expenses:[],shifts:[]},tracking:projectDefaultTracking(),design,labor:l,now}),marked=projectCost({rows,finance:{expenses:[],shifts:[],notNeeded:[{materialId:'vapor',note:''}]},tracking:projectDefaultTracking(),design,labor:l,now});
+ assert.ok(marked.toGoCents<=base.toGoCents-vapor.subtotalCents);assert.ok(deck);
+});
+
+test('Not-needed rows are validated and survive a save from an older window',()=>{
+ const d={budgetCents:null,expenses:[],crew:[{id:'p1',name:'Jeff',rateCents:0,archived:false}],shifts:[]};
+ assert.deepEqual(projectValidate('finance',d,now).notNeeded,[]);
+ assert.deepEqual(projectValidate('finance',{...d,notNeeded:[{materialId:'vapor',note:' floor built '}]},now).notNeeded,[{materialId:'vapor',note:'floor built'}]);
+ assert.deepEqual(projectValidate('finance',{...d,notNeeded:[{materialId:'vapor'}]},now).notNeeded,[{materialId:'vapor',note:''}]);
+ assert.throws(()=>projectValidate('finance',{...d,notNeeded:[{materialId:'vapor'},{materialId:'vapor'}]},now),/not needed/);
+ assert.throws(()=>projectValidate('finance',{...d,notNeeded:[{materialId:'bad id!'}]},now),/not needed/);
+ assert.throws(()=>projectValidate('finance',{...d,notNeeded:'vapor'},now),/not needed/);
+ const stored={...d,notNeeded:[{materialId:'vapor',note:''}]};
+ assert.deepEqual(projectPreserveFinance(stored,d).notNeeded,stored.notNeeded,'an older window keeps the marks');
+ assert.deepEqual(projectPreserveFinance(stored,{...d,notNeeded:[]}).notNeeded,[],'clearing the marks is a real edit');
+});

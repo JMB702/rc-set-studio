@@ -37,6 +37,6 @@ test('Approved design: material for crossbar-mounted ribs',()=>{
  assert.equal(row('cycBacking'),undefined,'no 2×4 backing or cleats');
  assert.equal(row('cycCrossbarScrews').needed,48);assert.equal(row('cycCrossbarStaples').needed,192);
  assert.equal(row('cycRibPly').purchaseQuantity,3);
- assert.ok(laborTasks(approved).find(t=>t.id==='cycBacking').name.includes('12 wall crossbars'));
+ assert.ok(laborTasks(approved).find(t=>t.id==='cycBacking').name.includes('12 backboards'));assert.equal(laborTasks(approved).find(t=>t.id==='cycBacking').stage,'43, 63–64');assert.equal(laborTasks(approved).find(t=>t.id==='cycFinish').stage,'28','rounded corners are finished with the walls');
  assert.deepEqual(stepFasteners(50,120,'charcoal',approved).map(f=>[f.productId,f.quantity]),[['cycAnchorScrews',28],['cycRibScrews',16],['cycAdhesive',null]]);
 });

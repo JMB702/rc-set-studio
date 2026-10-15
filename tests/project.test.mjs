@@ -105,7 +105,7 @@ test('Assembly counts distinguish completed panels, built jacks and attached jac
  assert.throws(()=>projectAssembly({...data.assembly,jacksAttached:5}),/cannot exceed/);
  assert.equal(projectAssembly({...data.assembly,jacksBuilt:16,jacksAttached:2}).jacksBuilt,16,'a leftover in-progress count never blocks built jacks');assert.equal('jacksPartial' in projectAssembly(data.assembly),false);
  assert.throws(()=>projectAssembly({...data.assembly,panelsCompleted:9}),/Invalid/);
- assert.deepEqual(projectValidate('tracking',data).assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null});
+ assert.deepEqual(projectValidate('tracking',data).assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null,crossbarsAdded:null,ribsCut:null});
 });
 test('Platform parts require joined modules; deck, fascia and finish follow assembly dependencies',()=>{
  const data=projectDefaultTracking(),set=(id,p)=>data.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent=p;
@@ -161,7 +161,7 @@ test('Guide completion distinguishes floor types and updates combined finishing 
 test('Older open tabs cannot erase assembly counts or guide completion when saving tracker edits',async()=>{
  const r=rig(),first=await (await r.call('tracking')).json();first.data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2};first.data.guideChecks={'panel:120:0':true};first.data.stages[0].steps[0].percent=100;
  const saved=await (await r.call('tracking','PUT',first)).json();const older=structuredClone(saved);delete older.data.assembly;delete older.data.guideChecks;older.data.stages[0].name='Wall production';
- const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null});assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
+ const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null,crossbarsAdded:null,ribsCut:null});assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
 });
 test('Patched platform seams are a separate finish before full skim, primer and paint',()=>{
  const data=projectDefaultTracking(),steps=data.stages.flatMap(s=>s.steps);

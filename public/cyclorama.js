@@ -82,3 +82,16 @@ export function packCycloramaSkin(cuts){const bins=[],pieces=[],kerf=.125;
   if(!fit){bins.push([{x:0,y:0,w:48,h:96}]);fit={sheet:bins.length-1,i:0,space:bins.at(-1)[0]};}
   const {sheet,i,space}=fit;bins[sheet].splice(i,1);if(space.w-cut.width>kerf)bins[sheet].push({x:space.x+cut.width+kerf,y:space.y,w:space.w-cut.width-kerf,h:cut.height});if(space.h-cut.height>kerf)bins[sheet].push({x:space.x,y:space.y+cut.height+kerf,w:space.w,h:space.h-cut.height-kerf});pieces.push({...cut,sheet:sheet+1,x:space.x,y:space.y});
  }return {sheets:bins.length,pieces};}
+
+// Rib cutting for 90° wall corners: each rib is a quarter-round fillet whose straight edges sit on the two walls.
+// A square 1/8″ larger than the radius holds two of them in opposite corners: pin a string at one corner, swing the
+// radius to draw the curve of the rib in the opposite corner, repeat from that corner, then cut the square into two
+// triangles along the diagonal joining the two corners the curves pass and bandsaw each curve.
+// Two squares fit along a 4×8 sheet, so a sheet gives four full-profile ribs.
+export const RIB_SHEET=[47.938,95.938];
+export function ribCutPlan(plan){
+ const radius=plan.cornerRadius,square=radius+.125,kerf=.125,[W,L]=RIB_SHEET,across=Math.floor((W+kerf)/(square+kerf)),along=Math.floor((L+kerf)/(square+kerf));
+ const squaresPerSheet=across*along,ribs=plan.verticalRibs,squares=Math.ceil(ribs/2),sheets=Math.ceil(squares/squaresPerSheet);
+ const rip=W-square-kerf,leftover=L-along*square-along*kerf;
+ return {radius,square,kerf,sheet:RIB_SHEET,across,along,squaresPerSheet,ribsPerSheet:squaresPerSheet*2,ribs,squares,ribsMade:squares*2,sheets,rip,leftover};
+}

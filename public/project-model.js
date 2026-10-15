@@ -21,6 +21,7 @@ export function projectSeparateFinishing(input){
  let data=input;
  const edit=()=>{if(data===input)data=structuredClone(input);};
  if(data.stages.find(s=>s.id==='wall-finishing')?.name==='Dress, prime and paint'){edit();data.stages.find(s=>s.id==='wall-finishing').name='Dress, prime and paint — Walls';}
+ if(data.stages.find(s=>s.id==='cyclorama')?.name==='Seamless retrofit'){edit();data.stages.find(s=>s.id==='cyclorama').name='Seamless corner';}
  for(const [from,to,label,ids]of [
   ['floor','floor-finishing','Dress, prime and paint — Floor',['floor-3']],
   ['platform','platform-finishing','Dress, prime and paint — Platform',['platform-seams','platform-skim','platform-prime','platform-paint']],
@@ -143,7 +144,7 @@ export function projectParseReceipt(text) {
 }
 
 export function projectAssembly(input={}) {
- const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['ballastAttached',8],['wallsJoined',8],['anglesSet',2]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
+ const out={};for(const [key,max] of [['panelsCompleted',8],['jacksBuilt',16],['jacksAttached',16],['ballastAttached',8],['wallsJoined',8],['anglesSet',2],['crossbarsAdded',64],['ribsCut',128]]){const value=input?.[key]??null;if(value!==null&&(!Number.isInteger(value)||value<0||value>max))throw Error(`Invalid ${key} count.`);out[key]=value;}
  if((out.jacksAttached??0)>(out.jacksBuilt??0)||(out.jacksAttached??0)>(out.panelsCompleted??0)*2)throw Error('Attached jacks cannot exceed built jacks or two per completed panel.');
  if((out.ballastAttached??0)>Math.floor((out.jacksAttached??0)/2))throw Error('Attach both jacks before counting a ballast assembly.');
  if((out.wallsJoined??0)>(out.panelsCompleted??0))throw Error('Joined walls cannot exceed completed panels.');
@@ -219,7 +220,10 @@ export function projectGuideGroups(design={}) {
  const corners=design.seamlessCorners===true&&(design.angle??45)>0,perimeter=design.seamlessPerimeter===true,side=design.seamlessCornerSide??'both';
  // Corner 1 is the left wing corner, corner 2 the right; a one-corner build has no rows for the other.
  const builds=c=>!/-[12]$/.test(c.component)||side==='both'||side===(c.component.endsWith('-1')?'left':'right');
- if(corners||perimeter){groups['cyc-backing']=[43];for(const c of projectCycloramaComponents())if((c.option==='corners'?corners:c.option==='perimeter'?perimeter:corners&&perimeter)&&builds(c))groups[c.id]=[c.stage,c.aggregate];groups['cyc-finish']=[48];}
+ if(corners||perimeter){groups['cyc-backing']=[43];for(const c of projectCycloramaComponents())if((c.option==='corners'?corners:c.option==='perimeter'?perimeter:corners&&perimeter)&&builds(c))groups[c.id]=[c.stage,c.aggregate];
+  // Backboards and rib cutting are checked off in the guide but have no tracker row of their own; their counts are tallies.
+  // Rounded wall corners alone are plastered and painted with the walls, so their finish follows the wall finish step.
+  if(corners)Object.assign(groups,{'cyc-backboards':[63,64],'cyc-rib-cutting':[66,67,68,69,70]});groups['cyc-finish']=perimeter?[48]:[28];}
  return groups;
 }
 // Stable component IDs connect physical meshes, tracker rows and guide stages. Aggregate stages remain aliases for
@@ -256,7 +260,7 @@ export function projectUpgradeCyclorama(input,design=input.design||{}){
   if(!added.length){const first=data.stages.flatMap(s=>s.steps).find(r=>r.id===children[0].id);if(first)first.notes=[...first.notes,...t.notes.filter(n=>!first.notes.some(saved=>saved.id===n.id))];}
   return added.map((c,i)=>({id:c.id,name:c.name,percent:t.percent,notes:i===0?t.notes:[],...(Object.hasOwn(t,'completedAt')?{completedAt:t.percent===100?t.completedAt:null}:{})}));
  });
- if(missing.length){let stage=data.stages.find(s=>s.id==='cyclorama');if(!stage){stage={id:'cyclorama',name:'Seamless retrofit',notes:[],steps:[]};data.stages.push(stage);}stage.steps.push(...missing.map(id=>({id,name:names[id],percent:0,notes:[]})));}
+ if(missing.length){let stage=data.stages.find(s=>s.id==='cyclorama');if(!stage){stage={id:'cyclorama',name:'Seamless corner',notes:[],steps:[]};data.stages.push(stage);}stage.steps.push(...missing.map(id=>({id,name:names[id],percent:0,notes:[]})));}
  // Removing legacy rows from a partially upgraded custom stage must not discard its stage notes.
  for(const empty of data.stages.filter(s=>!s.steps.length)){const target=data.stages.find(s=>s.steps.some(t=>components.some(c=>c.id===t.id)));if(target)target.notes=[...target.notes,...empty.notes.filter(n=>!target.notes.some(saved=>saved.id===n.id))];}
  data.stages=data.stages.filter(s=>s.steps.length);return data;

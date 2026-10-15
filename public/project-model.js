@@ -61,6 +61,13 @@ export function projectStepWeight(weights,id){if(!weights)return 1;const values=
 export function projectStageWeight(stage,weights){return stage.steps.reduce((n,t)=>n+projectStepWeight(weights,t.id),0);}
 export function projectStagePercent(stage,weights){const total=projectStageWeight(stage,weights);return total?Math.round(stage.steps.reduce((n,t)=>n+t.percent*projectStepWeight(weights,t.id),0)/total):0;}
 export function projectProgress(data,weights){const steps=data.stages.flatMap(s=>s.steps).filter(t=>projectStepWeight(weights,t.id)>0),total=steps.reduce((n,t)=>n+projectStepWeight(weights,t.id),0);return {percent:total?Math.round(steps.reduce((n,t)=>n+t.percent*projectStepWeight(weights,t.id),0)/total):0,done:steps.filter(s=>s.percent===100).length,total:steps.length,weight:total};}
+// Split one time entry at a moment inside it: two entries with the same person, rate and note, so the hours
+// and cost add back to the original. Each half gets its own stage of work (undefined keeps the original's).
+export function projectSplitShift(shift,at,{before,after,id=crypto.randomUUID(),now=Date.now()}={}){
+ const end=shift.end??now;if(!Number.isSafeInteger(at)||at<=shift.start||at>=end)throw Error('Split inside the entry, after clock-in and before clock-out.');
+ const keep=v=>v===undefined?shift.taskId??null:v||null;
+ return [{...shift,end:at,taskId:keep(before)},{...shift,id,start:at,taskId:keep(after)}];
+}
 export function projectShiftCost(shift,now=Date.now()) {
  const elapsed=Math.max(0,(shift.end??now)-shift.start);
  const hours=shift.end===null?Math.floor(elapsed/3600000):elapsed/3600000;

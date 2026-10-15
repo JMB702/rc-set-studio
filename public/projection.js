@@ -77,8 +77,13 @@ export function supplyProgress(materials){
 export function milestoneTasks(design,tasks){const out={};for(const [id,stages]of Object.entries(projectGuideGroups(design))){const shares={};for(const t of tasks){const own=laborStageNumbers(t.stage),n=stages.filter(x=>own.includes(x)).length;if(n)shares[t.id]=n;}const total=Object.values(shares).reduce((a,b)=>a+b,0);if(total)out[id]=Object.fromEntries(Object.entries(shares).map(([k,v])=>[k,v/total]));}for(const c of projectCycloramaComponents())if(out[c.id]&&!out[c.legacy])out[c.legacy]={...out[c.id]};return out;}
 // The stages a time entry worked on: a stage chosen on the entry wins; otherwise the work completed during its hours
 // (tracker progress history), weighted by that work's estimated hours. null when nothing was completed in the window.
+// Paid project time that is not part of any build stage (rearranging the shop or warehouse, hauling, site prep).
+// It counts as money spent but stays out of the build stages, so it cannot make build work look slower than it was.
+export const NON_BUILD_ACTIVITIES=[{id:'shopWork',name:'Shop and warehouse work · not build'}];
+export const isNonBuild=id=>NON_BUILD_ACTIVITIES.some(a=>a.id===id);
 export function shiftStages(shift,{log=[],design,tasks,weights,now=Date.now()}){
  if(shift.taskId&&tasks.some(t=>t.id===shift.taskId))return {auto:false,shares:{[shift.taskId]:1}};
+ if(isNonBuild(shift.taskId))return {auto:false,shares:{},nonBuild:true};
  const end=shift.end??now,map=milestoneTasks(design,tasks),hours={};
  for(const e of log)if(e.at>=shift.start&&e.at<=end&&e.to>e.from&&map[e.step]){const legacy=projectCycloramaComponents().filter(c=>c.legacy===e.step),weight=legacy.length?legacy.reduce((n,c)=>n+(weights[c.id]||0),0):(weights[e.step]??1),h=weight*(e.to-e.from)/100;for(const [task,share]of Object.entries(map[e.step]))hours[task]=(hours[task]||0)+h*share;}
  const total=Object.values(hours).reduce((a,b)=>a+b,0);return total?{auto:true,shares:Object.fromEntries(Object.entries(hours).map(([k,v])=>[k,v/total]))}:null;
@@ -107,14 +112,14 @@ export function projectLabor(labor,{design,tracking,shifts=[],supply=0,now=Date.
    actualCents:Math.round(shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents*share(s,task.id),0)),
    remainingCents:remaining<=0?0:rate==null?null:Math.round(remaining*rate)};
  });
-const unassigned=shifts.filter(s=>!stagesOf.get(s.id)),unassignedHours=unassigned.reduce((n,s)=>n+shiftHours(s),0);
+const unassigned=shifts.filter(s=>!stagesOf.get(s.id)),unassignedHours=unassigned.reduce((n,s)=>n+shiftHours(s),0),nonBuildHours=shifts.filter(s=>stagesOf.get(s.id)?.nonBuild).reduce((n,s)=>n+shiftHours(s),0);
  const sum=key=>tasks.reduce((n,t)=>n+(t[key]??0),0),actualCents=shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents,0); // every entry once, however it splits across stages
  // Tasks without a rate are left out of the cost, as in the estimate, and counted in unpricedTasks. Summing
  // unrounded hours before pricing keeps a fresh projection equal to the estimate to the cent.
  const priced=(shop,rate)=>rate==null?0:Math.round(tasks.filter(t=>(t.stage==='Shopping')===shop).reduce((n,t)=>n+t.remainingExact,0)*rate);
  const remainingCents=Math.round(tasks.filter(t=>t.stage!=='Shopping').reduce((n,t)=>n+t.remainingExact*(taskRate(labor.tasks.find(x=>x.id===t.id))??0),0))+priced(true,labor.shoppingRateCents);
- const actualHours=sum('actual')+unassignedHours,remainingHours=sum('remainingExact');
- return {tasks,observedRateCents:observedRate===null?null:Math.round(observedRate),shiftStages:Object.fromEntries(stagesOf),unassignedHours:Math.round(unassignedHours*100)/100,unassignedCount:unassigned.length,
+ const actualHours=sum('actual')+unassignedHours+nonBuildHours,remainingHours=sum('remainingExact');
+ return {tasks,nonBuildHours:Math.round(nonBuildHours*100)/100,observedRateCents:observedRate===null?null:Math.round(observedRate),shiftStages:Object.fromEntries(stagesOf),unassignedHours:Math.round(unassignedHours*100)/100,unassignedCount:unassigned.length,
   estimateHours:Math.round(sum('estimate')*10)/10,actualHours:Math.round(actualHours*100)/100,remainingHours:Math.round(remainingHours*100)/100,projectedHours:Math.round((actualHours+remainingHours)*100)/100,
   estimateCents:labor.costCents,actualCents,remainingCents,unpricedTasks:tasks.filter(t=>t.remainingCents===null).length,projectedCents:actualCents+remainingCents};
 }

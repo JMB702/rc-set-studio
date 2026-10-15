@@ -58,3 +58,14 @@ test('Each physical curve has separate rib and skin instructions with its own ma
 test('Numbered guide instructions keep decimal skin and plywood thicknesses intact',()=>{
  assert.deepEqual(Array.from(context.instructionSentences('Use actual .106″ lauan. Two .703″ layers total 1.406″. Test the bend.')),['Use actual .106″ lauan.','Two .703″ layers total 1.406″.','Test the bend.']);
 });
+test('Platform framing walks through each cut length, longest first, with its count',()=>{
+ const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,seamlessCorners:true,seamlessCornerSide:'right',floorLip:true};
+ const step=context.steps(120,'charcoal',cfg).find(s=>s.stage===31),lines=context.instructionSentences(step.description);
+ assert.deepEqual(Array.from(lines.slice(0,5)),[
+  'Set aside 4 whole 8′ (96″) studs, uncut: 2 top rims and 2 bottom rims.',
+  'Cut 12 at 63″: 4 top rims, 4 bottom rims and 4 seam joists.',
+  'Cut 4 at 60″: 2 top rims and 2 bottom rims.',
+  'Cut 9 at 45″: 9 joists.',
+  'Cut 16 at 9 7/16″: 16 legs.']);
+ assert.ok(!/cut list/.test(step.description),'the step is self-contained');
+});

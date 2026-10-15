@@ -69,3 +69,12 @@ test('Platform framing walks through each cut length, longest first, with its co
   'Cut 16 at 9 7/16″: 16 legs.']);
  assert.ok(!/cut list/.test(step.description),'the step is self-contained');
 });
+test('Platform frames go together inside out, with joist centers measured from the back rim edge',()=>{
+ const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,seamlessCorners:true,seamlessCornerSide:'right',floorLip:true};
+ const lines=Array.from(context.instructionSentences(context.steps(120,'charcoal',cfg).find(s=>s.stage===31).description));
+ const at=re=>lines.findIndex(l=>re.test(l));
+ assert.ok(at(/Mark the joist centers/)<at(/Fasten the joists first/));
+ assert.ok(at(/Fasten the joists first/)<at(/seam joists together/)&&at(/seam joists together/)<at(/Add the side rims/)&&at(/Add the side rims/)<at(/front and back rims last/),'joists, then doubled seams, then side rims, then front and back rims');
+ assert.match(lines[at(/Mark the joist centers/)],/14 1\/2″, 30 1\/2″ and 46 1\/2″ from the back end.*16″, 32″ and 48″ from its outside edge/);
+ assert.deepEqual(Array.from(context.joistMarks(platform.platformPlan(90,18,18,90,{platformFront:12}))),[16,32,48]);
+});

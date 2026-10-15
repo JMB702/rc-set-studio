@@ -84,6 +84,8 @@ To attach the receipt image, open the entry for Jeff with `await __studio.projec
 
 Never delete an expense or a line Jeff entered unless he asks. Never invent an amount: no receipt means `amountCents: null`.
 
+Rows Jeff says he will not buy (already on hand, dropped on purpose) can be marked with `await __studio.project.setNotNeeded(rowId, true, 'note')` (`false` to undo; `__studio.project.notNeeded()` lists them). They stay on the shopping list but stop counting toward still to buy. Only mark a row when Jeff says so.
+
 ### 6. Confirm the result
 
 `__studio.project.projection()` → report: projected total, spent so far, still to buy (and how many items are unpriced), how many purchases are still unlinked, and "paid X for items estimated at Y" (`materials.spentCents` vs `materials.coveredEstimateCents`). One or two lines, not a dump.

@@ -13,30 +13,33 @@ import {laborTasks} from './labor.js';
 export const WALL_GROUPS=['panel','supports'];
 export const GROUP_LABELS={panel:'Wall panels',supports:'Jacks and shelf',ballast:'Ballast',finish:'Wall finish',connections:'Connections',floor:'Floor',floorFinish:'Floor finish',platform:'Platform',platformFinish:'Platform finish',cyclorama:'Seamless corners and perimeter',cycloramaFinish:'Cyclorama finish',custom:'Added costs'};
 
-// status: 'remaining' (nothing linked), 'partial' (some bought, more needed) or 'bought'.
-export function materialStatus(row,items){
+// status: 'remaining' (nothing linked), 'partial' (some bought, more needed), 'bought', or 'notNeeded' (marked in
+// Cost projection as not being bought: it stays on the list but adds nothing to still to buy).
+export function materialStatus(row,items,notNeeded=false){
  const links=items.filter(i=>i.materialId===row.id),bought=links.reduce((n,i)=>n+(i.quantity??0),0);
- const status=!links.length?'remaining':links.some(i=>i.complete)||row.purchaseQuantity!==null&&bought>=row.purchaseQuantity?'bought':'partial';
- const remainingQuantity=status==='bought'?0:row.purchaseQuantity===null?null:Math.max(0,row.purchaseQuantity-bought);
- const remainingCents=status==='bought'?0:status==='remaining'?row.subtotalCents:row.unitPriceCents===null||remainingQuantity===null?null:Math.round(remainingQuantity*row.unitPriceCents);
+ const linked=!links.length?'remaining':links.some(i=>i.complete)||row.purchaseQuantity!==null&&bought>=row.purchaseQuantity?'bought':'partial';
+ const status=notNeeded&&linked!=='bought'?'notNeeded':linked;
+ const remainingQuantity=status==='bought'||status==='notNeeded'?0:row.purchaseQuantity===null?null:Math.max(0,row.purchaseQuantity-bought);
+ const remainingCents=status==='bought'||status==='notNeeded'?0:status==='remaining'?row.subtotalCents:row.unitPriceCents===null||remainingQuantity===null?null:Math.round(remainingQuantity*row.unitPriceCents);
  const itemized=links.filter(i=>i.amountCents!==null);
  return {status,links,boughtQuantity:links.some(i=>i.quantity!==null)?bought:null,remainingQuantity,remainingCents,
   actualCents:itemized.length?itemized.reduce((n,i)=>n+i.amountCents,0):null,itemized:links.length>0&&itemized.length===links.length,substitute:links.some(i=>i.substitute)};
 }
 
-export function projectMaterials(rows,expenses=[]){
- const items=expenses.flatMap(e=>(e.items||[]).map(i=>({...i,expenseId:e.id,vendor:e.vendor,date:e.date})));
- const plan=rows.map(row=>({row,...materialStatus(row,items)})),ids=new Set(rows.map(r=>r.id));
- const remainingRows=plan.filter(p=>p.status!=='bought');
+// notNeeded: shopping-list row ids marked as not being bought (finance.notNeeded).
+export function projectMaterials(rows,expenses=[],notNeeded=[]){
+ const items=expenses.flatMap(e=>(e.items||[]).map(i=>({...i,expenseId:e.id,vendor:e.vendor,date:e.date}))),skip=new Set(notNeeded.map(n=>n.materialId));
+ const plan=rows.map(row=>({row,...materialStatus(row,items,skip.has(row.id))})),ids=new Set(rows.map(r=>r.id));
+ const remainingRows=plan.filter(p=>p.status==='remaining'||p.status==='partial');
  const spentCents=expenses.reduce((n,e)=>n+e.amountCents,0),remainingCents=remainingRows.reduce((n,p)=>n+(p.remainingCents??0),0);
  const remainingTaxCents=materialTax(remainingRows.map(p=>({...p.row,purchaseQuantity:p.remainingQuantity,subtotalCents:p.remainingCents})));
  // What the shopping list said the purchased part would cost, so actual spending can be compared with it.
- const covered=plan.filter(p=>p.status!=='remaining'&&p.row.subtotalCents!==null&&p.remainingCents!==null).map(p=>({...p.row,purchaseQuantity:p.row.purchaseQuantity-p.remainingQuantity,subtotalCents:p.row.subtotalCents-p.remainingCents}));
+ const covered=plan.filter(p=>(p.status==='bought'||p.status==='partial')&&p.row.subtotalCents!==null&&p.remainingCents!==null).map(p=>({...p.row,purchaseQuantity:p.row.purchaseQuantity-p.remainingQuantity,subtotalCents:p.row.subtotalCents-p.remainingCents}));
  const coveredEstimateCents=covered.reduce((n,r)=>n+r.subtotalCents,0)+materialTax(covered);
  const estimateCents=rows.reduce((n,r)=>n+(r.subtotalCents??0),0)+materialTax(rows);
  return {plan,spentCents,remainingCents,remainingTaxCents,estimateCents,coveredEstimateCents,projectedCents:spentCents+remainingCents+remainingTaxCents,
   pending:remainingRows.filter(p=>p.remainingCents===null).length,
-  counts:{bought:plan.filter(p=>p.status==='bought').length,partial:plan.filter(p=>p.status==='partial').length,remaining:plan.filter(p=>p.status==='remaining').length},
+  counts:{bought:plan.filter(p=>p.status==='bought').length,partial:plan.filter(p=>p.status==='partial').length,remaining:plan.filter(p=>p.status==='remaining').length,notNeeded:plan.filter(p=>p.status==='notNeeded').length},
   unlinked:expenses.filter(e=>!(e.items||[]).length),
   // Line items whose shopping-list row is not in the current design or pricing configuration. Still spent.
   outsidePlan:items.filter(i=>i.materialId!==null&&!ids.has(i.materialId)),
@@ -57,10 +60,10 @@ export function laborTaskProgress(task,{design,tracking,supplyProgress=0}){
  const stages=laborStageNumbers(task.stage);
  return stages.length?Math.round(stages.reduce((n,s)=>n+projectGuideStagePercent(tracking,s,design),0)/stages.length):0;
 }
-// Share of the remaining-supplies shopping list already bought (partial rows count half).
+// Share of the remaining-supplies shopping list already bought (partial rows count half; not-needed rows are done).
 export function supplyProgress(materials){
  const rows=materials.plan.filter(p=>!WALL_GROUPS.includes(p.row.group));
- return rows.length?Math.round(rows.reduce((n,p)=>n+(p.status==='bought'?1:p.status==='partial'?.5:0),0)/rows.length*100):100;
+ return rows.length?Math.round(rows.reduce((n,p)=>n+(p.status==='bought'||p.status==='notNeeded'?1:p.status==='partial'?.5:0),0)/rows.length*100):100;
 }
 
 // labor: the Pricing guide's labor settings for this design (laborFor()). Hours are person-hours; costs use the
@@ -110,7 +113,7 @@ const unassigned=shifts.filter(s=>!stagesOf.get(s.id)),unassignedHours=unassigne
 // finance.budgetCents is the quote locked in for the client; when set, the projection is measured against it
 // instead of the live Pricing guide estimate, which keeps moving as prices and the design change.
 export function projectCost({rows,finance,tracking,design,labor,now=Date.now()}){
- const materials=projectMaterials(rows,finance?.expenses||[]);
+ const materials=projectMaterials(rows,finance?.expenses||[],finance?.notNeeded||[]);
  const work=projectLabor(labor,{design,tracking,shifts:finance?.shifts||[],supply:supplyProgress(materials),now});
  const estimateCents=materials.estimateCents+(labor.costCents??0),spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents+work.remainingCents;
  const quoteCents=finance?.budgetCents??null,baselineCents=quoteCents??estimateCents;

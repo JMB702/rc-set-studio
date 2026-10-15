@@ -1,5 +1,5 @@
 export function instructionSentences(description){return (description.match(/.+?(?:[.!?](?=\s|$)|$)/g)||[description]).map(t=>t.trim()).filter(Boolean);}
-import {applyPlatformSeamTexture,SKIM_TINT} from './platform-finish.js';
+import {applyPlatformSeamTexture,COMPOUND_TINT} from './platform-finish.js';
 import * as T from 'three';
 import {stepFasteners} from './step-fasteners.js';
 import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,cycloramaMesh,slab,dispose,grain,footprint} from './model.js';
@@ -217,7 +217,7 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
   model.add(lines([-96*inch,.003,0,96*inch,.003,0,96*inch,.003,0,(96+c)*inch,.003,sn*inch,-96*inch,.003,0,(-96-c)*inch,.003,sn*inch],0x273e2e));
   if(stage===30){model.add(lines(outlines(plan.modules.map(m=>m.poly),.004)));const pad=new T.Mesh(slab(plan.outline,0,.05),new T.MeshStandardMaterial({color:0xd3d0bd,roughness:1}));pad.userData.step=30;model.add(pad);}
   else if(stage>=36){
-   if(stage===36){const parts=platformParts(plan);model.add(parts);for(const o of parts.children){o.userData.guideMaterial=true;if(o.userData.step>=34){o.material=(o.userData.step===34?mats.skim:mats.compound).clone();if(o.userData.step===35)o.material.color.setRGB(1.4,1.4,1.4);}}}
+   if(stage===36){const parts=platformParts(plan);model.add(parts);for(const o of parts.children){o.userData.guideMaterial=true;if(o.userData.step===34)o.material=mats.skim.clone();else if(o.userData.step===35)applyPlatformSeamTexture(o.material,o.userData.progress,mats.compound.map,COMPOUND_TINT);}}
    else{const m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.step=stage;block.userData.progress={kind:'platform',stage:35,total:1,module:0};block.userData.guideMaterial=true;block.castShadow=block.receiveShadow=true;model.add(block);}
   }
   else{
@@ -249,11 +249,11 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
     if(stage!==25)sheet.add(lines(outlines([piece.poly],(section.underlay+(layer+1)*FLOOR.thickness)*inch+.001),0x8b7957));
     if(stage===24||stage===42&&layer===1){const offset=new T.Vector3(.18,layer?.08:0,.5);animation.push({o:sheet,offset,delay:i*1100,duration:850,sequence:true});}
    }
-   if(stage===25){const skim=new T.Mesh(slab(floorSheetPlan(S.angle,1,S).outline,floorSection('charcoal').upper,floorSection('charcoal').top),mats.skim.clone());skim.userData.guideMaterial=true;model.add(skim);}
+   if(stage===25){const skim=new T.Mesh(slab(floorSheetPlan(S.angle,1,S).outline,floorSection('charcoal').upper,floorSection('charcoal').top),mats.compound.clone());skim.userData.guideMaterial=true;model.add(skim);}
   }else if(stage>=22&&(S.floor==='wood'||S.floor==='charcoal')){const f=floorMesh(S.angle,floorWork&&stage<25?'charcoal':S.floor,S.floor==='wood'&&stage===25?2:99,S);
    if(floorWork)f.traverse(o=>{if(!o.isMesh)return;o.userData.guideMaterial=true;if(o.userData.progress?.rawOnly)return;const old=o.material;
     if(S.floor==='charcoal'&&stage<=25){o.material=mats.platformWood.clone();o.material.side=T.DoubleSide;const pos=o.geometry.attributes.position,uv=o.geometry.attributes.uv;for(let i=0;i<pos.count;i++)uv.setXY(i,pos.getZ(i)/(48*inch),pos.getX(i)/(96*inch));
-     if(stage===25){const poly=footprint(S.angle),xs=poly.map(p=>p[0]),lo=Math.min(...xs),hi=Math.max(...xs),seams=[];for(let x=lo+96;x<hi-1e-6;x+=96)seams.push([x,0,x,96]);seams.push([lo,48,hi,48]);applyPlatformSeamTexture(o.material,{seamEdges:seams},mats.compound.map,SKIM_TINT);}
+     if(stage===25){const poly=footprint(S.angle),xs=poly.map(p=>p[0]),lo=Math.min(...xs),hi=Math.max(...xs),seams=[];for(let x=lo+96;x<hi-1e-6;x+=96)seams.push([x,0,x,96]);seams.push([lo,48,hi,48]);applyPlatformSeamTexture(o.material,{seamEdges:seams},mats.compound.map);}
     }else if(stage===26&&S.floor==='charcoal')o.material=new T.MeshStandardMaterial({color:0xe3e0d8,roughness:1,side:T.DoubleSide});
     else if(stage===24&&S.floor==='wood')o.material=new T.MeshStandardMaterial({color:0x798481,roughness:1,side:T.DoubleSide});
     else if(stage<24)o.material=mats.platformWood.clone();

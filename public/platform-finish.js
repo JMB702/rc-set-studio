@@ -1,6 +1,6 @@
 // Use physical module joints rather than a painted-on grid that drifts when the layout changes.
-// tint scales the filler: 1 for white drywall compound, SKIM_TINT for gray cement skim.
-export const SKIM_TINT=.42;
+// tint scales the filler: COMPOUND_TINT reads as white drywall compound, SKIM_TINT as gray cement skim.
+export const SKIM_TINT=.42,COMPOUND_TINT=2.1;
 export function applyPlatformSeamTexture(material,part,texture,tint=1){
  const edges=new Float32Array(32);edges.set((part.seamEdges||[]).slice(0,8).flat());
  material.customProgramCacheKey=()=> 'platform-seam-compound-v1';

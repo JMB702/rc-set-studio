@@ -229,6 +229,10 @@ function platformTotals(outline,modules,decks,sheetLayout,fasciaPieces,columns){
 export function platformCuts(plan){const groups=new Map(),add=(part,len,note)=>{const r=Math.round(len*16)/16,k=part+'|'+r;const g=groups.get(k)||{part,length:r,qty:0,note};g.qty++;groups.set(k,g);};
  for(const m of plan.modules){m.rims.forEach(r=>add('Rim',r.length,'2×4 on edge; follow the module outline at angled corners'));m.bottomRims.forEach(r=>add('Bottom rim',r.length,'2×4 on edge on the floor; same as the top rims'));m.joists.forEach(j=>add('Joist',j.length,'2×4 on edge, side to side at 16″ centers'));m.seamJoists.forEach(j=>add('Seam joist',j.length,'2×4 on edge, doubled front to back under a plywood joint'));m.legs.forEach(l=>add('Leg',l.length,'2×4 upright, floor to deck, inside both rims'));}
  return [...groups.values()].sort((a,b)=>a.part.localeCompare(b.part)||b.length-a.length);}
+// The same cuts by length, longest first, so the guide can walk through them one stop-block setting at a time.
+const PART_ORDER=['Rim','Bottom rim','Joist','Seam joist','Leg'];
+export function cutSequence(plan){const by=new Map();for(const c of platformCuts(plan)){const g=by.get(c.length)||{length:c.length,qty:0,parts:[]};g.qty+=c.qty;g.parts.push({part:c.part,qty:c.qty});by.set(c.length,g);}
+ return [...by.values()].map(g=>({...g,parts:g.parts.sort((a,b)=>PART_ORDER.indexOf(a.part)-PART_ORDER.indexOf(b.part))})).sort((a,b)=>b.length-a.length);}
 export const inches=v=>{const w=Math.floor(v+1e-9),f=Math.round((v-w)*16);if(f===16)return `${w+1}″`;if(!f)return `${w}″`;let n=f,d=16;while(n%2===0){n/=2;d/=2;}return `${w?w+' ':''}${n}/${d}″`;};
 
 // Floor overlay planning is independent of the raised platform.

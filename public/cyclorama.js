@@ -40,8 +40,8 @@ export const cutLength=v=>Math.floor(v*16+.05)/16;
 export function cornerSkinPlan(ribCenters,base,top,arc,[W,L]=LAUAN){
  // Each row is full-width sheets plus one ripped strip for the rest, so only one piece per row is ripped.
  const count=Math.ceil((arc-1/32)/W),columns=Array.from({length:count},(_,i)=>i<count-1?W:Math.min(W,arc-W*(count-1))),rows=[];let start=base;
- while(top-start>L+1e-9){const seam=Math.max(...ribCenters.filter(c=>c>start+1&&c-start<=L+1e-9));if(!Number.isFinite(seam))break;rows.push({index:rows.length,bottom:start,top:seam,height:seam-start});start=seam;}
- rows.push({index:rows.length,bottom:start,top,height:top-start});
+ while(top-start>L+1e-9){const seam=Math.max(...ribCenters.filter(c=>c>start+1&&c-start<=L+1e-9));if(!Number.isFinite(seam))break;rows.push({index:rows.length,bottom:start,top:seam,height:seam-start,columns});start=seam;}
+ rows.push({index:rows.length,bottom:start,top,height:top-start,columns});
  return {arc,columns,rows,seams:rows.slice(0,-1).map(r=>r.top)};}
 
 export function cycloramaPlan(d={}){
@@ -60,7 +60,15 @@ export function cycloramaPlan(d={}){
  const strips=(kind,length,developed)=>{const columns=Math.ceil(developed/47);for(let col=0;col<columns;col++)for(let remaining=length;remaining>1e-6;remaining-=96)skinCuts.push({kind,width:developed/columns+1,height:Math.min(96,remaining)});};
  // Corner skin is cut exactly: the developed arc wide (one sheet when it fits 48″) and from the curve base to the wall
  // top, split into stacked pieces whose joints land on the center of a rib no more than one sheet length apart.
- if(cornerSkin)for(let i=0;i<corners;i++)for(const [col,c] of cornerSkin.columns.entries())for(const row of cornerSkin.rows)skinCuts.push({kind:'corner',width:c,height:row.height,row:row.index,col});
+ const cornerCuts=skinRows=>{const out=[];for(let i=0;i<corners;i++)for(const row of skinRows)for(const [col,c] of row.columns.entries())out.push({kind:'corner',width:c,height:row.height,row:row.index,col});return out;};
+ // A short upper row fits beside the lower strip if its full-width piece is cut into narrower pieces; keep that
+ // layout when it saves a lauan sheet. The pieces split the full width evenly, so one joint still lines up below.
+ if(cornerSkin&&cornerSkin.rows.length>1&&cornerSkin.columns.length>1){
+  const strip=cornerSkin.columns.at(-1),room=LAUAN[0]-strip-.125,split=cornerSkin.columns.slice(0,-1).flatMap(w=>{const n=Math.ceil(w/room-1e-9);return Array(n).fill(w/n);});
+  const alt=cornerSkin.rows.map(r=>r.index?{...r,columns:[...split,strip]}:r);
+  if(packCycloramaSkin(cornerCuts(alt)).sheets<packCycloramaSkin(cornerCuts(cornerSkin.rows)).sheets)cornerSkin.rows=alt;
+ }
+ if(cornerSkin)skinCuts.push(...cornerCuts(cornerSkin.rows));
  if(perimeter){strips('back perimeter',runs.back,r*Math.PI/2);for(const side of ['left','right'])strips('side perimeter',runs[side],r*Math.PI/2);}
 
  const skinLayout=packCycloramaSkin(skinCuts),goreSheets=perimeter?corners:0,skinSheets=skinLayout.sheets+goreSheets;

@@ -251,8 +251,11 @@ floor to the wall top. When that is
 taller than a 96-inch sheet it is two stacked pieces whose joint lands on the
 center of a rib line no more than 96 inches up, and that rib is doubled (two ribs
 face to face, the joint exactly between them) so each piece lands on a full rib.
-Approved design: lower 48 x 94-7/16 + 17-15/16 x 94-7/16 strip, upper 48 x 24 +
-17-15/16 x 24 strip, joint at 96, from 3 lauan sheets (both strips from one). Build steps: cut the skin (76), lower piece (51/52), upper piece
+A short upper row is cut into narrower pieces (the full width split evenly, so one
+joint still lines up below) when that lets it come out of the strip sheet's
+offcut. Approved design: sheet 1 gives the lower 48 x 94-7/16; sheet 2 gives the
+lower 17-15/16 x 94-7/16 strip and the upper row, 24 x 24, 24 x 24 and
+17-15/16 x 24; joint at 96 on the doubled rib. Two lauan sheets in all. Build steps: cut the skin (76), lower piece (51/52), upper piece
 (77/78).
 Ribs: 3/4-inch plywood, up to 16-inch centers for simple curves; radial junction
 ribs spaced approximately 8 inches around the upper arc. Purchasing envelopes

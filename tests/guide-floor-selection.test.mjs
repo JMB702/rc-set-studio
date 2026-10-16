@@ -97,7 +97,7 @@ test('Ribs are cut from squares, one action per step, with counts before and aft
  assert.deepEqual([plan.square,plan.squaresPerSheet,plan.ribsPerSheet,plan.ribs,plan.squares,plan.sheets],[42.125,2,4,12,6,3],'42″ ribs: two squares per sheet; 12 ribs with the doubled rib at the skin joint');
  const cut=Array.from(context.instructionSentences(all.find(s=>s.stage===66).description));
  assert.match(cut[0],/You need 12 ribs, including the doubled rib where the skin pieces meet, and each square gives two, so cut 6 squares 42 1\/8″ on every side \(12 ribs\)/);
- const skin=all.find(s=>s.stage===76);assert.match(skin.description,/65 15\/16″ around/);assert.match(skin.description,/cut a 48″ × 94 7\/16″ full-width piece and a 17 15\/16″ × 94 7\/16″ strip/);assert.match(skin.description,/cut a 48″ × 24″ full-width piece and a 17 15\/16″ × 24″ strip/);
+ const skin=all.find(s=>s.stage===76);assert.match(skin.description,/65 15\/16″ around/);assert.match(skin.description,/cut 48″ × 94 7\/16″ and 17 15\/16″ × 94 7\/16″/);assert.match(skin.description,/cut 3 pieces: 24″ × 24″, 24″ × 24″ and 17 15\/16″ × 24″/);
  assert.match(all.find(s=>s.stage===52).title,/lower skin/);assert.match(all.find(s=>s.stage===78).title,/upper skin/);
  assert.ok(cut.some(l=>/One 4×8 sheet holds 2 squares, 4 ribs/.test(l)));
  assert.doesNotMatch(all.find(s=>s.stage===50).description,/Transfer the full-size corner template/);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as T from '../public/vendor/three.module.js';
 import {projectDefaultTracking,projectPartStatus} from '../public/project-model.js';
+import {CYC,cycloramaPlan} from '../public/cyclorama.js';
 const url=name=>new URL('../public/'+name,import.meta.url).href;
 const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
 const utils=fs.readFileSync(new URL('../public/vendor/BufferGeometryUtils.js',import.meta.url),'utf8').replaceAll("'three'",JSON.stringify(url('vendor/three.module.js')));
@@ -47,7 +48,7 @@ test('Retrofit meshes have finite geometry, inward corner normals, and floor-hei
  for(const height of [96,120])for(const angle of [0,45,90])for(const seamlessCorners of [false,true])for(const seamlessPerimeter of [false,true]){
   const d={height,angle,seamlessCorners,seamlessPerimeter},root=model.cycloramaMesh(d,{construction:true});
   root.traverse(o=>{if(!o.isMesh)return;for(const key of ['position','normal'])assert.ok([...o.geometry.attributes[key].array].every(Number.isFinite),o.name);assert.equal(o.userData.progress.kind,'cyclorama');
-   if(o.name.startsWith('Rounded wall corner')){o.geometry.computeBoundingBox();assert.ok(Math.abs(o.geometry.boundingBox.min.y-(seamlessPerimeter?24:0)*model.inch)<1e-6);assert.ok(o.geometry.attributes.normal.getZ(o.geometry.userData.skinVertexCount)>0,'corner faces the room, preventing inverted shadow bias');}
+   if(o.name.startsWith('Rounded wall corner')){o.geometry.computeBoundingBox();const sk=root.userData.plan.cornerSkin,lift=root.userData.plan.floorBase;assert.ok(Math.abs(o.geometry.boundingBox.min.y-(o.name.endsWith('upper')?sk.seams[0]-lift:(seamlessPerimeter?24:0))*model.inch)<1e-6,'lower piece from the curve base, upper piece from the skin joint');assert.ok(o.geometry.attributes.normal.getZ(o.geometry.userData.skinVertexCount)>0,'corner faces the room, preventing inverted shadow bias');}
   });if(!seamlessPerimeter&&(!seamlessCorners||angle===0))assert.equal(root.children.length,0);model.dispose(root);
  }
 });
@@ -88,7 +89,7 @@ test('Cyclorama skin matches the wall plywood actual .106-inch thickness',()=>{
 test('Floor and compound skins physically occlude their solid ribs',()=>{
  for(const angle of [45,90]){
   const d={height:120,angle,seamlessCorners:true,seamlessPerimeter:true},root=model.cycloramaMesh(d);root.updateMatrixWorld(true);
-  const u=angle*Math.PI/360,t=Math.PI/4,R=36,r=24,cx=96-R*Math.tan(u),rho=R-r+r*Math.cos(t);
+  const n=cycloramaPlan(d).compoundRibs/2,u=angle*Math.PI/180*Math.floor((n-1)/2)/(n-1),t=Math.PI/4,R=CYC.cornerRadius,r=24,cx=96-R*Math.tan(angle*Math.PI/360),rho=R-r+r*Math.cos(t);
   const point=new T.Vector3(cx+rho*Math.sin(u),r*(1-Math.sin(t)),R-rho*Math.cos(u)).multiplyScalar(model.inch),normal=new T.Vector3(-Math.sin(u)*Math.cos(t),Math.sin(t),Math.cos(u)*Math.cos(t));
   const hits=new T.Raycaster(point.clone().addScaledVector(normal,4*model.inch),normal.clone().negate()).intersectObject(root,true);
   assert.equal(hits[0].object.userData.pricingIds[0],'cycSkin');assert.ok(hits.some(h=>h.object.name.startsWith('Compound corner rib')),'compound rib must remain behind the sheet');

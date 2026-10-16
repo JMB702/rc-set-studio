@@ -20,7 +20,7 @@ test('Lauan cut layouts fit physical sheets and do not overlap',()=>{
  for(const height of [96,120])for(const angle of [1,30,45,75,90])for(const seamlessPerimeter of [false,true]){
   const p=cycloramaPlan({...base,height,angle,seamlessCorners:true,seamlessPerimeter}),cuts=p.skinLayout.pieces;
   for(const a of cuts){assert.ok(a.x>=0&&a.y>=0&&a.x+a.width<=48+1e-8&&a.y+a.height<=96+1e-8);for(const b of cuts){if(a===b||a.sheet!==b.sheet)continue;assert.ok(a.x+a.width<=b.x||b.x+b.width<=a.x||a.y+a.height<=b.y||b.y+b.height<=a.y,'overlapping cuts');}}
-  const area=cuts.filter(c=>c.kind==='corner').reduce((n,c)=>n+c.width*c.height,0);assert.ok(area>=p.corners*p.cornerArc*p.cornerHeight);
+  const area=cuts.filter(c=>c.kind==='corner').reduce((n,c)=>n+c.width*c.height,0),sk=p.cornerSkin;assert.ok(area>=p.corners*p.cornerArc*(sk.rows.at(-1).top-sk.rows[0].bottom)-1e-6,'corner skin covers the curve from its base to the wall top');
  }
 });
 test('Hardware rounds shared packs once, and exclusions recalculate allocations',()=>{

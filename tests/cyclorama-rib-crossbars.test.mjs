@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {priceRows} from '../public/pricing-calc.js';
 import {laborTasks} from '../public/labor.js';
-import {cycloramaPlan,wallCrossbars,infillCrossbars,ribBackScrew} from '../public/cyclorama.js';
+import {cycloramaPlan,wallCrossbars,infillCrossbars,ribBackScrew,cutLength} from '../public/cyclorama.js';
+import {inches} from '../public/platform.js';
 import {stepFasteners} from '../public/step-fasteners.js';
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
 // The approved build: 10′ walls at 90°, right corner only, no perimeter, painted floor with the joining lip, square platform.
@@ -21,7 +22,8 @@ test('Every corner rib is centered on a wall crossbar, existing or added, and sc
    const screw=ribBackScrew(height,l.flat);assert.ok(screw.length-screw.through>=.75,'at least ¾″ of screw in the rib edge');
    assert.ok(l.y>=p.floorBase+(perimeter?24:0)-1e-9&&l.y+p.ribThickness<=height,'ribs stay on the curve');
   }
-  const ys=p.ribLevels.map(l=>l.y);for(let i=1;i<ys.length;i++)assert.ok(ys[i]-ys[i-1]<=p.ribSpacing&&ys[i]-ys[i-1]>=3,'ribs within the 16″ maximum, about 12″ on the crossbar grid');
+  const L=p.ribLevels;for(let i=1;i<L.length;i++){const gap=L[i].y-L[i-1].y;if(L[i].double==='upper'){assert.equal(L[i-1].double,'lower');assert.ok(Math.abs(gap-p.ribThickness)<1e-9,'doubled ribs sit face to face');assert.ok(p.cornerSkin.seams.some(sm=>Math.abs(sm-L[i].y)<1e-9),'the skin joint is exactly between them');}else assert.ok(gap<=p.ribSpacing&&gap>=3,'ribs within the 16″ maximum, about 12″ on the crossbar grid');}
+  for(const sm of p.cornerSkin.seams)assert.ok(L.some(l=>l.double==='upper'&&Math.abs(l.y-sm)<1e-9),'every skin joint has a doubled rib');
   for(const y of p.addedCrossbarLevels)assert.ok(wallCrossbars(height).every(e=>Math.abs(e-y)>=.375+p.crossbarStock.width/2-1e-9),'flat added crossbars clear the existing on-edge ones');
   assert.equal(p.addedCrossbars,4*p.addedCrossbarLevels.length,'two panels per rounded corner');
   if(!perimeter)assert.equal(p.blockingFeet,0,'no cleats or vertical seam backers on a corners-only retrofit');
@@ -31,12 +33,14 @@ test('Every corner rib is centered on a wall crossbar, existing or added, and sc
 
 test('Approved design: material for crossbar-mounted ribs',()=>{
  const p=cycloramaPlan(approved),rows=priceRows(data,approved),row=id=>rows.find(r=>r.id===id);
- assert.equal(p.verticalRibs,11);assert.equal(p.addedCrossbars,12);assert.equal(p.addedCrossbarLevels.length,6);
+ assert.equal(p.verticalRibs,12,'11 crossbar lines plus the doubled rib at the 96″ skin joint');assert.equal(p.addedCrossbars,12);assert.equal(p.addedCrossbarLevels.length,6);
  assert.equal(row('cycCrossbars').purchaseQuantity,6);assert.equal(row('cycCrossbars').productUrl,data.products.find(x=>x.id==='board13').productUrl,'1×3 like the 10′ toggles');
- assert.equal(row('cycRibScrews').needed,16,'4 ribs on the existing on-edge toggles and top rail');assert.equal(row('cycAnchorScrews').needed,28,'7 ribs on flat crossbars take 2½″ SPAX');assert.equal(row('cycRibScrews').purchaseQuantity,1);assert.equal(row('cycRibScrews').unitPriceCents,null,'3½″ box price not yet checked');
+ assert.equal(row('cycRibScrews').needed,16,'4 ribs on the existing on-edge toggles and top rail');assert.equal(row('cycAnchorScrews').needed,32,'8 ribs on flat crossbars (both doubled ribs on the 96″ seam board) take 2½″ SPAX');assert.equal(row('cycRibScrews').purchaseQuantity,1);assert.equal(row('cycRibScrews').unitPriceCents,null,'3½″ box price not yet checked');
  assert.equal(row('cycBacking'),undefined,'no 2×4 backing or cleats');
  assert.equal(row('cycCrossbarScrews').needed,48);assert.equal(row('cycCrossbarStaples').needed,192);
- assert.equal(row('cycRibPly').purchaseQuantity,3);
+ assert.equal(row('cycRibPly').purchaseQuantity,2,'30 1/8″ squares: three per sheet');assert.equal(row('cycSkin').purchaseQuantity,2,'lower and upper skin pieces, one sheet each');
+ assert.equal(p.cornerRadius,30);assert.deepEqual(p.cornerSkin.columns.map(w=>inches(cutLength(w))),['47 1/8″'],'one sheet wide, no vertical seam');
+ assert.deepEqual(p.cornerSkin.rows.map(r=>inches(cutLength(r.height))),['94 7/16″','24″'],'floor top to the 96″ rib, then the rib to the wall top');assert.deepEqual(p.cornerSkin.seams,[96]);
  assert.ok(laborTasks(approved).find(t=>t.id==='cycBacking').name.includes('12 backboards'));assert.equal(laborTasks(approved).find(t=>t.id==='cycBacking').stage,'43, 63–64');assert.equal(laborTasks(approved).find(t=>t.id==='cycFinish').stage,'28, 72–73','rounded corners are plastered, primed and painted with the walls');
- assert.deepEqual(stepFasteners(50,120,'charcoal',approved).map(f=>[f.productId,f.quantity]),[['cycAnchorScrews',28],['cycRibScrews',16],['cycAdhesive',null]]);
+ assert.deepEqual(stepFasteners(50,120,'charcoal',approved).map(f=>[f.productId,f.quantity]),[['cycAnchorScrews',32],['cycRibScrews',16],['cycAdhesive',null]]);
 });

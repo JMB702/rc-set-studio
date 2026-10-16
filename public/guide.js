@@ -459,7 +459,10 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
    if(o.material.userData.surface==='wall'&&stage===72){o.material.dispose();o.material=primer.clone();o.material.side=T.DoubleSide;}
    else if(o.material.userData.surface==='wall'&&!reached(73)){const corner=stage===28&&o.name.startsWith('Rounded wall corner'),filled=!corner&&(stage===48||stage===28),m=(filled?mats.compound:mats.ply).clone();m.side=T.DoubleSide;if(filled)m.color.setRGB(1.4,1.4,1.4);
     // At the wall finish the rounded corner is bare lauan plastered only at its seams, exactly like the walls.
-    if(corner){m.color.set(0xf5edd6);const plan=cyc.userData.plan,box=new T.Box3().setFromBufferAttribute(o.geometry.attributes.position),height=(box.max.y-box.min.y)/inch;applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:[0,1],vJoints:height>96?[96]:[]});}
+    if(corner){m.color.set(0xf5edd6);const plan=cyc.userData.plan,box=new T.Box3().setFromBufferAttribute(o.geometry.attributes.position),height=(box.max.y-box.min.y)/inch;// Each stacked skin piece is its own mesh: plaster its share of the row joint, measured from its own bottom edge, so
+    // the band feathers across both sides of the doubled-rib joint.
+    const bottom=box.min.y/inch+plan.floorBase,vJoints=(plan.cornerSkin?.seams||[]).map(sm=>sm-bottom).filter(v=>v>-.5&&v<height+.5);
+    applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:[0,1],vJoints});}
     o.material.dispose();o.material=m;}
    if(fin<0&&stage>=43&&(o.userData.guideStage??o.userData.step)===stage&&stage!==48||(stage===63||stage===64)&&o.name.startsWith('Added crossbar'))outlinePiece(o);}});}
   bounds=visibleBounds(model);

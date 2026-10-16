@@ -82,7 +82,7 @@ test('The seamless corner goes in before the walls are plastered, primed and pai
  const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,seamlessCorners:true,seamlessCornerSide:'right',floorLip:true};
  const all=Array.from(context.steps(120,'charcoal',cfg)),at=stage=>all.findIndex(s=>s.stage===stage);
  assert.ok(all.filter(s=>s.section==='cyclorama').every(s=>at(s.stage)<at(28)),'every seamless corner step comes before the wall finish');
- assert.deepEqual(all.filter(s=>s.section==='finish').map(s=>s.stage),[28,72,73,25,26,27,74,36,37,75],'walls, then the painted floor, then the platform moves in and is finished');
+ assert.deepEqual(all.filter(s=>s.section==='finish').map(s=>s.stage),[28,72,73,25,26,27,74,76,36,37,75],'walls, then the painted floor, then the platform moves in and is finished');
  assert.equal(at(48),-1,'rounded wall corners have no separate finishing step');
  assert.match(all[at(28)].description,/Plaster the rounded corner along with the walls/);
  const coves=Array.from(context.steps(120,'charcoal',{...cfg,seamlessPerimeter:true}));assert.equal(coves[coves.findIndex(s=>s.stage===48)].title,'Fill and fair the seamless surfaces');
@@ -106,11 +106,23 @@ test('Ribs are cut from squares, one action per step, with counts before and aft
 test('Finishing runs walls, then floor, then platform; the platform moves in only onto a painted floor',()=>{
  const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12};
  const fin=(floor,c=cfg)=>Array.from(context.steps(120,floor,c)).filter(s=>s.section==='finish').map(s=>s.stage);
- assert.deepEqual(fin('charcoal'),[28,72,73,25,26,27,74,36,37,75]);
- assert.deepEqual(fin('wood'),[28,72,73,36,37,75],'a laminate floor is finished during the floor build');
+ assert.deepEqual(fin('charcoal'),[28,72,73,25,26,27,74,76,36,37,75]);
+ assert.deepEqual(fin('wood'),[28,72,73,76,36,37,75],'a laminate floor is finished during the floor build');
  assert.deepEqual(fin('none',{...cfg,platformShape:'none'}),[28,72,73]);
  const all=Array.from(context.steps(120,'charcoal',cfg)),by=n=>all.find(s=>s.stage===n);
- assert.match(by(74).description,/never drag it across the paint/);assert.match(by(36).description,/drop cloth over the painted floor/);
+ assert.match(by(74).description,/never drag it across the paint/);assert.match(by(76).description,/drop cloth over the painted floor/);
  assert.equal(by(37).title,'Prime the platform');assert.equal(by(75).title,'Paint the platform');assert.match(by(22).description,/plywood floor/);
  assert.ok(all.filter(s=>s.section==='floor').every(s=>[23,24,42].includes(s.stage)),'only the plywood layers are laid in the floor build');
+});
+
+test('Corner bead goes on every exposed top edge and vertical corner before the platform is skimmed',()=>{
+ const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12};
+ const b=platform.platformPlan(90,18,18,90,cfg).bead,round=v=>Math.round(v*1000)/1000;
+ assert.deepEqual(b.runs.map(r=>[r.label,round(r.outside),r.pieces.map(round),r.miterStart,r.miterEnd]),[['Front edge',156.212,[96,60.212],45,45],['Left side',66.212,[66.212],45,45],['Back edge',156.212,[96,60.212],45,45],['Right side',66.212,[66.212],45,45]]);
+ assert.deepEqual([b.vertical,b.sticks,b.spare,b.staples],[[8.75,8.75,8.75,8.75],6,1,192]);
+ const fin=Array.from(context.steps(120,'charcoal',cfg)).filter(s=>s.section==='finish'),step=fin.find(s=>s.stage===76);
+ assert.ok(fin.findIndex(s=>s.stage===76)===fin.findIndex(s=>s.stage===36)-1,'bead right before skim and plaster');
+ assert.match(step.description,/Miter every corner at 45°/);assert.match(step.description,/Front edge, 156 3\/16″ along the outside: 2 pieces, 96″ \+ 60 3\/16″/);
+ assert.match(step.description,/4 vertical corners, each cut square at 8 3\/4″/);assert.match(step.spec,/6 8′ lengths \+ 1 spare/);
+ assert.doesNotMatch(fin.find(s=>s.stage===36).description,/fit corner bead/);
 });

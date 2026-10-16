@@ -1,10 +1,10 @@
 import {floorSurfaceHeight} from './floor-plan.js';
 // Retrofit planning geometry in inches. Actual rib/skin fit must be templated on the assembled set.
-// 42″ vertical radius, the standard full-size cyc cove (Pro Cyc's 42″ systems): the bigger the curve, the smoother it
-// lights. The rib's straight edges reach 42″ along each wall at 90°, inside the 48″ panels that carry the added
-// backboards. At 90° the curve is 65 15/16″ around: a full 48″ lauan sheet plus a ripped strip per row.
+// 30 9/16″ vertical radius: at a 90° corner the curve is 48″ around, the full width of a lauan sheet, so each row of
+// skin is one uncut-width piece with no vertical seam (Jeff's choice; tighter than the 42″ full-size cyc standard).
+// With a 24″ floor sweep it leaves a 6 9/16″ corner radius at the toe.
 export const LAUAN=[48,96];
-export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:42,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
+export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:30.5625,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
 // Which wing corners get the rounded curve: 'both' (default), 'left' or 'right' seen from the front of the set.
 // Left is the negative-x wing (wall corner 1 in the tracker), right the positive-x wing (corner 2).
 export const CORNER_SIDES=['both','left','right'];
@@ -51,9 +51,7 @@ export function cycloramaPlan(d={}){
  const lift=floorSurfaceHeight(d),singleRibs=corners?cornerRibLevels(h,lift+(perimeter?r:0)):[];
  // Where two stacked skin pieces meet, the rib is doubled: two ribs face to face, centered on the joint, so each piece
  // lands on a full rib edge. Both sit on the same crossbar and take their own screws from behind.
- // Corner skin width: Jeff's cut, one piece per row as wide as the rib radius (42″ × 94 7/16″ and 42″ × 24″ on the
- // approved build). The 3D curve itself is still drawn at its full arc.
- const cornerSkin=corners?cornerSkinPlan(singleRibs.map(l=>l.y+CYC.ribThickness/2),lift+(perimeter?r:0),h,Math.min(LAUAN[0],R,cornerArc)):null,t=CYC.ribThickness;
+  const cornerSkin=corners?cornerSkinPlan(singleRibs.map(l=>l.y+CYC.ribThickness/2),lift+(perimeter?r:0),h,cornerArc):null,t=CYC.ribThickness;
  const ribLevels=singleRibs.flatMap(l=>cornerSkin?.seams.some(sm=>Math.abs(sm-(l.y+t/2))<1e-6)?[{...l,y:l.y+t/2-t,double:'lower'},{...l,y:l.y+t/2,double:'upper'}]:[l]),addedCrossbarLevels=ribLevels.filter(l=>l.added).map(l=>l.crossbar),crossbarPanels=corners*2,addedCrossbars=crossbarPanels*addedCrossbarLevels.length;
  const verticalRibs=corners*ribLevels.length,floorRibs=perimeter?Object.values(runs).reduce((n,run)=>n+Math.ceil(run/16)+1,0):0,compoundRibs=perimeter&&corners?corners*(Math.ceil(cornerArc/8)+1):0,ribCount=verticalRibs+floorRibs+compoundRibs;
  const verticalArea=corners*cornerArc*cornerHeight/144,floorArea=perimeter?straightLength*r*Math.PI/2/144:0,junctionArea=perimeter&&corners?corners*a*(R*r*Math.PI/2-r*r*(Math.PI/2-1))/144:0,skinArea=verticalArea+floorArea+junctionArea;

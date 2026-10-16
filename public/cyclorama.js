@@ -1,10 +1,11 @@
 import {floorSurfaceHeight} from './floor-plan.js';
 // Retrofit planning geometry in inches. Actual rib/skin fit must be templated on the assembled set.
-// 30″ vertical radius: at a 90° corner the curve is 47⅛″ around, so one 48″-wide lauan sheet skins it without a
-// vertical seam. With a 24″ floor sweep it leaves a 6″ corner radius at the toe.
+// 42″ vertical radius, the standard full-size cyc cove (Pro Cyc's 42″ systems): the bigger the curve, the smoother it
+// lights. The rib's straight edges reach 42″ along each wall at 90°, inside the 48″ panels that carry the added
+// backboards. At 90° the curve is 65 15/16″ around: a full 48″ lauan sheet plus a ripped strip per row.
 export const LAUAN=[48,96];
-export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:30,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
-// Which wing corners get the 30″ curve: 'both' (default), 'left' or 'right' seen from the front of the set.
+export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:42,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
+// Which wing corners get the rounded curve: 'both' (default), 'left' or 'right' seen from the front of the set.
 // Left is the negative-x wing (wall corner 1 in the tracker), right the positive-x wing (corner 2).
 export const CORNER_SIDES=['both','left','right'];
 export function cycloramaCornerSides(d={}){if(d.seamlessCorners!==true||!(Number(d.angle??45)>0))return [];const side=d.seamlessCornerSide??'both';return side==='left'?['left']:side==='right'?['right']:['left','right'];}
@@ -37,7 +38,8 @@ export function ribBackScrew(h,flat=false){return flat?{size:'#8 × 2½″',leng
 // A cut length you can mark: the nearest 1/16″ that does not overrun the space by more than a hair (1/320″).
 export const cutLength=v=>Math.floor(v*16+.05)/16;
 export function cornerSkinPlan(ribCenters,base,top,arc,[W,L]=LAUAN){
- const count=Math.ceil(arc/W-1e-9),columns=Array.from({length:count},()=>arc/count),rows=[];let start=base;
+ // Each row is full-width sheets plus one ripped strip for the rest, so only one piece per row is ripped.
+ const count=Math.ceil((arc-1/32)/W),columns=Array.from({length:count},(_,i)=>i<count-1?W:Math.min(W,arc-W*(count-1))),rows=[];let start=base;
  while(top-start>L+1e-9){const seam=Math.max(...ribCenters.filter(c=>c>start+1&&c-start<=L+1e-9));if(!Number.isFinite(seam))break;rows.push({index:rows.length,bottom:start,top:seam,height:seam-start});start=seam;}
  rows.push({index:rows.length,bottom:start,top,height:top-start});
  return {arc,columns,rows,seams:rows.slice(0,-1).map(r=>r.top)};}
@@ -58,7 +60,7 @@ export function cycloramaPlan(d={}){
  const strips=(kind,length,developed)=>{const columns=Math.ceil(developed/47);for(let col=0;col<columns;col++)for(let remaining=length;remaining>1e-6;remaining-=96)skinCuts.push({kind,width:developed/columns+1,height:Math.min(96,remaining)});};
  // Corner skin is cut exactly: the developed arc wide (one sheet when it fits 48″) and from the curve base to the wall
  // top, split into stacked pieces whose joints land on the center of a rib no more than one sheet length apart.
- if(cornerSkin)for(let i=0;i<corners;i++)for(const c of cornerSkin.columns)for(const row of cornerSkin.rows)skinCuts.push({kind:'corner',width:c,height:row.height,row:row.index});
+ if(cornerSkin)for(let i=0;i<corners;i++)for(const [col,c] of cornerSkin.columns.entries())for(const row of cornerSkin.rows)skinCuts.push({kind:'corner',width:c,height:row.height,row:row.index,col});
  if(perimeter){strips('back perimeter',runs.back,r*Math.PI/2);for(const side of ['left','right'])strips('side perimeter',runs[side],r*Math.PI/2);}
 
  const skinLayout=packCycloramaSkin(skinCuts),goreSheets=perimeter?corners:0,skinSheets=skinLayout.sheets+goreSheets;

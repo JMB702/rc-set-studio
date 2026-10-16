@@ -1,9 +1,9 @@
 export function instructionSentences(description){return (description.match(/.+?(?:[.!?](?=\s|$)|$)/g)||[description]).map(t=>t.trim()).filter(Boolean);}
-import {applyPlatformSeamTexture,applyFasciaCompound,applyCornerSkinSeams} from './platform-finish.js';
+import {applyPlatformSeamTexture,applyFasciaCompound,applyCornerSkinSeams,applyWallTangentSeams} from './platform-finish.js';
 import * as T from 'three';
 import {stepFasteners} from './step-fasteners.js';
 import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,cycloramaMesh,slab,dispose,grain,footprint} from './model.js';
-import {cycloramaPlan,cycloramaGaps,cycloramaCornerSides,ribCutPlan,RIB_SHEET} from './cyclorama.js';
+import {cycloramaPlan,cycloramaGaps,cycloramaCornerSides,ribCutPlan,RIB_SHEET,cycloramaPath} from './cyclorama.js';
 import {migrateGuideStage,migrateFinishStage} from './workspace-state.js';
 import {floorPlan,FLOOR,floorSection,floorSurfaceHeight} from './floor-plan.js';
 import {floorArea} from './pricing-calc.js';
@@ -292,7 +292,9 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
   if(floorWork)g.visible=false;
   if(stage<27||S.floor==='none')g.traverse(o=>{if(o.name==='Charcoal shoe trim')o.visible=false;});
   if(stage>=22&&!floorWork&&S.platformShape!=='none')model.add(platformFloor(S.angle,S.platformBack,S.platformSide,S.platformAngle,S));
-  if(stage===28)g.traverse(o=>{if(o.isMesh&&o.userData.paintedSide==='front'){o.material=S.height===120?mats.wallSeams10:mats.wallSeams8;o.userData.guideMaterial=true;}});
+  // Where a rounded corner meets a flat wall, its edge plaster feathers onto the wall panel too.
+  const tangents=stage===28?cycloramaPath(S).filter(seg=>seg.kind==='corner').flatMap(seg=>[seg.points[0],seg.points.at(-1)]):[],wallSeams=tangents.length?applyWallTangentSeams((S.height===120?mats.wallSeams10:mats.wallSeams8).clone(),tangents):null;
+  if(stage===28)g.traverse(o=>{if(o.isMesh&&o.userData.paintedSide==='front'){o.material=wallSeams||(S.height===120?mats.wallSeams10:mats.wallSeams8);o.userData.guideMaterial=true;}});
   // The walls are still raw plywood until the wall finish, including while the seamless retrofit goes in.
   if(stage<28||stage>=43)g.traverse(o=>{if(o.isMesh&&o.material===mats.charcoal)o.material=o.userData.paintedSide==='front'?mats.wallRaw:mats.ply;});
   if(floorWork&&S.floor==='charcoal'&&(stage<=25||stage===42)){
@@ -322,7 +324,7 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
    // The curved skin is raw plywood while it goes on, then filled and faired compound; it is primed and painted with the walls.
    if(o.material.userData.surface==='wall'){const corner=stage===28&&o.name.startsWith('Rounded wall corner'),filled=!corner&&(stage===48||stage===28),m=(filled?mats.compound:mats.ply).clone();m.side=T.DoubleSide;if(filled)m.color.setRGB(1.4,1.4,1.4);
     // At the wall finish the rounded corner is bare lauan plastered only at its seams, exactly like the walls.
-    if(corner){m.color.set(0xf5edd6);const plan=cyc.userData.plan,columns=Math.max(1,Math.ceil(plan.cornerArc/47)),box=new T.Box3().setFromBufferAttribute(o.geometry.attributes.position),height=(box.max.y-box.min.y)/inch;applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:Array.from({length:columns+1},(_,k)=>k/columns),vJoints:height>96?[96]:[]});}
+    if(corner){m.color.set(0xf5edd6);const plan=cyc.userData.plan,box=new T.Box3().setFromBufferAttribute(o.geometry.attributes.position),height=(box.max.y-box.min.y)/inch;applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:[0,1],vJoints:height>96?[96]:[]});}
     o.material.dispose();o.material=m;}
    if(stage>=43&&(o.userData.guideStage??o.userData.step)===stage&&stage!==48||(stage===63||stage===64)&&o.name.startsWith('Added crossbar'))outlinePiece(o);}});}
   bounds=visibleBounds(model);

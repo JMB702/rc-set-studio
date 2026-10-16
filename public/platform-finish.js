@@ -110,3 +110,24 @@ export function applyCornerSkinSeams(material,{arc,height,uJoints,vJoints}){
  };
  material.needsUpdate=true;return material;
 }
+
+// Plaster at the rounded corner's edges carries onto the flat wall: a band of the wall seams' joint compound
+// centered on each line where the curve meets the wall. tangents are [x, z] points in inches (world space).
+export function applyWallTangentSeams(material,tangents){
+ const t=new Float32Array(8);t.set(tangents.slice(0,4).flat());
+ material.customProgramCacheKey=()=>'wall-tangent-seams-v1';
+ material.onBeforeCompile=shader=>{
+  Object.assign(shader.uniforms,{tangentPoints:{value:t},tangentCount:{value:Math.min(4,tangents.length)}});
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vTangentWorld;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTangentWorld = (modelMatrix * vec4(position, 1.0)).xyz / 0.0254;');
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
+   varying vec3 vTangentWorld; uniform vec2 tangentPoints[4]; uniform int tangentCount;
+   float tangentFeather(float d,float w){float t=clamp(1.0-d/w,0.0,1.0);return t*t*(3.0-2.0*t);}
+  `).replace('#include <map_fragment>',`#include <map_fragment>
+   float y=vTangentWorld.y,a=0.0,wave=.28*sin(y*.31)+.14*sin(y*1.13),width=4.4+.3*sin(y*.21);
+   for(int i=0;i<4;i++){if(i>=tangentCount)break;a=max(a,tangentFeather(abs(length(vTangentWorld.xz-tangentPoints[i])+wave),width));}
+   a*=.94+.04*sin(y*1.7+vTangentWorld.x*.31);
+   diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.863,.855,.799)*(1.0+.007*sin(vTangentWorld.x*.7+y*.31)),clamp(a,0.0,1.0));
+  `);
+ };
+ material.needsUpdate=true;return material;
+}

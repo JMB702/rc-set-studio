@@ -7,7 +7,7 @@ import {cycloramaPlan,cycloramaGaps,cycloramaCornerSides,ribCutPlan,RIB_SHEET,cy
 import {migrateGuideStage,migrateFinishStage} from './workspace-state.js';
 import {floorPlan,FLOOR,floorSection,floorSurfaceHeight} from './floor-plan.js';
 import {floorArea} from './pricing-calc.js';
-import {platformPlan,platformCuts,cutSequence,floorSheetPlan,PLATFORM,legLength,rimBottom,inches} from './platform.js';
+import {platformPlan,platformCuts,cutSequence,floorSheetPlan,PLATFORM,legLength,rimBottom,inches,clipHalf,area} from './platform.js';
 import {benchPanelPose,jackBenchDirection} from './guide-orientation.js';
 const $=s=>document.querySelector(s);
 export function cutRows(h){const tall=h===120,rows=[
@@ -292,6 +292,40 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
   }
   bounds=visibleBounds(model);if(stage===66){bounds.min.x-=40*inch;bounds.min.z-=16*inch;}
  }
+ // Canvas drop cloth: a woven tan fabric with soft folds, flecked with drops and smears of the paints used here
+ // (charcoal paint, white primer, gray skim). Seeded so it looks the same every time; one tile covers 60″.
+ let clothTexture=null;
+ function dropClothTexture(){if(clothTexture)return clothTexture;const size=512,c=document.createElement('canvas'),g=c.getContext('2d');c.width=c.height=size;let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  g.fillStyle='#bfae88';g.fillRect(0,0,size,size);
+  for(let y=0;y<size;y+=2){g.fillStyle=`rgba(${y%4?'240,228,200':'92,76,52'},${.10+rnd()*.08})`;g.fillRect(0,y,size,1);}
+  for(let x=0;x<size;x+=2){g.fillStyle=`rgba(${x%4?'240,228,200':'92,76,52'},${.09+rnd()*.08})`;g.fillRect(x,0,1,size);}
+  for(let k=0;k<7;k++){const x=rnd()*size,w=30+rnd()*70,grad=g.createLinearGradient(x-w,0,x+w,0);grad.addColorStop(0,'rgba(0,0,0,0)');grad.addColorStop(.5,`rgba(70,55,35,${.10+rnd()*.08})`);grad.addColorStop(1,'rgba(0,0,0,0)');g.save();g.translate(size/2,size/2);g.rotate(rnd()*Math.PI);g.translate(-size/2,-size/2);g.fillStyle=grad;g.fillRect(x-w,-size,w*2,size*3);g.restore();}
+  const paints=['#34383b','#34383b','#f3f1ec','#9c9d98','#2a2d2f'];
+  for(let k=0;k<70;k++){const x=rnd()*size,y=rnd()*size,r=1+rnd()**3*9,color=paints[Math.floor(rnd()*paints.length)];g.fillStyle=color;g.globalAlpha=.75+rnd()*.25;g.beginPath();g.ellipse(x,y,r*(1+rnd()*.6),r,rnd()*Math.PI,0,Math.PI*2);g.fill();
+   for(let j=0;j<4;j++){const a=rnd()*Math.PI*2,d=r+2+rnd()*10;g.beginPath();g.arc(x+Math.cos(a)*d,y+Math.sin(a)*d,.6+rnd()*1.6,0,Math.PI*2);g.fill();}}
+  for(let k=0;k<6;k++){g.strokeStyle=paints[Math.floor(rnd()*paints.length)];g.globalAlpha=.55+rnd()*.3;g.lineWidth=2+rnd()*5;g.lineCap='round';g.beginPath();const x=rnd()*size,y=rnd()*size;g.moveTo(x,y);g.quadraticCurveTo(x+rnd()*60-30,y+rnd()*60-30,x+rnd()*90-45,y+rnd()*90-45);g.stroke();}
+  g.globalAlpha=1;clothTexture=new T.CanvasTexture(c);clothTexture.colorSpace=T.SRGBColorSpace;clothTexture.wrapS=clothTexture.wrapT=T.RepeatWrapping;clothTexture.anisotropy=4;return clothTexture;}
+ // A cloth is a grid of 1½″ cells kept only where the cell sits on the floor, so its edge reads as loose fabric.
+ // Each has a few raised folds and small rumples (seeded per cloth) that flatten out where it meets the platform.
+ function dropCloths(outline){
+  const G=new T.Group();G.name='Drop cloths';const y0=floorSurfaceHeight(S),xs=outline.map(p=>p[0]),zs=outline.map(p=>p[1]),[x0,x1,z0,z1]=[Math.min(...xs),Math.max(...xs),Math.min(...zs),Math.max(...zs)],m=24,gap=.4;
+  let floor=footprint(S.angle);if(area(floor)<0)floor=[...floor].reverse();
+  const onFloor=(x,z)=>floor.every((A,i)=>{const B=floor[(i+1)%floor.length],n=[-(B[1]-A[1]),B[0]-A[0]],l=Math.hypot(...n);return (n[0]*(x-A[0])+n[1]*(z-A[1]))/l>=1.5;});
+  const offPlatform=(x,z)=>Math.max(x0-gap-x,x-(x1+gap),z0-gap-z,z-(z1+gap));
+  const cloth=(bx0,bx1,bz0,bz1,seed,lift,along)=>{let r=seed;const rnd=()=>(r=(r*16807)%2147483647)/2147483647,step=1.5,nx=Math.max(2,Math.round((bx1-bx0)/step)),nz=Math.max(2,Math.round((bz1-bz0)/step));
+   const folds=Array.from({length:5+Math.floor(rnd()*4)},()=>{const t=rnd(),a=(along==='x'?Math.PI/2:0)+(rnd()-.5)*1.1;return {px:bx0+(bx1-bx0)*(along==='x'?t:rnd()),pz:bz0+(bz1-bz0)*(along==='x'?rnd():t),dx:Math.cos(a),dz:Math.sin(a),h:1+rnd()*1.6,w:1+rnd()*1.8};});
+   const height=(x,z)=>{let h=.3*Math.sin(x*.55+seed)*Math.sin(z*.45-seed)+.15*Math.sin(x*1.7+z*1.3)+.25;for(const f of folds){const d=Math.abs((x-f.px)*f.dz-(z-f.pz)*f.dx);h+=f.h*Math.exp(-((d/f.w)**2));}
+    const edge=Math.min(1,Math.max(0,offPlatform(x,z)/4));return lift+Math.max(0,h)*edge*edge;};
+   const pos=[],uv=[],index=[],idx=new Map(),vertex=(i,j)=>{const key=i*1000+j;if(idx.has(key))return idx.get(key);const x=bx0+(bx1-bx0)*i/nx,z=bz0+(bz1-bz0)*j/nz;pos.push(x*inch,(y0+height(x,z))*inch,z*inch);uv.push(x/60,z/60);idx.set(key,pos.length/3-1);return pos.length/3-1;};
+   for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const corners=[[i,j],[i+1,j],[i+1,j+1],[i,j+1]];if(!corners.every(([a,b])=>{const x=bx0+(bx1-bx0)*a/nx,z=bz0+(bz1-bz0)*b/nz;return onFloor(x,z)&&offPlatform(x,z)>=0;}))continue;const [a,b,c,d]=corners.map(([p,q])=>vertex(p,q));index.push(a,c,b,a,d,c);}
+   if(!index.length)return;const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(index);g.computeVertexNormals();
+   // Crease shading: a fold's steeper sides darken, as cloth does when it bunches.
+   const nrm=g.attributes.normal,col=[];for(let k=0;k<nrm.count;k++){const v=.62+.38*Math.abs(nrm.getY(k))**6;col.push(v,v,v);}g.setAttribute('color',new T.Float32BufferAttribute(col,3));
+   const mesh=new T.Mesh(g,new T.MeshStandardMaterial({map:dropClothTexture(),color:0xd9cdb3,roughness:1,side:T.DoubleSide,vertexColors:true}));mesh.name='Drop cloth';mesh.userData.guideMaterial=true;mesh.castShadow=mesh.receiveShadow=true;G.add(mesh);};
+  cloth(x0-m,x1+m,z0-m,z0-gap,11,.05,'x');cloth(x0-m,x1+m,z1+gap,z1+m,23,.05,'x');
+  cloth(x0-m,x0-gap,z0-8,z1+8,37,.2,'z');cloth(x1+gap,x1+m,z0-8,z1+8,53,.2,'z');
+  return G;
+ }
  // The platform as it stands at a finishing step: bare plywood and lauan, then a gray cement-skim deck with
  // plastered fascia joints, then primer, then the painted block.
  function platformAt(state){
@@ -315,7 +349,9 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
   // A platform built on a painted floor is built outside the set and only moves in after the floor paint (74).
   if(stage>=22&&!floorStep&&S.platformShape!=='none'&&(!painted||reached(74)))model.add(platformAt(reached(75)?'paint':stage===37?'primer':stage===36?'skim':'raw'));
   // A drop cloth protects the painted floor while the platform is skimmed, primed and painted.
-  if(painted&&S.platformShape!=='none'&&[36,37,75].includes(stage)){const cloth=new T.Mesh(slab(footprint(S.angle),floorSurfaceHeight(S)+.02,floorSurfaceHeight(S)+.06),new T.MeshStandardMaterial({color:0xd8cfbb,roughness:1}));cloth.name='Drop cloth';cloth.userData.guideMaterial=true;model.add(cloth);}
+  // Four separate canvas cloths, one along each side of the platform, laid from its edge outward (never under it),
+  // overlapping at the corners and stopping short of the walls.
+  if(painted&&S.platformShape!=='none'&&[36,37,75].includes(stage))model.add(dropCloths(platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle,S).outline));
   // Where a rounded corner meets a flat wall, its edge plaster feathers onto the wall panel too.
   const tangents=stage===28?cycloramaPath(S).filter(seg=>seg.kind==='corner').flatMap(seg=>[seg.points[0],seg.points.at(-1)]):[],wallSeams=tangents.length?applyWallTangentSeams((S.height===120?mats.wallSeams10:mats.wallSeams8).clone(),tangents):null;
   if(stage===28)g.traverse(o=>{if(o.isMesh&&o.userData.paintedSide==='front'){o.material=wallSeams||(S.height===120?mats.wallSeams10:mats.wallSeams8);o.userData.guideMaterial=true;}});

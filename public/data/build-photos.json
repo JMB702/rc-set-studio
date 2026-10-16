@@ -1,0 +1,407 @@
+{
+ "stages": [
+  {
+   "id": "first-panel",
+   "title": "The first panel",
+   "summary": "One 4×8 flat framed, skinned and braced to prove the design before building the rest."
+  },
+  {
+   "id": "framing",
+   "title": "Framing day",
+   "summary": "The rest of the wall frames laid out, squared and nailed across the shop floor."
+  },
+  {
+   "id": "walls",
+   "title": "Walls go up",
+   "summary": "Panels stand and lock together into the back wall and its first returns."
+  },
+  {
+   "id": "supplies",
+   "title": "Supply runs",
+   "summary": "More lumber and plywood for the floor and platform."
+  },
+  {
+   "id": "room",
+   "title": "The room takes shape",
+   "summary": "All three walls standing, with the jacks and braces doing the work behind them."
+  },
+  {
+   "id": "floor",
+   "title": "Floor down",
+   "summary": "Plywood floor laid wall to wall inside the set."
+  },
+  {
+   "id": "platform",
+   "title": "The platform",
+   "summary": "The raised platform framed, set in place and decked."
+  }
+ ],
+ "photos": [
+  {
+   "id": "2026-10-08-first-wall-frame",
+   "stage": "first-panel",
+   "title": "First wall frame",
+   "caption": "The first panel frame, squared up and standing on the shop floor.",
+   "taken": "2026-10-08T16:27",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-08-first-wall-frame-480.8dd4a5d2.webp",
+    "960": "2026-10-08-first-wall-frame-960.7e53ed48.webp",
+    "1600": "2026-10-08-first-wall-frame-1600.554a739d.webp",
+    "2400": "2026-10-08-first-wall-frame-2400.2fbe489a.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAADwBACdASoSABgAPu1urlIppiQiqAgBMB2JZQDImBImxRlVaDzLAUnWPsaWnsTinYAA/qnRqwEJFvbh3n+l1QiYoVv1BkjmWAn75zI2l5+shRlEGgL2vmmvouK9UAmPMFtEeZmv1XyGopQIPALeH5u0LxKfE/1rFSv+jHlEMMXLAFoQFnjmbZKkPJc+8+1LG/9YuD+K3OWsesN+9NUK7w2kgqLdoBnVMAAAAA=="
+  },
+  {
+   "id": "2026-10-08-first-panel-skinned",
+   "stage": "first-panel",
+   "title": "First panel skinned",
+   "caption": "Plywood skin on. The first flat wall panel stands on its own.",
+   "taken": "2026-10-08T19:50",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-08-first-panel-skinned-480.876c7531.webp",
+    "960": "2026-10-08-first-panel-skinned-960.ce18ecea.webp",
+    "1600": "2026-10-08-first-panel-skinned-1600.9bec654a.webp",
+    "2400": "2026-10-08-first-panel-skinned-2400.758e6300.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAACwBACdASoSABgAPu1ur1KppiQiqAgBMB2JZwDIXAtV/8BaBmD2eR7ZlcAvjjAAAP6d0Pzh56R1ohV9+geUjbMh6N/BHL4QLcAYuhV7W5Cri4Iw3RjJMAm8AoguWdh0XbR+Ab2FHn5fBoDW8e0aYRlCHB6oNxBoMYu1hGrBJC3TlvehjjPo4R9fgAA="
+  },
+  {
+   "id": "2026-10-08-back-of-the-first-panel",
+   "stage": "first-panel",
+   "title": "Back of the first panel",
+   "caption": "Rear framing and the angled jack that holds the panel upright.",
+   "taken": "2026-10-08T19:50",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-08-back-of-the-first-panel-480.0b3ec8f8.webp",
+    "960": "2026-10-08-back-of-the-first-panel-960.760c35d9.webp",
+    "1600": "2026-10-08-back-of-the-first-panel-1600.7c3e735f.webp",
+    "2400": "2026-10-08-back-of-the-first-panel-2400.f5091a7d.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRqgAAABXRUJQVlA4IJwAAADwBACdASoSABgAPu1sq1EppaOiqAqpMB2JZQC2FA8wVQam+mfEAU1H2Fk8U1m5MAAA/SiZN3vStptAExO2t2OqP43/GOJsv/7x5IMlbx+CmHvE4WMeZyrIJ3ZfQ6ap0zYUM7qVEdY9jzKCNKQov3WPCNrx5mjtqSnrEZaci1z7t7eOIRb5q1/neO8u+FiS3X0myEcwTDDuHP01AAA="
+  },
+  {
+   "id": "2026-10-09-lumber-staged",
+   "stage": "framing",
+   "title": "Lumber staged",
+   "caption": "2×4s cut and stacked for a full day of framing.",
+   "taken": "2026-10-09T11:46",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-09-lumber-staged-480.ea3672e4.webp",
+    "960": "2026-10-09-lumber-staged-960.6011c440.webp",
+    "1600": "2026-10-09-lumber-staged-1600.0a667cc1.webp",
+    "2400": "2026-10-09-lumber-staged-2400.67f3e547.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRrgAAABXRUJQVlA4IKwAAADQBACdASoSABgAPu1eqE6ppKOiMBgMATAdiUAYmwIQzVL3vLRP+Zsaki9NGxEqAAD+a/WZ2XMBy+qEWFRXttLx/XctJLmCNYsWj6Sk+PtQMAZw7IL0cevsYXwuQqCgdOJyqguZsdFkGiejTEW2hRwW4XxYGgvQWbN8JuCxvbX7Skqjv9qaPVEutMg5eM/oRrrHmOC39nEQFyyPajoeFsSPEi6qotIkDWkCgAAA"
+  },
+  {
+   "id": "2026-10-09-frames-on-the-floor",
+   "stage": "framing",
+   "title": "Frames on the floor",
+   "caption": "Panel frames laid out across the floor and nailed together.",
+   "taken": "2026-10-09T11:46",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-09-frames-on-the-floor-480.6287fd09.webp",
+    "960": "2026-10-09-frames-on-the-floor-960.f03814d3.webp",
+    "1600": "2026-10-09-frames-on-the-floor-1600.363a0c9f.webp",
+    "2400": "2026-10-09-frames-on-the-floor-2400.33b3efb1.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAACQBQCdASoSABgAPu1srVIppaQiqAgBMB2JZQC7ABGR9El9nkYltFULCV35mbwrXeqOhkmAAAD+GNkqGd/uVhTXad13kRQrO5E9Z4CK66sVgrm6H+4FQdHws8VAnAtT1PTJa9kSvIFAGSYsl9nOaI9WSF4uQV614B95lYJYc5f9J1xBbm22WqAAI3ABcY9PIKMF2LSh9yMwzJqCLuaJmk6xtY3gQZ5mAAA="
+  },
+  {
+   "id": "2026-10-09-mid-build-check-in",
+   "stage": "framing",
+   "title": "Mid-build check-in",
+   "caption": "Frames coming together behind the camera.",
+   "taken": "2026-10-09T11:47",
+   "width": 2316,
+   "height": 3088,
+   "src": {
+    "480": "2026-10-09-mid-build-check-in-480.010728b7.webp",
+    "960": "2026-10-09-mid-build-check-in-960.70250800.webp",
+    "1600": "2026-10-09-mid-build-check-in-1600.0350b661.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRsQAAABXRUJQVlA4ILgAAAAQBQCdASoSABgAPu1wsFIppiSiqAgBMB2JQBA0AI80AicbF5a3hH+u7ktc62yiYetAAP6msER/QA8msRgkOtkU3OV8UicRbNoipFjMd4Uc+xQ5iF9rPTrIPKEh5cgy21fvFzc3yNXd8rkN4M5LXrg5UvbNUzHzuRtOnrS0prkMdX6URvC8BnlqPoWytfKpONSl8MGYOlEp3btgmQ+T1UKd2frRWEz+JYKH0ONonGeNlpqOfKtbAAAA"
+  },
+  {
+   "id": "2026-10-09-skinning-the-frames",
+   "stage": "framing",
+   "title": "Skinning the frames",
+   "caption": "Frames on sawhorses getting their plywood skins.",
+   "taken": "2026-10-09T14:38",
+   "width": 8064,
+   "height": 6048,
+   "src": {
+    "480": "2026-10-09-skinning-the-frames-480.98d8317d.webp",
+    "960": "2026-10-09-skinning-the-frames-960.ee646eb7.webp",
+    "1600": "2026-10-09-skinning-the-frames-1600.2c823a75.webp",
+    "2400": "2026-10-09-skinning-the-frames-2400.142667c4.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRsQAAABXRUJQVlA4ILgAAABwBQCdASoYABIAPu1qrFEppaQiqAqpMB2JYwC06ywTo4TaR52vNciN51hZwd2ujWWEeXfAAPwa0zb2RRBnJP0Qv6hlyawnS9Dvxy+2uKFe/lfpf0CKgDeGjtaJVsPPZXjY9A8y563Gg3auleMy4gZ4sBkEy36zKB/CMEZ5g8r+UWauJM6KBlHQwkuyORPwdINNdJ1ae6kQ/hUIGZoXyT0d3i1ANeLlkoT06KJN1yfuZVYavF95EUAA"
+  },
+  {
+   "id": "2026-10-09-panels-piling-up",
+   "stage": "framing",
+   "title": "Panels piling up",
+   "caption": "A row of finished frames, ready to stand.",
+   "taken": "2026-10-09T14:38",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-09-panels-piling-up-480.bd01c036.webp",
+    "960": "2026-10-09-panels-piling-up-960.6a72ab91.webp",
+    "1600": "2026-10-09-panels-piling-up-1600.c5de3bba.webp",
+    "2400": "2026-10-09-panels-piling-up-2400.1a87ee14.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAADwBACdASoSABgAPu1srlIppaQiqAgBMB2JZwDO7AuW0YmmKbceuyRI1qWT9/VXoQAA/p6kXx4B0bykAt2WFGfecMUnsJv2DVCeyHLUDvk7Otp4jBg+aiywHKnBkcE+QJYJGYvh6cYeyDSOO+5wv3sPWAie6maSDlRLyvbCbCx0kkpJrR1Z5KvbHURv+DMCNAhOWqBFbuIrAAAA"
+  },
+  {
+   "id": "2026-10-12-walls-go-up",
+   "stage": "walls",
+   "title": "Walls go up",
+   "caption": "The back wall stands, with the first platform piece in front.",
+   "taken": "2026-10-12T12:00",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-12-walls-go-up-480.a35f30ff.webp",
+    "960": "2026-10-12-walls-go-up-960.53cbb95a.webp",
+    "1600": "2026-10-12-walls-go-up-1600.fe52f0ad.webp",
+    "2400": "2026-10-12-walls-go-up-2400.2123a78d.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4IIYAAADwBACdASoSABgAPu1orlCppaQiqAqpMB2JZQDBzAvo6LhzBJlYydQi9pTuA5cg+gAA/p6j2BLZdjEKFajeev7jtWuXFBhhoNEClKyfoMktrI2kjxjZAcdMoOU0k/BOB1F2qHNb/+nau410HHOPxvKf/6Ko7kx2doyH16TYKtlN80azssAAAA=="
+  },
+  {
+   "id": "2026-10-12-back-wall-complete",
+   "stage": "walls",
+   "title": "Back wall complete",
+   "caption": "The full back wall, with the builder for scale.",
+   "taken": "2026-10-12T13:28",
+   "width": 2316,
+   "height": 3088,
+   "src": {
+    "480": "2026-10-12-back-wall-complete-480.c8ddfec0.webp",
+    "960": "2026-10-12-back-wall-complete-960.e9c67b6d.webp",
+    "1600": "2026-10-12-back-wall-complete-1600.80dc6ace.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRs4AAABXRUJQVlA4IMIAAACwBQCdASoSABgAPu1qq1EppaOiqAqpMB2JQBYj7OfMz/gIFdNa9ZZvA5NvUeSM6H7uqBw24aQA/nkpvFe9AVV4ML1wahozbcYdaH4u3aHeLGExiIkNTbLscFRVEyMUJ9DYYMHl637v1lajgFAu9XxdNHFHjjSTLWpWghxGt6izoDKz1jjJnqdBKa71iXlodMCe+Cvy4qKLPEZUabTqwA8g7+kFzHOzqm2y6Ka2IUSOQ2ZU2JlgxhLho193jDi53TIAAA=="
+  },
+  {
+   "id": "2026-10-12-the-corner-forms",
+   "stage": "walls",
+   "title": "The corner forms",
+   "caption": "Side walls turn the back wall into a three-sided room.",
+   "taken": "2026-10-12T15:58",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-12-the-corner-forms-480.755f2279.webp",
+    "960": "2026-10-12-the-corner-forms-960.70fc3bad.webp",
+    "1600": "2026-10-12-the-corner-forms-1600.758f408b.webp",
+    "2400": "2026-10-12-the-corner-forms-2400.a578d11d.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAABQBQCdASoSABgAPu1gqE4ppSOiMBgMATAdiWUAzcAQrNUXTkka+DjqQ7aEEsiCXfRWCFAA/XRh3lUMXl6fpUpjWX6tU3Iw1anFRkfA5jJoI0riVsgcSaVEcdFqjMK0PV6gLjI9tFuPkbig06mcJHpRJWj2zxOxVtZoown60S5IS6Cpl2IgNBahgCFisTvdHZHuxzjkAAA="
+  },
+  {
+   "id": "2026-10-12-behind-the-walls",
+   "stage": "walls",
+   "title": "Behind the walls",
+   "caption": "Frames, jacks and braces doing the real work out of sight.",
+   "taken": "2026-10-12T17:27",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-12-behind-the-walls-480.fe7d84b8.webp",
+    "960": "2026-10-12-behind-the-walls-960.3fa010e3.webp",
+    "1600": "2026-10-12-behind-the-walls-1600.eb18eb46.webp",
+    "2400": "2026-10-12-behind-the-walls-2400.7702a15b.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAAAwBQCdASoSABgAPu1ur1KppiQiqAgBMB2JZQDDcBEdr1eeHn4uX0mFxq3GQIeU01d3oAD9dGYd4iuvycu3rMjtoU40FwlTwibcrxFOl3jcucBTtPZIsCfMK4VtN3bSr74QqflE+qTQut15ANkk0Rmx39RNlavCvVGEweqGS/cE2pUeJqa3tcg1oAA="
+  },
+  {
+   "id": "2026-10-12-supply-run",
+   "stage": "supplies",
+   "title": "Supply run",
+   "caption": "Another cart of screws, clamps and supplies.",
+   "taken": "2026-10-12T19:01",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-12-supply-run-480.97e64d01.webp",
+    "960": "2026-10-12-supply-run-960.9c5f5f2b.webp",
+    "1600": "2026-10-12-supply-run-1600.365d5f88.webp",
+    "2400": "2026-10-12-supply-run-2400.9440b6c6.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRtQAAABXRUJQVlA4IMgAAABQBQCdASoSABgAPu1sqlEppaOiqAqpMB2JQBOmYTg26PKa08DfKbuH3zkg0OuxOM9IQQAA/rvvxTe7y+l8zG2hsWY913nEVP878vbnDfvZmVQyjPteCfwSLS75651VEzYpy1N32Q2iCSxfdOYQVLxRWecKrZpIfe+uLBeOipbK0b04A65I09gwHG2VzjDn5yCsAyz05cGiUmIXXzNbyNXJqk/nq83kACE0zglq64nF+aEdwWWSF3pXQWg32Z7PuXYCywJTcbAAAA=="
+  },
+  {
+   "id": "2026-10-12-more-plywood",
+   "stage": "supplies",
+   "title": "More plywood",
+   "caption": "A night load of plywood sheets outside the store.",
+   "taken": "2026-10-12T19:45",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-12-more-plywood-480.ff976cb1.webp",
+    "960": "2026-10-12-more-plywood-960.5d15c19a.webp",
+    "1600": "2026-10-12-more-plywood-1600.efc94cd9.webp",
+    "2400": "2026-10-12-more-plywood-2400.068f75ac.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRqAAAABXRUJQVlA4IJQAAADQBACdASoSABgAPu1qqFAppiOiqA1RMB2JYwC7AA3Me7Tvnpo0UqD2+QrhSiP0oAD57DbEjj3wvdojYAzXFXPJOiLfu7jdwFyGx7riQDJwbe3x2/MULDcExRmqgXIMs/PUgpVi7ZnpexsdGrPu2VFfcJe6Tyl2DeEMdHPLvILEfjQYLV40FlWlCTUfMuz5hcn2GC4A"
+  },
+  {
+   "id": "2026-10-13-loaded-up",
+   "stage": "supplies",
+   "title": "Loaded up",
+   "caption": "Lumber for the floor and platform packed into the van.",
+   "taken": "2026-10-13T11:40",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-13-loaded-up-480.6838bf6d.webp",
+    "960": "2026-10-13-loaded-up-960.d07be673.webp",
+    "1600": "2026-10-13-loaded-up-1600.8778e8ca.webp",
+    "2400": "2026-10-13-loaded-up-2400.88cbb8b2.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAABwBQCdASoSABgAPu1srVCppaQiqAqpMB2JZAC7BAgAexUFk2RtSD/xnJ3QfCQ8YgS9UfsgAP5Jn6B98gZdjeZcf2wcZxfYlwfAb4yJvoyWHVVtg9f18bSp8Zsne9545dEgejzpgYodOXZ5LXStIVPjRcPmXkiPq69XgBQFY5VHXaViDvNE1HCurkX7pNxz9urZjmxjf1hA9wlcxE/AqLiJONvx8AE4AAA="
+  },
+  {
+   "id": "2026-10-13-three-walls-standing",
+   "stage": "room",
+   "title": "Three walls standing",
+   "caption": "The back wall and both returns standing on their own.",
+   "taken": "2026-10-13T16:06",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-13-three-walls-standing-480.cfdd673a.webp",
+    "960": "2026-10-13-three-walls-standing-960.fd2f579a.webp",
+    "1600": "2026-10-13-three-walls-standing-1600.466934c5.webp",
+    "2400": "2026-10-13-three-walls-standing-2400.c9db3f2d.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAACwBACdASoSABgAPu1ur1KppiQiqAgBMB2JZQDO7AozNeZM2umhE5cb8HLUfgAAAP5xXsg5FJ6Z31HO2xffQiQ4Dxp1+lIZR1O/8DBbbfUMBWPg7kWfJDuWXEbhvWw4nmBLkQHvMMb5wnWDso7L2ff2V60ZYUnkcAAAAA=="
+  },
+  {
+   "id": "2026-10-13-jacks-and-braces",
+   "stage": "room",
+   "title": "Jacks and braces",
+   "caption": "The support structure behind the angled side wall.",
+   "taken": "2026-10-13T20:34",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-13-jacks-and-braces-480.3f22b666.webp",
+    "960": "2026-10-13-jacks-and-braces-960.ca2ff894.webp",
+    "1600": "2026-10-13-jacks-and-braces-1600.67e623dd.webp",
+    "2400": "2026-10-13-jacks-and-braces-2400.07b32120.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAAAwBQCdASoSABgAPu1ipk6ppSMiMBgMATAdiWMAwzQRRZ/Vzxjhc4qkzbXzr/4XTbBgAAD+QJe+TR8L0kj5lK5vL7PSc1uh9wcbCLC68Zo1XgBngEHHxntQeFnvhSIgg46VqqkUbtN4rBUvt6YEai/bfekVJ3t+Kz8ZhRjleKSFv6Jy3kZKAy/HAX5Rq32NhX58L1N/Z4F/wAAA"
+  },
+  {
+   "id": "2026-10-13-the-full-footprint",
+   "stage": "room",
+   "title": "The full footprint",
+   "caption": "The whole set, with its footprint taped out on the floor.",
+   "taken": "2026-10-13T20:35",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-13-the-full-footprint-480.39e5175b.webp",
+    "960": "2026-10-13-the-full-footprint-960.4ec938fa.webp",
+    "1600": "2026-10-13-the-full-footprint-1600.c7d16682.webp",
+    "2400": "2026-10-13-the-full-footprint-2400.e4127ecb.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAACwBACdASoSABgAPu1wsFKppiSiqAgBMB2JZwDNwAzbldPxiY2ElcVxmqlGHMEAAP6exhlSd7mlAmTV5KDi5e8sY+4M0ZIlwPb5n/R+iUvtpR7bWDBiks0gri6TV5CkRnTy8OLElOfMQ0kJwj+xtCjIuuF3gAAA"
+  },
+  {
+   "id": "2026-10-14-floor-down",
+   "stage": "floor",
+   "title": "Floor down",
+   "caption": "Plywood floor laid inside the walls.",
+   "taken": "2026-10-14T12:04",
+   "width": 8064,
+   "height": 6048,
+   "src": {
+    "480": "2026-10-14-floor-down-480.3e6b9571.webp",
+    "960": "2026-10-14-floor-down-960.be1755e2.webp",
+    "1600": "2026-10-14-floor-down-1600.5f666a3c.webp",
+    "2400": "2026-10-14-floor-down-2400.986308b5.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAABwBACdASoYABIAPu1kqU2ppayiMBgMAZAdiWMAxnwRAH2ze8HgB2qMlzP8wAD0bwXbRWybkgWEBbZMUSA6aHohJgt95ISHGtcvsjLUSV4ujDGGuKhSv/TJCMxDozd1bP+Q7bp/4Kaaqd9vRBiSJMG8dW+QAAAA"
+  },
+  {
+   "id": "2026-10-15-platform-frame",
+   "stage": "platform",
+   "title": "Platform frame",
+   "caption": "The raised platform framed on the shop floor.",
+   "taken": "2026-10-15T14:40",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-15-platform-frame-480.fe7cbc24.webp",
+    "960": "2026-10-15-platform-frame-960.c40601e2.webp",
+    "1600": "2026-10-15-platform-frame-1600.44e69812.webp",
+    "2400": "2026-10-15-platform-frame-2400.080bbb06.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRo4AAABXRUJQVlA4IIIAAABQBACdASoSABgAPu1oqU+ppiOiKA1RMB2JZQDCgAo7E43c9jnVAfsRezAAAP7hcAl2krXoTxQ4Ej1U/6iVEoe8MD+3IuAx1vHtMP3qwiFeq2Mfsq9GKYY7tVo21KpabGr4yxCbPFMxF2HiRKST5VaC3KeXHNaj+m7ZJS4cBEhAAAAA"
+  },
+  {
+   "id": "2026-10-15-platform-in-place",
+   "stage": "platform",
+   "title": "Platform in place",
+   "caption": "The platform frame set into the back of the set.",
+   "taken": "2026-10-15T17:14",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-15-platform-in-place-480.083cec01.webp",
+    "960": "2026-10-15-platform-in-place-960.951950ca.webp",
+    "1600": "2026-10-15-platform-in-place-1600.6267e93d.webp",
+    "2400": "2026-10-15-platform-in-place-2400.9e879ab5.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAAAwBQCdASoSABgAPu1srVEppiQiqAqpMB2JQBYhl0f+gM7imslf6FusMCr0ZW5tVP/DXAD+vGgNKaPFT9AT008iVfBrtFyx9IbgS1CDxj2iqAJ9Cfzq9XMpBQZlQKJfm21NvQAXAAiOtvNLY5wFWlvagzcsfPHoL4Q6hA2jyjSHYmYYq+q6UAAA"
+  },
+  {
+   "id": "2026-10-15-platform-decked",
+   "stage": "platform",
+   "title": "Platform decked",
+   "caption": "Plywood deck on the platform.",
+   "taken": "2026-10-15T19:09",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-15-platform-decked-480.b5d7bcbb.webp",
+    "960": "2026-10-15-platform-decked-960.1fbb170a.webp",
+    "1600": "2026-10-15-platform-decked-1600.27f8fb0f.webp",
+    "2400": "2026-10-15-platform-decked-2400.9e4ac985.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpAAAABXRUJQVlA4IIQAAACQBACdASoSABgAPuliq02pJaQiMBgMASAdCUAWcAIhjeIdW+c4OsAHHUrNlQAA/Z0F3LOY2yOs6xFmbzMRQXa1VQ+RGiwiY2B7pwj3EwgMLBugYPawJsLxlc0imSqFlxWYd+vnojQP6xcr6vUAiiTbEf4Tm89tWhrApxYm4BSrA6SYIAA="
+  },
+  {
+   "id": "2026-10-15-where-it-stands",
+   "stage": "platform",
+   "title": "Where it stands",
+   "caption": "Walls, floor and platform: the set as of October 15.",
+   "taken": "2026-10-15T20:43",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-15-where-it-stands-480.4f368aa9.webp",
+    "960": "2026-10-15-where-it-stands-960.b46f6e7d.webp",
+    "1600": "2026-10-15-where-it-stands-1600.f000c3e1.webp",
+    "2400": "2026-10-15-where-it-stands-2400.be987835.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAABQBACdASoSABgAPu1gqE4ppSOiMBgMATAdiWMAw3APBGvuTp9OFHt/v7QAAP7RbhMqVUtKhtO4gexUk/A5sO7lG/iCUW4xbWSjUBSSW120VrLkoj6godO3PsqOUAeFS51vNtXTpRd5fXn7nEUp8A6i9lfUoYHWVk8rorU6fgAAAA=="
+  }
+ ]
+}

@@ -102,6 +102,10 @@ installGuideCompletion(window.__studio);
 import {installOpeningView,fitSetCamera} from './opening-view.js';
 installOpeningView(window.__studio);
 
+// Explore set tabs: the 3D set and the build photo timeline.
+import {installExplorePhotos} from './explore-photos.js';
+installExplorePhotos(window.__studio);
+
 // Installed last so it wraps every other mode handler: tab switches never move the camera.
 import {installTabCamera} from './tab-camera.js';
 installTabCamera(window.__studio);

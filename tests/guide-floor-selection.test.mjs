@@ -33,7 +33,7 @@ test('Seamless corner steps and cut list follow independent options at both wall
 });
 test('Retrofit instructions retain finished walls, template the real angle and separate compound labor from simple corners',()=>{
  const cfg={height:120,angle:45,floor:'wood',seamlessCorners:true,seamlessPerimeter:true},by=Object.fromEntries(context.cycloramaSteps(cfg).map(s=>[s[0],s]));
- assert.match(by[43][2],/do not remove the existing wall skin/);assert.match(by[43][2],/rear blocking/);assert.match(by[43][2],/do not plaster or fasten.*floating/);
+ assert.match(by[43][2],/do not remove the existing wall skin/i);assert.match(by[43][2],/rear blocking/);assert.match(by[43][2],/do not plaster or fasten.*floating/);
  assert.match(by[49][2],/135° inside angle/);assert.match(by[59][3],/48 total/);assert.ok(!context.steps(120,'wood',cfg).find(s=>s.stage===28).description.includes('Run paintable caulk'));assert.match(by[59][2],/individually templated/);assert.match(by[59][3],/Drying and cure time are additional/);
  assert.match(by[43][2],new RegExp(cyclorama.cycloramaGaps(cfg).minimum+'″ from the wall'));
  assert.ok(context.cycloramaCutRows(cfg).some(r=>r[0]===cyclorama.cycloramaPlan(cfg).ribSheets&&r[1]==='Rib plywood stock'));

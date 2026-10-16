@@ -52,7 +52,7 @@ export function laborTasks(d){
  }
  const cyc=cycloramaPlan(d);
  if(cyc.corners||cyc.perimeter){
-  add('cycBacking',cyc.corners&&cyc.addedCrossbars?'43, 63–64':'43',cyc.addedCrossbars?`Locate framing and add ${cyc.addedCrossbars} backboards`:'Locate framing and install seamless corner backing',1+cyc.blockingFeet*.08+cyc.addedCrossbars*.35,'Existing walls stay assembled; fit added crossbars flat between the stiles from behind (glue, toe-screw, staple through the face)');
+  add('cycBacking',cyc.corners&&cyc.addedCrossbars?'43, 63–64':'43',cyc.addedCrossbars?`Locate framing and add ${cyc.addedCrossbars} backboards`:'Locate framing and install seamless corner backing',1+cyc.blockingFeet*.08+cyc.addedCrossbars*.35,'Existing walls stay assembled; fit the backboards flat between the stiles from behind (glue, toe-screw, staple through the face)');
   if(cyc.corners){
    add('cycVerticalRibs',cyc.ribStock.paired?'44, 66–70':'44',`${cyc.ribStock.paired?'Cut':'Template, cut'} and fit ${cyc.verticalRibs} vertical-corner ribs`,1+cyc.verticalRibs*.3+(cyc.ribBackScrews+(cyc.ribFlatScrews??0))*.04,`Full-size bend test and a master rib template; hand-cut ribs centered on the crossbars, glued and screwed from behind (${cyc.ribBackScrews+(cyc.ribFlatScrews??0)} screws at 0.04 h each)`);
    add('cycCornerSkin',cyc.cornerSkin?.rows.length>1?'45, 76–78':'45, 76',cyc.corners===2?'Skin the two rounded wall corners':`Skin the rounded ${cyc.cornerSides[0]} wall corner`,cyc.corners*cyc.cornerArc*cyc.cornerHeight/144*.08,'Flexible facing, supported sheet seams and flush fasteners; corners-only runs straight down to the floor');

@@ -212,7 +212,7 @@ export function projectGuideGroups(design={}) {
  const groups={
   'walls-0':[0],'walls-1':[1,2,3,4,5,6,7,...(tall?[8]:[]),9],'walls-2':[10,...(tall?[11]:[]),12],
   'walls-3':[13,14,15,16,17],'walls-4':[18,19,20],'walls-5':[21,22],
-  'wall-finishing-0':[28],'wall-finishing-1':[28],'wall-finishing-2':[28],'wall-finishing-3':[28],'wall-finishing-4':[28],
+  'wall-finishing-0':[28],'wall-finishing-1':[28],'wall-finishing-2':[28],'wall-finishing-3':[72],'wall-finishing-4':[73],
  };
  if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
  if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-upper':[42],'floor-3':[26,27]});
@@ -223,7 +223,7 @@ export function projectGuideGroups(design={}) {
  if(corners||perimeter){groups['cyc-backing']=[43];for(const c of projectCycloramaComponents())if((c.option==='corners'?corners:c.option==='perimeter'?perimeter:corners&&perimeter)&&builds(c))groups[c.id]=[c.stage,c.aggregate];
   // Backboards and rib cutting are checked off in the guide but have no tracker row of their own; their counts are tallies.
   // Rounded wall corners alone are plastered and painted with the walls, so their finish follows the wall finish step.
-  if(corners)Object.assign(groups,{'cyc-backboards':[63,64],'cyc-rib-cutting':[66,67,68,69,70]});groups['cyc-finish']=perimeter?[48]:[28];}
+  if(corners)Object.assign(groups,{'cyc-backboards':[63,64],'cyc-rib-cutting':[66,67,68,69,70]});groups['cyc-finish']=perimeter?[48]:[28,72,73];}
  return groups;
 }
 // Stable component IDs connect physical meshes, tracker rows and guide stages. Aggregate stages remain aliases for

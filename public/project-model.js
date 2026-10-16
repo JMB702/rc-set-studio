@@ -220,10 +220,12 @@ export function projectGuideGroups(design={}) {
  const corners=design.seamlessCorners===true&&(design.angle??45)>0,perimeter=design.seamlessPerimeter===true,side=design.seamlessCornerSide??'both';
  // Corner 1 is the left wing corner, corner 2 the right; a one-corner build has no rows for the other.
  const builds=c=>!/-[12]$/.test(c.component)||side==='both'||side===(c.component.endsWith('-1')?'left':'right');
- if(corners||perimeter){groups['cyc-backing']=[43];for(const c of projectCycloramaComponents())if((c.option==='corners'?corners:c.option==='perimeter'?perimeter:corners&&perimeter)&&builds(c))groups[c.id]=[c.stage,c.aggregate];
-  // Backboards and rib cutting are checked off in the guide but have no tracker row of their own; their counts are tallies.
+ if(corners||perimeter){groups['cyc-backing']=[43];// A 10′ wall corner without a floor cove is skinned in two stacked pieces; the upper piece has its own guide step.
+ const upperSkin=design.height===120&&!perimeter?{'corner-1':77,'corner-2':78}:{};
+ for(const c of projectCycloramaComponents())if((c.option==='corners'?corners:c.option==='perimeter'?perimeter:corners&&perimeter)&&builds(c))groups[c.id]=c.phase==='skin'&&upperSkin[c.component]?[c.stage,upperSkin[c.component],c.aggregate]:[c.stage,c.aggregate];
+  // Backboards, rib cutting and skin cutting are checked off in the guide but have no tracker row of their own; their counts are tallies.
   // Rounded wall corners alone are plastered and painted with the walls, so their finish follows the wall finish step.
-  if(corners)Object.assign(groups,{'cyc-backboards':[63,64],'cyc-rib-cutting':[66,67,68,69,70]});groups['cyc-finish']=perimeter?[48]:[28,72,73];}
+  if(corners)Object.assign(groups,{'cyc-backboards':[63,64],'cyc-rib-cutting':[66,67,68,69,70],'cyc-skin-cutting':[76]});groups['cyc-finish']=perimeter?[48]:[28,72,73];}
  return groups;
 }
 // Stable component IDs connect physical meshes, tracker rows and guide stages. Aggregate stages remain aliases for

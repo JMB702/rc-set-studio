@@ -201,7 +201,11 @@ perimeter coves. Both default off. Retrofit cleats fasten over the existing
 wall facing into sound framing; add rear blocking where required. Existing
 wall connectors, completed panel/jack counts and prior work remain intact.
 Actual 2x4 backing is 1.5 x 3.5 inches. Never use thin wall skin alone as an anchor.
-Vertical face radius: 36 inches. Floor face radius: 24 inches. These are project
+Vertical face radius: 30-9/16 inches, so at 90 degrees the curve is 48 inches
+around and each row of skin is one full-width lauan piece with no vertical seam.
+Jeff's choice: tighter than the 42-inch full-size cyc standard (Pro Cyc), which
+lights more smoothly but needs a seamed strip. The built 18-inch platform corner
+clears the finished curve by about 12-11/16 inches. Floor face radius: 24 inches. These are project
 choices, not universal standards. Rib templates fit the actual inside angle
 (180 minus wing angle); zero-degree wings have no vertical corner inserts.
 Corners alone continue straight to the floor. With both options, separately
@@ -215,9 +219,9 @@ feathered compound are decorative surfaces that must not carry feet or staging.
 
 The shared plan reserves 24 inches sweep + 6 inches feather + 2 inches clear
 space: 32 inches minimum platform gap for perimeter only. Compound corners need
-33 inches at 45-degree wings, 34 inches at 90 degrees. Vertical corners alone
-need insert clearance (5 inches at 45 degrees, 12 inches at 90). Angle-dependent
-minimum = ceil(36 - (36 - floor radius - margin) x cos(wing angle / 2)) when
+32 inches. Vertical corners alone need insert clearance (5 inches at 45 degrees,
+11 at 90). Angle-dependent
+minimum = ceil(30.5625 - (30.5625 - floor radius - margin) x cos(wing angle / 2)) when
 vertical corners are present; margin is 8 inches with perimeter, otherwise 2.
 These are effective platform gaps. Requested gap settings stay stored and return
 when the corresponding option is removed. Pricing, cuts, model and guide use the
@@ -237,11 +241,20 @@ flat added crossbars and the 10-foot seam backer that is a #8 x 2-1/2 inch SPAX
 toggles it is #9 x 3-1/2 inch on 10-foot flats (1x3, about 7/8 inch in the rib) or
 #9 x 3 inch on 8-foot (1x2, about 1-3/8 inch). Nothing is fastened to the wall face: no cleats, no vertical rear
 corner backers (they could not pass the toggles) and no backer behind the curve's
-vertical skin joint, which lands on the ribs instead. 11 ribs per corner on
-10-foot walls with a painted floor.
+vertical skin joint, which lands on the ribs instead. 12 ribs per corner on
+10-foot walls with a painted floor: 11 crossbar lines plus a doubled rib at 96.
+
+Corner skin is cut exactly, grain vertical: the developed arc wide (47-1/8 at 90
+degrees: 48, one sheet) and from the top of the finished floor to the wall top. When that is
+taller than a 96-inch sheet it is two stacked pieces whose joint lands on the
+center of a rib line no more than 96 inches up, and that rib is doubled (two ribs
+face to face, the joint exactly between them) so each piece lands on a full rib.
+Approved design: sheet 1 gives the lower 48 x 94-7/16, sheet 2 the upper 48 x 24,
+both at the sheet's full width with no rip; joint at 96 on the doubled rib. Build steps: cut the skin (76), lower piece (51/52), upper piece
+(77/78).
 Ribs: 3/4-inch plywood, up to 16-inch centers for simple curves; radial junction
 ribs spaced approximately 8 inches around the upper arc. Purchasing envelopes
-allow two 36-inch vertical rib blanks or three 26-inch floor/junction blanks per
+allow three 30-9/16-inch vertical rib blanks or three 26-inch floor/junction blanks per
 4x8 sheet; verify real nesting after the sample. Flexible skin sheets and compound
 gore stock include separate waste allowances. Specific flexible skin, rib plywood,
 adhesive and compound reinforcement products/prices remain pending.
@@ -254,7 +267,7 @@ has separate milestones and zero weight when disabled; saved work is retained.
 Rounded corners can be built on both wing corners or on one: left or right as
 you face the back wall (tracker corner 1 = left, corner 2 = right). One corner
 halves the vertical ribs, corner skin, compound ribs, gores and junction labor;
-the back cove and that wing's cove each lose one tangent (36 x tan(angle/2))
+the back cove and that wing's cove each lose one tangent (30-9/16 x tan(angle/2))
 while the sharp side keeps its full 96-inch cove and a fitted miter. The sharp
 corner keeps its caulk bead. The platform keeps one side gap, so the corner
 clearance applies to both sides. Unbuilt corner checkoffs are hidden.
@@ -273,7 +286,7 @@ Physical cyclorama model correction (2026-10-13)
 - Ribs and rear backing remain physically present in Explore, Cost & Tracking,
   finished and lighting views. Normal opaque-surface occlusion hides them from
   the room; open above/behind views show the construction. No view-only hiding.
-- The nominal 36in / 24in curves describe rib bearing surfaces. Modelled 1/8in
+- The nominal 30-9/16in / 24in curves describe rib bearing surfaces. Modelled 1/8in
   skin has rear/front faces and closed edges, with its front offset into the room;
   feather the proud sheet edge into the existing surfaces as already allowed.
 - Rear 2x4 backing sits behind the existing .106in wall facing, not across the
@@ -314,11 +327,11 @@ plastered, primed and painted. Order: survey the joined walls; cut, then glue,
 screw and staple the backboards (counted); cut the ribs (counted); fit ribs;
 fit skin; then the wall finish plasters and paints the rounded corner with the
 walls in one pass. Step 48 (fill and fair) remains only with floor coves.
-Ribs for 90 degree walls come from 36 1/8 squares: rip a 4x8 sheet to 36 1/8,
-crosscut two squares (4 ribs per sheet, the most a sheet gives at the full rib
-profile), swing a 36 radius from one corner and then the opposite corner with a
+Ribs for 90 degree walls come from 30 11/16 squares: rip a 4x8 sheet to 30 11/16,
+crosscut three squares (6 ribs per sheet, the most a sheet gives at the full rib
+profile), swing a 30 9/16 radius from one corner and then the opposite corner with a
 pinned string, cut the square on the diagonal between the unpinned corners and
-bandsaw each curve. Approved design: 11 ribs from 6 squares on 3 sheets, 1 spare.
+bandsaw each curve. Approved design: 12 ribs (with the doubled joint rib) from 6 squares on 2 sheets.
 
 FINISHING ORDER — OCTOBER 15, 2026
 All finishing runs last, in one Finishing section: plaster the walls (28), prime

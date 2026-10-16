@@ -19,7 +19,7 @@ test('One rounded corner builds exactly one corner, mirrored left to right',()=>
  for(const perimeter of [false,true]){
   const off=cycloramaPlan(corners('off',perimeter)),left=cycloramaPlan(corners('left',perimeter)),right=cycloramaPlan(corners('right',perimeter)),both=cycloramaPlan(corners('both',perimeter));
   assert.equal(left.corners,1);assert.equal(both.corners,2);
-  for(const key of ['ribCount','verticalRibs','floorRibs','compoundRibs','skinArea','skinSheets','ribSheets','blockingFeet','fasteners','tapeFeet','compoundPails','straightLength'])assert.equal(left[key],right[key],`${key} is the same for either side`);
+  for(const key of ['ribCount','verticalRibs','floorRibs','compoundRibs','skinArea','skinSheets','ribSheets','blockingFeet','fasteners','tapeFeet','compoundPails','straightLength'])assert.ok(Math.abs(left[key]-right[key])<1e-9,`${key} is the same for either side`);
   assert.equal(left.verticalRibs*2,both.verticalRibs);assert.equal(left.compoundRibs*2,both.compoundRibs);
   assert.ok(left.ribCount>off.ribCount&&left.ribCount<both.ribCount);assert.ok(left.skinArea>off.skinArea&&left.skinArea<both.skinArea);
   if(perimeter){assert.equal(left.runs.left,96-left.tangent);assert.equal(left.runs.right,96,'the sharp side keeps its full cove run');assert.equal(left.runs.back,192-left.tangent);}

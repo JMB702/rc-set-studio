@@ -24,7 +24,7 @@ test('Second plywood layer belongs only to painted-floor guides',()=>{
 test('Seamless corner steps and cut list follow independent options at both wall heights',()=>{
  for(const height of [96,120])for(const floor of ['none','wood','charcoal'])for(const angle of [0,45,90])for(const seamlessCorners of [false,true])for(const seamlessPerimeter of [false,true]){
   const cfg={height,floor,angle,seamlessCorners,seamlessPerimeter,platformShape:'angled'},hasCorners=seamlessCorners&&angle>0;
-  const all=context.steps(height,floor,cfg),stages=Array.from(all,s=>s.stage),retrofit=Array.from(all).filter(s=>s.section==='cyclorama').map(s=>s.stage),plan=context.cycloramaPlan(cfg),expected=hasCorners||seamlessPerimeter?[43,...(hasCorners&&plan.addedCrossbars?[63,64,65]:[]),...(hasCorners&&angle===90?[66,67,68,69,70,71]:[]),...(hasCorners?[49,50,51,52]:[]),...(seamlessPerimeter?[53,54,55,56,57,58]:[]),...(hasCorners&&seamlessPerimeter?[59,60,61,62]:[]),...(seamlessPerimeter?[48]:[])]:[];
+  const all=context.steps(height,floor,cfg),stages=Array.from(all,s=>s.stage),retrofit=Array.from(all).filter(s=>s.section==='cyclorama').map(s=>s.stage),plan=context.cycloramaPlan(cfg),expected=hasCorners||seamlessPerimeter?[43,...(hasCorners&&plan.addedCrossbars?[63,64,65]:[]),...(hasCorners&&angle===90?[66,67,68,69,70,71]:[]),...(hasCorners?[49,50,76,...(height===120&&!seamlessPerimeter?[51,77,52,78]:[51,52])]:[]),...(seamlessPerimeter?[53,54,55,56,57,58]:[]),...(hasCorners&&seamlessPerimeter?[59,60,61,62]:[]),...(seamlessPerimeter?[48]:[])]:[];
   assert.deepEqual(retrofit,expected,JSON.stringify(cfg));
   assert.equal(context.cycloramaCutRows(cfg).length>0,expected.length>0);
   assert.ok(all.filter(s=>s.section==='cyclorama').every(s=>s.stage>=43&&(s.checkpoint||s.tools&&s.spec&&s.fasteners.length)),'count steps carry no instructions of their own');
@@ -33,7 +33,7 @@ test('Seamless corner steps and cut list follow independent options at both wall
 });
 test('Retrofit instructions retain finished walls, template the real angle and separate compound labor from simple corners',()=>{
  const cfg={height:120,angle:45,floor:'wood',seamlessCorners:true,seamlessPerimeter:true},by=Object.fromEntries(context.cycloramaSteps(cfg).map(s=>[s[0],s]));
- assert.match(by[43][2],/do not remove the existing wall skin/);assert.match(by[43][2],/rear blocking/);assert.match(by[43][2],/do not plaster or fasten.*floating/);
+ assert.match(by[43][2],/do not remove the existing wall skin/i);assert.match(by[43][2],/rear blocking/);assert.match(by[43][2],/do not plaster or fasten.*floating/);
  assert.match(by[49][2],/135° inside angle/);assert.match(by[59][3],/48 total/);assert.ok(!context.steps(120,'wood',cfg).find(s=>s.stage===28).description.includes('Run paintable caulk'));assert.match(by[59][2],/individually templated/);assert.match(by[59][3],/Drying and cure time are additional/);
  assert.match(by[43][2],new RegExp(cyclorama.cycloramaGaps(cfg).minimum+'″ from the wall'));
  assert.ok(context.cycloramaCutRows(cfg).some(r=>r[0]===cyclorama.cycloramaPlan(cfg).ribSheets&&r[1]==='Rib plywood stock'));
@@ -92,12 +92,14 @@ test('The seamless corner goes in before the walls are plastered, primed and pai
 test('Ribs are cut from squares, one action per step, with counts before and after',()=>{
  const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,seamlessCorners:true,seamlessCornerSide:'right',floorLip:true,height:120,floor:'charcoal'};
  const all=Array.from(context.steps(120,'charcoal',cfg)),order=all.map(s=>s.stage),plan=context.ribCutPlan(context.cycloramaPlan(cfg));
- assert.deepEqual(order.filter(n=>n>=43&&n<72),[43,63,64,65,66,67,68,69,70,71,50,52],'backboards, then rib cutting, then mounting');
+ assert.deepEqual(order.filter(n=>n>=43&&n<72||n>=76),[43,63,64,65,66,67,68,69,70,71,50,76,52,78],'backboards, rib cutting, ribs placed, skin cut, then the lower and upper skin pieces');
  assert.ok(all.find(s=>s.stage===65).checkpoint&&all.find(s=>s.stage===71).checkpoint);
- assert.deepEqual([plan.square,plan.squaresPerSheet,plan.ribsPerSheet,plan.ribs,plan.squares,plan.sheets],[36.125,2,4,11,6,3]);
+ assert.deepEqual([plan.square,plan.squaresPerSheet,plan.ribsPerSheet,plan.ribs,plan.squares,plan.sheets],[30.6875,3,6,12,6,2],'30 9/16″ ribs: three squares per sheet; 12 ribs with the doubled rib at the skin joint');
  const cut=Array.from(context.instructionSentences(all.find(s=>s.stage===66).description));
- assert.match(cut[0],/You need 11 ribs, and each square gives two, so cut 6 squares 36 1\/8″ on every side \(12 ribs, 1 spare\)/);
- assert.ok(cut.some(l=>/One 4×8 sheet holds 2 squares, 4 ribs/.test(l)));
+ assert.match(cut[0],/You need 12 ribs, including the doubled rib where the skin pieces meet, and each square gives two, so cut 6 squares 30 11\/16″ on every side \(12 ribs\)/);
+ const skin=all.find(s=>s.stage===76);assert.match(skin.description,/curve measures 48″ around from wall to wall, the full width of a sheet/);assert.match(skin.description,/cut 48″ × 94 7\/16″\./);assert.match(skin.description,/cut 48″ × 24″\./);assert.match(skin.description,/no rip/);
+ assert.match(all.find(s=>s.stage===52).title,/lower skin/);assert.match(all.find(s=>s.stage===78).title,/upper skin/);
+ assert.ok(cut.some(l=>/One 4×8 sheet holds 3 squares, 6 ribs/.test(l)));
  assert.doesNotMatch(all.find(s=>s.stage===50).description,/Transfer the full-size corner template/);
 });
 

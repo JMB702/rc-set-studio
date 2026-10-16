@@ -1,8 +1,11 @@
 import {floorSurfaceHeight} from './floor-plan.js';
 // Retrofit planning geometry in inches. Actual rib/skin fit must be templated on the assembled set.
-// 36″ vertical radius leaves a 12″ corner radius at the toe of a 24″ floor sweep.
-export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:36,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
-// Which wing corners get the 36″ curve: 'both' (default), 'left' or 'right' seen from the front of the set.
+// 30 9/16″ vertical radius: at a 90° corner the curve is 48″ around, the full width of a lauan sheet, so each row of
+// skin is one uncut-width piece with no vertical seam (Jeff's choice; tighter than the 42″ full-size cyc standard).
+// With a 24″ floor sweep it leaves a 6 9/16″ corner radius at the toe.
+export const LAUAN=[48,96];
+export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:30.5625,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
+// Which wing corners get the rounded curve: 'both' (default), 'left' or 'right' seen from the front of the set.
 // Left is the negative-x wing (wall corner 1 in the tracker), right the positive-x wing (corner 2).
 export const CORNER_SIDES=['both','left','right'];
 export function cycloramaCornerSides(d={}){if(d.seamlessCorners!==true||!(Number(d.angle??45)>0))return [];const side=d.seamlessCornerSide??'both';return side==='left'?['left']:side==='right'?['right']:['left','right'];}
@@ -32,17 +35,40 @@ export function cornerRibLevels(h,base,t=CYC.ribThickness){
 // 2½″ SPAX; the existing on-edge rails and toggles (1×3 on 10′, 1×2 on 8′) need a longer deck screw.
 export function ribBackScrew(h,flat=false){return flat?{size:'#8 × 2½″',length:2.5,through:.75+.106}:h===120?{size:'#9 × 3½″',length:3.5,through:2.5+.106}:{size:'#9 × 3″',length:3,through:1.5+.106};}
 
+// A cut length you can mark: the nearest 1/16″ that does not overrun the space by more than a hair (1/320″).
+export const cutLength=v=>Math.floor(v*16+.05)/16;
+export function cornerSkinPlan(ribCenters,base,top,arc,[W,L]=LAUAN){
+ // Each row is full-width sheets plus one ripped strip for the rest, so only one piece per row is ripped.
+ const count=Math.ceil((arc-1/32)/W),columns=Array.from({length:count},(_,i)=>i<count-1?W:Math.min(W,arc-W*(count-1))),rows=[];let start=base;
+ while(top-start>L+1e-9){const seam=Math.max(...ribCenters.filter(c=>c>start+1&&c-start<=L+1e-9));if(!Number.isFinite(seam))break;rows.push({index:rows.length,bottom:start,top:seam,height:seam-start,columns});start=seam;}
+ rows.push({index:rows.length,bottom:start,top,height:top-start,columns});
+ return {arc,columns,rows,seams:rows.slice(0,-1).map(r=>r.top)};}
+
 export function cycloramaPlan(d={}){
  const angle=Math.max(0,Math.min(90,Number(d.angle??45)||0)),a=angle*Math.PI/180,h=d.height===120?120:96,cornerSides=cycloramaCornerSides(d),corners=cornerSides.length,perimeter=!!d.seamlessPerimeter,R=CYC.cornerRadius,r=CYC.floorRadius,tangent=corners?R*Math.tan(a/2):0,cornerArc=corners?R*a:0,cornerHeight=h-(perimeter?r:0);
  // Each rounded corner shortens the back run and its own wing run by one tangent; a sharp corner keeps the full run.
  const runs={back:192-corners*tangent,left:96-(cornerSides.includes('left')?tangent:0),right:96-(cornerSides.includes('right')?tangent:0)},straightLength=runs.back+runs.left+runs.right,perimeterLength=straightLength+corners*cornerArc;
- const lift=floorSurfaceHeight(d),ribLevels=corners?cornerRibLevels(h,lift+(perimeter?r:0)):[],addedCrossbarLevels=ribLevels.filter(l=>l.added).map(l=>l.crossbar),crossbarPanels=corners*2,addedCrossbars=crossbarPanels*addedCrossbarLevels.length;
+ const lift=floorSurfaceHeight(d),singleRibs=corners?cornerRibLevels(h,lift+(perimeter?r:0)):[];
+ // Where two stacked skin pieces meet, the rib is doubled: two ribs face to face, centered on the joint, so each piece
+ // lands on a full rib edge. Both sit on the same crossbar and take their own screws from behind.
+  const cornerSkin=corners?cornerSkinPlan(singleRibs.map(l=>l.y+CYC.ribThickness/2),lift+(perimeter?r:0),h,cornerArc):null,t=CYC.ribThickness;
+ const ribLevels=singleRibs.flatMap(l=>cornerSkin?.seams.some(sm=>Math.abs(sm-(l.y+t/2))<1e-6)?[{...l,y:l.y+t/2-t,double:'lower'},{...l,y:l.y+t/2,double:'upper'}]:[l]),addedCrossbarLevels=ribLevels.filter(l=>l.added).map(l=>l.crossbar),crossbarPanels=corners*2,addedCrossbars=crossbarPanels*addedCrossbarLevels.length;
  const verticalRibs=corners*ribLevels.length,floorRibs=perimeter?Object.values(runs).reduce((n,run)=>n+Math.ceil(run/16)+1,0):0,compoundRibs=perimeter&&corners?corners*(Math.ceil(cornerArc/8)+1):0,ribCount=verticalRibs+floorRibs+compoundRibs;
  const verticalArea=corners*cornerArc*cornerHeight/144,floorArea=perimeter?straightLength*r*Math.PI/2/144:0,junctionArea=perimeter&&corners?corners*a*(R*r*Math.PI/2-r*r*(Math.PI/2-1))/144:0,skinArea=verticalArea+floorArea+junctionArea;
  // Stock envelopes for ribs; wall-skin sheets are packed without rotating the grain.
  const skinCuts=[];
  const strips=(kind,length,developed)=>{const columns=Math.ceil(developed/47);for(let col=0;col<columns;col++)for(let remaining=length;remaining>1e-6;remaining-=96)skinCuts.push({kind,width:developed/columns+1,height:Math.min(96,remaining)});};
- for(let i=0;i<corners;i++)strips('corner',cornerHeight,cornerArc);
+ // Corner skin is cut exactly: the developed arc wide (one sheet when it fits 48″) and from the curve base to the wall
+ // top, split into stacked pieces whose joints land on the center of a rib no more than one sheet length apart.
+ const cornerCuts=skinRows=>{const out=[];for(let i=0;i<corners;i++)for(const row of skinRows)for(const [col,c] of row.columns.entries())out.push({kind:'corner',width:c,height:row.height,row:row.index,col});return out;};
+ // A short upper row fits beside the lower strip if its full-width piece is cut into narrower pieces; keep that
+ // layout when it saves a lauan sheet. The pieces split the full width evenly, so one joint still lines up below.
+ if(cornerSkin&&cornerSkin.rows.length>1&&cornerSkin.columns.length>1){
+  const strip=cornerSkin.columns.at(-1),room=LAUAN[0]-strip-.125,split=cornerSkin.columns.slice(0,-1).flatMap(w=>{const n=Math.ceil(w/room-1e-9);return Array(n).fill(w/n);});
+  const alt=cornerSkin.rows.map(r=>r.index?{...r,columns:[...split,strip]}:r);
+  if(packCycloramaSkin(cornerCuts(alt)).sheets<packCycloramaSkin(cornerCuts(cornerSkin.rows)).sheets)cornerSkin.rows=alt;
+ }
+ if(cornerSkin)skinCuts.push(...cornerCuts(cornerSkin.rows));
  if(perimeter){strips('back perimeter',runs.back,r*Math.PI/2);for(const side of ['left','right'])strips('side perimeter',runs[side],r*Math.PI/2);}
 
  const skinLayout=packCycloramaSkin(skinCuts),goreSheets=perimeter?corners:0,skinSheets=skinLayout.sheets+goreSheets;
@@ -61,7 +87,7 @@ export function cycloramaPlan(d={}){
  const crossbarScrews=addedCrossbars*4,crossbarStaples=addedCrossbars*16,ribBackScrews=corners*4*ribLevels.filter(l=>!l.flat).length,ribFlatScrews=corners*4*ribLevels.filter(l=>l.flat).length,backScrew=ribBackScrew(h),flatScrew=ribBackScrew(h,true);
  // Back screws go where the rib is at least 2″ deep behind the wall: within this distance of the corner.
  const screwReach=corners?Math.max(0,tangent-Math.sqrt(R**2-(R-2)**2)):0;
- return {...CYC,screwReach,backScrew,ribBackScrews,flatScrew,ribFlatScrews,crossbarStock:addedCrossbar(h),cornerSides,runs,ribLevels,addedCrossbarLevels,crossbarPanels,addedCrossbars,crossbarScrews,crossbarStaples,fittedCornerHeight:cornerHeight-floorSurfaceHeight(d),floorBase:floorSurfaceHeight(d),ribStock,verticalSkinSeams,skinLayout,goreSheets,glueContactSqFt,adhesiveBottles,angle,corners,perimeter,margin:CYC.feather+CYC.clearance,cornerHeight,tangent,cornerArc,straightLength,perimeterLength,verticalRibs,floorRibs,compoundRibs,ribCount,skinArea,skinSheets,ribSheets,blockingFeet,fasteners,tapeFeet,compoundPails};
+ return {...CYC,cornerSkin,screwReach,backScrew,ribBackScrews,flatScrew,ribFlatScrews,crossbarStock:addedCrossbar(h),cornerSides,runs,ribLevels,addedCrossbarLevels,crossbarPanels,addedCrossbars,crossbarScrews,crossbarStaples,fittedCornerHeight:cornerHeight-floorSurfaceHeight(d),floorBase:floorSurfaceHeight(d),ribStock,verticalSkinSeams,skinLayout,goreSheets,glueContactSqFt,adhesiveBottles,angle,corners,perimeter,margin:CYC.feather+CYC.clearance,cornerHeight,tangent,cornerArc,straightLength,perimeterLength,verticalRibs,floorRibs,compoundRibs,ribCount,skinArea,skinSheets,ribSheets,blockingFeet,fasteners,tapeFeet,compoundPails};
 }
 // Three straight runs and up to two rounded corners at an inward offset from the existing wall.
 // A sharp corner meets at the miter point; a rounded one runs tangent into its arc.

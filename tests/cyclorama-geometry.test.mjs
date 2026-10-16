@@ -25,7 +25,7 @@ test('Stage vertices clear the straight toes AND compound finishing envelope at 
   const d={...base,angle,seamlessCorners,seamlessPerimeter,platformAngle,platformBack:0,platformSide:0},p=cycloramaPlan(d),g=cycloramaGaps(d),pl=platformPlan(angle,0,0,platformAngle,d),a=angle*Math.PI/180;
   const clearance=seamlessPerimeter?32:0;
   for(const [x,z]of pl.outline){assert.ok(z>=clearance-1e-7);assert.ok(-Math.sin(a)*x+Math.cos(a)*z+96*Math.sin(a)>=clearance-1e-7);assert.ok(Math.sin(a)*x+Math.cos(a)*z+96*Math.sin(a)>=clearance-1e-7);
-   if(p.corners){const cx=96-p.tangent,R=36-(seamlessPerimeter?32:2);if(x>cx&&z<36&&Math.atan2(x-cx,36-z)<=a)assert.ok(Math.hypot(x-cx,z-36)<=R+1e-7,`${angle}: stage hits corner margin`);if(x< -cx&&z<36&&Math.atan2(-x-cx,36-z)<=a)assert.ok(Math.hypot(x+cx,z-36)<=R+1e-7);}
+   if(p.corners){const cx=96-p.tangent,C=p.cornerRadius,R=C-(seamlessPerimeter?32:2);if(x>cx&&z<C&&Math.atan2(x-cx,C-z)<=a)assert.ok(Math.hypot(x-cx,z-C)<=R+1e-7,`${angle}: stage hits corner margin`);if(x< -cx&&z<C&&Math.atan2(-x-cx,C-z)<=a)assert.ok(Math.hypot(x+cx,z-C)<=R+1e-7);}
   }
   assert.ok(g.minimum<=48);assert.equal(d.platformBack,0);
  }

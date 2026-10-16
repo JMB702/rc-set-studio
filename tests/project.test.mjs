@@ -155,7 +155,8 @@ test('Uncounted milestones still follow guide checks, and manual edits supersede
 test('Guide completion distinguishes floor types and updates combined finishing instructions',()=>{
  const base=projectDefaultTracking(),wood={height:96,floor:'wood',platformShape:'square'},paint={...wood,floor:'charcoal'};
  const next=projectSetGuideStage(base,24,true,wood);assert.equal(next.stages.find(s=>s.id==='floor').steps.find(s=>s.id==='floor-1').percent,100);assert.equal(projectGuideStageDone(next,24,paint),false);
- const finished=projectSetGuideStage(base,37,true,paint);for(const id of ['platform-prime','platform-paint'])assert.equal(finished.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent,100);
+ const primed=projectSetGuideStage(base,37,true,paint),pct=(d,id)=>d.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent;assert.deepEqual([pct(primed,'platform-prime'),pct(primed,'platform-paint')],[100,0]);
+ const finished=projectSetGuideStage(primed,75,true,paint);assert.equal(pct(finished,'platform-paint'),100);
  const plastered=projectSetGuideStage(base,28,true,paint),rows=d=>d.stages.find(s=>s.id==='wall-finishing').steps;assert.deepEqual(rows(plastered).map(s=>s.percent),[100,100,100,0,0],'plaster completes dressing, filling and sanding only');
  const walls=projectSetGuideStage(projectSetGuideStage(plastered,72,true,paint),73,true,paint);assert.ok(rows(walls).every(s=>s.percent===100),'prime and paint complete their own milestones');
 });

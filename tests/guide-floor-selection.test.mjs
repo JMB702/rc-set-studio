@@ -82,11 +82,11 @@ test('The seamless corner goes in before the walls are plastered, primed and pai
  const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,seamlessCorners:true,seamlessCornerSide:'right',floorLip:true};
  const all=Array.from(context.steps(120,'charcoal',cfg)),at=stage=>all.findIndex(s=>s.stage===stage);
  assert.ok(all.filter(s=>s.section==='cyclorama').every(s=>at(s.stage)<at(28)),'every seamless corner step comes before the wall finish');
- assert.deepEqual(all.slice(-3).map(s=>s.stage),[28,72,73],'plaster, then primer, then paint');assert.ok([28,72,73].every(n=>all[at(n)].section==='finish'));
+ assert.deepEqual(all.filter(s=>s.section==='finish').map(s=>s.stage),[28,72,73,25,26,27,74,36,37,75],'walls, then the painted floor, then the platform moves in and is finished');
  assert.equal(at(48),-1,'rounded wall corners have no separate finishing step');
  assert.match(all[at(28)].description,/Plaster the rounded corner along with the walls/);
  const coves=Array.from(context.steps(120,'charcoal',{...cfg,seamlessPerimeter:true}));assert.equal(coves[coves.findIndex(s=>s.stage===48)].title,'Fill and fair the seamless surfaces');
- const plain=Array.from(context.steps(120,'charcoal',{angle:90,platformShape:'none'}));assert.equal(plain.at(-1).stage,73,'without a seamless corner the wall finish is still last');
+ const plain=Array.from(context.steps(120,'charcoal',{angle:90,platformShape:'none'}));assert.equal(plain.at(-1).stage,27,'without a platform the painted floor finishes last');
 });
 
 test('Ribs are cut from squares, one action per step, with counts before and after',()=>{
@@ -99,4 +99,16 @@ test('Ribs are cut from squares, one action per step, with counts before and aft
  assert.match(cut[0],/You need 11 ribs, and each square gives two, so cut 6 squares 36 1\/8″ on every side \(12 ribs, 1 spare\)/);
  assert.ok(cut.some(l=>/One 4×8 sheet holds 2 squares, 4 ribs/.test(l)));
  assert.doesNotMatch(all.find(s=>s.stage===50).description,/Transfer the full-size corner template/);
+});
+
+test('Finishing runs walls, then floor, then platform; the platform moves in only onto a painted floor',()=>{
+ const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12};
+ const fin=(floor,c=cfg)=>Array.from(context.steps(120,floor,c)).filter(s=>s.section==='finish').map(s=>s.stage);
+ assert.deepEqual(fin('charcoal'),[28,72,73,25,26,27,74,36,37,75]);
+ assert.deepEqual(fin('wood'),[28,72,73,36,37,75],'a laminate floor is finished during the floor build');
+ assert.deepEqual(fin('none',{...cfg,platformShape:'none'}),[28,72,73]);
+ const all=Array.from(context.steps(120,'charcoal',cfg)),by=n=>all.find(s=>s.stage===n);
+ assert.match(by(74).description,/never drag it across the paint/);assert.match(by(36).description,/drop cloth over the painted floor/);
+ assert.equal(by(37).title,'Prime the platform');assert.equal(by(75).title,'Paint the platform');assert.match(by(22).description,/plywood floor/);
+ assert.ok(all.filter(s=>s.section==='floor').every(s=>[23,24,42].includes(s.stage)),'only the plywood layers are laid in the floor build');
 });

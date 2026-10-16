@@ -319,3 +319,12 @@ crosscut two squares (4 ribs per sheet, the most a sheet gives at the full rib
 profile), swing a 36 radius from one corner and then the opposite corner with a
 pinned string, cut the square on the diagonal between the unpinned corners and
 bandsaw each curve. Approved design: 11 ribs from 6 squares on 3 sheets, 1 spare.
+
+FINISHING ORDER — OCTOBER 15, 2026
+All finishing runs last, in one Finishing section: plaster the walls (28), prime
+the walls (72), paint the walls (73), seamless corner included; then the painted
+floor: skim (25), prime (26), paint (27); then the platform, built outside the
+set, is carried in and set on the painted floor (74); then skim and plaster the
+platform (36), prime it (37) and paint it (75) over a drop cloth that protects
+the painted floor. Walls stand on the bare two-layer plywood floor; the guide's
+3D views show each part as it stands at each step.

@@ -45,15 +45,18 @@ export function installProject(api){
   if(!dialog.open)dialog.showModal();return dialog;
  }
  function confirm(title,body,fn){form(title,`<p>${escape(body)}</p>`,fn,'Remove');}
- async function load(){const kind=selected,sequence=++loadSequence;if(kind==='pricing')return;host.innerHTML='<p class="pj-loading" role="status">Loading project…</p>';try{if(kind==='finance'){const status=await request('access');const result=status.unlocked?await request('finance'):null;if(sequence!==loadSequence||selected!==kind)return;access=status;if(result)records.finance=result;else delete records.finance;}else if(kind==='tracking'){const early=await takeEarlyTracking(),result=early||await request('tracking');if(sequence!==loadSequence||selected!==kind)return;records.tracking=result;window.dispatchEvent(new CustomEvent('project-tracking-changed',{detail:result.data}));}render();}catch(e){if(sequence!==loadSequence||selected!==kind)return;host.innerHTML=`<p class="pj-error" role="alert">${escape(e.message)}</p>${button('refresh','Try again')}`;}}
- function layout(){const on=api.state.mode==='pricing',inGuide=api.state.mode==='build'&&guideDialog.open;tabs.hidden=!on;host.hidden=(!on&&!inGuide)||selected==='pricing';document.body.classList.toggle('project-module',on&&selected!=='pricing');tabs.querySelectorAll('[data-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===selected));b.tabIndex=b.dataset.tab===selected?0:-1;});host.setAttribute('aria-labelledby',inGuide?'guide-tracker-title':'project-tab-'+selected);document.body.dataset.projectTab=on?selected:'';window.dispatchEvent(new Event('project-tab-changed'));}
+ async function load(){const kind=selected,sequence=++loadSequence;if(kind!=='pricing'||!access?.unlocked)host.innerHTML='<p class="pj-loading" role="status">Loading project…</p>';try{if(kind==='finance'||kind==='pricing'){const status=await request('access');const result=status.unlocked?await request('finance'):null;if(sequence!==loadSequence||selected!==kind)return;access=status;if(result)records.finance=result;else delete records.finance;}else if(kind==='tracking'){const early=await takeEarlyTracking(),result=early||await request('tracking');if(sequence!==loadSequence||selected!==kind)return;records.tracking=result;window.dispatchEvent(new CustomEvent('project-tracking-changed',{detail:result.data}));}render();}catch(e){if(sequence!==loadSequence||selected!==kind)return;host.innerHTML=`<p class="pj-error" role="alert">${escape(e.message)}</p>${button('refresh','Try again')}`;}}
+ // Cost projection and the Pricing breakdown share one PIN session: unlocking either opens both, and Lock closes both.
+ // While locked, the Pricing breakdown tab shows the same PIN screen instead of the breakdown.
+ const pricingLocked=()=>selected==='pricing'&&!access?.unlocked;
+ function layout(){const on=api.state.mode==='pricing',inGuide=api.state.mode==='build'&&guideDialog.open;tabs.hidden=!on;host.hidden=(!on&&!inGuide)||selected==='pricing'&&!pricingLocked();document.body.classList.toggle('project-module',on&&(selected!=='pricing'||pricingLocked()));tabs.querySelectorAll('[data-tab]').forEach(b=>{b.setAttribute('aria-selected',String(b.dataset.tab===selected));b.tabIndex=b.dataset.tab===selected?0:-1;});host.setAttribute('aria-labelledby',inGuide?'guide-tracker-title':'project-tab-'+selected);document.body.dataset.projectTab=on?selected:'';window.dispatchEvent(new Event('project-tab-changed'));}
  async function openGuideTracking(){
   if(guideDialog.open)return;
   const step=api.currentGuideStep(),ids=Object.entries(projectGuideGroups(api.state)).filter(([,stages])=>stages.includes(step.stage)).map(([id])=>id);
   selected='tracking';guideDialog.append(host);guideDialog.querySelector('.guide-tracker-context').textContent=step.title||'Current build step';guideDialog.showModal();layout();await load();
   for(const stage of get('tracking')?.stages||[])if(stage.steps.some(t=>ids.includes(t.id)))openStages.add(stage.id);if(get('tracking'))tracking();
  }
- async function select(value){stopProgressMotion();loadSequence++;clearTimeout(clockTimer);selected=value;try{sessionStorage.setItem('rc-project-tab',value);}catch{}layout();if(value!=='pricing')await load();if(value!=='finance')refreshPricingFinance(true);}
+ async function select(value){stopProgressMotion();loadSequence++;clearTimeout(clockTimer);selected=value;try{sessionStorage.setItem('rc-project-tab',value);}catch{}layout();await load();if(value==='tracking')refreshPricingFinance(true);}
  tabs.onclick=e=>{const b=e.target.closest('[data-tab]');if(b)run(()=>select(b.dataset.tab));};
  tabs.onkeydown=e=>{const all=[...tabs.children],i=all.indexOf(document.activeElement);if(i<0)return;const n=e.key==='ArrowRight'?(i+1)%3:e.key==='ArrowLeft'?(i+2)%3:e.key==='Home'?0:e.key==='End'?2:null;if(n!==null){e.preventDefault();all[n].focus();run(()=>select(all[n].dataset.tab));}};
  const progressButton=document.createElement('button');progressButton.id='viewport-project-progress';progressButton.type='button';progressButton.disabled=true;progressButton.setAttribute('aria-label','Project progress loading');progressButton.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="26" class="progress-track"/><circle cx="32" cy="32" r="26" class="progress-value" pathLength="100" stroke-dasharray="0 100"/></svg><span>0<small>%</small></span>';document.querySelector('.viewport').append(progressButton);
@@ -64,7 +67,7 @@ export function installProject(api){
  for(const event of ['project-tracking-loaded','project-tracking-changed'])window.addEventListener(event,e=>paintRing(e.detail));
  // Public completion always uses estimated task weights, independent of private finance access.
  window.addEventListener('project-finance-changed',()=>{paintRing(ringTracking);if(selected==='tracking'&&get('tracking')&&!editingProject())tracking();});
- const baseMode=api.setMode;api.setMode=m=>{if(m!=='build'&&guideDialog.open)guideDialog.close();const result=baseMode(m);layout();if(m==='pricing'&&selected!=='pricing')run(load);if(m==='pricing'&&selected==='pricing')refreshPricingFinance(true);return result;};
+ const baseMode=api.setMode;api.setMode=m=>{if(m!=='build'&&guideDialog.open)guideDialog.close();const result=baseMode(m);layout();if(m==='pricing')run(load);return result;};
  document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>api.setMode(b.dataset.mode));
  window.addEventListener('studio-view-changed',layout);
  // Sticky cost summaries sit below the 3D view when it is pinned to the top (phones), otherwise at the very top.
@@ -72,7 +75,7 @@ export function installProject(api){
  new ResizeObserver(stickyTop).observe(viewport);window.addEventListener('resize',stickyTop);window.addEventListener('studio-view-changed',stickyTop);window.addEventListener('project-tab-changed',stickyTop);window.addEventListener('viewport-strip-changed',stickyTop);stickyTop();
  try{const saved=sessionStorage.getItem('rc-project-tab');if(['pricing','finance','tracking'].includes(saved))selected=saved;}catch{}
  function header(){return '<p class="pj-error" data-project-error role="alert" hidden></p>';}
- function renderGate(){host.innerHTML=header()+`<div class="pj-gate"><div class="pj-lock-mark">${svg('lock')}</div><h3>${access?.configured?'Unlock project costs':'Keep project costs private'}</h3><p>${access?.configured?'Enter your four-digit project PIN.':'Create a four-digit PIN for spending, receipts and crew time.'}</p><form id="pj-pin-form">${field('pin','Project PIN','','password','inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" required aria-label="Four-digit project PIN"')}${!access?.configured?field('repeat','Confirm PIN','','password','inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" required'):''}<button class="pj-primary" type="submit">${access?.configured?'Unlock costs':'Create PIN'}</button></form></div>`;
+ function renderGate(){host.innerHTML=header()+`<div class="pj-gate"><div class="pj-lock-mark">${svg('lock')}</div><h3>${access?.configured?'Unlock project costs':'Keep project costs private'}</h3><p>${access?.configured?'Enter your four-digit project PIN. It unlocks Cost projection and the Pricing breakdown.':'Create a four-digit PIN for spending, receipts, crew time and the Pricing breakdown.'}</p><form id="pj-pin-form">${field('pin','Project PIN','','password','inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" required aria-label="Four-digit project PIN"')}${!access?.configured?field('repeat','Confirm PIN','','password','inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="off" required'):''}<button class="pj-primary" type="submit">${access?.configured?'Unlock costs':'Create PIN'}</button></form></div>`;
  host.querySelector('form').onsubmit=e=>{e.preventDefault();const values=new FormData(e.target);run(async()=>{if(!access.configured&&values.get('pin')!==values.get('repeat'))throw Error('The PINs do not match.');const submit=e.target.querySelector('button');submit.disabled=true;try{await request('access','POST',{action:access.configured?'unlock':'setup',pin:values.get('pin')});await load();}finally{submit.disabled=false;}});};}
  function taskName(id){return NON_BUILD_ACTIVITIES.find(a=>a.id===id)?.name||shoppingNames[id]||api.labor?.().tasks.find(t=>t.id===id)?.name||(id?'Stage not in this design':'No stage assigned');}
  function spendHero(data,p){const lock=button('lock',svg('lock'),'pj-icon pj-spend-lock','aria-label="Lock project costs" title="Lock project costs"');
@@ -105,7 +108,7 @@ export function installProject(api){
  // The Pricing guide's cost projection needs the private finance record; share it only while unlocked.
  let published;
  function publishFinance(){const next=access?.unlocked?get('finance')??null:null;if(next===published)return;published=next;window.dispatchEvent(new CustomEvent('project-finance-changed',{detail:next}));}
- function render(){layout();publishFinance();if(selected==='finance'){if(!access?.unlocked)renderGate();else finance();}if(selected==='tracking')tracking();}
+ function render(){layout();publishFinance();if(selected==='finance'||selected==='pricing'){if(!access?.unlocked)renderGate();else if(selected==='finance')finance();}if(selected==='tracking')tracking();}
  async function upload(file){const status=host.querySelector('.pj-scan-status');status.hidden=false;host.querySelector('[data-action="upload"]').disabled=true;try{const receipt=await readProjectReceipt(file,message=>status.textContent=message);if(selected==='finance'&&access?.unlocked)expenseForm(null,receipt);}finally{status.hidden=true;host.querySelector('[data-action="upload"]')?.removeAttribute('disabled');}}
  const blankItem=(materialId=null)=>({id:crypto.randomUUID(),materialId,description:'',quantity:null,amountCents:null,complete:materialId!==null,substitute:false,note:''});
  const centsOf=v=>String(v??'').trim()===''?null:Math.round(Number(v)*100);
@@ -212,7 +215,7 @@ export function installProject(api){
  async function refreshPricingFinance(force=false){
   if(pricingFinancePending||document.hidden&&!force||!['pricing','tracking'].includes(selected)||api.state.mode!=='pricing'&&!guideDialog.open||busy||!force&&Date.now()-pricingFinanceAt<15000)return;
   pricingFinancePending=true;pricingFinanceAt=Date.now();
-  try{const status=await request('access');const result=status.unlocked?await request('finance'):null;if(!['pricing','tracking'].includes(selected)||busy)return;access=status;if(result){if(result.revision!==records.finance?.revision)records.finance=result;}else delete records.finance;publishFinance();}
+  try{const status=await request('access');const result=status.unlocked?await request('finance'):null;if(!['pricing','tracking'].includes(selected)||busy)return;const was=!!access?.unlocked;access=status;if(result){if(result.revision!==records.finance?.revision)records.finance=result;}else delete records.finance;if(was!==!!status.unlocked&&selected==='pricing'&&!editingProject())render();else publishFinance();}
   catch{}finally{pricingFinancePending=false;}
  }
  function refreshProject(){refreshTracking();refreshFinance();refreshPricingFinance();}
@@ -292,5 +295,5 @@ export function installProject(api){
  };
  // The Pricing breakdown's Not needed / Needed after all buttons.
  api.setMaterialNeeded=(materialId,needed)=>run(()=>api.project.setNotNeeded(materialId,!needed));
- layout();if(selected!=='pricing'&&api.state.mode==='pricing')run(load);else if(api.state.mode==='pricing')refreshPricingFinance(true);
+ layout();if(api.state.mode==='pricing')run(load);
 }

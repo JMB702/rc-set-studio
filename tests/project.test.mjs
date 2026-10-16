@@ -105,7 +105,7 @@ test('Assembly counts distinguish completed panels, built jacks and attached jac
  assert.throws(()=>projectAssembly({...data.assembly,jacksAttached:5}),/cannot exceed/);
  assert.equal(projectAssembly({...data.assembly,jacksBuilt:16,jacksAttached:2}).jacksBuilt,16,'a leftover in-progress count never blocks built jacks');assert.equal('jacksPartial' in projectAssembly(data.assembly),false);
  assert.throws(()=>projectAssembly({...data.assembly,panelsCompleted:9}),/Invalid/);
- assert.deepEqual(projectValidate('tracking',data).assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null});
+ assert.deepEqual(projectValidate('tracking',data).assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null,crossbarsAdded:null,ribsCut:null});
 });
 test('Platform parts require joined modules; deck, fascia and finish follow assembly dependencies',()=>{
  const data=projectDefaultTracking(),set=(id,p)=>data.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent=p;
@@ -155,13 +155,15 @@ test('Uncounted milestones still follow guide checks, and manual edits supersede
 test('Guide completion distinguishes floor types and updates combined finishing instructions',()=>{
  const base=projectDefaultTracking(),wood={height:96,floor:'wood',platformShape:'square'},paint={...wood,floor:'charcoal'};
  const next=projectSetGuideStage(base,24,true,wood);assert.equal(next.stages.find(s=>s.id==='floor').steps.find(s=>s.id==='floor-1').percent,100);assert.equal(projectGuideStageDone(next,24,paint),false);
- const finished=projectSetGuideStage(base,37,true,paint);for(const id of ['platform-prime','platform-paint'])assert.equal(finished.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent,100);
- const walls=projectSetGuideStage(base,28,true,paint);assert.ok(walls.stages.find(s=>s.id==='wall-finishing').steps.every(s=>s.percent===100));
+ const primed=projectSetGuideStage(base,37,true,paint),pct=(d,id)=>d.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent;assert.deepEqual([pct(primed,'platform-prime'),pct(primed,'platform-paint')],[100,0]);
+ const finished=projectSetGuideStage(primed,75,true,paint);assert.equal(pct(finished,'platform-paint'),100);
+ const plastered=projectSetGuideStage(base,28,true,paint),rows=d=>d.stages.find(s=>s.id==='wall-finishing').steps;assert.deepEqual(rows(plastered).map(s=>s.percent),[100,100,100,0,0],'plaster completes dressing, filling and sanding only');
+ const walls=projectSetGuideStage(projectSetGuideStage(plastered,72,true,paint),73,true,paint);assert.ok(rows(walls).every(s=>s.percent===100),'prime and paint complete their own milestones');
 });
 test('Older open tabs cannot erase assembly counts or guide completion when saving tracker edits',async()=>{
  const r=rig(),first=await (await r.call('tracking')).json();first.data.assembly={panelsCompleted:8,jacksBuilt:4,jacksAttached:2,jacksPartial:2};first.data.guideChecks={'panel:120:0':true};first.data.stages[0].steps[0].percent=100;
  const saved=await (await r.call('tracking','PUT',first)).json();const older=structuredClone(saved);delete older.data.assembly;delete older.data.guideChecks;older.data.stages[0].name='Wall production';
- const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null});assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
+ const updated=await (await r.call('tracking','PUT',older)).json();assert.deepEqual(updated.data.assembly,{panelsCompleted:8,jacksBuilt:4,jacksAttached:2,ballastAttached:null,wallsJoined:null,anglesSet:null,crossbarsAdded:null,ribsCut:null});assert.deepEqual(updated.data.guideChecks,first.data.guideChecks);
 });
 test('Patched platform seams are a separate finish before full skim, primer and paint',()=>{
  const data=projectDefaultTracking(),steps=data.stages.flatMap(s=>s.steps);

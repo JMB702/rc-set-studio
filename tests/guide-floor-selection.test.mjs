@@ -21,13 +21,13 @@ test('Second plywood layer belongs only to painted-floor guides',()=>{
  }
 });
 
-test('Seamless retrofit steps and cut list follow independent options at both wall heights',()=>{
+test('Seamless corner steps and cut list follow independent options at both wall heights',()=>{
  for(const height of [96,120])for(const floor of ['none','wood','charcoal'])for(const angle of [0,45,90])for(const seamlessCorners of [false,true])for(const seamlessPerimeter of [false,true]){
   const cfg={height,floor,angle,seamlessCorners,seamlessPerimeter,platformShape:'angled'},hasCorners=seamlessCorners&&angle>0;
-  const all=context.steps(height,floor,cfg),stages=Array.from(all,s=>s.stage),retrofit=stages.filter(n=>n>=43),expected=hasCorners||seamlessPerimeter?[43,...(hasCorners?[49,50,51,52]:[]),...(seamlessPerimeter?[53,54,55,56,57,58]:[]),...(hasCorners&&seamlessPerimeter?[59,60,61,62]:[]),48]:[];
+  const all=context.steps(height,floor,cfg),stages=Array.from(all,s=>s.stage),retrofit=Array.from(all).filter(s=>s.section==='cyclorama').map(s=>s.stage),plan=context.cycloramaPlan(cfg),expected=hasCorners||seamlessPerimeter?[43,...(hasCorners&&plan.addedCrossbars?[63,64,65]:[]),...(hasCorners&&angle===90?[66,67,68,69,70,71]:[]),...(hasCorners?[49,50,51,52]:[]),...(seamlessPerimeter?[53,54,55,56,57,58]:[]),...(hasCorners&&seamlessPerimeter?[59,60,61,62]:[]),...(seamlessPerimeter?[48]:[])]:[];
   assert.deepEqual(retrofit,expected,JSON.stringify(cfg));
   assert.equal(context.cycloramaCutRows(cfg).length>0,expected.length>0);
-  assert.ok(all.filter(s=>s.stage>=43).every(s=>s.section==='cyclorama'&&s.tools&&s.spec&&s.fasteners.length));
+  assert.ok(all.filter(s=>s.section==='cyclorama').every(s=>s.stage>=43&&(s.checkpoint||s.tools&&s.spec&&s.fasteners.length)),'count steps carry no instructions of their own');
   assert.equal(stages.filter(n=>n===38).length,1,'existing panel checkpoint stays unchanged');
  }
 });
@@ -77,4 +77,38 @@ test('Platform frames go together inside out, with joist centers measured from t
  assert.ok(at(/Fasten the joists first/)<at(/seam joists together/)&&at(/seam joists together/)<at(/Add the side rims/)&&at(/Add the side rims/)<at(/front and back rims last/),'joists, then doubled seams, then side rims, then front and back rims');
  assert.match(lines[at(/Mark the joist centers/)],/14 1\/2″, 30 1\/2″ and 46 1\/2″ from the back end.*16″, 32″ and 48″ from its outside edge/);
  assert.deepEqual(Array.from(context.joistMarks(platform.platformPlan(90,18,18,90,{platformFront:12}))),[16,32,48]);
+});
+test('The seamless corner goes in before the walls are plastered, primed and painted',()=>{
+ const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,seamlessCorners:true,seamlessCornerSide:'right',floorLip:true};
+ const all=Array.from(context.steps(120,'charcoal',cfg)),at=stage=>all.findIndex(s=>s.stage===stage);
+ assert.ok(all.filter(s=>s.section==='cyclorama').every(s=>at(s.stage)<at(28)),'every seamless corner step comes before the wall finish');
+ assert.deepEqual(all.filter(s=>s.section==='finish').map(s=>s.stage),[28,72,73,25,26,27,74,36,37,75],'walls, then the painted floor, then the platform moves in and is finished');
+ assert.equal(at(48),-1,'rounded wall corners have no separate finishing step');
+ assert.match(all[at(28)].description,/Plaster the rounded corner along with the walls/);
+ const coves=Array.from(context.steps(120,'charcoal',{...cfg,seamlessPerimeter:true}));assert.equal(coves[coves.findIndex(s=>s.stage===48)].title,'Fill and fair the seamless surfaces');
+ const plain=Array.from(context.steps(120,'charcoal',{angle:90,platformShape:'none'}));assert.equal(plain.at(-1).stage,27,'without a platform the painted floor finishes last');
+});
+
+test('Ribs are cut from squares, one action per step, with counts before and after',()=>{
+ const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12,seamlessCorners:true,seamlessCornerSide:'right',floorLip:true,height:120,floor:'charcoal'};
+ const all=Array.from(context.steps(120,'charcoal',cfg)),order=all.map(s=>s.stage),plan=context.ribCutPlan(context.cycloramaPlan(cfg));
+ assert.deepEqual(order.filter(n=>n>=43&&n<72),[43,63,64,65,66,67,68,69,70,71,50,52],'backboards, then rib cutting, then mounting');
+ assert.ok(all.find(s=>s.stage===65).checkpoint&&all.find(s=>s.stage===71).checkpoint);
+ assert.deepEqual([plan.square,plan.squaresPerSheet,plan.ribsPerSheet,plan.ribs,plan.squares,plan.sheets],[36.125,2,4,11,6,3]);
+ const cut=Array.from(context.instructionSentences(all.find(s=>s.stage===66).description));
+ assert.match(cut[0],/You need 11 ribs, and each square gives two, so cut 6 squares 36 1\/8″ on every side \(12 ribs, 1 spare\)/);
+ assert.ok(cut.some(l=>/One 4×8 sheet holds 2 squares, 4 ribs/.test(l)));
+ assert.doesNotMatch(all.find(s=>s.stage===50).description,/Transfer the full-size corner template/);
+});
+
+test('Finishing runs walls, then floor, then platform; the platform moves in only onto a painted floor',()=>{
+ const cfg={angle:90,platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,platformFront:12};
+ const fin=(floor,c=cfg)=>Array.from(context.steps(120,floor,c)).filter(s=>s.section==='finish').map(s=>s.stage);
+ assert.deepEqual(fin('charcoal'),[28,72,73,25,26,27,74,36,37,75]);
+ assert.deepEqual(fin('wood'),[28,72,73,36,37,75],'a laminate floor is finished during the floor build');
+ assert.deepEqual(fin('none',{...cfg,platformShape:'none'}),[28,72,73]);
+ const all=Array.from(context.steps(120,'charcoal',cfg)),by=n=>all.find(s=>s.stage===n);
+ assert.match(by(74).description,/never drag it across the paint/);assert.match(by(36).description,/drop cloth over the painted floor/);
+ assert.equal(by(37).title,'Prime the platform');assert.equal(by(75).title,'Paint the platform');assert.match(by(22).description,/plywood floor/);
+ assert.ok(all.filter(s=>s.section==='floor').every(s=>[23,24,42].includes(s.stage)),'only the plywood layers are laid in the floor build');
 });

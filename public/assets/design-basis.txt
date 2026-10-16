@@ -307,3 +307,24 @@ from calculated coverage. Different paint product URLs remain separate.
 
 PROGRESS CHECKOFFS
 Wall joining and angle-setting guide steps record the full set as joined and both wing angles as set. The tracker counters and guide checkmarks stay synchronized. Seamless construction has separate rib and skin checkoffs for wall corners 1 and 2 (left and right), each left/right/back perimeter run, and each of the two compound floor corners. Survey/backing and final filling, sanding and painting remain separate shared tasks. Removing an optional feature hides its tasks without deleting recorded work. These subdivisions do not add materials or multiply the labor allowance.
+
+SEAMLESS CORNER BUILD SEQUENCE — OCTOBER 15, 2026
+No longer called a retrofit. The rounded corner goes in before the walls are
+plastered, primed and painted. Order: survey the joined walls; cut, then glue,
+screw and staple the backboards (counted); cut the ribs (counted); fit ribs;
+fit skin; then the wall finish plasters and paints the rounded corner with the
+walls in one pass. Step 48 (fill and fair) remains only with floor coves.
+Ribs for 90 degree walls come from 36 1/8 squares: rip a 4x8 sheet to 36 1/8,
+crosscut two squares (4 ribs per sheet, the most a sheet gives at the full rib
+profile), swing a 36 radius from one corner and then the opposite corner with a
+pinned string, cut the square on the diagonal between the unpinned corners and
+bandsaw each curve. Approved design: 11 ribs from 6 squares on 3 sheets, 1 spare.
+
+FINISHING ORDER — OCTOBER 15, 2026
+All finishing runs last, in one Finishing section: plaster the walls (28), prime
+the walls (72), paint the walls (73), seamless corner included; then the painted
+floor: skim (25), prime (26), paint (27); then the platform, built outside the
+set, is carried in and set on the painted floor (74); then skim and plaster the
+platform (36), prime it (37) and paint it (75) over a drop cloth that protects
+the painted floor. Walls stand on the bare two-layer plywood floor; the guide's
+3D views show each part as it stands at each step.

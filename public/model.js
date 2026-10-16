@@ -119,9 +119,9 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
 
 // Retrofit cyclorama: the same inset wall path generates the cylindrical sweeps and compound corners.
 export function cycloramaMesh(d,{stage=48,construction=true}={}){
- const plan=cycloramaPlan(d),lift=floorSurfaceHeight(d);d={...d,height:d.height-lift,floor:'none'};const G=new T.Group();G.position.y=lift*inch;G.name='Seamless retrofit';G.userData.plan=plan;if(!plan.corners&&!plan.perimeter)return G;
+ const plan=cycloramaPlan(d),lift=floorSurfaceHeight(d);d={...d,height:d.height-lift,floor:'none'};const G=new T.Group();G.position.y=lift*inch;G.name='Seamless corner';G.userData.plan=plan;if(!plan.corners&&!plan.perimeter)return G;
  const supports=new T.Group();supports.name='Cyclorama framing';G.add(supports);
- const guideOrder=[43,49,50,51,52,53,54,55,56,57,58,59,60,61,62,48],componentStages={'corner-1':[49,51],'corner-2':[50,52],'perimeter-left':[53,54],'perimeter-right':[55,56],'perimeter-back':[57,58],'compound-1':[59,60],'compound-2':[61,62]};
+ const guideOrder=[43,63,64,65,66,67,68,69,70,71,49,50,51,52,53,54,55,56,57,58,59,60,61,62,48],componentStages={'corner-1':[49,51],'corner-2':[50,52],'perimeter-left':[53,54],'perimeter-right':[55,56],'perimeter-back':[57,58],'compound-1':[59,60],'compound-2':[61,62]};
  function componentFor(name,st){if(st===44||st===45)return name.includes('-1')?'corner-1':'corner-2';if(st===46)return 'perimeter-'+['left','right','back'].find(side=>name.includes(side));if(st===47)return name.includes('-1')?'compound-1':'compound-2';return null;}
 
  function part(name,geometry,st,mat='wood'){
@@ -145,7 +145,8 @@ export function cycloramaMesh(d,{stage=48,construction=true}={}){
    const s=seg.side,a=plan.angle*Math.PI/180,walls=[{at:u=>[s*(96-u),0],out:[0,1]},{at:u=>[s*(96+u*Math.cos(a)),u*Math.sin(a)],out:[-s*Math.sin(a),Math.cos(a)]}],lift=plan.floorBase;
    const block=(name,wall,u0,u1,z0,z1,y0,y1,st,ids)=>{const w=walls[wall],[x0,q0]=w.at(u0),[x1,q1]=w.at(u1),pg=[[x0+w.out[0]*z0,q0+w.out[1]*z0],[x1+w.out[0]*z0,q1+w.out[1]*z0],[x1+w.out[0]*z1,q1+w.out[1]*z1],[x0+w.out[0]*z1,q0+w.out[1]*z1]];const m=part(name,slab(pg,y0,y1),st);m.userData.pricingIds=ids;return m;};
    // Added crossbars lie flat against the back of the existing skin between the stiles.
-   for(const [wall,label] of [[0,'back'],[1,'wing']])for(const y of plan.addedCrossbarLevels)block(`Added crossbar ${label} ${s} ${y}`,wall,.75,47.25,-.106-plan.crossbarStock.thickness,-.106,y-lift-plan.crossbarStock.width/2,y-lift+plan.crossbarStock.width/2,43,['cycCrossbars']);
+   // They go in at their own guide steps (63–64), after the survey, so the survey view does not show them yet.
+   for(const [wall,label] of [[0,'back'],[1,'wing']])for(const y of plan.addedCrossbarLevels){const m=block(`Added crossbar ${label} ${s} ${y}`,wall,.75,47.25,-.106-plan.crossbarStock.thickness,-.106,y-lift-plan.crossbarStock.width/2,y-lift+plan.crossbarStock.width/2,43,['cycCrossbars']);if(stage===43)m.visible=false;}
    // Ribs are centered on their crossbars and screwed from behind; nothing is added on the wall face.
    plan.ribLevels.forEach((level,i)=>part(`Corner rib ${s} ${i+1}`,slab([[s*96,0],...seg.points],level.y-lift,level.y-lift+plan.ribThickness),44));
   }

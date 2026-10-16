@@ -38,5 +38,5 @@ test('Granular seamless stages restore and coarse stages migrate to their first 
   assert.equal(readWorkspace(design,store).stage,newStage);
  }
  for(const stage of [43,48])assert.equal(normalizeWorkspace({...saved,stage}).stage,stage);
- assert.throws(()=>normalizeWorkspace({...saved,stage:79}));
+ assert.throws(()=>normalizeWorkspace({...saved,stage:80}));
 });

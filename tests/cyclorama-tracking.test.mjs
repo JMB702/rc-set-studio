@@ -38,7 +38,7 @@ test('Build design and workspace preserve options and requested gaps through sta
  assert.deepEqual(projectBuildDesign(design),design);assert.equal(projectBuildDesign({...design,seamlessCorners:undefined}).seamlessCorners,false);
  assert.throws(()=>projectBuildDesign({...design,seamlessPerimeter:'yes'}),/Invalid/);
  const saved=normalizeWorkspace({version:1,mode:'build',design,stage:62});assert.equal(saved.stage,62);assert.equal(saved.design.platformBack,12);assert.equal(saved.design.seamlessPerimeter,true);
- assert.throws(()=>normalizeWorkspace({version:1,mode:'build',design,stage:79}),/stage/);
+ assert.throws(()=>normalizeWorkspace({version:1,mode:'build',design,stage:80}),/stage/);
  assert.equal(guideCompletionMatchesDesign({design},{...design,seamlessPerimeter:false}),false);assert.equal(guideCompletionMatchesDesign({design},design),true);
 });
 test('Guide fastener allowance matches retrofit pricing quantity basis',()=>{

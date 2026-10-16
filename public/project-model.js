@@ -216,7 +216,7 @@ export function projectGuideGroups(design={}) {
  };
  if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
  if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-upper':[42],'floor-3':[26,27]});
- if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':design.floor==='charcoal'?[33,74]:[33],'platform-deck':[34],'platform-fascia':[35],'platform-seams':[36],'platform-skim':[36],'platform-prime':[37],'platform-paint':[75]});
+ if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':design.floor==='charcoal'?[33,74]:[33],'platform-deck':[34],'platform-fascia':[35],'platform-seams':[79,36],'platform-skim':[36],'platform-prime':[37],'platform-paint':[75]});
  const corners=design.seamlessCorners===true&&(design.angle??45)>0,perimeter=design.seamlessPerimeter===true,side=design.seamlessCornerSide??'both';
  // Corner 1 is the left wing corner, corner 2 the right; a one-corner build has no rows for the other.
  const builds=c=>!/-[12]$/.test(c.component)||side==='both'||side===(c.component.endsWith('-1')?'left':'right');

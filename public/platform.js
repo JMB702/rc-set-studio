@@ -143,7 +143,8 @@ export function platformPlan(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,cfg={}){
    full:E.length===4&&Math.abs((mx1-mx0)/PLATFORM.module-Math.round((mx1-mx0)/PLATFORM.module))<.001,inside:p=>insidePoly(poly,p)});
  }
  const decks=platformDecks(outline,modules,columns),sheetLayout=packDecks(decks),fasciaPieces=platformFascia(outline,modules);
- return {angle:a,platformAngle:pa,back,side,front,outline,columns,modules,decks,sheetLayout,fasciaPieces,...platformTotals(outline,modules,decks,sheetLayout,fasciaPieces,columns)};
+ const totals=platformTotals(outline,modules,decks,sheetLayout,fasciaPieces,columns),bead=beadPlan(outline,modules,totals.fasciaCorners);
+ return {angle:a,platformAngle:pa,back,side,front,outline,columns,modules,decks,sheetLayout,fasciaPieces,...totals,bead,staples:totals.staples+bead.staples};
 }
 
 // Long side strips bridge frames. Each run of exposed edge splits into the fewest equal strips that fit
@@ -198,6 +199,24 @@ export function packDecks(decks){
   if(r.h-deck.depth>kerf)sheet.free.push({x:r.x,z:r.z+deck.depth+kerf,w:deck.width,h:r.h-deck.depth-kerf});
  }
  return sheets;
+}
+// Vinyl corner bead (the same 1¼″ × 8′ stock as the rest of the set) runs along every exposed top edge and down each
+// outside vertical corner, fitted before the skim and plaster. Lengths are to the outside of the fascia; a top
+// edge is mitered where it meets another exposed edge and butts square against a wall. Each run is cut from whole
+// sticks first, then the remainder (a short remainder is shared with the last stick instead). A miter is cut at half the
+// turn between the two edges (45° on a square corner). The vertical pieces stop under the top bead's side flange.
+export const BEAD={stock:96,flange:1.25,stapleEvery:6};
+export function beadPlan(outline,modules,corners){
+ const o=PLATFORM.skin,E=edgeFrames(outline),n=E.length,fascia=E.map(edge=>modules.flatMap(m=>m.edges.filter(e=>e.fascia&&Math.abs(e.n[0]*edge.n[0]+e.n[1]*edge.n[1]-1)<1e-6&&Math.abs(e.c-edge.c)<1e-6)));
+ const names={back:'Back edge',left:'Left side',right:'Right side'},fronts=fascia.filter(f=>f.length&&!f[0].wall).length;let front=0;
+ const runs=E.flatMap((edge,i)=>{if(!fascia[i].length)return [];const wall=fascia[i][0].wall,prev=E[(i+n-1)%n],next=E[(i+1)%n],turn=(a,b)=>Math.acos(Math.min(1,Math.max(-1,a.n[0]*b.n[0]+a.n[1]*b.n[1])))*90/Math.PI;
+  const miterStart=fascia[(i+n-1)%n].length?turn(prev,edge):0,miterEnd=fascia[(i+1)%n].length?turn(edge,next):0,outside=edge.len+o*Math.tan(miterStart*Math.PI/180)+o*Math.tan(miterEnd*Math.PI/180);
+  const count=Math.ceil(outside/BEAD.stock-1e-9),pieces=Array.from({length:count},(_,k)=>k<count-1?BEAD.stock:outside-BEAD.stock*(count-1));
+  if(count>1&&pieces.at(-1)<12){const half=(BEAD.stock+pieces.at(-1))/2;pieces.splice(-2,2,half,half);}
+  return [{label:names[wall]||(fronts>1?`Front edge ${++front}`:'Front edge'),edge:i,outside,miterStart,miterEnd,pieces}];});
+ const vertical=Array.from({length:corners},()=>PLATFORM.height-BEAD.flange),lengths=[...runs.flatMap(r=>r.pieces),...vertical];
+ const sticks=lengths.length?studCount(lengths,BEAD.stock):0,staples=lengths.reduce((s,l)=>s+2*(Math.ceil(l/BEAD.stapleEvery)+1),0);
+ return {runs,vertical,lengths,sticks,spare:sticks?1:0,staples,topLength:runs.reduce((s,r)=>s+r.outside,0)};
 }
 // First-fit decreasing: how many 96″ studs the cut list needs, allowing a saw kerf per cut.
 export function studCount(lengths,stock=PLATFORM.stud,kerf=PLATFORM.kerf){const bins=[];for(const len of [...lengths].sort((a,b)=>b-a)){const need=Math.ceil(len*16)/16;const bin=bins.find(b=>b+need<=stock+1e-9);if(bin!==undefined)bins[bins.indexOf(bin)]+=need+kerf;else bins.push(need+kerf);}return bins.length;}

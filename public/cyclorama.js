@@ -51,7 +51,9 @@ export function cycloramaPlan(d={}){
  const lift=floorSurfaceHeight(d),singleRibs=corners?cornerRibLevels(h,lift+(perimeter?r:0)):[];
  // Where two stacked skin pieces meet, the rib is doubled: two ribs face to face, centered on the joint, so each piece
  // lands on a full rib edge. Both sit on the same crossbar and take their own screws from behind.
- const cornerSkin=corners?cornerSkinPlan(singleRibs.map(l=>l.y+CYC.ribThickness/2),lift+(perimeter?r:0),h,cornerArc):null,t=CYC.ribThickness;
+ // Corner skin width: Jeff's cut, one piece per row as wide as the rib radius (42″ × 94 7/16″ and 42″ × 24″ on the
+ // approved build). The 3D curve itself is still drawn at its full arc.
+ const cornerSkin=corners?cornerSkinPlan(singleRibs.map(l=>l.y+CYC.ribThickness/2),lift+(perimeter?r:0),h,Math.min(LAUAN[0],R,cornerArc)):null,t=CYC.ribThickness;
  const ribLevels=singleRibs.flatMap(l=>cornerSkin?.seams.some(sm=>Math.abs(sm-(l.y+t/2))<1e-6)?[{...l,y:l.y+t/2-t,double:'lower'},{...l,y:l.y+t/2,double:'upper'}]:[l]),addedCrossbarLevels=ribLevels.filter(l=>l.added).map(l=>l.crossbar),crossbarPanels=corners*2,addedCrossbars=crossbarPanels*addedCrossbarLevels.length;
  const verticalRibs=corners*ribLevels.length,floorRibs=perimeter?Object.values(runs).reduce((n,run)=>n+Math.ceil(run/16)+1,0):0,compoundRibs=perimeter&&corners?corners*(Math.ceil(cornerArc/8)+1):0,ribCount=verticalRibs+floorRibs+compoundRibs;
  const verticalArea=corners*cornerArc*cornerHeight/144,floorArea=perimeter?straightLength*r*Math.PI/2/144:0,junctionArea=perimeter&&corners?corners*a*(R*r*Math.PI/2-r*r*(Math.PI/2-1))/144:0,skinArea=verticalArea+floorArea+junctionArea;

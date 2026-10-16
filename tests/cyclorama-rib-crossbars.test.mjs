@@ -38,9 +38,9 @@ test('Approved design: material for crossbar-mounted ribs',()=>{
  assert.equal(row('cycRibScrews').needed,16,'4 ribs on the existing on-edge toggles and top rail');assert.equal(row('cycAnchorScrews').needed,32,'8 ribs on flat crossbars (both doubled ribs on the 96″ seam board) take 2½″ SPAX');assert.equal(row('cycRibScrews').purchaseQuantity,1);assert.equal(row('cycRibScrews').unitPriceCents,null,'3½″ box price not yet checked');
  assert.equal(row('cycBacking'),undefined,'no 2×4 backing or cleats');
  assert.equal(row('cycCrossbarScrews').needed,48);assert.equal(row('cycCrossbarStaples').needed,192);
- assert.equal(row('cycRibPly').purchaseQuantity,3,'42 1/8″ squares: two per sheet');assert.equal(row('cycSkin').purchaseQuantity,2,'lower full sheet, then the lower strip and all three upper pieces from the second sheet');
- assert.equal(p.cornerRadius,42);assert.deepEqual(p.cornerSkin.columns.map(w=>inches(cutLength(w))),['48″','17 15/16″'],'a full-width sheet plus one ripped strip around the 65 15/16″ curve');
- assert.deepEqual(p.cornerSkin.rows.map(r=>r.columns.map(c=>inches(cutLength(c)))),[['48″','17 15/16″'],['24″','24″','17 15/16″']],'the short upper row is cut narrower so it fits beside the lower strip');
+ assert.equal(row('cycRibPly').purchaseQuantity,3,'42 1/8″ squares: two per sheet');assert.equal(row('cycSkin').purchaseQuantity,2,'one sheet per row');
+ assert.equal(p.cornerRadius,42);assert.deepEqual(p.cornerSkin.columns.map(w=>inches(cutLength(w))),['42″'],'Jeff\'s cut: one piece per row, 42″ wide');
+ assert.deepEqual(p.cornerSkin.rows.map(r=>r.columns.map(c=>inches(cutLength(c)))),[['42″'],['42″']]);
  assert.deepEqual(p.cornerSkin.rows.map(r=>inches(cutLength(r.height))),['94 7/16″','24″'],'floor top to the 96″ rib, then the rib to the wall top');assert.deepEqual(p.cornerSkin.seams,[96]);
  assert.ok(laborTasks(approved).find(t=>t.id==='cycBacking').name.includes('12 backboards'));assert.equal(laborTasks(approved).find(t=>t.id==='cycBacking').stage,'43, 63–64');assert.equal(laborTasks(approved).find(t=>t.id==='cycFinish').stage,'28, 72–73','rounded corners are plastered, primed and painted with the walls');
  assert.deepEqual(stepFasteners(50,120,'charcoal',approved).map(f=>[f.productId,f.quantity]),[['cycAnchorScrews',32],['cycRibScrews',16],['cycAdhesive',null]]);

@@ -164,3 +164,11 @@ test('Built corner ribs and crossbars keep their pine in build progress instead 
   assert.ok(ribs>0,'built ribs are drawn solid');assert.ok(crossbars>0,'their crossbars are drawn solid');assert.ok(skins>0);scene.onAfterRender();
  }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(cyc);Object.assign(globalThis,originals);}
 });
+
+test('Survey step renders the corner with backboards hidden but tagged to their corner',()=>{
+ const d={height:120,angle:90,floor:'charcoal',seamlessCorners:true,seamlessCornerSide:'right',seamlessPerimeter:false},boards=[];
+ const root=model.cycloramaMesh(d,{stage:43,construction:true});root.traverse(o=>{if(o.isMesh&&o.name.startsWith('Added crossbar'))boards.push(o);});
+ assert.ok(boards.length>0);assert.ok(boards.every(o=>!o.visible),'backboards go in after the survey');assert.ok(boards.every(o=>o.userData.progress.corner==='corner-2'));
+ const later=model.cycloramaMesh(d,{stage:64,construction:true});let shown=0;later.traverse(o=>{if(o.isMesh&&o.name.startsWith('Added crossbar')&&o.visible)shown++;});assert.equal(shown,boards.length);
+ model.dispose(root);model.dispose(later);
+});

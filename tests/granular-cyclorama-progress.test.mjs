@@ -81,3 +81,15 @@ test('Disabled optional components leave the visible tracker but retain saved co
  assert.equal(projectStepPercent(tracked,'cyc-corner-1-ribs'),100);
  const corners=projectVisibleTracking(tracked,{...both,seamlessPerimeter:false}).stages.find(s=>s.id==='cyclorama');assert.equal(corners.steps.length,6);assert.ok(corners.steps.every(t=>!t.id.includes('perimeter')&&!t.id.includes('compound')));
 });
+
+test('Ribs recorded as built show as built even before the survey milestone is checked',()=>{
+ // Jeff's state: right corner only, rib attachment checked, survey/backing milestone and backboard count never recorded.
+ const right={...design,seamlessCorners:true,seamlessCornerSide:'right',seamlessPerimeter:false};
+ let d=projectDefaultTracking(right);d=projectSetGuideStage(d,50,true,right);
+ assert.equal(projectStepPercent(d,'cyc-corner-2-ribs'),100);assert.equal(projectStepPercent(d,'cyc-backing'),0);
+ assert.equal(projectPartStatus(part('corner-2','ribs'),d).assembled,true,'ribs follow their own step');
+ assert.equal(projectPartStatus(part('corner-2','skin'),d).assembled,false,'skin still waits for its own step');
+ assert.equal(projectPartStatus({kind:'cyclorama',stage:43,corner:'corner-2'},d).assembled,true,'backboards behind built ribs are built');
+ assert.equal(projectPartStatus({kind:'cyclorama',stage:43,corner:'corner-1'},d).assembled,false,'the other corner is untouched');
+ assert.equal(projectPartStatus({kind:'cyclorama',stage:43},d).assembled,false,'unassigned backing still follows the survey milestone');
+});

@@ -46,7 +46,7 @@ export function installConstructionView(api){
   // The fascia is spot-finished: once skimmed it is still lauan, with joint compound only at joints and corners.
   else if(part.kind==='platform'&&part.stage>=34&&(finish==='raw'||finish==='seams'||finish==='skim'&&part.stage===35)){const wood=part.stage===34?mats.platformWood:mats.ply;m.map=wood.map;m.color.set(base.userData.sheetColor??wood.color);}
   else if(finish==='raw'&&part.kind==='cyclorama'){m.color.copy(mats.ply.color);m.map=mats.ply.map;}
-  else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.ply;m.color.copy(raw.color);m.map=raw.map;}
+  else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.platformWood;/* the painted floor is pine BC plywood, not lauan */m.color.copy(raw.color);m.map=raw.map;}
   else if(finish==='seams'&&part.kind==='wallSkin'){m.color.set(0xffffff);m.map=(api.state.height===120?mats.wallSeams10:mats.wallSeams8).map;m.roughness=1;}
   else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'||part.kind==='cyclorama'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
   else if(finish==='skim'){m.map=mats.compound.map;if(part.kind==='platform')m.color.copy(mats.skim.color);else m.color.setRGB(1.4,1.4,1.4);m.roughness=1;}

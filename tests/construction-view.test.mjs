@@ -172,3 +172,16 @@ test('Survey step renders the corner with backboards hidden but tagged to their 
  const later=model.cycloramaMesh(d,{stage:64,construction:true});let shown=0;later.traverse(o=>{if(o.isMesh&&o.name.startsWith('Added crossbar')&&o.visible)shown++;});assert.equal(shown,boards.length);
  model.dispose(root);model.dispose(later);
 });
+
+test('A built but unpainted painted-floor reads as pine plywood, not the lauan skin texture',async()=>{
+ const originals={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch},nodes=[];
+ const element=()=>({hidden:false,classList:{add(){},remove(){},toggle(){}},setAttribute(){},append(o){nodes.push(o);}});
+  const built=structuredClone(data);// Jeff's state on 2026-10-17: both plywood layers down, skim and paint not started.
+ const pct={'floor-0':100,'floor-2':100,'floor-upper':100,'floor-1':0,'floor-3':0};built.stages.filter(s=>s.id==='floor'||s.id==='floor-finishing').flatMap(s=>s.steps).forEach(s=>s.percent=pct[s.id]??0);assert.equal(projectPartStatus({kind:'floor'},projectUpgradeTracking(built)).finish,'raw');
+ globalThis.document={querySelector:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,createElement:element};globalThis.window=new EventTarget();globalThis.fetch=async()=>({ok:true,json:async()=>({data:built,revision:1})});
+ const scene=new T.Scene(),floor=model.floorMesh(90,'charcoal');scene.add(floor);const api={scene,state:{mode:'pricing',floor:'charcoal',height:120,angle:90},invalidate(){}};
+ try{installConstructionView(api);await new Promise(setImmediate);window.dispatchEvent(new CustomEvent('project-tracking-changed',{detail:built}));
+  scene.onBeforeRender();let top=null;scene.traverseVisible(o=>{if(o.isMesh&&o.name==='Floor')top=o;});
+  assert.ok(top,'the floor surface is drawn');assert.equal(top.material.opacity,1,'built');assert.equal(top.material.map,model.mats.platformWood.map,'raw painted floor shows the pine plywood');assert.notEqual(top.material.map,model.mats.ply.map);scene.onAfterRender();
+ }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(floor);Object.assign(globalThis,originals);}
+});

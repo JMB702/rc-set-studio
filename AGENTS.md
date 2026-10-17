@@ -43,5 +43,8 @@ npm run quote            # Pricing guide subtotals; paste before and after into 
 - `public/pricing-config.js` is inlined into the Worker by `scripts/build.mjs`: keep it plain `export function` declarations with no imports.
 - Schema changes: edit `db/schema.ts`, run `npm run db:generate`, commit the new migration. Production builds apply pending migrations to Turso automatically; keep them additive.
 
+## Build photos
+The Explore set > Build photos gallery is filled from Jeff's Apple Photos library with `scripts/build-photos.py`. Follow `.claude/skills/build-photos/SKILL.md` (in Claude Code, the `build-photos` skill): Jeff approves every photo before it is published, and published files carry no EXIF or GPS data.
+
 ## Structured project reads
 Use `public/agent-api.txt` and `public/agent-tools.json` for agent access. Prefer the read-only `scripts/agent-project.mjs` CLI or WebMCP `read_project` over UI scraping. Always state the configuration source (active draft versus saved/shared build), preserve private finance authentication, and treat supplier observations as dated evidence.

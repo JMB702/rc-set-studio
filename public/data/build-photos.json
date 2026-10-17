@@ -1,4 +1,5 @@
 {
+ "addedThrough": "2026-10-16T22:04",
  "stages": [
   {
    "id": "first-panel",
@@ -34,6 +35,11 @@
    "id": "platform",
    "title": "The platform",
    "summary": "The raised platform framed, set in place and decked."
+  },
+  {
+   "id": "rounded-corner",
+   "title": "The rounded corner",
+   "summary": "Curved ribs cut, shaped and fixed into the right-hand corner, ready for a seamless curved wall."
   }
  ],
  "photos": [
@@ -402,6 +408,118 @@
     "2400": "2026-10-15-where-it-stands-2400.be987835.webp"
    },
    "placeholder": "data:image/webp;base64,UklGRowAAABXRUJQVlA4IIAAAABQBACdASoSABgAPu1gqE4ppSOiMBgMATAdiWMAw3APBGvuTp9OFHt/v7QAAP7RbhMqVUtKhtO4gexUk/A5sO7lG/iCUW4xbWSjUBSSW120VrLkoj6godO3PsqOUAeFS51vNtXTpRd5fXn7nEUp8A6i9lfUoYHWVk8rorU6fgAAAA=="
+  },
+  {
+   "id": "2026-10-16-marking-the-curve",
+   "stage": "rounded-corner",
+   "title": "Marking the curve",
+   "caption": "The corner's curve traced on the floor where the walls meet.",
+   "taken": "2026-10-16T15:25",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-16-marking-the-curve-480.78e3ee82.webp",
+    "960": "2026-10-16-marking-the-curve-960.9c87a384.webp",
+    "1600": "2026-10-16-marking-the-curve-1600.c32d04bd.webp",
+    "2400": "2026-10-16-marking-the-curve-2400.5e726271.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAADwAwCdASoSABgAPu1erE2ppKSiMBgMATAdiWcAzBxTCmyTxxF4x+sAAP4QN0Rdtn71+I2GR7to0vTOXLJdL1acBCiq0YYO0o8tNLoTdf/XB7AAAAA="
+  },
+  {
+   "id": "2026-10-16-cutting-the-ribs",
+   "stage": "rounded-corner",
+   "title": "Cutting the ribs",
+   "caption": "Curved ribs cut from plywood and clamped on the bench.",
+   "taken": "2026-10-16T17:25",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-16-cutting-the-ribs-480.79e424fd.webp",
+    "960": "2026-10-16-cutting-the-ribs-960.e8c5d073.webp",
+    "1600": "2026-10-16-cutting-the-ribs-1600.b374e4ea.webp",
+    "2400": "2026-10-16-cutting-the-ribs-2400.c289e4f4.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRuIAAABXRUJQVlA4INYAAADQBQCdASoSABgAPu1sq1EppaOiqAqpMB2JQBdlEB5/43r06XZj8NyphfdFH6FYESl82d7DgpAAAPawBuCqefa3qMT5yr78zOp6CEojhxVDcyUEhUPWazraXLngSAo2mY0dca298X1xpISmT/qe9ZV7CoPtBGsaXg167cz6wT47GzRTBVVYmLLjQ0PDxZlSjdqKN00QkyUJxxowgvZbG8Ss5k+JJ0ybOz0qobTvUmSWC2D1/WnM/K10WwPvSxvdgfLVICzLFaq9TPBxLS5WZVaKBywHy4AA"
+  },
+  {
+   "id": "2026-10-16-shaping-a-rib",
+   "stage": "rounded-corner",
+   "title": "Shaping a rib",
+   "caption": "Sanding each rib to the same smooth curve.",
+   "taken": "2026-10-16T18:01",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-16-shaping-a-rib-480.236317c9.webp",
+    "960": "2026-10-16-shaping-a-rib-960.92c511ec.webp",
+    "1600": "2026-10-16-shaping-a-rib-1600.3d2c8eac.webp",
+    "2400": "2026-10-16-shaping-a-rib-2400.8ba1656f.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRuQAAABXRUJQVlA4INgAAABQBgCdASoSABgAPu1urlKppiQiqAgBMB2JQBb7KbE/zwAxlkhnCKYrRqvpWqFMo0siozxmnVJ4rVk3AAD7oxojSTSZTK7e5qB3Tfg63uHGQNvd0b57kv3IBRymmkEc0pA1ldASL3KKvKZIz/BUhuzJXe0MgTIzsdDI//Sfe33bpDklS9JDqLSlpvRJ8kR20uA4aiI2jbKT/8+zqqjhmP53c/OSVW/iVlc8HVeiypYNmOPtZAO4Fc1yqX34qd9+tViOsBqXEdtepBOqcLk6XTgknqyK/8sAAAA="
+  },
+  {
+   "id": "2026-10-16-ribs-going-up",
+   "stage": "rounded-corner",
+   "title": "Ribs going up",
+   "caption": "The first ribs fixed into the corner, top down.",
+   "taken": "2026-10-16T20:01",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-16-ribs-going-up-480.76b6e9aa.webp",
+    "960": "2026-10-16-ribs-going-up-960.21a98848.webp",
+    "1600": "2026-10-16-ribs-going-up-1600.39dcfec0.webp",
+    "2400": "2026-10-16-ribs-going-up-2400.3f6eca64.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpQAAABXRUJQVlA4IIgAAAAQBQCdASoSABgAPu1mrU+ppSQiMBgIATAdiWUAuzLogcNpF8OjYoiM7QKgfvi6byeSAP7W8KPLqbm9ulS3Ahv4CVPkboeDKOWGwIFWQt+JOdWb6LLHAmgmo9FQsdL8prlHWCoIrDTwspiQVIa3rQoHI3DrdbAPekaQ6YA+MGNDDLNfpjo6rIAA"
+  },
+  {
+   "id": "2026-10-16-test-bending-the-skin",
+   "stage": "rounded-corner",
+   "title": "Test-bending the skin",
+   "caption": "A thin plywood sheet bent against the ribs to check the curve.",
+   "taken": "2026-10-16T20:31",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-16-test-bending-the-skin-480.635f704c.webp",
+    "960": "2026-10-16-test-bending-the-skin-960.74a86537.webp",
+    "1600": "2026-10-16-test-bending-the-skin-1600.8440d772.webp",
+    "2400": "2026-10-16-test-bending-the-skin-2400.0f879d10.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAAAwBQCdASoSABgAPu1gq1AppSOisBgIATAdiWMAsOwOFUmViAQgyp7sFfAZYIMinNXmAAD+1oz+M3b10fixfUHg0rsVXZ1z5ePsi5HrNk6+ANP7TRDNcvT08dcW61LKFUyWGUu/ApDX4G1b6/xYT2nW8vxWXA2au+pRxq6UC5KiYM1KwGxZr1qAAAA="
+  },
+  {
+   "id": "2026-10-16-ribs-in-place",
+   "stage": "rounded-corner",
+   "title": "Ribs in place",
+   "caption": "Every rib fixed, floor to top, ready for the curved skin.",
+   "taken": "2026-10-16T20:32",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-16-ribs-in-place-480.4fbe78aa.webp",
+    "960": "2026-10-16-ribs-in-place-960.df192f07.webp",
+    "1600": "2026-10-16-ribs-in-place-1600.6af2d73f.webp",
+    "2400": "2026-10-16-ribs-in-place-2400.b5ce7b70.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpYAAABXRUJQVlA4IIoAAAAQBQCdASoSABgAPu1qrFCppaQiqAqpMB2JZQDA3BIvRtAaD5FVhwtXKvrv+Dw8elNgAP7XkWP7FdjyYyCRzOUtjjli88M3PsXcWRTJ8x3EOHCh2FEAAX+U4hlmdPGzHdZDerFr8ezPXHGelTwRLUWIJeQWAJ5RIoVR8+aWCsYxXXevx17TUdGtIAA="
+  },
+  {
+   "id": "2026-10-16-where-it-stands",
+   "stage": "rounded-corner",
+   "title": "Where it stands",
+   "caption": "The set with the rounded corner framed: the set as of October 16.",
+   "taken": "2026-10-16T22:04",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-16-where-it-stands-480.d6df463e.webp",
+    "960": "2026-10-16-where-it-stands-960.b596600f.webp",
+    "1600": "2026-10-16-where-it-stands-1600.fa7a0f5d.webp",
+    "2400": "2026-10-16-where-it-stands-2400.2b2a12b4.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAABQBQCdASoSABgAPu1osFAppaSiqAqpMB2JYwCw/f/gHSbfzYW03N+inPxw4x7sAyCdIAAA/s7n38U+s4QeVWk9m5fNAVujXEjxyy51NSekBc0y3rX2lUFXdomrTOvQ3QmfZ30fye1yQ1yDXHa4ZLCoI+ve9aQCp1AL7VV/MSH8W/lTCppsnzzme2+WJNkLOKgxS7kNoETXYsI5CSlZwpnfsd2jcjwAAAA="
   }
  ]
 }

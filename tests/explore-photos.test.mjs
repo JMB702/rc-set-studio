@@ -40,3 +40,9 @@ test('Date spans read naturally',()=>{
  assert.equal(span('2026-10-08T16:27','2026-10-15T20:43'),'October 8–15, 2026');
  assert.equal(span('2026-09-28T09:00','2026-10-03T10:00'),'September 28 – October 3, 2026');
 });
+
+// scripts/build-photos.py offers only photos taken after addedThrough, so it must never fall behind the gallery.
+test('The addedThrough marker covers every published photo',()=>{
+ assert.match(data.addedThrough,/^\d{4}-\d\d-\d\dT\d\d:\d\d$/);
+ for(const p of data.photos)assert.ok(p.taken<=data.addedThrough,p.id+' is newer than addedThrough');
+});

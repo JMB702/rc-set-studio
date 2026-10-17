@@ -1,7 +1,10 @@
 import * as THREE from 'three';
 
+// The default three-quarter view looks across the set toward the rounded corner being built: from the left for a
+// right-hand corner (and when there is none, or both), from the right for a left-hand one.
+export function frontDirection(state={}){return [state.seamlessCorners&&state.seamlessCornerSide==='left'?.32:-.32,.23,1];}
 // Fit every corner against both viewport axes, including depth perspective.
-export function fitSetCamera(bounds,aspect,fov,direction=[.32,.23,1]){
+export function fitSetCamera(bounds,aspect,fov,direction=[-.32,.23,1]){
  const target=bounds.min.map((n,i)=>(n+bounds.max[i])/2),normalize=v=>{const n=Math.hypot(...v);return v.map(x=>x/n);},dot=(a,b)=>a.reduce((n,x,i)=>n+x*b[i],0),back=normalize(direction),right=normalize([back[2],0,-back[0]]),up=[back[1]*right[2],back[2]*right[0]-back[0]*right[2],-back[1]*right[0]],tan=Math.tan(fov*Math.PI/360),margin=.82;
  let distance=1.4;
  for(const x of [bounds.min[0],bounds.max[0]])for(const y of [bounds.min[1],bounds.max[1]])for(const z of [bounds.min[2],bounds.max[2]]){const p=[x-target[0],y-target[1],z-target[2]],depth=dot(p,back);distance=Math.max(distance,depth+Math.abs(dot(p,right))/(tan*aspect*margin),depth+Math.abs(dot(p,up))/(tan*margin));}
@@ -13,7 +16,7 @@ export function installOpeningView(api){
  function apply(position,target){api.camera.position.fromArray(position);api.orbit.target.fromArray(target);api.camera.lookAt(api.orbit.target);api.invalidate();}
  // Input in the viewer freezes the camera where it is; anything else (a tab, a control) lands the intro on its final framing.
  function stop(e){const flying=!!frame&&!finished&&!interacted;interacted=true;cancelAnimationFrame(frame);if(flying&&to&&!(e?.target instanceof Node&&viewport.contains(e.target)))apply(to.position,to.target);api.cameraAnimating=false;api.orbit.enableDamping=true;}
- function destination(){const rect=viewport.getBoundingClientRect();return fitSetCamera(bounds(),Math.max(1,rect.width)/Math.max(1,rect.height),38);}
+ function destination(){const rect=viewport.getBoundingClientRect();return fitSetCamera(bounds(),Math.max(1,rect.width)/Math.max(1,rect.height),38,frontDirection(api.state));}
  function settle(){to=destination();api.orbit.maxDistance=Math.max(22,to.distance*1.2);apply(to.position,to.target);}
  function start(){if(interacted||!['finished','pricing'].includes(api.state.mode))return;mode=api.state.mode;api.lens.set({on:false});to=destination();api.orbit.maxDistance=Math.max(22,to.distance*1.2);api.orbit.enableDamping=false;api.orbit.update();const front=fitSetCamera(bounds(),api.camera.aspect,38,[0,.12,1]);from=front.position.map((n,i)=>front.target[i]+(n-front.target[i])*.88);api.cameraAnimating=true;started=performance.now();
   const duration=matchMedia('(prefers-reduced-motion:reduce)').matches?0:1500;

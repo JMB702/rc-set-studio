@@ -148,7 +148,7 @@ export function cycloramaMesh(d,{stage=48,construction=true}={}){
    const block=(name,wall,u0,u1,z0,z1,y0,y1,st,ids)=>{const w=walls[wall],[x0,q0]=w.at(u0),[x1,q1]=w.at(u1),pg=[[x0+w.out[0]*z0,q0+w.out[1]*z0],[x1+w.out[0]*z0,q1+w.out[1]*z0],[x1+w.out[0]*z1,q1+w.out[1]*z1],[x0+w.out[0]*z1,q0+w.out[1]*z1]];const m=part(name,slab(pg,y0,y1),st);m.userData.pricingIds=ids;return m;};
    // Added crossbars lie flat against the back of the existing skin between the stiles.
    // They go in at their own guide steps (63–64), after the survey, so the survey view does not show them yet.
-   for(const [wall,label] of [[0,'back'],[1,'wing']])for(const y of plan.addedCrossbarLevels){const m=block(`Added crossbar ${label} ${s} ${y}`,wall,.75,47.25,-.106-plan.crossbarStock.thickness,-.106,y-lift-plan.crossbarStock.width/2,y-lift+plan.crossbarStock.width/2,43,['cycCrossbars']);if(stage===43)m.visible=false;}
+   for(const [wall,label] of [[0,'back'],[1,'wing']])for(const y of plan.addedCrossbarLevels){const m=block(`Added crossbar ${label} ${s} ${y}`,wall,.75,47.25,-.106-plan.crossbarStock.thickness,-.106,y-lift-plan.crossbarStock.width/2,y-lift+plan.crossbarStock.width/2,43,['cycCrossbars']).userData.progress.corner=s<0?'corner-1':'corner-2';if(stage===43)m.visible=false;}
    // Ribs are centered on their crossbars and screwed from behind; nothing is added on the wall face.
    plan.ribLevels.forEach((level,i)=>part(`Corner rib ${s} ${i+1}`,slab([[s*96,0],...seg.points],level.y-lift,level.y-lift+plan.ribThickness),44));
   }

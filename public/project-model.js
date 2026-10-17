@@ -170,11 +170,15 @@ export function projectPartStatus(part,data) {
  const wall=panel<completedPanels,attached=jackPanel>=0&&jackPanel*2+(1-(part.side??0))<(counts.jacksAttached??0)&&wall;
  if(part.kind==='cyclorama'){
   const finish=percent('cyc-finish')===100?'paint':'raw',component=projectCycloramaComponents().find(c=>c.component===part.component&&c.phase===part.phase);
-  if(component){const ids=['cyc-backing',`cyc-${component.component}-ribs`];
+  // A curve part is built once its own step is done: ribs need only their rib step, skin also its own ribs. The survey
+  // and backing milestone is planning, not support, so it must not hide ribs or skin already recorded as built.
+  if(component){const ids=[`cyc-${component.component}-ribs`];
    if(component.phase==='skin')ids.push(component.id);
    if(component.component.startsWith('compound-')){const side=component.component==='compound-1'?'left':'right',corner=component.component==='compound-1'?'corner-1':'corner-2';for(const adjacent of [corner,`perimeter-${side}`,'perimeter-back'])for(const phase of ['ribs','skin'])ids.push(`cyc-${adjacent}-${phase}`);}
    return {assembled:ids.every(id=>percent(id)===100),finish};
   }
+  // Backboards behind a corner are in place once that corner's ribs are, since the ribs are screwed into them.
+  if(part.corner&&percent(`cyc-${part.corner}-ribs`)===100)return {assembled:true,finish};
   const ids={43:'cyc-backing',44:'cyc-ribs',45:'cyc-skin',46:'cyc-perimeter',47:'cyc-junctions',48:'cyc-finish'},stage=part.stage??48;
   const dependencies=stage===43?[43]:stage===44?[43,44]:stage===45?[43,44,45]:stage===46?[43,46]:stage===47?[43,44,45,46,47]:[43,48];
   return {assembled:dependencies.every(n=>percent(ids[n])===100),finish};

@@ -94,9 +94,9 @@ test('Ribs are cut from squares, one action per step, with counts before and aft
  const all=Array.from(context.steps(120,'charcoal',cfg)),order=all.map(s=>s.stage),plan=context.ribCutPlan(context.cycloramaPlan(cfg));
  assert.deepEqual(order.filter(n=>n>=43&&n<72||n>=76&&n<=78),[43,63,64,65,66,67,68,69,70,71,50,76,52,78],'backboards, rib cutting, ribs placed, skin cut, then the lower and upper skin pieces');
  assert.ok(all.find(s=>s.stage===65).checkpoint&&all.find(s=>s.stage===71).checkpoint);
- assert.deepEqual([plan.square,plan.squaresPerSheet,plan.ribsPerSheet,plan.ribs,plan.squares,plan.sheets],[30.6875,3,6,12,6,2],'30 9/16″ ribs: three squares per sheet; 12 ribs with the doubled rib at the skin joint');
+ assert.deepEqual([plan.square,plan.squaresPerSheet,plan.ribsPerSheet,plan.ribs,plan.squares,plan.sheets],[30.6875,3,6,7,4,2],'30 9/16″ ribs: three squares per sheet; 7 ribs as built');
  const cut=Array.from(context.instructionSentences(all.find(s=>s.stage===66).description));
- assert.match(cut[0],/You need 12 ribs, including the doubled rib where the skin pieces meet, and each square gives two, so cut 6 squares 30 11\/16″ on every side \(12 ribs\)/);
+ assert.match(cut[0],/You need 7 ribs, and each square gives two, so cut 4 squares 30 11\/16″ on every side \(8 ribs, 1 spare\)/);
  const skin=all.find(s=>s.stage===76);assert.match(skin.description,/curve measures 48″ around from wall to wall, the full width of a sheet/);assert.match(skin.description,/cut 48″ × 94 7\/16″\./);assert.match(skin.description,/cut 48″ × 24″\./);assert.match(skin.description,/no rip/);
  assert.match(all.find(s=>s.stage===52).title,/lower skin/);assert.match(all.find(s=>s.stage===78).title,/upper skin/);
  assert.ok(cut.some(l=>/One 4×8 sheet holds 3 squares, 6 ribs/.test(l)));

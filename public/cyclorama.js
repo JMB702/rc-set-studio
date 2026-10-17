@@ -4,7 +4,7 @@ import {floorSurfaceHeight} from './floor-plan.js';
 // skin is one uncut-width piece with no vertical seam (Jeff's choice; tighter than the 42″ full-size cyc standard).
 // With a 24″ floor sweep it leaves a 6 9/16″ corner radius at the toe.
 export const LAUAN=[48,96];
-export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:30.5625,floorRadius:24,feather:6,clearance:2,ribSpacing:16};
+export const CYC={skinThickness:.106,ribThickness:.703,cornerRadius:30.5625,floorRadius:24,feather:6,clearance:2,ribSpacing:24};
 // Which wing corners get the rounded curve: 'both' (default), 'left' or 'right' seen from the front of the set.
 // Left is the negative-x wing (wall corner 1 in the tracker), right the positive-x wing (corner 2).
 export const CORNER_SIDES=['both','left','right'];
@@ -16,8 +16,9 @@ export function cycloramaGaps(d={}){const a=Math.max(0,Math.min(90,Number(d.angl
 
 // Wall crossbar centers above the subfloor: bottom rail, 24″ toggles, the 10′ flat seam backer at 96″, top rail.
 export function wallCrossbars(h){return h===120?[.375,24,48,72,96,119.625]:[.375,24,48,72,95.625];}
-// Added crossbars go midway between the existing ones, so a corner panel has one every 12″.
-export function infillCrossbars(h){return h===120?[12,36,60,84,108]:[12,36,60,84];}
+// As built (Oct 16): ribs sit on the existing 24″ toggles and the seam backer; the only board added between them is
+// at 108″ on 10′ walls, halving the span of the short upper skin piece. The bottom rib also gets one low board.
+export function infillCrossbars(h){return h===120?[108]:[];}
 // Added crossbars lie flat against the back of the skin, like the 10′ seam backer, so a screw from behind passes
 // only ¾″ of wood and the skin before it reaches the rib. Same stock as the toggles: 1×3 on 10′, 1×2 on 8′.
 export function addedCrossbar(h){return {width:h===120?2.5:1.5,thickness:.75};}
@@ -49,10 +50,9 @@ export function cycloramaPlan(d={}){
  // Each rounded corner shortens the back run and its own wing run by one tangent; a sharp corner keeps the full run.
  const runs={back:192-corners*tangent,left:96-(cornerSides.includes('left')?tangent:0),right:96-(cornerSides.includes('right')?tangent:0)},straightLength=runs.back+runs.left+runs.right,perimeterLength=straightLength+corners*cornerArc;
  const lift=floorSurfaceHeight(d),singleRibs=corners?cornerRibLevels(h,lift+(perimeter?r:0)):[];
- // Where two stacked skin pieces meet, the rib is doubled: two ribs face to face, centered on the joint, so each piece
- // lands on a full rib edge. Both sit on the same crossbar and take their own screws from behind.
+ // Where two stacked skin pieces meet, they share the single rib at the joint, half its thickness each (as built).
   const cornerSkin=corners?cornerSkinPlan(singleRibs.map(l=>l.y+CYC.ribThickness/2),lift+(perimeter?r:0),h,cornerArc):null,t=CYC.ribThickness;
- const ribLevels=singleRibs.flatMap(l=>cornerSkin?.seams.some(sm=>Math.abs(sm-(l.y+t/2))<1e-6)?[{...l,y:l.y+t/2-t,double:'lower'},{...l,y:l.y+t/2,double:'upper'}]:[l]),addedCrossbarLevels=ribLevels.filter(l=>l.added).map(l=>l.crossbar),crossbarPanels=corners*2,addedCrossbars=crossbarPanels*addedCrossbarLevels.length;
+ const ribLevels=singleRibs,addedCrossbarLevels=ribLevels.filter(l=>l.added).map(l=>l.crossbar),crossbarPanels=corners*2,addedCrossbars=crossbarPanels*addedCrossbarLevels.length;
  const verticalRibs=corners*ribLevels.length,floorRibs=perimeter?Object.values(runs).reduce((n,run)=>n+Math.ceil(run/16)+1,0):0,compoundRibs=perimeter&&corners?corners*(Math.ceil(cornerArc/8)+1):0,ribCount=verticalRibs+floorRibs+compoundRibs;
  const verticalArea=corners*cornerArc*cornerHeight/144,floorArea=perimeter?straightLength*r*Math.PI/2/144:0,junctionArea=perimeter&&corners?corners*a*(R*r*Math.PI/2-r*r*(Math.PI/2-1))/144:0,skinArea=verticalArea+floorArea+junctionArea;
  // Stock envelopes for ribs; wall-skin sheets are packed without rotating the grain.

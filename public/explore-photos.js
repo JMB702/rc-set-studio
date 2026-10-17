@@ -131,6 +131,8 @@ export function installExplorePhotos(api){
  const viewport=document.querySelector('.viewport'),pin=()=>{const v=getComputedStyle(viewport),pinned=v.position==='sticky'&&v.display!=='none';document.documentElement.style.setProperty('--explore-tabs-top',(pinned?Math.round(viewport.offsetHeight):0)+'px');};
  new ResizeObserver(pin).observe(viewport);window.addEventListener('resize',pin);window.addEventListener('explore-tab-changed',pin);pin();
  const baseMode=api.setMode;api.setMode=m=>{const r=baseMode(m);layout();return r;};
+ // A #photos link followed from the page itself (or typed into the address bar) opens the tab.
+ window.addEventListener('hashchange',()=>{if(!location.hash.startsWith('#photos'))return;if(api.state.mode!=='finished')api.setMode('finished');select('photos');const m=location.hash.match(/^#photos\/(.+)$/);if(m&&data){const i=flat.findIndex(p=>p.id===decodeURIComponent(m[1]));if(i>=0)open(i);}});
  if(selected==='photos'&&location.hash.startsWith('#photos')&&api.state.mode!=='finished')api.setMode('finished');
  layout();
  api.explorePhotos={select,open:i=>load().then(()=>open(i)),get tab(){return selected;}};

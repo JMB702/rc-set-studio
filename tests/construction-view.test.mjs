@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as T from '../public/vendor/three.module.js';
-import {projectDefaultTracking,projectPartStatus} from '../public/project-model.js';
+import {projectDefaultTracking,projectPartStatus,projectUpgradeTracking} from '../public/project-model.js';
 import {CYC,cycloramaPlan} from '../public/cyclorama.js';
 const url=name=>new URL('../public/'+name,import.meta.url).href;
 const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
@@ -144,4 +144,23 @@ test('Every retrofit mesh carries its exact component, and guide steps reveal ri
  assert.ok(seen.length);assert.ok(seen.every(p=>p.component==='corner-1'&&p.phase==='ribs'));
  const skin=model.cycloramaMesh(d,{stage:51});let firstSkin=0,secondSkin=0;skin.traverseVisible(o=>{if(o.userData.progress?.phase==='skin'){if(o.userData.progress.component==='corner-1')firstSkin++;if(o.userData.progress.component==='corner-2')secondSkin++;}});assert.ok(firstSkin>0);assert.equal(secondSkin,0);
  for(const root of [all,first,skin])model.dispose(root);
+});
+
+test('Built corner ribs and crossbars keep their pine in build progress instead of taking the skin texture',async()=>{
+ const originals={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch},nodes=[];
+ const element=()=>({hidden:false,classList:{add(){},remove(){},toggle(){}},setAttribute(){},append(o){nodes.push(o);}});
+ // Jeff's state on 2026-10-16: right corner ribs done, backing survey not marked, skin not started.
+ const built=projectUpgradeTracking({...structuredClone(data),design:{floorLip:true,seamlessCorners:true,seamlessCornerSide:'right',seamlessPerimeter:false,height:120,angle:90,floor:'charcoal',platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,wallColor:'#34383b',platformColor:'#34383b',floorColor:'#34383b'}});const ribStep=built.stages.flatMap(s=>s.steps).find(s=>s.id==='cyc-corner-2-ribs');assert.ok(ribStep,'the right corner has a rib step');ribStep.percent=100;
+ globalThis.document={querySelector:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,createElement:element};globalThis.window=new EventTarget();globalThis.fetch=async()=>({ok:true,json:async()=>({data:built,revision:1})});
+ const d={height:120,angle:90,seamlessCorners:true,seamlessCornerSide:'right',seamlessPerimeter:false},scene=new T.Scene(),cyc=model.cycloramaMesh(d,{construction:true});scene.add(cyc);
+ const api={scene,state:{...d,mode:'pricing',floor:'charcoal'},invalidate(){}};
+ try{installConstructionView(api);await new Promise(setImmediate);window.dispatchEvent(new CustomEvent('project-tracking-changed',{detail:built}));
+  scene.onBeforeRender();let ribs=0,crossbars=0,skins=0;
+  scene.traverseVisible(o=>{if(!o.isMesh)return;const id=o.userData.pricingIds?.[0];
+   if(id==='cycRibPly'&&o.material.opacity===1){ribs++;assert.equal(o.material.map,model.mats.wood.map,o.name+' keeps pine');}
+   if(id==='cycCrossbars'&&o.material.opacity===1){crossbars++;assert.equal(o.material.map,model.mats.wood.map,o.name+' keeps pine');}
+   if(id==='cycSkin'){skins++;assert.ok(o.material.opacity<1,'the skin is not built yet');}
+   if(['cycRibPly','cycCrossbars','cycBacking'].includes(id))assert.equal(o.userData.progress.framing,true);if(id==='cycSkin')assert.notEqual(o.userData.progress.framing,true);});
+  assert.ok(ribs>0,'built ribs are drawn solid');assert.ok(crossbars>0,'their crossbars are drawn solid');assert.ok(skins>0);scene.onAfterRender();
+ }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(cyc);Object.assign(globalThis,originals);}
 });

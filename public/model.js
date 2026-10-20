@@ -3,7 +3,7 @@ import {platformSeamSegments} from './platform-finish.js';
 import {makeWallAtlas,sheetVariation} from './wall-appearance.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
-import {footprint,platformPlan,PLATFORM,legLength,rimBottom,bottomRimTop} from './platform.js';
+import {footprint,platformPlan,PLATFORM,BEAD,legLength,rimBottom,bottomRimTop} from './platform.js';
 import {floorPlan,FLOOR,floorSection,floorSurfaceHeight} from './floor-plan.js';
 import {jackLayout} from './jack-layout.js';
 import {jackAttachment} from './jack-attachment.js';
@@ -100,7 +100,42 @@ for(let i=0;i<p.count;i++){const X=p.getX(i)/inch,Y=p.getY(i)/inch,Z=p.getZ(i)/i
  else{const al=pg.map(q=>q[1]*nx-q[0]*nz),a0=Math.min(...al),len=Math.max(...al)-a0;uv.setXY(i,(Y-y0)/48+du*room(y1-y0,48),(Z*nx-X*nz-a0)/96+dv*room(len,96));}}}
  const o=mesh(G,id,g,mat,step);if(v){const m=o.material.clone(),c=m.color;c.multiplyScalar(Math.min(1,(shade?.8:1)*(1+v.tone)));c.b*=1-Math.max(0,v.warmth)*3;c.r*=1-Math.max(0,-v.warmth)*3;m.userData.sheetColor=c.getHex();o.material=m;}return o;}
 // The finished platform reads as one plastered block in its own color.
-export function platformFloor(a,back,side,pa=a,cfg={}){const plan=platformPlan(a,back,side,pa,cfg),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan);parts.userData.progressOnly=true;parts.visible=false;root.add(parts);root.userData.area=plan.deckArea;root.userData.plan=plan;root.position.y=floorSurfaceHeight(cfg)*inch;return root;}
+export function platformFloor(a,back,side,pa=a,cfg={}){const plan=platformPlan(a,back,side,pa,cfg),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan),bead=platformBead(plan);for(const o of bead.children)o.userData.progress={kind:'platformBead',stage:79};parts.userData.progressOnly=bead.userData.progressOnly=true;parts.visible=bead.visible=false;root.add(parts,bead);root.userData.area=plan.deckArea;root.userData.plan=plan;root.position.y=floorSurfaceHeight(cfg)*inch;return root;}
+// Perforated white vinyl corner bead (Jeff's photos, Oct 20): round holes on a staggered ¼″ grid, the plywood showing
+// through them. One tile is ½″ square; platformBead() lays its UVs out in inches so the holes keep their size.
+const beadMap=new T.Texture();beadMap.colorSpace=T.SRGBColorSpace;beadMap.wrapS=beadMap.wrapT=T.RepeatWrapping;beadMap.anisotropy=4;
+if(typeof document!=='undefined'){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#f6f5f0';x.fillRect(0,0,64,64);
+ for(const [cx,cy] of [[16,16],[48,48],[48,-16],[-16,48],[80,16],[16,80]]){x.fillStyle='#a88f6a';x.beginPath();x.arc(cx,cy,8.5,0,Math.PI*2);x.fill();x.fillStyle='#8a7353';x.beginPath();x.arc(cx-1.5,cy-1.5,6,0,Math.PI*2);x.fill();}
+ beadMap.image=c;beadMap.needsUpdate=true;}
+export const beadMats={vinyl:new T.MeshStandardMaterial({map:beadMap,color:0xffffff,roughness:.5}),screw:new T.MeshStandardMaterial({color:0x1b1b1d,roughness:.35,metalness:.4})};
+// Copies (the Pricing guide merges and repaints its own) remember which bead material they started as.
+beadMats.vinyl.userData.bead='vinyl';beadMats.screw.userData.bead='screw';
+function beadUV(g,tile=.5){const p=g.attributes.position,uv=g.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,p.getX(i)/(tile*inch),(p.getY(i)+p.getZ(i))/(tile*inch));return g;}
+// The platform's corner bead, as Jeff fitted it: along each exposed top edge a top flange on the deck, a side flange on
+// the fascia and a square nose on the corner, mitered where two edges meet; then a vertical piece down each outside
+// corner, under the miter to the bottom of the fascia. Black screws about every 10″ on each flange. Built from
+// platformPlan(...).bead, so the Build guide (stage 79) and the progress view draw the same pieces.
+export function platformBead(plan,{material=beadMats.vinyl,screw=beadMats.screw}={}){
+ const G=new T.Group();G.name='Corner bead';const o=PLATFORM.skin,t=.04,f=BEAD.flange,h=PLATFORM.height,pg=plan.outline,n=pg.length;
+ const frame=i=>{const A=pg[i],B=pg[(i+1)%n],len=Math.hypot(B[0]-A[0],B[1]-A[1]),u=[(B[0]-A[0])/len,(B[1]-A[1])/len];return {A,B,len,u,w:[u[1],-u[0]]};};
+ const cx=pg.reduce((s,p)=>s+p[0],0)/n,cz=pg.reduce((s,p)=>s+p[1],0)/n,turnOut=e=>(e.A[0]-cx)*e.w[0]+(e.A[1]-cz)*e.w[1]<0?{...e,w:[-e.w[0],-e.w[1]]}:e;
+ const add=(m,name)=>{m.name=name;m.userData.step=79;m.castShadow=m.receiveShadow=true;G.add(m);return m;};
+ const piece=(name,x,y,z,sx,sy,sz,u)=>{const m=add(new T.Mesh(beadUV(new T.BoxGeometry(sx*inch,sy*inch,sz*inch)),material),name);m.position.set(x*inch,y*inch,z*inch);m.rotation.y=Math.atan2(-u[1],u[0]);};
+ // A pan head sitting on a flange face; axis is the face normal.
+ const head=(x,y,z,axis)=>{const g=new T.CylinderGeometry(.17*inch,.17*inch,.06*inch,10);if(axis[1]===0)g.rotateX(Math.PI/2);const m=add(new T.Mesh(g,screw),'Corner bead screw');m.position.set(x*inch,y*inch,z*inch);if(axis[1]===0)m.rotation.y=Math.atan2(axis[0],axis[2]);};
+ const along=(len,every)=>{const k=Math.max(1,Math.round(len/every)),out=[];for(let i=0;i<k;i++)out.push(-len/2+len*(i+.5)/k);return out;};
+ for(const r of plan.bead.runs){const e=turnOut(frame(r.edge)),a=o*Math.tan(r.miterStart*Math.PI/180),b=o*Math.tan(r.miterEnd*Math.PI/180),len=e.len+a+b,mid=(e.len+b-a)/2;
+  const at=(d,s=0)=>[e.A[0]+e.u[0]*(mid+s)+e.w[0]*d,e.A[1]+e.u[1]*(mid+s)+e.w[1]*d];
+  let [x,z]=at(o+t/2);piece(`${r.label} corner bead side flange`,x,h-f/2,z,len,f,t,e.u);
+  [x,z]=at(o-f/2);piece(`${r.label} corner bead top flange`,x,h+t/2,z,len,t,f,e.u);
+  [x,z]=at(o);piece(`${r.label} corner bead nose`,x,h,z,len,.16,.16,e.u);
+  for(const s of along(len-4,10)){[x,z]=at(o-f*.55,s);head(x,h+t+.03,z,[0,1,0]);[x,z]=at(o+t+.03,Math.min(len/2-2,s+2.5));head(x,h-f*.55,z,[e.w[0],0,e.w[1]]);}}
+ for(const r of plan.bead.runs)if(r.miterStart){const p=turnOut(frame((r.edge+n-1)%n)),q=turnOut(frame(r.edge)),V=pg[r.edge],k=o/(1+p.w[0]*q.w[0]+p.w[1]*q.w[1]),C=[V[0]+(p.w[0]+q.w[0])*k,V[1]+(p.w[1]+q.w[1])*k],len=h-f;
+  for(const [e,s] of [[q,1],[p,-1]]){const x=C[0]+e.u[0]*s*f/2+e.w[0]*t/2,z=C[1]+e.u[1]*s*f/2+e.w[1]*t/2;piece('Vertical corner bead flange',x,len/2,z,f,len,t,e.u);
+   for(const y of [len*.3,len*.8])head(C[0]+e.u[0]*s*f*.55+e.w[0]*(t+.03),y,C[1]+e.u[1]*s*f*.55+e.w[1]*(t+.03),[e.w[0],0,e.w[1]]);}
+  const m=add(new T.Mesh(new T.CylinderGeometry(.08*inch,.08*inch,len*inch,8),material),'Vertical corner bead nose');m.position.set(C[0]*inch,len/2*inch,C[1]*inch);}
+ return G;
+}
 // Every framing part, each tagged with the Build guide stage that adds it (30–37).
 export function platformParts(plan){const G=new T.Group();G.name='Platform construction';
  for(const [moduleIndex,m] of plan.modules.entries()){

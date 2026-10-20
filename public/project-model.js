@@ -54,7 +54,7 @@ export function projectSeparateFinishing(input){
  if(data.stages.find(s=>s.id==='cyclorama')?.name==='Seamless retrofit'){edit();data.stages.find(s=>s.id==='cyclorama').name='Seamless corner';}
  for(const [from,to,label,ids]of [
   ['floor','floor-finishing','Dress, prime and paint — Floor',['floor-3']],
-  ['platform','platform-finishing','Dress, prime and paint — Platform',['platform-seams','platform-skim','platform-prime','platform-paint']],
+  ['platform','platform-finishing','Dress, prime and paint — Platform',['platform-bead','platform-seams','platform-skim','platform-prime','platform-paint']],
  ]){
   if(data.stages.some(s=>s.id===to))continue;
   const original=data.stages.find(s=>s.id===from);if(!original||!original.steps.some(t=>ids.includes(t.id)))continue;
@@ -67,7 +67,16 @@ export function projectSeparateFinishing(input){
  return projectUpgradeFloorLayers(data);
 }
 // Every upgrade pass ends by bringing counted milestones in line with the counts.
-export function projectUpgradeFloorLayers(input){return projectUpgradeCyclorama(projectSyncCounts(projectUpgradeWallCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input)))));}
+export function projectUpgradeFloorLayers(input){return projectAddPlatformBead(projectUpgradeCyclorama(projectSyncCounts(projectUpgradeWallCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input))))));}
+// The platform's vinyl corner bead is its own checkbox, first in the platform finish, before the seams are patched.
+// Older records gain it unchecked; it never takes progress from the steps around it.
+export function projectAddPlatformBead(input){
+ const stage=input.stages.find(s=>s.steps.some(t=>t.id==='platform-seams'));
+ if(!stage||input.stages.some(s=>s.steps.some(t=>t.id==='platform-bead')))return input;
+ const data=structuredClone(input),target=data.stages.find(s=>s.id===stage.id);
+ target.steps.splice(target.steps.findIndex(t=>t.id==='platform-seams'),0,{id:'platform-bead',name:'Attach vinyl corner bead',percent:0,notes:[]});
+ return data;
+}
 // The jack step is "Build jacks"; its built and attached counters both sit under it. A short-lived separate
 // "Attach jacks to walls" step (walls-attach) is folded back in, keeping its notes.
 export function projectRenameJackStep(input){
@@ -225,6 +234,10 @@ export function projectPartStatus(part,data) {
  if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&(counts.ballastAttached===null?percent('walls-4')===100:jackPanel<counts.ballastAttached)};
  if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':wallFinish(panel)};
  if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':percent('floor-upper')===100&&percent('floor-1')===100?'skim':'raw'};
+ // The bead goes on as one job over the whole platform, then is buried by the seam compound and skim and takes the
+ // platform's primer and paint with everything else.
+ if(part.kind==='platformBead'){const started=id=>percent(id)>0;
+  return {assembled:started('platform-bead'),finish:started('platform-paint')?'paint':started('platform-prime')?'primer':started('platform-skim')?'skim':started('platform-seams')?'seams':'raw'};}
  if(part.kind==='platform'){
   if(part.members?.length){const states=part.members.map((module,index)=>projectPartStatus({...part,module,deckIndex:part.deckIndices?.[index]??part.deckIndex,members:null},data)),finishes=['raw','seams','skim','primer','paint'];return {assembled:states.every(s=>s.assembled),finish:finishes[Math.min(...states.map(s=>finishes.indexOf(s.finish)))]};}
   const i=part.module??0,n=part.total??1;
@@ -257,7 +270,7 @@ export function projectGuideGroups(design={}) {
  };
  if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
  if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-upper':[42],'floor-3':[26,27]});
- if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':design.floor==='charcoal'?[33,74]:[33],'platform-deck':[34],'platform-fascia':[35],'platform-seams':[79,36],'platform-skim':[36],'platform-prime':[37],'platform-paint':[75]});
+ if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':design.floor==='charcoal'?[33,74]:[33],'platform-deck':[34],'platform-fascia':[35],'platform-bead':[79],'platform-seams':[36],'platform-skim':[36],'platform-prime':[37],'platform-paint':[75]});
  const corners=design.seamlessCorners===true&&(design.angle??45)>0,perimeter=design.seamlessPerimeter===true,side=design.seamlessCornerSide??'both';
  // Corner 1 is the left wing corner, corner 2 the right; a one-corner build has no rows for the other.
  const builds=c=>!/-[12]$/.test(c.component)||side==='both'||side===(c.component.endsWith('-1')?'left':'right');

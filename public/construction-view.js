@@ -1,7 +1,7 @@
 import {applyPlatformSeamTexture,applyFasciaCompound,applyCornerSkinSeams,applyWallTangentSeams,SKIM_TINT} from './platform-finish.js';
 import {cycloramaPath,cornerBackboardFills} from './cyclorama.js';
 import * as THREE from 'three';
-import {mats,inch} from './model.js';
+import {mats,inch,beadMats} from './model.js';
 import {projectPartStatus,projectUpgradeTracking,projectStepPercent} from './project-model.js';
 
 // Temporary render materials leave guide highlights and pricing selections intact underneath.
@@ -54,12 +54,16 @@ export function installConstructionView(api){
   if(ghost){m.color.set('#858585');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.26,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
   // The fascia is spot-finished: once skimmed it is still lauan, with joint compound only at joints and corners.
   else if(part.kind==='platform'&&part.stage>=34&&(finish==='raw'||finish==='seams'||finish==='skim'&&part.stage===35)){const wood=part.stage===34?mats.platformWood:mats.ply;m.map=wood.map;m.color.set(base.userData.sheetColor??wood.color);}
+  // Seam compound and the fascia's finish coat bury the vinyl bead; it shows off-white compound until primed.
+  // Bare bead is its own white perforated vinyl and black screws, even where the Pricing guide repainted its copy.
+  else if(part.kind==='platformBead'&&finish==='raw'){const b=beadMats[base.userData.bead]??beadMats.vinyl;m.map=b.map;m.color.copy(b.color);m.roughness=b.roughness;m.metalness=b.metalness;}
+  else if(part.kind==='platformBead'&&(finish==='seams'||finish==='skim')){m.map=mats.compound.map;m.color.set(0xdcdacc);m.roughness=1;m.metalness=0;}
   else if(finish==='raw'&&part.kind==='cyclorama'){m.color.copy(mats.ply.color);m.map=mats.ply.map;}
   else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.platformWood;/* the painted floor is pine BC plywood, not lauan */m.color.copy(raw.color);m.map=raw.map;}
   // The rounded corner is plastered with the walls: bare lauan with feathered compound only at its seams.
   else if(finish==='seams'&&part.kind==='cyclorama'){m.color.set(0xf5edd6);m.map=mats.ply.map;m.side=THREE.DoubleSide;}
   else if(finish==='seams'&&part.kind==='wallSkin'){m.color.set(0xffffff);m.map=(api.state.height===120?mats.wallSeams10:mats.wallSeams8).map;m.roughness=1;}
-  else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'||part.kind==='cyclorama'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
+  else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'||part.kind==='cyclorama'?mats.charcoal.color:part.kind==='platform'||part.kind==='platformBead'?mats.platform.color:mats.floorGray.color);}
   else if(finish==='skim'){m.map=mats.compound.map;if(part.kind==='platform')m.color.copy(mats.skim.color);else m.color.setRGB(1.4,1.4,1.4);m.roughness=1;}
   else if(finish==='primer'){m.map=null;m.color.set('#e3e0d8');}
   if(oldMap!==m.map||oldTransparent!==m.transparent)m.needsUpdate=true;

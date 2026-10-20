@@ -18,7 +18,7 @@ test('Reject overlapping shifts, future times, duplicate records and removal of 
  const e={id:'a',vendor:'Lumber',amountCents:3200,date:'2026-10-09',note:'',receiptId:'receipt'};assert.throws(()=>projectValidate('finance',{...d,expenses:[e,{...e,id:'b'}]},now),/already recorded/);
 });
 test('Production starts walls, finishing, floor, platform; progress includes partial steps and survives reorder',()=>{
- const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:25,weight:25});d.stages[0].steps[0].percent=100;d.stages[1].steps=projectSetStepCount(d,'wall-finishing-1',{done:1}).stages[1].steps;assert.equal(d.stages[1].steps[0].percent,50,'one of two plaster coats');assert.deepEqual(projectProgress(d),{percent:6,done:1,total:25,weight:25});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
+ const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:26,weight:26});d.stages[0].steps[0].percent=100;d.stages[1].steps=projectSetStepCount(d,'wall-finishing-1',{done:1}).stages[1].steps;assert.equal(d.stages[1].steps[0].percent,50,'one of two plaster coats');assert.deepEqual(projectProgress(d),{percent:6,done:1,total:26,weight:26});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
 });
 test('Receipt extraction distinguishes total from subtotal, savings, tender and card numbers',()=>{
  const r=projectParseReceipt('LOCAL HARDWARE\n10/09/2026\nSUBTOTAL 100.00\nTAX 7.00\nTOTAL $107.00\nCASH 120.00\nCHANGE 13.00\nTOTAL SAVINGS 10.00');assert.equal(r.amountCents,10700);assert.equal(r.date,'2026-10-09');assert.equal(r.taxCents,700);assert.equal(r.warning,'');
@@ -209,7 +209,7 @@ test('Separating finishing preserves the exact progress, step IDs, values and no
   assert.deepEqual(projectProgress(next),expected);
   const ordered=d=>d.stages.flatMap(s=>s.steps).sort((a,b)=>a.id.localeCompare(b.id));assert.deepEqual(ordered(next),ordered(synced),'only counted milestones change, to match the counts');assert.deepEqual(old,before);
   assert.deepEqual(next.assembly,old.assembly);assert.deepEqual(next.guideChecks,old.guideChecks);assert.equal(projectUpgradeTracking(next),next);
-  assert.deepEqual(next.stages.find(s=>s.id==='platform-finishing').steps.map(s=>s.id),['platform-seams','platform-skim','platform-prime','platform-paint']);
+  assert.deepEqual(next.stages.find(s=>s.id==='platform-finishing').steps.map(s=>s.id),['platform-bead','platform-seams','platform-skim','platform-prime','platform-paint']);
   assert.equal(next.stages.find(s=>s.id==='floor-finishing').steps[0].id,'floor-3');projectValidate('tracking',next);
  }
 });

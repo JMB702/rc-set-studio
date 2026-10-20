@@ -132,7 +132,8 @@ test('Finished floor has physical layers and a 12-inch lower-plywood ledge above
 test('Platforms and floor curves meet the raised floor without lifting wall tops',async()=>{
  const {floorSurfaceHeight}=await import('../public/floor-plan.js'),I=model.inch,close=(a,b)=>assert.ok(Math.abs(a-b)<1e-5,`${a} != ${b}`);
  for(const floor of ['none','wood','charcoal']){const d={height:120,angle:90,floor,seamlessCorners:true,seamlessPerimeter:true},top=floorSurfaceHeight(d),platform=model.platformFloor(90,12,12,90,d),cyc=model.cycloramaMesh(d);platform.updateMatrixWorld(true);cyc.updateMatrixWorld(true);
-  const b=new T.Box3().setFromObject(platform);close(b.min.y,top*I);close(b.max.y,(top+10)*I);
+  // The corner bead's flanges and screw heads sit a hair proud of the deck; measure the platform itself.
+  const bead=platform.getObjectByName('Corner bead');bead.removeFromParent();const b=new T.Box3().setFromObject(platform);platform.add(bead);close(b.min.y,top*I);close(b.max.y,(top+10)*I);
   const corner=cyc.getObjectByName('Rounded wall corner -1'),skin=new T.Box3().setFromObject(corner);close(skin.max.y,120*I);assert.ok(skin.min.y>=top*I);close(cyc.position.y,top*I);model.dispose(platform);model.dispose(cyc);
  }
 });
@@ -201,4 +202,30 @@ test('With a plaster coat on, the rounded corner shows the same seam plaster as 
    const height=shader.uniforms.seamHeight.value,rows=[...shader.uniforms.fillRows.value].slice(0,shader.uniforms.fillRowCount.value);assert.ok(rows.length>=2,o.name+' has fastener rows');assert.ok(rows.every(v=>v>-2&&v<height+2));assert.match(shader.fragmentShader,/fillPatch/);}});
   assert.ok(skins>0);scene.onAfterRender();
  }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(cyc);Object.assign(globalThis,originals);}
+});
+
+test('The platform corner bead: shared geometry, ghosted until its step starts, its own vinyl, then compound and paint',async()=>{
+ const plan=model.platformFloor(90,18,18,90).userData.plan,platform=model.platformFloor(90,18,18,90),bead=platform.getObjectByName('Corner bead');
+ assert.ok(bead.userData.progressOnly,'the bead is part of the progress view only');
+ const pieces=bead.children.filter(o=>o.name!=='Corner bead screw'),screws=bead.children.filter(o=>o.name==='Corner bead screw');
+ assert.equal(pieces.length,plan.bead.runs.length*3+plan.bead.runs.filter(r=>r.miterStart).length*3,'side flange, top flange and nose per run; two flanges and a nose per vertical');
+ assert.ok(screws.length>=plan.bead.topLength/10,'a screw about every 10″ on each flange');
+ assert.ok(bead.children.every(o=>o.userData.step===79&&o.userData.progress?.kind==='platformBead'));
+ assert.ok(pieces.every(o=>o.material===model.beadMats.vinyl)&&screws.every(o=>o.material===model.beadMats.screw));
+ assert.deepEqual(JSON.stringify(model.platformBead(plan).children.map(o=>[o.name,o.position.toArray()])),JSON.stringify(bead.children.map(o=>[o.name,o.position.toArray()])),'the Build guide draws the same pieces');
+ const originals={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch},element=()=>({hidden:false,classList:{add(){},remove(){},toggle(){}},setAttribute(){},append(){}});
+ let tracking=projectUpgradeTracking({...structuredClone(data),design:{...data.design}});
+ const set=(id,p)=>{tracking=structuredClone(tracking);for(const s of tracking.stages)for(const t of s.steps)if(t.id===id)t.percent=p;window.dispatchEvent(new CustomEvent('project-tracking-changed',{detail:tracking}));};
+ globalThis.document={querySelector:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,createElement:element};globalThis.window=new EventTarget();globalThis.fetch=async()=>({ok:true,json:async()=>({data:tracking,revision:1})});
+ const scene=new T.Scene();scene.add(platform);const api={scene,state:{mode:'pricing',platformShape:'square',floor:'none'},invalidate(){}};
+ const look=()=>{scene.onBeforeRender();const flange=bead.children.find(o=>o.name.endsWith('top flange')),screw=bead.children.find(o=>o.name==='Corner bead screw'),out={visible:bead.visible,flange:flange.material,screw:screw.material};scene.onAfterRender();return out;};
+ try{installConstructionView(api);await new Promise(setImmediate);
+  set('platform-bead',0);let v=look();assert.ok(v.visible);assert.ok(v.flange.transparent&&v.flange.opacity<=.26,'ghosted at 0%');
+  set('platform-bead',100);v=look();assert.equal(v.flange.map,model.beadMats.vinyl.map,'its own perforated vinyl, not a white-out');assert.equal(v.flange.color.getHex(),0xffffff);assert.equal(v.flange.transparent,false);assert.equal(v.screw.color.getHex(),model.beadMats.screw.color.getHex());assert.equal(bead.children[0].material,model.beadMats.vinyl,'restored after the frame');
+  // The Pricing guide merges the bead and repaints its copy in the finished platform color; bare bead must still read as vinyl.
+  const flange=bead.children.find(o=>o.name.endsWith('top flange')),screw=bead.children.find(o=>o.name==='Corner bead screw'),painted=m=>{const c=m.clone();c.color.copy(model.mats.platform.color);c.map=null;return c;};
+  flange.material=painted(model.beadMats.vinyl);screw.material=painted(model.beadMats.screw);v=look();assert.equal(v.flange.map,model.beadMats.vinyl.map,'repainted copy shows bare vinyl');assert.equal(v.flange.color.getHex(),0xffffff);assert.equal(v.screw.color.getHex(),model.beadMats.screw.color.getHex(),'and black screws');
+  set('platform-seams',100);v=look();assert.equal(v.flange.map,model.mats.compound.map,'buried by joint compound');assert.equal(v.flange.color.getHex(),0xdcdacc,'off-white compound, not blown-out white');
+  set('platform-paint',100);v=look();assert.equal(v.flange.map,null);assert.equal(v.flange.color.getHex(),model.mats.platform.color.getHex(),'painted with the platform');
+ }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(platform);Object.assign(globalThis,originals);}
 });

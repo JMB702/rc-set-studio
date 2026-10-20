@@ -2,7 +2,7 @@ import {floorSurfaceHeight} from './floor-plan.js';
 import {installCanvasTap,pricingIsolationAllowed,pricingPartOpaque} from './pricing-interaction.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
-import {panel,floorMesh,platformParts,cycloramaMesh,dispose,inch,mats,splitSkinFaces} from './model.js';
+import {panel,floorMesh,platformParts,platformBead,cycloramaMesh,dispose,inch,mats,splitSkinFaces} from './model.js';
 import {platformPlan} from './platform.js';
 import {cycloramaGaps} from './cyclorama.js';
 import {money,priceRows,summary,pricingBudget,materialTax} from './pricing-calc.js';
@@ -41,10 +41,12 @@ function pricedPanel(height,appearance=0){const root=panel(height,{appearance}),
  for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(g=>g.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.support=bin.support;m.userData.progress=bin.progress;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0]||'Panel part';root.add(m);}
  return root;
 }
-// The platform's framing, deck and fascia, merged per material and tagged with the rows they price.
+// The platform's framing, deck, fascia and corner bead, merged per material and tagged with the rows they price.
 function pricedPlatform(plan){const root=new T.Group(),parts=platformParts(plan),bins=new Map();
- const finish=['platformTape','platformCompound','platformPrimer','platformPaint'],tag=name=>/deck/.test(name)?['platformDeck','platformDeckScrews','platformDeckSkim','platformDeckPrimer','platformPaint']:/fascia/.test(name)?['platformSkin','platformStaples','platformGlue','platformBead',...finish]:['platformLumber','platformFrameScrews'];
- for(const o of [...parts.children]){const ids=tag(o.name),key=ids[0]+JSON.stringify(o.userData.progress),bin=bins.get(key)||{ids,material:o.material,progress:o.userData.progress,deckId:o.userData.deckId,geometries:[]};bin.geometries.push(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone());bins.set(key,bin);o.geometry.dispose();}
+ for(const o of [...platformBead(plan).children]){o.userData.progress={kind:'platformBead',stage:79};parts.add(o);}
+ const finish=['platformTape','platformCompound','platformPrimer','platformPaint'],tag=name=>/bead/i.test(name)?['platformBead',...finish]:/deck/.test(name)?['platformDeck','platformDeckScrews','platformDeckSkim','platformDeckPrimer','platformPaint']:/fascia/.test(name)?['platformSkin','platformStaples','platformGlue',...finish]:['platformLumber','platformFrameScrews'];
+ // The bead's vinyl and its screws merge separately so each keeps its own material.
+ for(const o of [...parts.children]){o.updateMatrix();o.geometry.applyMatrix4(o.matrix);const ids=tag(o.name),key=ids[0]+(ids[0]==='platformBead'?o.material.uuid:'')+JSON.stringify(o.userData.progress),bin=bins.get(key)||{ids,material:o.material,progress:o.userData.progress,deckId:o.userData.deckId,geometries:[]};bin.geometries.push(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone());bins.set(key,bin);o.geometry.dispose();}
  for(const bin of bins.values()){const g=mergeGeometries(bin.geometries,false);bin.geometries.forEach(x=>x.dispose());if(!g)continue;const m=new T.Mesh(g,bin.material.clone());m.userData.pricingIds=bin.ids;m.userData.baseColor=m.material.color.clone();m.userData.baseMap=m.material.map;m.name=bin.ids[0];m.userData.progress=bin.progress;m.userData.deckId=bin.deckId;m.castShadow=m.receiveShadow=true;root.add(m);}
  return root;}
 export function installPricing(api){

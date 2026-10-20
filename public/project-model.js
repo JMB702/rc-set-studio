@@ -202,11 +202,11 @@ export function projectPartStatus(part,data) {
  const wall=panel<completedPanels,attached=jackPanel>=0&&jackPanel*2+(1-(part.side??0))<(counts.jacksAttached??0)&&wall;
  // Plaster shows once any coat (or sanding round) is done. Counted steps are passes over the whole surface; an older
  // uncounted record still spreads its percentage across the panels.
- const row=id=>data?.stages?.flatMap(s=>s.steps).find(t=>t.id===id),started=(id,index)=>{const r=row(id);return r?.count?r.count.done>0:index===undefined?percent(id)>0:unit(id,index,8);};
+ const row=id=>data?.stages?.flatMap(s=>s.steps).find(t=>t.id===id),started=(id,index)=>row(id)?.count||index===undefined?percent(id)>0:unit(id,index,8);
  const wallFinish=index=>percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':started('wall-finishing-1',index)||started('wall-finishing-2',index)?'seams':'raw';
  if(part.kind==='cyclorama'){
   // Rounded corners alone are finished with the walls; only a floor-cove perimeter has its own finish step.
-  const finish=data?.design?.seamlessPerimeter===true?(percent('cyc-finish')===100?'paint':'raw'):wallFinish(),component=projectCycloramaComponents().find(c=>c.component===part.component&&c.phase===part.phase);
+  const finish=percent('cyc-finish')===100?'paint':data?.design?.seamlessPerimeter===true?'raw':wallFinish(),component=projectCycloramaComponents().find(c=>c.component===part.component&&c.phase===part.phase);
   // A curve part is built once its own step is done: ribs need only their rib step, skin also its own ribs. The survey
   // and backing milestone is planning, not support, so it must not hide ribs or skin already recorded as built.
   if(component){const ids=[`cyc-${component.component}-ribs`];

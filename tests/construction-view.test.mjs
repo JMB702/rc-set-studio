@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import * as T from '../public/vendor/three.module.js';
-import {projectDefaultTracking,projectPartStatus,projectUpgradeTracking} from '../public/project-model.js';
+import {projectDefaultTracking,projectPartStatus,projectUpgradeTracking,projectSetStepCount} from '../public/project-model.js';
 import {CYC,cycloramaPlan} from '../public/cyclorama.js';
 const url=name=>new URL('../public/'+name,import.meta.url).href;
 const moduleURL=source=>'data:text/javascript;base64,'+Buffer.from(source).toString('base64');
@@ -184,4 +184,18 @@ test('A built but unpainted painted-floor reads as pine plywood, not the lauan s
   scene.onBeforeRender();let top=null;scene.traverseVisible(o=>{if(o.isMesh&&o.name==='Floor')top=o;});
   assert.ok(top,'the floor surface is drawn');assert.equal(top.material.opacity,1,'built');assert.equal(top.material.map,model.mats.platformWood.map,'raw painted floor shows the pine plywood');assert.notEqual(top.material.map,model.mats.ply.map);scene.onAfterRender();
  }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(floor);Object.assign(globalThis,originals);}
+});
+
+test('With a plaster coat on, the rounded corner shows the same seam plaster as the walls',async()=>{
+ const originals={document:globalThis.document,window:globalThis.window,fetch:globalThis.fetch},nodes=[];
+ const element=()=>({hidden:false,classList:{add(){},remove(){},toggle(){}},setAttribute(){},append(o){nodes.push(o);}});
+ const d={floorLip:true,seamlessCorners:true,seamlessCornerSide:'right',seamlessPerimeter:false,height:120,angle:90,floor:'charcoal',platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,wallColor:'#34383b',platformColor:'#34383b',floorColor:'#34383b'};
+ let built=projectUpgradeTracking({...structuredClone(data),design:d});for(const s of built.stages.flatMap(s=>s.steps))if(['cyc-corner-2-ribs','cyc-corner-2-skin'].includes(s.id))s.percent=100;
+ built=projectSetStepCount(built,'wall-finishing-1',{done:1});
+ globalThis.document={querySelector:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,createElement:element};globalThis.window=new EventTarget();globalThis.fetch=async()=>({ok:true,json:async()=>({data:built,revision:1})});
+ const scene=new T.Scene(),cyc=model.cycloramaMesh(d,{construction:true});scene.add(cyc);const api={scene,state:{...d,mode:'pricing'},invalidate(){}};
+ try{installConstructionView(api);await new Promise(setImmediate);window.dispatchEvent(new CustomEvent('project-tracking-changed',{detail:built}));
+  scene.onBeforeRender();let skins=0;scene.traverseVisible(o=>{if(o.isMesh&&o.name.startsWith('Rounded wall corner')){skins++;assert.equal(o.material.opacity,1,o.name+' is built');assert.equal(o.material.map,model.mats.ply.map,'bare lauan');assert.equal(o.material.customProgramCacheKey?.(),'corner-skin-seams-v1','with plaster at its seams');}});
+  assert.ok(skins>0);scene.onAfterRender();
+ }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(cyc);Object.assign(globalThis,originals);}
 });

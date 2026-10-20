@@ -1,6 +1,6 @@
-import {applyPlatformSeamTexture,applyFasciaCompound,SKIM_TINT} from './platform-finish.js';
+import {applyPlatformSeamTexture,applyFasciaCompound,applyCornerSkinSeams,SKIM_TINT} from './platform-finish.js';
 import * as THREE from 'three';
-import {mats} from './model.js';
+import {mats,inch} from './model.js';
 import {projectPartStatus,projectUpgradeTracking} from './project-model.js';
 
 // Temporary render materials leave guide highlights and pricing selections intact underneath.
@@ -38,15 +38,22 @@ export function installConstructionView(api){
  window.addEventListener('project-tracking-changed',e=>{generation++;revision=-1;accept(e.detail);});
  window.addEventListener('studio-view-changed',()=>{toggle.hidden=api.state.mode==='cameras'||api.state.mode==='finished';switcher.hidden=api.state.mode!=='finished';status.hidden=api.state.mode==='cameras';});
  const baseMode=api.setMode;api.setMode=m=>{const changed=m!==api.state.mode,result=baseMode(m);pinBuildDesign();applyLighting();sync();if(changed)announceView();return result;};document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>api.setMode(b.dataset.mode));
+ // Same seam layout the Build guide's plaster step draws on each stacked corner skin piece: both edges where the curve
+ // meets the flat walls, plus the row joint measured from this piece's own bottom edge.
+ function plasterCornerSkin(m,mesh){let plan=null;for(let p=mesh;p&&!plan;p=p.parent)plan=p.userData.plan??null;if(!plan?.cornerArc)return;
+  const box=new THREE.Box3().setFromBufferAttribute(mesh.geometry.attributes.position),height=(box.max.y-box.min.y)/inch,bottom=box.min.y/inch+plan.floorBase;
+  applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:[0,1],vJoints:(plan.cornerSkin?.seams||[]).map(s=>s-bottom).filter(v=>v>-.5&&v<height+.5)});}
  function inheritedPanel(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
  // Framing (ribs, added crossbars, backing) keeps its own wood whatever finish the surface it carries has reached.
- function finishMaterial(base,part,result){const ghost=!result.assembled,finish=part.rawOnly||part.framing?'base':result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish)+((finish==='seams'||finish==='skim'&&part.kind==='platform'&&part.stage===35)&&!ghost?':'+JSON.stringify(part.seamEdges||[]):'');if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();if(!ghost&&(finish==='seams'||finish==='skim'&&part.stage===35)&&part.kind==='platform')part.stage===35?applyFasciaCompound(m,part):applyPlatformSeamTexture(m,part,mats.compound.map,SKIM_TINT);materials.set(key,m);}
+ function finishMaterial(base,part,result,mesh){const ghost=!result.assembled,finish=part.rawOnly||part.framing?'base':result.finish||'base',key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish)+((finish==='seams'||finish==='skim'&&part.kind==='platform'&&part.stage===35)&&!ghost?':'+JSON.stringify(part.seamEdges||[]):'');if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();if(!ghost&&(finish==='seams'||finish==='skim'&&part.stage===35)&&part.kind==='platform')part.stage===35?applyFasciaCompound(m,part):applyPlatformSeamTexture(m,part,mats.compound.map,SKIM_TINT);if(!ghost&&finish==='seams'&&part.kind==='cyclorama'&&mesh)plasterCornerSkin(m,mesh);materials.set(key,m);}
   const oldMap=m.map,oldTransparent=m.transparent;m.copy(base);
   if(ghost){m.color.set('#858585');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.26,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
   // The fascia is spot-finished: once skimmed it is still lauan, with joint compound only at joints and corners.
   else if(part.kind==='platform'&&part.stage>=34&&(finish==='raw'||finish==='seams'||finish==='skim'&&part.stage===35)){const wood=part.stage===34?mats.platformWood:mats.ply;m.map=wood.map;m.color.set(base.userData.sheetColor??wood.color);}
   else if(finish==='raw'&&part.kind==='cyclorama'){m.color.copy(mats.ply.color);m.map=mats.ply.map;}
   else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.platformWood;/* the painted floor is pine BC plywood, not lauan */m.color.copy(raw.color);m.map=raw.map;}
+  // The rounded corner is plastered with the walls: bare lauan with feathered compound only at its seams.
+  else if(finish==='seams'&&part.kind==='cyclorama'){m.color.set(0xf5edd6);m.map=mats.ply.map;m.side=THREE.DoubleSide;}
   else if(finish==='seams'&&part.kind==='wallSkin'){m.color.set(0xffffff);m.map=(api.state.height===120?mats.wallSeams10:mats.wallSeams8).map;m.roughness=1;}
   else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'||part.kind==='cyclorama'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
   else if(finish==='skim'){m.map=mats.compound.map;if(part.kind==='platform')m.color.copy(mats.skim.color);else m.color.setRGB(1.4,1.4,1.4);m.roughness=1;}
@@ -62,7 +69,7 @@ export function installConstructionView(api){
    if(!part&&o.name==='Floor')part={kind:'floor'};
    if(!part)return;part={...part,panel:part.panel??inheritedPanel(o)};
    const preview=o.userData.wallFinishPreview&&api.state.mode==='pricing',result=preview?{assembled:true,finish:o.userData.wallFinishPreview}:projectPartStatus(part,tracking),base=o.material;if(o.userData.guideMaterial&&result.assembled)return;
-   restored.push([o,'material',base],[o,'castShadow',o.castShadow],[o,'receiveShadow',o.receiveShadow]);o.material=finishMaterial(base,part,result);if(!result.assembled)o.castShadow=o.receiveShadow=false;
+   restored.push([o,'material',base],[o,'castShadow',o.castShadow],[o,'receiveShadow',o.receiveShadow]);o.material=finishMaterial(base,part,result,o);if(!result.assembled)o.castShadow=o.receiveShadow=false;
   });
  };
  api.scene.onAfterRender=function(...args){for(let i=restored.length-1;i>=0;i--){const [o,key,value]=restored[i];o[key]=value;}restored=[];originalAfter?.apply(this,args);};

@@ -12,6 +12,6 @@ test('Filler follows real joints, feathers out, and leaves the sheet interiors a
 test('Saved wall progress distinguishes raw, filled, primed and painted; backs remain raw',()=>{
  const d=projectDefaultTracking();d.assembly={panelsCompleted:8};const steps=d.stages.find(s=>s.id==='wall-finishing').steps;
  const result=(panel=0,front=true)=>projectPartStatus({kind:'wallSkin',panel,front},d);
- assert.equal(result().finish,'raw');steps.find(s=>s.id==='wall-finishing-1').percent=50;assert.equal(result(0).finish,'seams');assert.equal(result(3).finish,'seams');assert.equal(result(4).finish,'raw');assert.equal(result(0,false).finish,'raw');
+ assert.equal(result().finish,'raw');steps.find(s=>s.id==='wall-finishing-1').percent=50;assert.equal(result(0).finish,'seams');assert.equal(result(3).finish,'seams');assert.equal(result(4).finish,'seams','a plaster coat covers every panel');assert.equal(result(0,false).finish,'raw');
  steps.find(s=>s.id==='wall-finishing-1').percent=100;assert.equal(result(7).finish,'seams');steps.find(s=>s.id==='wall-finishing-3').percent=100;assert.equal(result().finish,'primer');steps.find(s=>s.id==='wall-finishing-4').percent=100;assert.equal(result().finish,'paint');assert.equal(result(0,false).finish,'raw');
 });

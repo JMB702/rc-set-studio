@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
-import {projectStampProgress,projectSyncCounts,projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectSetAssemblyCounts,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
+import {projectSetStepCount,projectStampProgress,projectSyncCounts,projectDefaultFinance,projectDefaultTracking,projectUpgradeTracking,projectAssembly,projectPartStatus,projectUpgradePlatform,projectGuideStagePercent,projectGuideStageDone,projectSetGuideStage,projectSetAssemblyCounts,projectReconcileGuideChecks,projectValidate,projectShiftCost,projectTotals,projectProgress,projectParseReceipt} from '../public/project-model.js';
 const H=3600000,now=Date.now(),shift={id:'shift',personId:'person-1',start:now-1.5*H,end:null,rateCents:2500,note:''};
 test('Live cost changes only at complete hourly boundaries; clock-out includes the exact partial hour',()=>{
  assert.deepEqual(projectShiftCost(shift,now-0.6*H),{hours:0,cents:0});assert.deepEqual(projectShiftCost(shift,now),{hours:1,cents:2500});assert.deepEqual(projectShiftCost(shift,now+0.5*H),{hours:2,cents:5000});assert.deepEqual(projectShiftCost({...shift,end:now},now),{hours:1.5,cents:3750});
@@ -18,7 +18,7 @@ test('Reject overlapping shifts, future times, duplicate records and removal of 
  const e={id:'a',vendor:'Lumber',amountCents:3200,date:'2026-10-09',note:'',receiptId:'receipt'};assert.throws(()=>projectValidate('finance',{...d,expenses:[e,{...e,id:'b'}]},now),/already recorded/);
 });
 test('Production starts walls, finishing, floor, platform; progress includes partial steps and survives reorder',()=>{
- const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:26,weight:26});d.stages[0].steps[0].percent=100;d.stages[1].steps[0].percent=50;assert.deepEqual(projectProgress(d),{percent:6,done:1,total:26,weight:26});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
+ const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:25,weight:25});d.stages[0].steps[0].percent=100;d.stages[1].steps=projectSetStepCount(d,'wall-finishing-1',{done:1}).stages[1].steps;assert.equal(d.stages[1].steps[0].percent,50,'one of two plaster coats');assert.deepEqual(projectProgress(d),{percent:6,done:1,total:25,weight:25});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
 });
 test('Receipt extraction distinguishes total from subtotal, savings, tender and card numbers',()=>{
  const r=projectParseReceipt('LOCAL HARDWARE\n10/09/2026\nSUBTOTAL 100.00\nTAX 7.00\nTOTAL $107.00\nCASH 120.00\nCHANGE 13.00\nTOTAL SAVINGS 10.00');assert.equal(r.amountCents,10700);assert.equal(r.date,'2026-10-09');assert.equal(r.taxCents,700);assert.equal(r.warning,'');
@@ -73,13 +73,15 @@ test('Promoting wall finishing preserves custom order, progress and notes and is
  const walls=data.stages.find(s=>s.id==='walls');walls.steps=walls.steps.filter(t=>t.id!=='walls-4');walls.steps[0].percent=100;
  const note={id:'note',text:'Use the approved color.',at:Date.now()};walls.steps.push({id:'walls-6',name:'Dress, prime and paint',percent:40,notes:[note]});
  data.stages.reverse();const updated=projectUpgradeTracking(data),finish=updated.stages.find(s=>s.id==='wall-finishing');
- assert.deepEqual(updated.stages.map(s=>s.id),['platform-finishing','platform','floor-finishing','floor','walls','wall-finishing']);assert.deepEqual(finish.notes,[note]);assert.equal(finish.steps.length,5);assert.ok(finish.steps.every(t=>t.percent===40));
+ assert.deepEqual(updated.stages.map(s=>s.id),['platform-finishing','platform','floor-finishing','floor','walls','wall-finishing']);assert.deepEqual(finish.notes,[note]);assert.equal(finish.steps.length,4);
+ // Plaster coats and sanding rounds are whole passes: 40% of two passes rounds to one (50%).
+ assert.deepEqual(finish.steps.map(t=>t.percent),[50,50,40,40]);
  assert.deepEqual(updated.stages.find(s=>s.id==='walls').steps,walls.steps.slice(0,-1));assert.equal(projectUpgradeTracking(updated),updated);assert.equal(data.stages.length,5);
 });
 test('Existing saved trackers upgrade once with an optimistic revision bump',async()=>{
  const r=rig(),old=projectDefaultTracking();old.stages=old.stages.filter(s=>s.id!=='wall-finishing');old.stages[0].steps.push({id:'walls-6',name:'Dress, prime and paint',percent:30,notes:[]});
  r.sqlite.prepare('INSERT INTO project_documents (id,content,revision,updated_at) VALUES (?,?,?,?)').run('tracking',JSON.stringify(old),4,Date.now());
- const result=await (await r.call('tracking')).json();assert.equal(result.revision,5);assert.equal(result.data.stages[1].name,'Dress, prime and paint — Walls');assert.ok(result.data.stages[1].steps.every(s=>s.percent===30));
+ const result=await (await r.call('tracking')).json();assert.equal(result.revision,5);assert.equal(result.data.stages[1].name,'Dress, prime and paint — Walls');assert.deepEqual(result.data.stages[1].steps.map(s=>s.percent),[50,50,30,30]);
  assert.equal((await (await r.call('tracking')).json()).revision,5);
 });
 
@@ -157,7 +159,7 @@ test('Guide completion distinguishes floor types and updates combined finishing 
  const next=projectSetGuideStage(base,24,true,wood);assert.equal(next.stages.find(s=>s.id==='floor').steps.find(s=>s.id==='floor-1').percent,100);assert.equal(projectGuideStageDone(next,24,paint),false);
  const primed=projectSetGuideStage(base,37,true,paint),pct=(d,id)=>d.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent;assert.deepEqual([pct(primed,'platform-prime'),pct(primed,'platform-paint')],[100,0]);
  const finished=projectSetGuideStage(primed,75,true,paint);assert.equal(pct(finished,'platform-paint'),100);
- const plastered=projectSetGuideStage(base,28,true,paint),rows=d=>d.stages.find(s=>s.id==='wall-finishing').steps;assert.deepEqual(rows(plastered).map(s=>s.percent),[100,100,100,0,0],'plaster completes dressing, filling and sanding only');
+ const plastered=projectSetGuideStage(base,28,true,paint),rows=d=>d.stages.find(s=>s.id==='wall-finishing').steps;assert.deepEqual(rows(plastered).map(s=>s.percent),[100,100,0,0],'plaster completes plastering and sanding only');
  const walls=projectSetGuideStage(projectSetGuideStage(plastered,72,true,paint),73,true,paint);assert.ok(rows(walls).every(s=>s.percent===100),'prime and paint complete their own milestones');
 });
 test('Older open tabs cannot erase assembly counts or guide completion when saving tracker edits',async()=>{

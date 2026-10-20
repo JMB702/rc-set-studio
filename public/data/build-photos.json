@@ -1,5 +1,5 @@
 {
- "addedThrough": "2026-10-16T22:04",
+ "addedThrough": "2026-10-19T18:35",
  "stages": [
   {
    "id": "first-panel",
@@ -40,6 +40,11 @@
    "id": "rounded-corner",
    "title": "The rounded corner",
    "summary": "Curved ribs cut, shaped and fixed into the right-hand corner, ready for a seamless curved wall."
+  },
+  {
+   "id": "plaster",
+   "title": "First coat of plaster",
+   "summary": "Seams, screw heads and nail heads filled across the walls and the rounded corner."
   }
  ],
  "photos": [
@@ -520,6 +525,86 @@
     "2400": "2026-10-16-where-it-stands-2400.2b2a12b4.webp"
    },
    "placeholder": "data:image/webp;base64,UklGRrQAAABXRUJQVlA4IKgAAABQBQCdASoSABgAPu1osFAppaSiqAqpMB2JYwCw/f/gHSbfzYW03N+inPxw4x7sAyCdIAAA/s7n38U+s4QeVWk9m5fNAVujXEjxyy51NSekBc0y3rX2lUFXdomrTOvQ3QmfZ30fye1yQ1yDXHa4ZLCoI+ve9aQCp1AL7VV/MSH8W/lTCppsnzzme2+WJNkLOKgxS7kNoETXYsI5CSlZwpnfsd2jcjwAAAA="
+  },
+  {
+   "id": "2026-10-19-skinning-the-curve",
+   "stage": "rounded-corner",
+   "title": "Skinning the curve",
+   "caption": "A thin plywood skin going on over the ribs, working down from the top.",
+   "taken": "2026-10-19T12:05",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-19-skinning-the-curve-480.56aba9db.webp",
+    "960": "2026-10-19-skinning-the-curve-960.f756f04c.webp",
+    "1600": "2026-10-19-skinning-the-curve-1600.6c62b2be.webp",
+    "2400": "2026-10-19-skinning-the-curve-2400.8654f401.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRpIAAABXRUJQVlA4IIYAAAAwBQCdASoSABgAPu1cqE2ppKOiN/VYATAdiWUAuwAR6wR/iqG5gP3Xnr12qZr6Vy+DAAD+6DqzIG8SPxDgwP9FEvtpyx1qv5ZY65y8rdNco0jsWKHUu+9VyZUU4D4Jge30Gwdo8a/LXzOEt66mx2LAP08EaryDvIoD9Onm+IhIIRzni51wAA=="
+  },
+  {
+   "id": "2026-10-19-curve-skinned",
+   "stage": "rounded-corner",
+   "title": "Curve skinned",
+   "caption": "The rounded corner fully skinned, flowing from one wall into the next.",
+   "taken": "2026-10-19T12:38",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-19-curve-skinned-480.02e6c5f7.webp",
+    "960": "2026-10-19-curve-skinned-960.ed4b8f2c.webp",
+    "1600": "2026-10-19-curve-skinned-1600.01bb598f.webp",
+    "2400": "2026-10-19-curve-skinned-2400.d121b1f2.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAADwBACdASoSABgAPu1kqk+ppSOiMBgIATAdiWUAwcwRDQWp5bico0BazAT8yZ3koHAA/rTRDkm0vEPRkMcavvZl+SgRlQPlFw5nHilyd7h+goSytdK3eAHAdWMInBJHPYLB115E+oLvaUEAAAA="
+  },
+  {
+   "id": "2026-10-19-ready-for-plaster",
+   "stage": "rounded-corner",
+   "title": "Ready for plaster",
+   "caption": "The whole set with the rounded corner skinned, before any filler.",
+   "taken": "2026-10-19T13:57",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-19-ready-for-plaster-480.3a2e3ec0.webp",
+    "960": "2026-10-19-ready-for-plaster-960.644bc8bd.webp",
+    "1600": "2026-10-19-ready-for-plaster-1600.f58d9b96.webp",
+    "2400": "2026-10-19-ready-for-plaster-2400.30dcfa5e.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAADQBACdASoSABgAPu1qqk8ppiOiMBgIATAdiUAXYAEvRv/3O25lLRDXjGRqXdQIAAD+nsYZUmyKYmcqp9FN7WILAWXJ5aZA4lnw6YVPq9NqQAq3lvL0DElgtJ4qVgVcKRLUImwVlyLbBDYMYXwkranWRnTos0VSr6gWFO6KLeO0IAo2HMLUybTeZaxmXdiDPWqcsrVRX9X4GAAA"
+  },
+  {
+   "id": "2026-10-19-filling-the-corner",
+   "stage": "plaster",
+   "title": "Filling the corner",
+   "caption": "Seams and fastener heads filled across the rounded corner.",
+   "taken": "2026-10-19T17:47",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-19-filling-the-corner-480.8194a3f1.webp",
+    "960": "2026-10-19-filling-the-corner-960.bc411820.webp",
+    "1600": "2026-10-19-filling-the-corner-1600.3d27580c.webp",
+    "2400": "2026-10-19-filling-the-corner-2400.13c3a049.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRooAAABXRUJQVlA4IH4AAAAQBQCdASoSABgAPu1ip04ppaMiMBgMATAdiWUAzuwR8HvAkM7kFGUdge5rR4jURtlIAP40fVLIlyNvLSbE6GqLJkQnNwAI1zd7uttC0sq8LQYqQPZBdmKC94aULKK0dv6G8Efk+0r9dAUA2RGdx265XNC/UEJ2PcFR/zwAAAA="
+  },
+  {
+   "id": "2026-10-19-where-it-stands",
+   "stage": "plaster",
+   "title": "Where it stands",
+   "caption": "First coat on the walls and the rounded corner: the set as of October 19.",
+   "taken": "2026-10-19T17:47",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-19-where-it-stands-480.9e649f81.webp",
+    "960": "2026-10-19-where-it-stands-960.a187ccd3.webp",
+    "1600": "2026-10-19-where-it-stands-1600.da5731f3.webp",
+    "2400": "2026-10-19-where-it-stands-2400.ff0a24cf.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAABQBQCdASoSABgAPu1ip04ppSMiMBgMATAdiWMAygAL1WntctlcGcOLe5Z0p2iAmx+JgwAA/qJjhSnmuhukNSxaZsmAyLwyMN5O8vFA83ziZK6EbkZ6d1ya4OxFPFytQ7x9WxQSX+s3CF70IMZE4ygFgxpsYewvJXdgSmIIRmEuQ8dH1KVJUXpKtoVrXBdI1ZAXT6QAAAA="
   }
  ]
 }

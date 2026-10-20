@@ -132,7 +132,7 @@ test('Finished floor has physical layers and a 12-inch lower-plywood ledge above
 test('Platforms and floor curves meet the raised floor without lifting wall tops',async()=>{
  const {floorSurfaceHeight}=await import('../public/floor-plan.js'),I=model.inch,close=(a,b)=>assert.ok(Math.abs(a-b)<1e-5,`${a} != ${b}`);
  for(const floor of ['none','wood','charcoal']){const d={height:120,angle:90,floor,seamlessCorners:true,seamlessPerimeter:true},top=floorSurfaceHeight(d),platform=model.platformFloor(90,12,12,90,d),cyc=model.cycloramaMesh(d);platform.updateMatrixWorld(true);cyc.updateMatrixWorld(true);
-  const b=new T.Box3().setFromObject(platform);close(b.min.y,top*I);close(b.max.y,(top+10)*I);
+  const bead=platform.getObjectByName('Corner bead'),beadBox=new T.Box3().setFromObject(bead);bead.removeFromParent();const b=new T.Box3().setFromObject(platform);close(b.min.y,top*I);close(b.max.y,(top+10)*I);assert.ok(beadBox.max.y<=(top+10.1)*I&&beadBox.min.y>=top*I,'vinyl bead sits on the platform edge, a hair proud of the deck');
   const corner=cyc.getObjectByName('Rounded wall corner -1'),skin=new T.Box3().setFromObject(corner);close(skin.max.y,120*I);assert.ok(skin.min.y>=top*I);close(cyc.position.y,top*I);model.dispose(platform);model.dispose(cyc);
  }
 });

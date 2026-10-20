@@ -3,7 +3,7 @@ import {platformSeamSegments} from './platform-finish.js';
 import {makeWallAtlas,sheetVariation} from './wall-appearance.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
-import {footprint,platformPlan,PLATFORM,legLength,rimBottom,bottomRimTop} from './platform.js';
+import {footprint,platformPlan,PLATFORM,BEAD,legLength,rimBottom,bottomRimTop} from './platform.js';
 import {floorPlan,FLOOR,floorSection,floorSurfaceHeight} from './floor-plan.js';
 import {jackLayout} from './jack-layout.js';
 import {jackAttachment} from './jack-attachment.js';
@@ -100,7 +100,34 @@ for(let i=0;i<p.count;i++){const X=p.getX(i)/inch,Y=p.getY(i)/inch,Z=p.getZ(i)/i
  else{const al=pg.map(q=>q[1]*nx-q[0]*nz),a0=Math.min(...al),len=Math.max(...al)-a0;uv.setXY(i,(Y-y0)/48+du*room(y1-y0,48),(Z*nx-X*nz-a0)/96+dv*room(len,96));}}}
  const o=mesh(G,id,g,mat,step);if(v){const m=o.material.clone(),c=m.color;c.multiplyScalar(Math.min(1,(shade?.8:1)*(1+v.tone)));c.b*=1-Math.max(0,v.warmth)*3;c.r*=1-Math.max(0,-v.warmth)*3;m.userData.sheetColor=c.getHex();o.material=m;}return o;}
 // The finished platform reads as one plastered block in its own color.
-export function platformFloor(a,back,side,pa=a,cfg={}){const plan=platformPlan(a,back,side,pa,cfg),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan);parts.userData.progressOnly=true;parts.visible=false;root.add(parts);root.userData.area=plan.deckArea;root.userData.plan=plan;root.position.y=floorSurfaceHeight(cfg)*inch;return root;}
+export function platformFloor(a,back,side,pa=a,cfg={}){const plan=platformPlan(a,back,side,pa,cfg),root=new T.Group(),m=mats.platform.clone();m.userData.surface='platform';const block=new T.Mesh(slab(plan.outline,0,PLATFORM.height),m);block.name='Platform';block.userData.commentKey='platform';block.castShadow=block.receiveShadow=true;block.userData.completeOnly=true;root.add(block);const parts=platformParts(plan);parts.userData.progressOnly=true;parts.visible=false;root.add(parts);const bead=cornerBeadPieces(plan,new T.MeshStandardMaterial({color:0xf4f3ee,roughness:.55}),m=>{m.userData.progress={kind:'platformBead'};});bead.userData.progressOnly=true;bead.visible=false;root.add(bead);root.userData.area=plan.deckArea;root.userData.plan=plan;root.position.y=floorSurfaceHeight(cfg)*inch;return root;}
+// Staggered round holes like the ClarkDietrich vinyl bead: the plywood shows through them a shade darker.
+let perforation=null;
+function beadPerforation(){if(perforation||typeof document==='undefined')return perforation;const c=document.createElement('canvas'),g=c.getContext?.('2d');if(!g)return null;c.width=c.height=64;g.fillStyle='#fff';g.fillRect(0,0,64,64);g.fillStyle='#b9b2a3';
+ for(let r=0;r<3;r++)for(let k=0;k<4;k++){const x=(k+(r%2?.5:0))*16+8,y=r*21+11;g.beginPath();g.arc(x%64,y,3.4,0,Math.PI*2);g.fill();}
+ perforation=new T.CanvasTexture(c);perforation.wrapS=perforation.wrapT=T.RepeatWrapping;perforation.colorSpace=T.SRGBColorSpace;perforation.anisotropy=8;return perforation;}
+function beadMaterial(mat,[u,v]){const map=beadPerforation();if(!map)return mat;const m=mat.clone(),t=map.clone();t.repeat.set(u,v);t.needsUpdate=true;m.map=t;return m;}
+// White perforated vinyl corner bead, as installed Oct 20: along each exposed top edge, a top flange on the deck,
+// a side flange on the fascia and a square nose on the corner, mitered 45° where two edges meet; then a vertical
+// piece down each outside corner, butted up under the miter. Shared by the Build guide and the progress view.
+export function cornerBeadPieces(plan,mat,onPiece=()=>{}){
+ const G=new T.Group();G.name='Corner bead';const o=PLATFORM.skin,t=.04,f=BEAD.flange,h=PLATFORM.height,pg=plan.outline,n=pg.length;
+ const frame=i=>{const A=pg[i],B=pg[(i+1)%n],len=Math.hypot(B[0]-A[0],B[1]-A[1]),u=[(B[0]-A[0])/len,(B[1]-A[1])/len];return {A,B,len,u,w:[u[1],-u[0]]};};
+ const cx=pg.reduce((s,p)=>s+p[0],0)/n,cz=pg.reduce((s,p)=>s+p[1],0)/n,turnOut=e=>(e.A[0]-cx)*e.w[0]+(e.A[1]-cz)*e.w[1]<0?{...e,w:[-e.w[0],-e.w[1]]}:e;
+ const add=m=>{m.castShadow=m.receiveShadow=true;onPiece(m);G.add(m);};
+ // Flanges are perforated: tile the hole pattern by the inch across each flange's two broad dimensions.
+ const piece=(name,x,y,z,sx,sy,sz,u)=>{const thin=Math.min(sx,sy,sz),broad=thin===sz?[sx,sy]:thin===sy?[sx,sz]:[sz,sy],face=Math.max(sx,sy,sz)>1&&thin<.1&&Math.min(...broad)>.5?beadMaterial(mat,broad):mat;
+  const m=new T.Mesh(new T.BoxGeometry(sx*inch,sy*inch,sz*inch),face);m.position.set(x*inch,y*inch,z*inch);m.rotation.y=Math.atan2(-u[1],u[0]);m.name=name;add(m);};
+ for(const r of plan.bead.runs){const e=turnOut(frame(r.edge)),a=o*Math.tan(r.miterStart*Math.PI/180),b=o*Math.tan(r.miterEnd*Math.PI/180),len=e.len+a+b,mid=(e.len+b-a)/2;
+  const at=d=>[e.A[0]+e.u[0]*mid+e.w[0]*d,e.A[1]+e.u[1]*mid+e.w[1]*d];
+  let [x,z]=at(o+t/2);piece(`${r.label} corner bead side flange`,x,h-f/2,z,len,f,t,e.u);
+  [x,z]=at(o-f/2);piece(`${r.label} corner bead top flange`,x,h+t/2,z,len,t,f,e.u);
+  [x,z]=at(o);piece(`${r.label} corner bead nose`,x,h,z,len,.16,.16,e.u);}
+ for(const r of plan.bead.runs)if(r.miterStart){const p=turnOut(frame((r.edge+n-1)%n)),q=turnOut(frame(r.edge)),V=pg[r.edge],k=o/(1+p.w[0]*q.w[0]+p.w[1]*q.w[1]),C=[V[0]+(p.w[0]+q.w[0])*k,V[1]+(p.w[1]+q.w[1])*k],len=h-f;
+  for(const [e,s] of [[q,1],[p,-1]]){const x=C[0]+e.u[0]*s*f/2+e.w[0]*t/2,z=C[1]+e.u[1]*s*f/2+e.w[1]*t/2;piece('Vertical corner bead flange',x,len/2,z,f,len,t,e.u);}
+  const m=new T.Mesh(new T.CylinderGeometry(.08*inch,.08*inch,len*inch,8),mat);m.position.set(C[0]*inch,len/2*inch,C[1]*inch);m.name='Vertical corner bead nose';add(m);}
+ return G;
+}
 // Every framing part, each tagged with the Build guide stage that adds it (30–37).
 export function platformParts(plan){const G=new T.Group();G.name='Platform construction';
  for(const [moduleIndex,m] of plan.modules.entries()){

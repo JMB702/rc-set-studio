@@ -2,7 +2,7 @@ export function instructionSentences(description){return (description.match(/.+?
 import {applyPlatformSeamTexture,applyFasciaCompound,applyCornerSkinSeams,applyWallTangentSeams} from './platform-finish.js';
 import * as T from 'three';
 import {stepFasteners} from './step-fasteners.js';
-import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,cycloramaMesh,slab,dispose,grain,footprint} from './model.js';
+import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,cornerBeadPieces,cycloramaMesh,slab,dispose,grain,footprint} from './model.js';
 import {cycloramaPlan,cycloramaGaps,cycloramaCornerSides,ribCutPlan,RIB_SHEET,cycloramaPath,cutLength,LAUAN,cornerBackboardFills} from './cyclorama.js';
 import {migrateGuideStage,migrateFinishStage} from './workspace-state.js';
 import {floorPlan,FLOOR,floorSection,floorSurfaceHeight} from './floor-plan.js';
@@ -379,21 +379,8 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
  // White vinyl corner bead: along each exposed top edge, a top flange on the deck, a side flange on the fascia and a
  // small nose on the corner, mitered where two edges meet; then a vertical piece down each outside corner.
  function cornerBead(plan,current){
-  const G=new T.Group();G.name='Corner bead';const o=PLATFORM.skin,t=.04,f=BEAD.flange,h=PLATFORM.height,pg=plan.outline,n=pg.length;
   const mat=new T.MeshStandardMaterial({color:current?0xe4f2d2:0xf4f3ee,roughness:.55});
-  const frame=i=>{const A=pg[i],B=pg[(i+1)%n],len=Math.hypot(B[0]-A[0],B[1]-A[1]),u=[(B[0]-A[0])/len,(B[1]-A[1])/len];return {A,B,len,u,w:[u[1],-u[0]]};};
-  const cx=pg.reduce((s,p)=>s+p[0],0)/n,cz=pg.reduce((s,p)=>s+p[1],0)/n,turnOut=e=>(e.A[0]-cx)*e.w[0]+(e.A[1]-cz)*e.w[1]<0?{...e,w:[-e.w[0],-e.w[1]]}:e;
-  const piece=(name,x,y,z,sx,sy,sz,u)=>{const m=new T.Mesh(new T.BoxGeometry(sx*inch,sy*inch,sz*inch),mat);m.position.set(x*inch,y*inch,z*inch);m.rotation.y=Math.atan2(-u[1],u[0]);
-   m.name=name;m.userData.step=79;m.userData.guideMaterial=true;m.castShadow=m.receiveShadow=true;if(current)outlinePiece(m);G.add(m);};
-  for(const r of plan.bead.runs){const e=turnOut(frame(r.edge)),a=o*Math.tan(r.miterStart*Math.PI/180),b=o*Math.tan(r.miterEnd*Math.PI/180),len=e.len+a+b,mid=(e.len+b-a)/2;
-   const at=d=>[e.A[0]+e.u[0]*mid+e.w[0]*d,e.A[1]+e.u[1]*mid+e.w[1]*d];
-   let [x,z]=at(o+t/2);piece(`${r.label} corner bead side flange`,x,h-f/2,z,len,f,t,e.u);
-   [x,z]=at(o-f/2);piece(`${r.label} corner bead top flange`,x,h+t/2,z,len,t,f,e.u);
-   [x,z]=at(o);piece(`${r.label} corner bead nose`,x,h,z,len,.16,.16,e.u);}
-  for(const r of plan.bead.runs)if(r.miterStart){const p=turnOut(frame((r.edge+n-1)%n)),q=turnOut(frame(r.edge)),V=pg[r.edge],k=o/(1+p.w[0]*q.w[0]+p.w[1]*q.w[1]),C=[V[0]+(p.w[0]+q.w[0])*k,V[1]+(p.w[1]+q.w[1])*k],len=h-f;
-   for(const [e,s] of [[q,1],[p,-1]]){const x=C[0]+e.u[0]*s*f/2+e.w[0]*t/2,z=C[1]+e.u[1]*s*f/2+e.w[1]*t/2;piece('Vertical corner bead flange',x,len/2,z,f,len,t,e.u);}
-   const m=new T.Mesh(new T.CylinderGeometry(.08*inch,.08*inch,len*inch,8),mat);m.position.set(C[0]*inch,len/2*inch,C[1]*inch);m.name='Vertical corner bead nose';m.userData.step=79;m.userData.guideMaterial=true;if(current)outlinePiece(m);G.add(m);}
-  return G;
+  return cornerBeadPieces(plan,mat,m=>{m.userData.step=79;m.userData.guideMaterial=true;if(current)outlinePiece(m);});
  }
  function platformAt(state,bead=false,current=false){
   const plan=platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle,S),G=new T.Group();G.position.y=floorSurfaceHeight(S)*inch;

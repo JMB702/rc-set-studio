@@ -3,7 +3,7 @@ import {applyPlatformSeamTexture,applyFasciaCompound,applyCornerSkinSeams,applyW
 import * as T from 'three';
 import {stepFasteners} from './step-fasteners.js';
 import {inch,design,panel,mats,box,finishedSet,floorMesh,platformFloor,platformParts,cycloramaMesh,slab,dispose,grain,footprint} from './model.js';
-import {cycloramaPlan,cycloramaGaps,cycloramaCornerSides,ribCutPlan,RIB_SHEET,cycloramaPath,cutLength,LAUAN} from './cyclorama.js';
+import {cycloramaPlan,cycloramaGaps,cycloramaCornerSides,ribCutPlan,RIB_SHEET,cycloramaPath,cutLength,LAUAN,cornerBackboardFills} from './cyclorama.js';
 import {migrateGuideStage,migrateFinishStage} from './workspace-state.js';
 import {floorPlan,FLOOR,floorSection,floorSurfaceHeight} from './floor-plan.js';
 import {floorArea} from './pricing-calc.js';
@@ -424,7 +424,7 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
   // overlapping at the corners and stopping short of the walls.
   if(painted&&S.platformShape!=='none'&&[79,36,37,75].includes(stage))model.add(dropCloths(platformPlan(S.angle,S.platformBack,S.platformSide,S.platformAngle,S).outline));
   // Where a rounded corner meets a flat wall, its edge plaster feathers onto the wall panel too.
-  const tangents=stage===28?cycloramaPath(S).filter(seg=>seg.kind==='corner').flatMap(seg=>[seg.points[0],seg.points.at(-1)]):[],wallSeams=tangents.length?applyWallTangentSeams((S.height===120?mats.wallSeams10:mats.wallSeams8).clone(),tangents):null;
+  const tangents=stage===28?cycloramaPath(S).filter(seg=>seg.kind==='corner').flatMap(seg=>[seg.points[0],seg.points.at(-1)]):[],wallSeams=tangents.length?applyWallTangentSeams((S.height===120?mats.wallSeams10:mats.wallSeams8).clone(),tangents,cornerBackboardFills(S)):null;
   if(stage===28)g.traverse(o=>{if(o.isMesh&&o.userData.paintedSide==='front'){o.material=wallSeams||(S.height===120?mats.wallSeams10:mats.wallSeams8);o.userData.guideMaterial=true;}});
   // The walls are bare lauan until the wall finish begins, including while the seamless corner goes in.
   if(fin<0)g.traverse(o=>{if(o.isMesh&&o.material===mats.charcoal)o.material=o.userData.paintedSide==='front'?mats.wallRaw:mats.ply;});
@@ -462,7 +462,7 @@ function cutUI(kind='panel'){if(kind==='platform'){if(S.platformShape!=='none'){
     if(corner){m.color.set(0xf5edd6);const plan=cyc.userData.plan,box=new T.Box3().setFromBufferAttribute(o.geometry.attributes.position),height=(box.max.y-box.min.y)/inch;// Each stacked skin piece is its own mesh: plaster its share of the row joint, measured from its own bottom edge, so
     // the band feathers across both sides of the joint.
     const bottom=box.min.y/inch+plan.floorBase,vJoints=(plan.cornerSkin?.seams||[]).map(sm=>sm-bottom).filter(v=>v>-.5&&v<height+.5);
-    applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:[0,1],vJoints});}
+    applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:[0,1],vJoints,fastenerRows:plan.ribLevels.map(l=>l.y+plan.ribThickness/2-bottom).filter(v=>v>-2&&v<height+2)});}
     o.material.dispose();o.material=m;}
    if(fin<0&&stage>=43&&(o.userData.guideStage??o.userData.step)===stage&&stage!==48||(stage===63||stage===64)&&o.name.startsWith('Added crossbar'))outlinePiece(o);}});}
   bounds=visibleBounds(model);

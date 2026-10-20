@@ -1,5 +1,5 @@
 import {applyPlatformSeamTexture,applyFasciaCompound,applyCornerSkinSeams,applyWallTangentSeams,SKIM_TINT} from './platform-finish.js';
-import {cycloramaPath} from './cyclorama.js';
+import {cycloramaPath,cornerBackboardFills} from './cyclorama.js';
 import * as THREE from 'three';
 import {mats,inch} from './model.js';
 import {projectPartStatus,projectUpgradeTracking,projectStepPercent} from './project-model.js';
@@ -43,13 +43,13 @@ export function installConstructionView(api){
  // meets the flat walls, plus the row joint measured from this piece's own bottom edge.
  function plasterCornerSkin(m,mesh){let plan=null;for(let p=mesh;p&&!plan;p=p.parent)plan=p.userData.plan??null;if(!plan?.cornerArc)return;
   const box=new THREE.Box3().setFromBufferAttribute(mesh.geometry.attributes.position),height=(box.max.y-box.min.y)/inch,bottom=box.min.y/inch+plan.floorBase;
-  applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:[0,1],vJoints:(plan.cornerSkin?.seams||[]).map(s=>s-bottom).filter(v=>v>-.5&&v<height+.5)});}
+  applyCornerSkinSeams(m,{arc:plan.cornerArc,height,uJoints:[0,1],vJoints:(plan.cornerSkin?.seams||[]).map(s=>s-bottom).filter(v=>v>-.5&&v<height+.5),fastenerRows:(plan.ribLevels||[]).map(l=>l.y+plan.ribThickness/2-bottom).filter(v=>v>-2&&v<height+2)});}
  // Where a skinned rounded corner meets a flat wall, its edge plaster feathers onto the wall panel, as in the Build guide.
  function cornerTangents(){if(!api.state.seamlessCorners||api.state.seamlessPerimeter)return [];
   return cycloramaPath(api.state).filter(seg=>seg.kind==='corner'&&projectStepPercent(tracking,`cyc-corner-${seg.side<0?1:2}-skin`)===100).flatMap(seg=>[seg.points[0],seg.points.at(-1)]);}
  function inheritedPanel(o){for(let p=o;p;p=p.parent)if(p.userData.progressPanel!==undefined)return p.userData.progressPanel;return 0;}
  // Framing (ribs, added crossbars, backing) keeps its own wood whatever finish the surface it carries has reached.
- function finishMaterial(base,part,result,mesh){const ghost=!result.assembled,finish=part.rawOnly||part.framing?'base':result.finish||'base',tangents=!ghost&&finish==='seams'&&part.kind==='wallSkin'?cornerTangents():[],key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish)+(tangents.length?':'+JSON.stringify(tangents):'')+((finish==='seams'||finish==='skim'&&part.kind==='platform'&&part.stage===35)&&!ghost?':'+JSON.stringify(part.seamEdges||[]):'');if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();if(!ghost&&(finish==='seams'||finish==='skim'&&part.stage===35)&&part.kind==='platform')part.stage===35?applyFasciaCompound(m,part):applyPlatformSeamTexture(m,part,mats.compound.map,SKIM_TINT);if(!ghost&&finish==='seams'&&part.kind==='cyclorama'&&mesh)plasterCornerSkin(m,mesh);if(tangents.length)applyWallTangentSeams(m,tangents);materials.set(key,m);}
+ function finishMaterial(base,part,result,mesh){const ghost=!result.assembled,finish=part.rawOnly||part.framing?'base':result.finish||'base',tangents=!ghost&&finish==='seams'&&part.kind==='wallSkin'?cornerTangents():[],key=base.uuid+':'+part.kind+':'+(ghost?'ghost':finish)+(tangents.length?':'+JSON.stringify([tangents,cornerBackboardFills(api.state)]):'')+((finish==='seams'||finish==='skim'&&part.kind==='platform'&&part.stage===35)&&!ghost?':'+JSON.stringify(part.seamEdges||[]):'');if(!watched.has(base)){watched.add(base);base.addEventListener('dispose',()=>{for(const [k,m]of materials)if(k.startsWith(base.uuid+':')){m.dispose();materials.delete(k);}});}let m=materials.get(key);if(!m){m=base.clone();if(!ghost&&(finish==='seams'||finish==='skim'&&part.stage===35)&&part.kind==='platform')part.stage===35?applyFasciaCompound(m,part):applyPlatformSeamTexture(m,part,mats.compound.map,SKIM_TINT);if(!ghost&&finish==='seams'&&part.kind==='cyclorama'&&mesh)plasterCornerSkin(m,mesh);if(tangents.length)applyWallTangentSeams(m,tangents,cornerBackboardFills(api.state));materials.set(key,m);}
   const oldMap=m.map,oldTransparent=m.transparent;m.copy(base);
   if(ghost){m.color.set('#858585');m.map=null;m.vertexColors=false;m.emissive?.set(0);m.opacity=Math.min(.26,base.opacity);m.transparent=true;m.depthWrite=false;m.side=THREE.DoubleSide;}
   // The fascia is spot-finished: once skimmed it is still lauan, with joint compound only at joints and corners.

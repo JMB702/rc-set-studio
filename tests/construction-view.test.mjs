@@ -195,7 +195,10 @@ test('With a plaster coat on, the rounded corner shows the same seam plaster as 
  globalThis.document={querySelector:()=>element(),querySelectorAll:()=>[],addEventListener(){},hidden:false,createElement:element};globalThis.window=new EventTarget();globalThis.fetch=async()=>({ok:true,json:async()=>({data:built,revision:1})});
  const scene=new T.Scene(),cyc=model.cycloramaMesh(d,{construction:true});scene.add(cyc);const api={scene,state:{...d,mode:'pricing'},invalidate(){}};
  try{installConstructionView(api);await new Promise(setImmediate);window.dispatchEvent(new CustomEvent('project-tracking-changed',{detail:built}));
-  scene.onBeforeRender();let skins=0;scene.traverseVisible(o=>{if(o.isMesh&&o.name.startsWith('Rounded wall corner')){skins++;assert.equal(o.material.opacity,1,o.name+' is built');assert.equal(o.material.map,model.mats.ply.map,'bare lauan');assert.equal(o.material.customProgramCacheKey?.(),'corner-skin-seams-v1','with plaster at its seams');}});
+  scene.onBeforeRender();let skins=0;scene.traverseVisible(o=>{if(o.isMesh&&o.name.startsWith('Rounded wall corner')){skins++;assert.equal(o.material.opacity,1,o.name+' is built');assert.equal(o.material.map,model.mats.ply.map,'bare lauan');assert.equal(o.material.customProgramCacheKey?.(),'corner-skin-seams-v2','with plaster at its seams');
+   // ...and a dab of fill on every rib screw row that crosses this piece.
+   const shader={uniforms:{},vertexShader:'#include <common>\n#include <begin_vertex>',fragmentShader:'#include <common>\n#include <map_fragment>'};o.material.onBeforeCompile(shader);
+   const height=shader.uniforms.seamHeight.value,rows=[...shader.uniforms.fillRows.value].slice(0,shader.uniforms.fillRowCount.value);assert.ok(rows.length>=2,o.name+' has fastener rows');assert.ok(rows.every(v=>v>-2&&v<height+2));assert.match(shader.fragmentShader,/fillPatch/);}});
   assert.ok(skins>0);scene.onAfterRender();
  }finally{window.dispatchEvent(new Event('pagehide'));model.dispose(cyc);Object.assign(globalThis,originals);}
 });

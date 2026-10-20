@@ -58,9 +58,11 @@ export function installConstructionView(api){
   else if(finish==='raw'&&(part.kind==='wallSkin'||part.kind==='floor'&&api.state.floor==='charcoal')){const raw=part.kind==='wallSkin'?mats.wallRaw:mats.platformWood;/* the painted floor is pine BC plywood, not lauan */m.color.copy(raw.color);m.map=raw.map;}
   // The rounded corner is plastered with the walls: bare lauan with feathered compound only at its seams.
   else if(finish==='seams'&&part.kind==='cyclorama'){m.color.set(0xf5edd6);m.map=mats.ply.map;m.side=THREE.DoubleSide;}
+  // Mudded corner bead: the vinyl disappears under joint compound feathered over both flanges.
+  else if(finish==='seams'&&part.kind==='platformBead'){m.map=mats.compound.map;m.color.set(0xf2efe6);m.roughness=1;}
   else if(finish==='seams'&&part.kind==='wallSkin'){m.color.set(0xffffff);m.map=(api.state.height===120?mats.wallSeams10:mats.wallSeams8).map;m.roughness=1;}
-  else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'||part.kind==='cyclorama'?mats.charcoal.color:part.kind==='platform'?mats.platform.color:mats.floorGray.color);}
-  else if(finish==='skim'){m.map=mats.compound.map;if(part.kind==='platform')m.color.copy(mats.skim.color);else m.color.setRGB(1.4,1.4,1.4);m.roughness=1;}
+  else if(finish==='paint'&&!(part.kind==='floor'&&api.state.floor==='wood')){m.map=null;m.color.copy(part.kind==='wallSkin'||part.kind==='cyclorama'?mats.charcoal.color:part.kind==='platform'||part.kind==='platformBead'?mats.platform.color:mats.floorGray.color);}
+  else if(finish==='skim'){m.map=mats.compound.map;if(part.kind==='platform'||part.kind==='platformBead')m.color.copy(mats.skim.color);else m.color.setRGB(1.4,1.4,1.4);m.roughness=1;}
   else if(finish==='primer'){m.map=null;m.color.set('#e3e0d8');}
   if(oldMap!==m.map||oldTransparent!==m.transparent)m.needsUpdate=true;
   return m;

@@ -6,6 +6,36 @@ export function projectDefaultTracking(design) {
  const groups=[['walls','Walls',['Cut and label parts','Assemble the frames','Skin the panels','Build and attach jacks','Add shelves and ballast','Join walls and set angles','Dress, prime and paint']],['floor','Floor',['Mark the footprint','Prepare the base','Lay the flooring','Finish and trim']],['platform','Platform',['Cut and frame modules','Fit legs and join modules','Install decks and fascia','Skim, prime and paint']]];
  return projectUpgradeTracking({...(design?{design}:{}),stages:groups.map(([id,name,steps])=>({id,name,notes:[],steps:steps.map((name,i)=>({id:`${id}-${i}`,name,percent:0,notes:[]}))}))});
 }
+// Steps measured in repeated passes rather than a single check: plaster coats and sanding rounds. The step stores
+// {done, planned}; its percentage is always done / planned, so every percent-based reader keeps working.
+export const PROJECT_COUNTED_STEPS={'wall-finishing-1':{unit:'coat',units:'coats',planned:2,max:6},'wall-finishing-2':{unit:'round',units:'rounds',planned:2,max:6}};
+export function projectCountPercent(count){return Math.round(count.done/count.planned*100);}
+// Wall finishing: "Dress seams and corners" and "Fill and feather joints" are one job, plastering joints, corners and
+// fasteners, counted in coats; sanding is counted in rounds. Merge without losing notes or completion dates.
+export function projectUpgradeWallCounts(input){
+ const stage=input.stages.find(s=>s.id==='wall-finishing'),rows=stage?.steps||[];
+ const dress=rows.find(t=>t.id==='wall-finishing-0'),plaster=rows.find(t=>t.id==='wall-finishing-1');
+ const stale=rows.some(t=>PROJECT_COUNTED_STEPS[t.id]&&(!t.count||t.id==='wall-finishing-1'&&['Fill and feather joints','Dress seams and corners'].includes(t.name)));
+ if(!stage||!dress&&!stale)return input;
+ const data=structuredClone(input),target=data.stages.find(s=>s.id==='wall-finishing');
+ if(dress&&plaster){const merged=target.steps.find(t=>t.id==='wall-finishing-1'),old=target.steps.find(t=>t.id==='wall-finishing-0');
+  merged.notes=[...old.notes,...merged.notes.filter(n=>!old.notes.some(o=>o.id===n.id))];
+  if(merged.percent!==100&&old.percent===100&&Object.hasOwn(old,'completedAt'))merged.completedAt=old.completedAt;
+  target.steps=target.steps.filter(t=>t.id!=='wall-finishing-0');}
+ else if(dress)dress.id='wall-finishing-1';
+ for(const t of target.steps){const spec=PROJECT_COUNTED_STEPS[t.id];if(!spec)continue;
+  if(t.id==='wall-finishing-1'&&['Fill and feather joints','Dress seams and corners'].includes(t.name))t.name='Apply plaster to joints, corners and fasteners';
+  if(!t.count){const planned=spec.planned;t.count={done:Math.round(t.percent/100*planned),planned};t.percent=projectCountPercent(t.count);}}
+ return data;
+}
+// Set a counted step's passes. planned may grow or shrink but never below what is done (or 1).
+export function projectSetStepCount(input,stepId,{done,planned}){
+ const spec=PROJECT_COUNTED_STEPS[stepId];if(!spec)throw Error('This step is not counted.');
+ const data=structuredClone(input),row=data.stages.flatMap(s=>s.steps).find(t=>t.id===stepId);if(!row)throw Error('Refresh the project and try again.');
+ const count={...(row.count||{done:0,planned:spec.planned})};if(planned!==undefined)count.planned=planned;if(done!==undefined)count.done=done;
+ count.done=Math.max(0,Math.min(spec.max,count.done));count.planned=Math.min(spec.max,Math.max(1,count.done,count.planned));
+ row.count=count;row.percent=projectCountPercent(count);return data;
+}
 // Promote the original wall finishing milestone without resetting customized stages or notes.
 export function projectUpgradeTracking(input) {
  const wall=input.stages.find(s=>s.id==='walls'),legacy=wall?.steps.find(t=>t.id==='walls-6'&&t.name==='Dress, prime and paint');
@@ -37,7 +67,7 @@ export function projectSeparateFinishing(input){
  return projectUpgradeFloorLayers(data);
 }
 // Every upgrade pass ends by bringing counted milestones in line with the counts.
-export function projectUpgradeFloorLayers(input){return projectUpgradeCyclorama(projectSyncCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input))));}
+export function projectUpgradeFloorLayers(input){return projectUpgradeCyclorama(projectSyncCounts(projectUpgradeWallCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input)))));}
 // The jack step is "Build jacks"; its built and attached counters both sit under it. A short-lived separate
 // "Attach jacks to walls" step (walls-attach) is folded back in, keeping its notes.
 export function projectRenameJackStep(input){
@@ -95,8 +125,10 @@ export function projectValidate(kind,input,now=Date.now()) {
  if(kind==='tracking') {
   if(!list(input.stages,30)||!input.stages.length||!unique(input.stages))fail('Keep 1–30 production stages.');
   for(const s of input.stages){if(!id(s.id)||!str(s.name)||!s.name.trim()||!notes(s.notes)||!list(s.steps,100)||!s.steps.length||!unique(s.steps))fail('Invalid stage or notes.');for(const t of s.steps)if(!id(t.id)||!str(t.name)||!t.name.trim()||!Number.isInteger(t.percent)||t.percent<0||t.percent>100||!notes(t.notes)||(t.completedAt!=null&&(!Number.isSafeInteger(t.completedAt)||t.completedAt<0||t.completedAt>now+60000)))fail('Each step needs a name and progress from 0–100%.');}
+  // Counted steps: whole passes only. A plain checkbox (0 or 100) sets every pass; otherwise the count decides the percent.
+  for(const s of input.stages)for(const t of s.steps)if(t.count!==undefined){const spec=PROJECT_COUNTED_STEPS[t.id],c=t.count;if(!spec||!c||typeof c!=='object'||!Number.isInteger(c.planned)||c.planned<1||c.planned>spec.max||!Number.isInteger(c.done)||c.done<0||c.done>c.planned)fail('Check the coat and sanding counts.');}
   if(input.progressLog!==undefined&&(!list(input.progressLog,5000)||!input.progressLog.every(e=>e&&Number.isSafeInteger(e.at)&&e.at>=0&&e.at<=now+60000&&id(e.step)&&[e.from,e.to].every(v=>Number.isInteger(v)&&v>=0&&v<=100))))fail('Invalid progress history.');
-  return {design:input.design==null?null:projectBuildDesign(input.design),floorAssemblyVersion:input.floorAssemblyVersion===1?1:0,assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),progressLog:(input.progressLog||[]).map(e=>({at:e.at,step:e.step,from:e.from,to:e.to})),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>({id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes,completedAt:t.completedAt??null}))}))};
+  return {design:input.design==null?null:projectBuildDesign(input.design),floorAssemblyVersion:input.floorAssemblyVersion===1?1:0,assembly:projectAssembly(input.assembly),guideChecks:projectGuideChecks(input.guideChecks||{}),progressLog:(input.progressLog||[]).map(e=>({at:e.at,step:e.step,from:e.from,to:e.to})),stages:input.stages.map(s=>({id:s.id,name:s.name.trim(),notes:s.notes,steps:s.steps.map(t=>{if(!t.count)return {id:t.id,name:t.name.trim(),percent:t.percent,notes:t.notes,completedAt:t.completedAt??null};const count={done:t.percent===100?t.count.planned:t.percent===0?0:t.count.done,planned:t.count.planned};return {id:t.id,name:t.name.trim(),percent:projectCountPercent(count),notes:t.notes,completedAt:t.completedAt??null,count};})}))};
  }
  if(kind!=='finance')fail('Unknown project module.');
  if(input.budgetCents!==null&&!money(input.budgetCents)||!list(input.expenses,5000)||!list(input.crew,100)||!list(input.shifts,10000))fail('Invalid project totals or too many entries.');
@@ -168,8 +200,13 @@ export function projectPartStatus(part,data) {
  // Walk from the right wing's free end, across the back, then out the left wing.
  const jackPanel=[7,6,3,2,1,0,4,5].filter(index=>index<completedPanels).indexOf(panel);
  const wall=panel<completedPanels,attached=jackPanel>=0&&jackPanel*2+(1-(part.side??0))<(counts.jacksAttached??0)&&wall;
+ // Plaster shows once any coat (or sanding round) is done. Counted steps are passes over the whole surface; an older
+ // uncounted record still spreads its percentage across the panels.
+ const row=id=>data?.stages?.flatMap(s=>s.steps).find(t=>t.id===id),started=(id,index)=>row(id)?.count||index===undefined?percent(id)>0:unit(id,index,8);
+ const wallFinish=index=>percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':started('wall-finishing-1',index)||started('wall-finishing-2',index)?'seams':'raw';
  if(part.kind==='cyclorama'){
-  const finish=percent('cyc-finish')===100?'paint':'raw',component=projectCycloramaComponents().find(c=>c.component===part.component&&c.phase===part.phase);
+  // Rounded corners alone are finished with the walls; only a floor-cove perimeter has its own finish step.
+  const finish=percent('cyc-finish')===100?'paint':data?.design?.seamlessPerimeter===true?'raw':wallFinish(),component=projectCycloramaComponents().find(c=>c.component===part.component&&c.phase===part.phase);
   // A curve part is built once its own step is done: ribs need only their rib step, skin also its own ribs. The survey
   // and backing milestone is planning, not support, so it must not hide ribs or skin already recorded as built.
   if(component){const ids=[`cyc-${component.component}-ribs`];
@@ -186,7 +223,7 @@ export function projectPartStatus(part,data) {
  if(part.kind==='panel')return {assembled:wall};
  if(part.kind==='jack')return {assembled:attached};
  if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&(counts.ballastAttached===null?percent('walls-4')===100:jackPanel<counts.ballastAttached)};
- if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':percent('wall-finishing-4')===100?'paint':percent('wall-finishing-3')===100?'primer':unit('wall-finishing-1',panel,8)||unit('wall-finishing-2',panel,8)?'seams':'raw'};
+ if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':wallFinish(panel)};
  if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':percent('floor-upper')===100&&percent('floor-1')===100?'skim':'raw'};
  if(part.kind==='platform'){
   if(part.members?.length){const states=part.members.map((module,index)=>projectPartStatus({...part,module,deckIndex:part.deckIndices?.[index]??part.deckIndex,members:null},data)),finishes=['raw','seams','skim','primer','paint'];return {assembled:states.every(s=>s.assembled),finish:finishes[Math.min(...states.map(s=>finishes.indexOf(s.finish)))]};}
@@ -216,7 +253,7 @@ export function projectGuideGroups(design={}) {
  const groups={
   'walls-0':[0],'walls-1':[1,2,3,4,5,6,7,...(tall?[8]:[]),9],'walls-2':[10,...(tall?[11]:[]),12],
   'walls-3':[13,14,15,16,17],'walls-4':[18,19,20],'walls-5':[21,22],
-  'wall-finishing-0':[28],'wall-finishing-1':[28],'wall-finishing-2':[28],'wall-finishing-3':[72],'wall-finishing-4':[73],
+  'wall-finishing-1':[28],'wall-finishing-2':[28],'wall-finishing-3':[72],'wall-finishing-4':[73],
  };
  if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
  if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-upper':[42],'floor-3':[26,27]});
@@ -228,8 +265,9 @@ export function projectGuideGroups(design={}) {
  const upperSkin=design.height===120&&!perimeter?{'corner-1':77,'corner-2':78}:{};
  for(const c of projectCycloramaComponents())if((c.option==='corners'?corners:c.option==='perimeter'?perimeter:corners&&perimeter)&&builds(c))groups[c.id]=c.phase==='skin'&&upperSkin[c.component]?[c.stage,upperSkin[c.component],c.aggregate]:[c.stage,c.aggregate];
   // Backboards, rib cutting and skin cutting are checked off in the guide but have no tracker row of their own; their counts are tallies.
-  // Rounded wall corners alone are plastered and painted with the walls, so their finish follows the wall finish step.
-  if(corners)Object.assign(groups,{'cyc-backboards':[63,64],'cyc-rib-cutting':[66,67,68,69,70],'cyc-skin-cutting':[76]});groups['cyc-finish']=perimeter?[48]:[28,72,73];}
+  // Rounded wall corners alone are plastered, sanded, primed and painted with the walls, in the wall finishing steps;
+  // only a floor-cove perimeter has its own finish step.
+  if(corners)Object.assign(groups,{'cyc-backboards':[63,64],'cyc-rib-cutting':[66,67,68,69,70],'cyc-skin-cutting':[76]});if(perimeter)groups['cyc-finish']=[48];}
  return groups;
 }
 // Stable component IDs connect physical meshes, tracker rows and guide stages. Aggregate stages remain aliases for

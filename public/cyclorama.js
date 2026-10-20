@@ -36,6 +36,10 @@ export function cornerRibLevels(h,base,t=CYC.ribThickness){
 // 2½″ SPAX; the existing on-edge rails and toggles (1×3 on 10′, 1×2 on 8′) need a longer deck screw.
 export function ribBackScrew(h,flat=false){return flat?{size:'#8 × 2½″',length:2.5,through:.75+.106}:h===120?{size:'#9 × 3½″',length:3.5,through:2.5+.106}:{size:'#9 × 3″',length:3,through:1.5+.106};}
 
+// The backboards added behind the flat panel beside each rounded corner, for the fastener fills on that panel's face:
+// rows are their center heights; reach is how far the panel runs past the curve's edge (its 48″ less the tangent).
+export function cornerBackboardFills(d={}){const p=cycloramaPlan(d);if(!p.corners)return {rows:[],reach:0};
+ const a=Math.max(0,Math.min(90,Number(d.angle??45)||0))*Math.PI/180;return {rows:p.addedCrossbarLevels,reach:Math.max(0,48-CYC.cornerRadius*Math.tan(a/2))};}
 // A cut length you can mark: the nearest 1/16″ that does not overrun the space by more than a hair (1/320″).
 export const cutLength=v=>Math.floor(v*16+.05)/16;
 export function cornerSkinPlan(ribCenters,base,top,arc,[W,L]=LAUAN){

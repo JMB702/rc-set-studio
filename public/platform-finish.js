@@ -86,25 +86,37 @@ export function applyFasciaCompound(material,part){
  material.needsUpdate=true;return material;
 }
 
+// GLSL twin of fillPatch() in wall-appearance.js: one knifed dab of compound over a fastener.
+const FILL_GLSL=`
+ float fillHash(float n){return fract(sin(n*12.9898+78.233)*43758.5453);}
+ float fillPatch(vec2 d,vec2 h,float seed){float ang=atan(d.y,d.x);vec2 q=abs(d)/h;float r=pow(q.x*q.x*q.x+q.y*q.y*q.y,1.0/3.0)*(1.0+.12*sin(ang*3.0+fillHash(seed+.9)*6.2832)+.06*sin(ang*7.0+fillHash(seed+.45)*6.2832));return (1.0-smoothstep(.82,1.0,r))*(.88+.12*fillHash(seed*3.1+.7));}
+`;
+
 // The rounded wall corner's skin at the wall finish: bare lauan like the walls, with the same feathered joint
 // compound as the wall seams (wallSeamCoverage) only at its seams: both edges where the curve meets the flat
 // walls, the vertical joints between skin sheets and the horizontal joint where the 8′ sheet meets the top piece.
-// Uses the skin grid's UVs: u runs along the developed arc, v up the height.
-export function applyCornerSkinSeams(material,{arc,height,uJoints,vJoints}){
- const u=new Float32Array(8),v=new Float32Array(4);u.set(uJoints.slice(0,8));v.set(vJoints.slice(0,4));
- material.customProgramCacheKey=()=>'corner-skin-seams-v1';
+// Uses the skin grid's UVs: u runs along the developed arc, v up the height. fastenerRows are the rib centers (inches
+// from this piece's bottom edge): the skin is screwed into each rib about every 6″ along the arc, 8 per 48″ rib, and
+// each screw head gets a dab of fill like the wall staples.
+export function cornerScrewPositions(arc){const out=[];for(let s=3;s<=arc-2;s+=6)out.push(s);return out;}
+export function applyCornerSkinSeams(material,{arc,height,uJoints,vJoints,fastenerRows=[]}){
+ const u=new Float32Array(8),v=new Float32Array(4),f=new Float32Array(8);u.set(uJoints.slice(0,8));v.set(vJoints.slice(0,4));f.set(fastenerRows.slice(0,8));
+ material.customProgramCacheKey=()=>'corner-skin-seams-v2';
  material.onBeforeCompile=shader=>{
-  Object.assign(shader.uniforms,{seamArc:{value:arc},seamHeight:{value:height},seamU:{value:u},seamUCount:{value:Math.min(8,uJoints.length)},seamV:{value:v},seamVCount:{value:Math.min(4,vJoints.length)}});
+  Object.assign(shader.uniforms,{seamArc:{value:arc},seamHeight:{value:height},seamU:{value:u},seamUCount:{value:Math.min(8,uJoints.length)},seamV:{value:v},seamVCount:{value:Math.min(4,vJoints.length)},fillRows:{value:f},fillRowCount:{value:Math.min(8,fastenerRows.length)}});
   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vSeamUv;').replace('#include <begin_vertex>','#include <begin_vertex>\nvSeamUv = uv;');
   shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
-   varying vec2 vSeamUv; uniform float seamArc,seamHeight,seamU[8],seamV[4]; uniform int seamUCount,seamVCount;
+   varying vec2 vSeamUv; uniform float seamArc,seamHeight,seamU[8],seamV[4],fillRows[8]; uniform int seamUCount,seamVCount,fillRowCount;
    float seamFeather(float d,float w){float t=clamp(1.0-d/w,0.0,1.0);return t*t*(3.0-2.0*t);}
-  `).replace('#include <map_fragment>',`#include <map_fragment>
+  `+FILL_GLSL).replace('#include <map_fragment>',`#include <map_fragment>
    float x=vSeamUv.x*seamArc,y=vSeamUv.y*seamHeight,a=0.0;
    float wave=.28*sin(y*.31)+.14*sin(y*1.13),width=4.4+.3*sin(y*.21);
    for(int i=0;i<8;i++){if(i>=seamUCount)break;a=max(a,seamFeather(abs(x-seamU[i]*seamArc+wave),width));}
    for(int i=0;i<4;i++){if(i>=seamVCount)break;a=max(a,seamFeather(abs(y-seamV[i]+.22*sin(x*.45)),4.6));}
    a*=.94+.04*sin(y*1.7+x*.31);
+   for(int i=0;i<8;i++){if(i>=fillRowCount)break;float dy=y-fillRows[i];if(abs(dy)>3.0)continue;float k0=floor((x-3.0)/6.0+.5);
+    for(int j=-1;j<=1;j++){float k=k0+float(j),seed=float(i)*13.0+k+300.0;if(k<0.0||3.0+6.0*k>seamArc-2.0||fillHash(seed)<.08)continue;
+     a=max(a,fillPatch(vec2(x-3.0-6.0*k-(fillHash(seed+.137)-.5)*.8,dy-(fillHash(seed+.274)-.5)*.5),vec2(1.1+.4*fillHash(seed+.411),1.2+.6*fillHash(seed+.685)),seed));}}
    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.863,.855,.799)*(1.0+.007*sin(x*.7+y*.31)),clamp(a,0.0,1.0));
   `);
  };
@@ -113,19 +125,25 @@ export function applyCornerSkinSeams(material,{arc,height,uJoints,vJoints}){
 
 // Plaster at the rounded corner's edges carries onto the flat wall: a band of the wall seams' joint compound
 // centered on each line where the curve meets the wall. tangents are [x, z] points in inches (world space).
-export function applyWallTangentSeams(material,tangents){
- const t=new Float32Array(8);t.set(tangents.slice(0,4).flat());
- material.customProgramCacheKey=()=>'wall-tangent-seams-v1';
+// fills (cornerBackboardFills() in cyclorama.js) are the backboards added behind the panel beside each corner: their
+// staples go through the wall face every 3″, from the band out to the panel's far stile, and each gets a dab of fill.
+export function applyWallTangentSeams(material,tangents,fills={}){
+ const t=new Float32Array(8),rows=new Float32Array(4),reach=fills.reach??0;t.set(tangents.slice(0,4).flat());rows.set((fills.rows||[]).slice(0,4));
+ material.customProgramCacheKey=()=>'wall-tangent-seams-v2';
  material.onBeforeCompile=shader=>{
-  Object.assign(shader.uniforms,{tangentPoints:{value:t},tangentCount:{value:Math.min(4,tangents.length)}});
+  Object.assign(shader.uniforms,{tangentPoints:{value:t},tangentCount:{value:Math.min(4,tangents.length)},fillRows:{value:rows},fillRowCount:{value:reach>0?Math.min(4,(fills.rows||[]).length):0},fillReach:{value:reach}});
   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vTangentWorld;').replace('#include <begin_vertex>','#include <begin_vertex>\nvTangentWorld = (modelMatrix * vec4(position, 1.0)).xyz / 0.0254;');
   shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
-   varying vec3 vTangentWorld; uniform vec2 tangentPoints[4]; uniform int tangentCount;
+   varying vec3 vTangentWorld; uniform vec2 tangentPoints[4]; uniform int tangentCount,fillRowCount; uniform float fillRows[4],fillReach;
    float tangentFeather(float d,float w){float t=clamp(1.0-d/w,0.0,1.0);return t*t*(3.0-2.0*t);}
-  `).replace('#include <map_fragment>',`#include <map_fragment>
+  `+FILL_GLSL).replace('#include <map_fragment>',`#include <map_fragment>
    float y=vTangentWorld.y,a=0.0,wave=.28*sin(y*.31)+.14*sin(y*1.13),width=4.4+.3*sin(y*.21);
    for(int i=0;i<4;i++){if(i>=tangentCount)break;a=max(a,tangentFeather(abs(length(vTangentWorld.xz-tangentPoints[i])+wave),width));}
    a*=.94+.04*sin(y*1.7+vTangentWorld.x*.31);
+   for(int i=0;i<4;i++){if(i>=tangentCount)break;float d=length(vTangentWorld.xz-tangentPoints[i]);if(d>fillReach)continue;
+    for(int r=0;r<4;r++){if(r>=fillRowCount)break;float dy=y-fillRows[r];if(abs(dy)>2.0)continue;float k0=floor((fillReach-2.25-d)/3.0+.5);
+     for(int j=-1;j<=1;j++){float k=k0+float(j),at=fillReach-2.25-3.0*k,seed=float(i)*41.0+float(r)*13.0+k+700.0;if(k<0.0||at<.5||fillHash(seed)<.1)continue;
+      a=max(a,fillPatch(vec2(d-at-(fillHash(seed+.137)-.5)*.5,dy-(fillHash(seed+.274)-.5)*.4),vec2(1.0+.4*fillHash(seed+.411),.7+.3*fillHash(seed+.685)),seed));}}}
    diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.863,.855,.799)*(1.0+.007*sin(vTangentWorld.x*.7+y*.31)),clamp(a,0.0,1.0));
   `);
  };

@@ -133,3 +133,6 @@ body.project-module .controls>:not(#project-tabs):not(#project-panel){display:no
 .pj-field input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
 .pj-item .pj-field input[type=date]{height:42px}
 @media(min-width:391px){.pj-form-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+
+/* Plaster coats and sanding rounds: one check-off per pass. */
+.pj-step-passes{margin:6px 0 4px 34px;display:flex;flex-direction:column;gap:6px}.pj-passes-label{font-size:12px;color:#62746a}.pj-passes{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.pj-pass{display:inline-flex;align-items:center;gap:5px;min-height:34px;padding:5px 11px;border:1px solid #cdd8c8;border-radius:999px;background:#fff;color:#2b3d33;font:inherit;font-size:13px;cursor:pointer}.pj-pass svg{width:14px;height:14px}.pj-pass.done{background:#4f6b3e;border-color:#4f6b3e;color:#fff}.pj-pass-add,.pj-pass-remove{font-size:13px;min-height:34px}

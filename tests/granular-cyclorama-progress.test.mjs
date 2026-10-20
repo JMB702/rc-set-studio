@@ -79,7 +79,8 @@ test('Disabled optional components leave the visible tracker but retain saved co
  const off={...both,seamlessCorners:false,seamlessPerimeter:false};
  assert.ok(!projectVisibleTracking(tracked,off).stages.some(s=>s.id==='cyclorama'));
  assert.equal(projectStepPercent(tracked,'cyc-corner-1-ribs'),100);
- const corners=projectVisibleTracking(tracked,{...both,seamlessPerimeter:false}).stages.find(s=>s.id==='cyclorama');assert.equal(corners.steps.length,6);assert.ok(corners.steps.every(t=>!t.id.includes('perimeter')&&!t.id.includes('compound')));
+ const corners=projectVisibleTracking(tracked,{...both,seamlessPerimeter:false}).stages.find(s=>s.id==='cyclorama');// Rounded corners alone are finished in the wall finishing steps, so the corner stage has no finish row of its own.
+ assert.equal(corners.steps.length,5);assert.ok(corners.steps.every(t=>!t.id.includes('perimeter')&&!t.id.includes('compound')&&t.id!=='cyc-finish'));
 });
 
 test('Ribs recorded as built show as built even before the survey milestone is checked',()=>{

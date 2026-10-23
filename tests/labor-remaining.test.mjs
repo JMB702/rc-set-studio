@@ -52,7 +52,7 @@ test('Floor progress follows where its hours are, so a laid floor leaves only th
  for(const t of floorStage.steps)if(['floor-0','floor-2','floor-upper'].includes(t.id))t.percent=100;
  const progress=laborTaskProgress(floor,{design,tracking});
  const built=floor.stageHours[23]+floor.stageHours[24]+floor.stageHours[42];
- assert.equal(progress,Math.round(built/hours*100));assert.ok(progress>50,'more than half the floor hours are in laying the two layers');
+ assert.equal(progress,Math.round(built/hours*100));assert.ok(progress>25&&progress<60,'laying the two layers is a large share; wood filler and full sanding rounds take most of the rest');
 });
 
 test('Wall finishing counts every taped joint',()=>{

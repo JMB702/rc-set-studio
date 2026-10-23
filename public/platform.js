@@ -51,7 +51,7 @@ export function platformOutline(a,back=PLATFORM.gap,side=PLATFORM.gap,pa=a,front
 // Which wall (if any) an outline edge faces, so a flush edge can skip its fascia.
 function wallOf(A,B,a,back,side){const L=wallLines(a),m=[(A[0]+B[0])/2,(A[1]+B[1])/2],on=(l,g)=>Math.abs(l.n[0]*m[0]+l.n[1]*m[1]-l.c-g)<1e-4&&Math.abs(l.n[0]*(B[0]-A[0])+l.n[1]*(B[1]-A[1]))<1e-6;
  if(on(L.back,back))return {wall:'back',gap:back};if(on(L.right,side))return {wall:'right',gap:side};if(on(L.left,side))return {wall:'left',gap:side};return {wall:null,gap:null};}
-function onOutline(A,B,outline){const m=[(A[0]+B[0])/2,(A[1]+B[1])/2];for(let i=0;i<outline.length;i++){const P=outline[i],Q=outline[(i+1)%outline.length],dx=Q[0]-P[0],dz=Q[1]-P[1],len=Math.hypot(dx,dz);if(len<1e-9)continue;const cross=Math.abs((m[0]-P[0])*dz-(m[1]-P[1])*dx)/len,t=((m[0]-P[0])*dx+(m[1]-P[1])*dz)/len/len;if(cross<1e-4&&t>-1e-6&&t<1+1e-6)return true;}return false;}
+export function onOutline(A,B,outline){const m=[(A[0]+B[0])/2,(A[1]+B[1])/2];for(let i=0;i<outline.length;i++){const P=outline[i],Q=outline[(i+1)%outline.length],dx=Q[0]-P[0],dz=Q[1]-P[1],len=Math.hypot(dx,dz);if(len<1e-9)continue;const cross=Math.abs((m[0]-P[0])*dz-(m[1]-P[1])*dx)/len,t=((m[0]-P[0])*dx+(m[1]-P[1])*dz)/len/len;if(cross<1e-4&&t>-1e-6&&t<1+1e-6)return true;}return false;}
 
 // Each edge as an inward half-plane: distance from the edge = n·p - c.
 function edgeFrames(pg){return pg.map((A,i)=>{const B=pg[(i+1)%pg.length],len=Math.hypot(B[0]-A[0],B[1]-A[1]),u=[(B[0]-A[0])/len,(B[1]-A[1])/len],n=[-u[1],u[0]];return {A,B,len,u,n,c:n[0]*A[0]+n[1]*A[1]};});}
@@ -205,6 +205,20 @@ export function packDecks(decks){
 // edge is mitered where it meets another exposed edge and butts square against a wall. Each run is cut from whole
 // sticks first, then the remainder (a short remainder is shared with the last stick instead). A miter is cut at half the
 // turn between the two edges (45° on a square corner). The vertical pieces stop under the top bead's side flange.
+// Where the wood filler goes on one deck piece: the screw lines under it (6″ on rims that carry a deck edge and on seam
+// joists, 12″ on interior rims and joists; none under the corner bead, whose compound covers them) and its joints with
+// the neighboring deck pieces. Lines are [ax, az, bx, bz, spacing] in plan inches; seams are [ax, az, bx, bz].
+export function deckFillLayout(plan,deckIndex){
+ const d=plan.decks[deckIndex],lines=[],mid=(p,q)=>[(p[0]+q[0])/2,(p[1]+q[1])/2];
+ const centerline=poly=>{const e=poly.map((p,i)=>[p,poly[(i+1)%poly.length]]),len=([p,q])=>Math.hypot(q[0]-p[0],q[1]-p[1]),[s1,s2]=e.map((x,i)=>[len(x),i]).sort((a,b)=>a[0]-b[0]);return [...mid(...e[s1[1]]),...mid(...e[s2[1]])];};
+ const deckEdge=e=>onOutline(e.A,e.B,plan.outline)||plan.columns.some(c=>Math.abs(e.A[0]-c)<1e-6&&Math.abs(e.B[0]-c)<1e-6);
+ for(const m of d.moduleIndices.map(i=>plan.modules[i])){
+  for(const r of m.rims){const e=m.edges[r.edge];if(e.fascia)continue;lines.push([...centerline(r.poly),deckEdge(e)?6:12]);}
+  for(const j of m.joists)lines.push([...centerline(j.poly),12]);
+  for(const j of m.seamJoists)lines.push([...centerline(j.poly),6]);
+ }
+ return {lines:lines.slice(0,24),seams:d.edges.filter(e=>!onOutline(e.A,e.B,plan.outline)).map(e=>[...e.A,...e.B]).slice(0,16)};
+}
 export const BEAD={stock:96,flange:1.25,stapleEvery:6};
 export function beadPlan(outline,modules,corners){
  const o=PLATFORM.skin,E=edgeFrames(outline),n=E.length,fascia=E.map(edge=>modules.flatMap(m=>m.edges.filter(e=>e.fascia&&Math.abs(e.n[0]*edge.n[0]+e.n[1]*edge.n[1]-1)<1e-6&&Math.abs(e.c-edge.c)<1e-6)));

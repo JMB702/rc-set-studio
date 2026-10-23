@@ -67,7 +67,7 @@ export function projectSeparateFinishing(input){
  return projectUpgradeFloorLayers(data);
 }
 // Every upgrade pass ends by bringing counted milestones in line with the counts.
-export function projectUpgradeFloorLayers(input){return projectUpgradePlatformBead(projectUpgradeCyclorama(projectSyncCounts(projectUpgradeWallCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input))))));}
+export function projectUpgradeFloorLayers(input){return projectUpgradeWoodFiller(projectUpgradePlatformBead(projectUpgradeCyclorama(projectSyncCounts(projectUpgradeWallCounts(projectRenameJackStep(projectUpgradeFloorLayersOnly(input)))))));}
 // The jack step is "Build jacks"; its built and attached counters both sit under it. A short-lived separate
 // "Attach jacks to walls" step (walls-attach) is folded back in, keeping its notes.
 export function projectRenameJackStep(input){
@@ -224,7 +224,9 @@ export function projectPartStatus(part,data) {
  if(part.kind==='jack')return {assembled:attached};
  if(part.kind==='bracing')return {assembled:wall&&jackPanel>=0&&jackPanel*2+1<(counts.jacksAttached??0)&&(counts.ballastAttached===null?percent('walls-4')===100:jackPanel<counts.ballastAttached)};
  if(part.kind==='wallSkin')return {assembled:wall,finish:part.front===false?'raw':wallFinish(panel)};
- if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-3')===100?'paint':percent('floor-upper')===100&&percent('floor-1')===100?'skim':'raw'};
+ // The painted floor's top: bare plywood, then wood filler spots as the filling starts (sanded flush in the next step), then
+ // primer and paint. Older records without a separate paint step painted with floor-3.
+ if(part.kind==='floor')return {assembled:percent('floor-2')===100,finish:percent('floor-paint')===100||percent('floor-3')===100&&!row('floor-paint')?'paint':percent('floor-3')===100?'primer':percent('floor-upper')===100&&percent('floor-1')>0?'filled':'raw'};
  // The vinyl corner bead goes on as one step; once the platform is mudded, primed and painted it takes those finishes.
  if(part.kind==='platformBead')return {assembled:percent('platform-bead')>0,finish:percent('platform-paint')===100?'paint':percent('platform-prime')===100?'primer':percent('platform-skim')===100?'skim':percent('platform-seams')===100?'seams':'raw'};
  if(part.kind==='platform'){
@@ -258,7 +260,7 @@ export function projectGuideGroups(design={}) {
   'wall-finishing-1':[28],'wall-finishing-2':[28],'wall-finishing-3':[72],'wall-finishing-4':[73],
  };
  if(design.floor==='wood')Object.assign(groups,{'floor-0':[23],'floor-1':[24],'floor-2':[25,26],'floor-3':[27]});
- if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-2':[24],'floor-upper':[42],'floor-3':[26,27]});
+ if(design.floor==='charcoal')Object.assign(groups,{'floor-0':[23],'floor-1':[25],'floor-sand':[25],'floor-2':[24],'floor-upper':[42],'floor-3':[26],'floor-paint':[27]});
  if(design.platformShape&&design.platformShape!=='none')Object.assign(groups,{'platform-cut':[30],'platform-frame':[31],'platform-legs':[32],'platform-join':design.floor==='charcoal'?[33,74]:[33],'platform-deck':[34],'platform-fascia':[35],'platform-bead':[79],'platform-seams':[36],'platform-skim':[36],'platform-prime':[37],'platform-paint':[75]});
  const corners=design.seamlessCorners===true&&(design.angle??45)>0,perimeter=design.seamlessPerimeter===true,side=design.seamlessCornerSide??'both';
  // Corner 1 is the left wing corner, corner 2 the right; a one-corner build has no rows for the other.
@@ -390,6 +392,25 @@ export function projectReconcileGuideChecks(previous,next){
  return {...next,guideChecks:checks};
 }
 
+// Oct 23, 2026: the painted floor's top and the platform deck are finished with wood filler instead of a cement skim:
+// fill seams, screw holes and marks, sand smooth, prime bare wood, two finish coats. Step ids and percents carry over.
+// The floor gains a sanding step and a separate finish-coat step, and its fill step moves into the floor finishing
+// stage so the order reads fill, sand, prime, paint. The platform keeps its five steps under new names; its fascia
+// keeps the joint compound.
+export const WOOD_FILLER_STEPS={'floor-1':'Fill seams, screw holes and marks with wood filler','floor-sand':'Sand the floor smooth','floor-3':'Prime the floor','floor-paint':'Paint the floor (2 coats)','platform-seams':'Fill the deck with wood filler; compound the bead and fascia joints','platform-skim':'Sand the deck and fascia smooth','platform-paint':'Paint the platform (2 coats)'};
+const SKIM_STEP_NAMES={'floor-1':['Prepare the base','Prepare underlayment / cement skim'],'floor-3':['Finish and trim','Prime, paint and trim floor'],'platform-seams':['Patch seams and corners'],'platform-skim':['Tape, skim and sand','Skim and sand the full surface','Cement-skim deck and finish fascia'],'platform-paint':['Paint the platform']};
+export function projectUpgradeWoodFiller(input){
+ const rows=input.stages.flatMap(s=>s.steps),renames=rows.some(t=>SKIM_STEP_NAMES[t.id]?.includes(t.name)),floor=rows.some(t=>t.id==='floor-1')&&rows.some(t=>t.id==='floor-3')&&!rows.some(t=>t.id==='floor-sand');
+ if(!renames&&!floor)return input;
+ const data=structuredClone(input);
+ for(const stage of data.stages)for(const step of stage.steps)if(SKIM_STEP_NAMES[step.id]?.includes(step.name))step.name=WOOD_FILLER_STEPS[step.id];
+ if(floor){const finishing=data.stages.find(s=>s.steps.some(t=>t.id==='floor-3')),source=data.stages.find(s=>s.steps.some(t=>t.id==='floor-1')),fill=source.steps.find(t=>t.id==='floor-1'),prime=finishing.steps.find(t=>t.id==='floor-3');
+  source.steps=source.steps.filter(t=>t!==fill);if(!source.steps.length)data.stages.splice(data.stages.indexOf(source),1);
+  // Primer on means the floor was sanded first; a finished prime-and-paint step means the paint is on too.
+  finishing.steps.splice(finishing.steps.indexOf(prime),0,fill,{id:'floor-sand',name:WOOD_FILLER_STEPS['floor-sand'],percent:prime.percent>0?100:0,notes:[]});
+  finishing.steps.splice(finishing.steps.indexOf(prime)+1,0,{id:'floor-paint',name:WOOD_FILLER_STEPS['floor-paint'],percent:prime.percent===100?100:0,notes:[]});}
+ return data;
+}
 // Corner bead is its own first finishing step. A platform already mudded has its bead on, so it starts done.
 export function projectUpgradePlatformBead(input){
  const stage=input.stages?.find(s=>s.id==='platform-finishing');

@@ -149,3 +149,33 @@ export function applyWallTangentSeams(material,tangents,fills={}){
  };
  material.needsUpdate=true;return material;
 }
+
+// Wood filler on the painted floor's top and the platform deck (Jeff, Oct 23, 2026): crisp, sanded-flush spots over every
+// screw head and a narrow filled strip along each plywood joint, on the bare sanded wood. Same patch shape as the plaster
+// fills (FILL_GLSL), smaller, in the filler's dried light tan. fill: {grid, lines, seams} in plan inches, from
+// deckFillLayout() or the floor's 8″ screw grid; only the top face is filled.
+export function applyWoodFill(material,{grid=0,lines=[],seams=[]}={}){
+ const L=new Float32Array(96),S=new Float32Array(24),E=new Float32Array(64);lines.slice(0,24).forEach((l,i)=>{L.set(l.slice(0,4),i*4);S[i]=l[4]||12;});E.set(seams.slice(0,16).flat());
+ material.customProgramCacheKey=()=>'wood-fill-v1';
+ material.onBeforeCompile=shader=>{
+  Object.assign(shader.uniforms,{fillGrid:{value:grid},fillLines:{value:L},fillSpacing:{value:S},fillLineCount:{value:Math.min(24,lines.length)},fillSeams:{value:E},fillSeamCount:{value:Math.min(16,seams.length)}});
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWoodLocal;\nvarying float vWoodTop;').replace('#include <begin_vertex>','#include <begin_vertex>\nvWoodLocal = position / 0.0254;\nvWoodTop = normal.y;');
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
+   varying vec3 vWoodLocal; varying float vWoodTop; uniform float fillGrid,fillSpacing[24]; uniform vec4 fillLines[24],fillSeams[16]; uniform int fillLineCount,fillSeamCount;
+  `+FILL_GLSL).replace('#include <map_fragment>',`#include <map_fragment>
+   if(abs(vWoodTop)>0.5){
+    vec2 p=vWoodLocal.xz;float a=0.0;
+    for(int i=0;i<16;i++){if(i>=fillSeamCount)break;vec4 e=fillSeams[i];vec2 ab=e.zw-e.xy;float t=clamp(dot(p-e.xy,ab)/max(dot(ab,ab),0.0001),0.0,1.0),run=t*length(ab),d=length(p-e.xy-ab*t),w=.5+.18*sin(run*.37+float(i))+.1*sin(run*1.3);
+     a=max(a,(1.0-smoothstep(w-.08,w+.08,d))*(.88+.08*sin(run*.9)));}
+    for(int i=0;i<24;i++){if(i>=fillLineCount)break;vec4 e=fillLines[i];vec2 ab=e.zw-e.xy;float len=length(ab);if(len<0.01)continue;vec2 u=ab/len,q=p-e.xy;float along=dot(q,u),across=dot(q,vec2(-u.y,u.x));if(abs(across)>1.5||along<-1.5||along>len+1.5)continue;
+     float n=max(1.0,floor(len/fillSpacing[i]+.5)),gap=len/n,k=clamp(floor(along/gap),0.0,n-1.0),seed=float(i)*31.0+k+900.0;
+     a=max(a,fillPatch(vec2(along-(k+.5)*gap-(fillHash(seed+.137)-.5)*.4,across-(fillHash(seed+.274)-.5)*.3),vec2(.45+.2*fillHash(seed+.411),.4+.2*fillHash(seed+.685)),seed));}
+    if(fillGrid>0.0){vec2 g=floor((p-fillGrid*.5)/fillGrid+.5)*fillGrid+fillGrid*.5;float seed=g.x*.37+g.y*1.13+1700.0;
+     a=max(a,fillPatch(p-g-(vec2(fillHash(seed+.1),fillHash(seed+.2))-.5)*.4,vec2(.45+.2*fillHash(seed+.3),.4+.2*fillHash(seed+.4)),seed));}
+    // Dried filler is a warmer, darker tan than the sanded pine; taken relative to the wood so it reads under any light.
+    diffuseColor.rgb=mix(diffuseColor.rgb,diffuseColor.rgb*vec3(.62,.50,.36)*(.96+.06*fillHash(floor(p.x*2.0)+floor(p.y*2.0)*7.0)),clamp(a,0.0,1.0)*.95);
+   }
+  `);
+ };
+ material.needsUpdate=true;return material;
+}

@@ -60,6 +60,7 @@ schedule is a project prototype detail, not a supplier-certified capacity.
 
 Painted show floor revision (Oct 10, 2026): user selected two plywood layers,
 staggered joints, SKIM FLOOR cement skim, primer and paint only; touch-ups accepted.
+(Oct 23, 2026: replaced by wood filler, sanding, bare-wood primer and paint; see below.)
 https://www.ctscement.com/assets/doc/datasheets/SKIM_FLOOR_Datasheet_DS_224_EN.pdf
 https://images.thdstatic.com/catalog/pdfImages/be/be3a9d8c-bd91-4d32-b26f-95f7c4f90419.pdf
 https://www.homedepot.com/p/313474246
@@ -144,4 +145,13 @@ Home Depot E Bradenton #6319, delivery ZIP 34201. Dated SKU evidence in data/fla
 
 2026-10-14 floor layout revision: existing plywood, underlayment, adhesive, screws and finish SKUs retained. No prices or availability rechecked. Quantities follow floor-plan.js and the optional 12-inch lower-layer front lip. No new load-rating claim.
 
-Finished floor geometry: existing 1.4mm felt, two .703in plywood layers and planned1/16in skim are shown as closed solids. Wall and jack bases remain on the supporting floor. Platform/people/coves sit on the finished surface. Corner skins trim to wall tops; stock quantities retain full-height allowance.
+Finished floor geometry: existing 1.4mm felt, two .703in plywood layers and a 1/16in finish allowance (from the earlier skim plan) are shown as closed solids. Wall and jack bases remain on the supporting floor. Platform/people/coves sit on the finished surface. Corner skins trim to wall tops; stock quantities retain full-height allowance.
+
+Wood filler finish (Oct 23, 2026)
+https://www.homedepot.com/p/DAP-Plastic-Wood-X-with-DryDex-32-oz-Natural-All-Purpose-Wood-Filler-00543/206667347
+DAP Plastic Wood-X with DryDex, 1 qt: interior/exterior; sandable and paintable; goes on pink, dries natural.
+Sanding rounds (120, 150, then a 220 scuff after primer) with a rented orbital floor sander, per Jeff's Oct 23 plan; the 1/32 in face veneer rules out drum and belt sanders. $18.98; 7 in stock at E Bradenton #6319 on Oct 23.
+https://www.homedepot.com/p/BEHR-1-Gal-White-Acrylic-Interior-Exterior-Multi-Surface-Stain-Blocking-Primer-and-Sealer-43601/100205766
+BEHR Multi-Surface Stain-Blocking Primer & Sealer 436, 1 gal: $30.98; 8 in stock at E Bradenton #6319 on Oct 23. Coverage planned at 300 sq ft/gal.
+https://www.behr.com/products/floor-coatings/behr-premium-porch-and-patio-floor-paint
+BEHR Porch & Patio: lists the 436 Multi-Surface Stain-Blocking Primer & Sealer and the 880 Concrete & Masonry Bonding Primer as primers; two coats are required.

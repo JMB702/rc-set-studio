@@ -108,21 +108,20 @@ and fill the rear12-inch band using the numbered cuts; do not attach a detached
 front strip. The exposed ledge is not extra finished floor: keep it clear, raw
 and supported until a future fully supported section overlaps it. This option
 applies only to the painted plywood floor; laminate and no-floor modes ignore it.
-Underlayment covers the full lower outline; glue, screws, skim, primer and paint
+Underlayment covers the full lower outline; glue, screws, filler, primer and paint
 are based on the unchanged top area. PL 400 adhesive in 1/4-inch serpentine beads
 about 6 inches apart and #8x1.25 screws on an 8-inch grid join the layers;
 never fasten into the concrete.
-Thin Rapid Set SKIM FLOOR cement skim (planning average 1/16 inch), compatible
-cementitious primer, then floor paint. No epoxy or polyurethane wear finish.
+Wood filler (DAP Plastic Wood-X) in the top-layer seams, screw holes and marks,
+sanded in full rounds (120 then 150 grit), one coat of BEHR Multi-Surface
+Stain-Blocking Primer & Sealer (436) on the bare wood, then two coats of floor
+paint. No epoxy or polyurethane wear finish. (Replaced the Rapid Set SKIM FLOOR
+cement skim on Oct 23, 2026; see WOOD FILLER FINISH below.)
 Floor and platform paint: BEHR PREMIUM Porch & Patio low-lustre tinted Carbon
 N520-7, the same color code as the flat wall paint, bought as one batch.
 User chose limited performance traffic with patching and repainting accepted.
-Paint alone over this cement underlayment is not a manufacturer-verified wear
-system. The priced primer is BEHR Concrete & Masonry Bonding Primer;
-compatibility of the complete paint-only system remains unverified.
-Prices are recorded in the Pricing guide with their check dates.
-The retail skim bag listing and manufacturer TDS differ in size;
-use verified pack yield when buying. Finished views use the supporting concrete at y=0. Painted floor layers are 1.4mm felt + .703in lower plywood + .703in upper plywood + 1/16in planned skim: total1.5236in, excluding negligible paint thickness. The 12in joining lip ends at the lower-plywood top, about0.7581in above concrete. Both plywood edges are visible. Walls and jacks remain on concrete; the platform, people and floor coves reference the raised surface. Vertical corner skins trim to the unchanged wall top; existing full-height stock allowance is retained. Laminate renders its documented7mm body; underlay thickness must be measured on the selected product.
+Paint over filled and sanded plywood is a scenic finish, not a rated wear
+system. Prices are recorded in the Pricing guide with their check dates. Finished views use the supporting concrete at y=0. Painted floor layers are 1.4mm felt + .703in lower plywood + .703in upper plywood + a 1/16in finish allowance kept from the earlier skim plan so as-built corner parts do not move: total1.5236in, excluding negligible paint thickness. The 12in joining lip ends at the lower-plywood top, about0.7581in above concrete. Both plywood edges are visible. Walls and jacks remain on concrete; the platform, people and floor coves reference the raised surface. Vertical corner skins trim to the unchanged wall top; existing full-height stock allowance is retained. Laminate renders its documented7mm body; underlay thickness must be measured on the selected product.
 The visualization is dimensionally derived, not a structural certification.
 
 10-INCH PLATFORM (ADDED OCTOBER 6, 2026)
@@ -170,14 +169,13 @@ that fit 96 stock; joints land anywhere on the top and bottom rims.
 Frame seams retain #9x3 screws through adjoining rims, about every 12,
 both sides. Deck joints remain supported by rims or joists; no second deck layer.
 Fascia: 0.106 lauan, 10 tall, glued and stapled to the top and bottom rims.
-Finish: Rapid Set SKIM FLOOR cement skim on the horizontal walking deck,
-planning average 1/16 inch, then selected cement-compatible primer and floor
-paint. No epoxy or polyurethane. User accepts touch-up work; the paint-only
-cement skim system is unverified. On vertical fascia only: paper tape, premixed
-all-purpose compound, vertical-corner bead, KILZ 2 and matching paint. Do not extend
-the floor skim to vertical lauan or drywall compound onto the deck. Stay assembled
-after finishing; dismantling requires finish repairs. Deck skim and BEHR
-Concrete & Masonry Bonding Primer prices are recorded in the Pricing guide.
+Finish: wood filler in the deck joints, screw holes and marks, sanded flush,
+BEHR 436 bare-wood primer and two coats of floor paint, like the floor. No epoxy
+or polyurethane. User accepts touch-up work. On vertical fascia only: paper tape,
+premixed all-purpose compound, corner bead, KILZ 2 and matching paint; on the
+deck, compound stays on the bead's 1-1/4 in flange. Stay assembled after
+finishing; dismantling requires finish repairs. Filler and primer prices are
+recorded in the Pricing guide.
 19/32 chosen over 3/4 for weight; framing at 16 centers carries the deck.
 The top is walked on, but this is a scenic prototype, not a rated stage
 deck: no load rating is claimed. Test the finish on a mockup; seams can
@@ -331,9 +329,9 @@ bandsaw each curve. Approved design, as built: 7 ribs from 4 squares (1 spare) o
 FINISHING ORDER — OCTOBER 15, 2026
 All finishing runs last, in one Finishing section: plaster the walls (28), prime
 the walls (72), paint the walls (73), seamless corner included; then the painted
-floor: skim (25), prime (26), paint (27); then the platform, built outside the
-set, is carried in and set on the painted floor (74); then skim and plaster the
-platform (36), prime it (37) and paint it (75) over a drop cloth that protects
+floor: fill and sand (25), prime (26), paint (27); then the platform, built outside
+the set, is carried in and set on the painted floor (74); then fill, plaster and
+sand the platform (36), prime it (37) and paint it (75) over a drop cloth that protects
 the painted floor. Walls stand on the bare two-layer plywood floor; the guide's
 3D views show each part as it stands at each step.
 
@@ -345,7 +343,30 @@ mitered at half the corner turn (45 degrees on the square platform), measured
 along the nose to the outside of the lauan fascia, and cut from whole 8 ft
 lengths first. Vertical corner pieces stop under the top bead's side flange
 (10 in less the 1-1/4 in flange). Staples on both flanges every 6 in; spray
-adhesive is optional. The deck skim buries the top flange and the fascia
-compound buries the side flanges. Approved design: front and back runs
+adhesive is optional. The fascia compound buries both flanges (kept to the
+1-1/4 in flange on the deck). Approved design: front and back runs
 156 3/16 (96 + 60 3/16), sides 66 3/16, four verticals 8 3/4, packed into
 6 lengths + 1 spare = 7.
+
+WOOD FILLER FINISH — OCTOBER 23, 2026
+Jeff switched the painted floor's top and the platform deck from a cement skim to
+wood filler: fill the seams, screw holes and any other holes or marks, sand
+smooth, prime, then the finish coats. Product: DAP Plastic Wood-X with DryDex,
+1 qt tub (Home Depot 206667347, $18.98, in stock at E Bradenton #6319 on Oct 23).
+It goes on pink and dries natural, which shows when it is ready to sand. Planned
+volume: 0.02 cu in per countersunk screw hole, 0.6 cu in per foot of filled
+seam, 0.1 cu in per sq ft for marks, +15%, at about 35 cu in per tub. Sanding
+in full rounds over the whole floor and the whole platform top: 120 grit to
+bring the filler flush, then 150 grit, vacuuming and damp-wiping between grits;
+after the primer, a 220-grit scuff and vacuum before the two paint coats. Use a
+rented orbital floor sander (about 100 lb; weight plate off to lift it onto the
+10 in platform) and a 5 in random-orbit sander for the last ~3 in along the
+platform edges and the walls, so the pad never hangs over the vinyl bead. Never a
+drum or belt sander: the face veneer is about 1/32 in, so stop if a different
+colored layer shows. Wear a respirator. Labor: about 3 h floor and 2 h platform
+top for the sanding rounds, plus about 1 h to pick up and return the rental. Primer: BEHR Multi-Surface
+Stain-Blocking Primer & Sealer 436 (Home Depot 100205766, $30.98, in stock at
+#6319), which Behr lists for Porch & Patio; Behr says to prime bare wood and to
+apply two coats of Porch & Patio. The platform fascia keeps its finish. The
+Henry 547 bought for the skim is no longer in the plan. The 3D floor keeps its
+1/16 in finish allowance so the as-built corner skin and ribs do not move.

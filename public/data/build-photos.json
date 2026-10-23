@@ -1,5 +1,5 @@
 {
- "addedThrough": "2026-10-19T18:35",
+ "addedThrough": "2026-10-22T19:10",
  "stages": [
   {
    "id": "first-panel",
@@ -45,6 +45,16 @@
    "id": "plaster",
    "title": "First coat of plaster",
    "summary": "Seams, screw heads and nail heads filled across the walls and the rounded corner."
+  },
+  {
+   "id": "platform-edges",
+   "title": "Platform edges",
+   "summary": "Fascia finished and white perforated corner bead fixed along the platform's top edges and corners."
+  },
+  {
+   "id": "second-coat",
+   "title": "Second coat and sanding",
+   "summary": "A second coat of plaster on the walls and rounded corner, then two rounds of sanding."
   }
  ],
  "photos": [
@@ -605,6 +615,133 @@
     "2400": "2026-10-19-where-it-stands-2400.ff0a24cf.webp"
    },
    "placeholder": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAABQBQCdASoSABgAPu1ip04ppSMiMBgMATAdiWMAygAL1WntctlcGcOLe5Z0p2iAmx+JgwAA/qJjhSnmuhukNSxaZsmAyLwyMN5O8vFA83ziZK6EbkZ6d1ya4OxFPFytQ7x9WxQSX+s3CF70IMZE4ygFgxpsYewvJXdgSmIIRmEuQ8dH1KVJUXpKtoVrXBdI1ZAXT6QAAAA="
+  },
+  {
+   "id": "2026-10-20-corner-bead",
+   "stage": "platform-edges",
+   "title": "Corner bead",
+   "caption": "Perforated vinyl corner bead wrapped around a platform corner.",
+   "taken": "2026-10-20T14:11",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-20-corner-bead-480.fa5b5ab4.webp",
+    "960": "2026-10-20-corner-bead-960.81d4ff5f.webp",
+    "1600": "2026-10-20-corner-bead-1600.4394c776.webp",
+    "2400": "2026-10-20-corner-bead-2400.08e703c0.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRroAAABXRUJQVlA4IK4AAABQBgCdASoSABgAPu1qq1EppaOiqAqpMB2JZQDGl1/tv8A9UVkEq1OW4mQYl0+RXanwHdSqKF/S0Y4gAADhnIMKXALBxrv6Y9DS+WuUCn9PSY1kAq+zPtLL9RaTlC1bHSQ187PLht7a6dd+GFFunTjiadZ5YS7TJBQyxIkQHgXkKLOQh1fwuTYkqV3IfCHoen/LjpOg3l1yEZDnGNMwsraf3euL1amJllHXUzugAAA="
+  },
+  {
+   "id": "2026-10-20-edges-beaded",
+   "stage": "platform-edges",
+   "title": "Edges beaded",
+   "caption": "Corner bead running along the platform's top edges.",
+   "taken": "2026-10-20T16:55",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-20-edges-beaded-480.7a23ced9.webp",
+    "960": "2026-10-20-edges-beaded-960.1b0ef6e4.webp",
+    "1600": "2026-10-20-edges-beaded-1600.c5a2227f.webp",
+    "2400": "2026-10-20-edges-beaded-2400.65f8d9ba.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRrgAAABXRUJQVlA4IKwAAABwBQCdASoSABgAPu1sqVGppaOiqAqpMB2JZQDA3AzdNpYRtnIQ2oExG+Y5bvb8V2epw5kAAMtOZ+STlecEzaLXkj4OLFy8I+zMZf5S2fIFcYdO792d7bPCGr+NDSBQRyb7xgS3bG33L8gX9XxE/GF/nF7s7ra8dXlhNf8WDSKcQW6Fv7JxcxJFWxm+OiqBhHGsISp/d5MO31Z/rcwJMitYngQOmnMVVaK9oAAA"
+  },
+  {
+   "id": "2026-10-20-platform-finished",
+   "stage": "platform-edges",
+   "title": "Platform finished",
+   "caption": "The beaded platform in front of the plastered walls.",
+   "taken": "2026-10-20T17:22",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-20-platform-finished-480.f54c4457.webp",
+    "960": "2026-10-20-platform-finished-960.83af5550.webp",
+    "1600": "2026-10-20-platform-finished-1600.d812c29d.webp",
+    "2400": "2026-10-20-platform-finished-2400.ca9574e3.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRrIAAABXRUJQVlA4IKYAAADQBACdASoSABgAPu1ur1IppiQiqAgBMB2JZQDDNywA4F12ukNB2oRC5lS0LRT+dAD+zxSAtqhREZ5p/OvJIheWt2ti07+YbslNkRq7KB9FDLOofCow1UuvnlUG5qgrVBs2QUbiXEE/+MjBHgpWw5BSG1PLAMcRsppIPA6yLOdCsjxbcN8+TS5MPI+HJ59PyznR6wDNixdzr/bO7aTlvsOZh2cAAAAA"
+  },
+  {
+   "id": "2026-10-21-second-coat-on",
+   "stage": "second-coat",
+   "title": "Second coat on",
+   "caption": "The second coat of plaster across the back wall and corner.",
+   "taken": "2026-10-21T13:44",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-21-second-coat-on-480.be851f1f.webp",
+    "960": "2026-10-21-second-coat-on-960.4ee81724.webp",
+    "1600": "2026-10-21-second-coat-on-1600.3b3e7ecb.webp",
+    "2400": "2026-10-21-second-coat-on-2400.de480abc.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRrYAAABXRUJQVlA4IKoAAABwBQCdASoSABgAPu1qrVCppaQiqAqpMB2JYwDA91btv8A+wHsjNRWLJUzaVYd9/0uMLQAAAP6U3Hlt6FtUxjlpymaqtClxtiqeTwO+lxaXw2g8UFIjRoulSuYPRzOLCJcfiyEHlgSQAlfkYcB2ETI91sXREXxsAcPw6FzXV+WMiQIncnEW353ajeWZQjs6Mf8OStnpAWSFkCzLeyy3VqP7r94lWztLZEAAAA=="
+  },
+  {
+   "id": "2026-10-21-second-coat-in-the-corner",
+   "stage": "second-coat",
+   "title": "Second coat in the corner",
+   "caption": "Fresh plaster over the seams and fastener heads in the rounded corner.",
+   "taken": "2026-10-21T19:17",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-21-second-coat-in-the-corner-480.64fff108.webp",
+    "960": "2026-10-21-second-coat-in-the-corner-960.f6deb271.webp",
+    "1600": "2026-10-21-second-coat-in-the-corner-1600.f94085ad.webp",
+    "2400": "2026-10-21-second-coat-in-the-corner-2400.71251909.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAACQBACdASoSABgAPu1eqk2ppKQiMBgMATAdiWkAxgQJ3/rc2sx3pAl0iXwG8gQA99/lNVNBaOPJmVSTsfTpF5EM5JFclbJ9DYTkvwi5LyG2+QcRyvhH5jh0v0pStoFnBWMmZ0JH05qmZkfOCrcXpDKAAAA="
+  },
+  {
+   "id": "2026-10-22-dust-tent",
+   "stage": "second-coat",
+   "title": "Dust tent",
+   "caption": "Plastic sheeting hung around the set to keep sanding dust in.",
+   "taken": "2026-10-22T14:23",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-22-dust-tent-480.f13bd30a.webp",
+    "960": "2026-10-22-dust-tent-960.04e0917f.webp",
+    "1600": "2026-10-22-dust-tent-1600.6d8d465f.webp",
+    "2400": "2026-10-22-dust-tent-2400.e8a41fa6.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRqIAAABXRUJQVlA4IJYAAAAQBQCdASoSABgAPu1srVIppaQiqAgBMB2JZQDKAA0P//dZLxW5cf67PycT95lcRIiAAP7c5o5FDiwm7U6QF1TPzHkQCRrQuyQ4bRCJo6MtPOr8sIxcbgX7xTaGRDGd3Y74cUjE+aoQrQKgztKeNd++uUU0JaRIi3sSU9zTndgqh8bGVpfi1taKO+67tnfNZbqtczfAAAA="
+  },
+  {
+   "id": "2026-10-22-sanding-day",
+   "stage": "second-coat",
+   "title": "Sanding day",
+   "caption": "Sanding inside the tent in a respirator.",
+   "taken": "2026-10-22T15:00",
+   "width": 2316,
+   "height": 3088,
+   "src": {
+    "480": "2026-10-22-sanding-day-480.d0755b83.webp",
+    "960": "2026-10-22-sanding-day-960.17b27478.webp",
+    "1600": "2026-10-22-sanding-day-1600.1561f1ac.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRnQAAABXRUJQVlA4IGgAAACwBACdASoSABgAPu1srVEppiQiqAqpMB2JZQDA3BEc2isDyG1yk9tBASqa921AAP7WgNygbgI/cu6q33N47rWct+myJPW0UMp0EB7/gePg92Y7jSWkK2o7oSFWxaw4QFcWsx797bAAAA=="
+  },
+  {
+   "id": "2026-10-22-where-it-stands",
+   "stage": "second-coat",
+   "title": "Where it stands",
+   "caption": "The walls and rounded corner after sanding: the set as of October 22.",
+   "taken": "2026-10-22T19:10",
+   "width": 6048,
+   "height": 8064,
+   "src": {
+    "480": "2026-10-22-where-it-stands-480.39de98f1.webp",
+    "960": "2026-10-22-where-it-stands-960.4f82c209.webp",
+    "1600": "2026-10-22-where-it-stands-1600.2a49081e.webp",
+    "2400": "2026-10-22-where-it-stands-2400.d89faf35.webp"
+   },
+   "placeholder": "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAABQBACdASoSABgAPu1mqk8ppaOiKA1RMB2JZwDGQAgJ/MRO/I0vAvuZezQAAP7L1mOydsNYMfZSxJ/FrKQSR68VQpinNAeAj0s+ubK0xVFujKHR1VRlIUxt+5aGw0o7X6G6hSOD6YWbgxuHtGuw/3UzDjUUAAAA"
   }
  ]
 }

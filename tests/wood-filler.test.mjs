@@ -5,7 +5,7 @@ import {projectDefaultTracking,projectUpgradeTracking,projectValidate,projectPar
 import {platformRows,floorRows,fillerTubs,fillerQuarts,floorArea,priceRows} from '../public/pricing-calc.js';
 import {platformPlan,deckFillLayout,onOutline} from '../public/platform.js';
 import {floorPlan} from '../public/floor-plan.js';
-import {laborTasks,woodFillHours} from '../public/labor.js';
+import {laborTasks,woodFillHours,sandingHours,SANDER_RENTAL_HOURS} from '../public/labor.js';
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url)));
 const design={floorLip:true,seamlessCorners:true,seamlessCornerSide:'right',seamlessPerimeter:false,height:120,angle:90,floor:'charcoal',platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,wallColor:'#34383b',platformColor:'#34383b',floorColor:'#34383b'};
 const steps=(d,id)=>d.stages.find(s=>s.id===id).steps;
@@ -56,7 +56,10 @@ test('Wood filler replaces the skim rows; the primer rows keep their ids and bec
 
 test('Floor labor follows the filler work and both labor notes describe it',()=>{
  const tasks=laborTasks(design),floor=tasks.find(t=>t.id==='floor'),deck=tasks.find(t=>t.id==='platformFinish'),plan=platformPlan(90,18,18,90,design),area=floorArea(90);
- assert.equal(floor.stageHours[25],woodFillHours(Math.ceil(area*2.25),floorPlan(90,design).topSeamLength,area));
+ assert.equal(floor.stageHours[25],woodFillHours(Math.ceil(area*2.25),floorPlan(90,design).topSeamLength,area)+sandingHours(area)+SANDER_RENTAL_HOURS);
+ // Jeff's estimate for the full sanding rounds: about 3 h on the floor, 2 h on the platform top, 1 h for the rental, once.
+ assert.equal(sandingHours(area),3);assert.ok(Math.abs(sandingHours(plan.deckArea)-2)<.1);assert.match(floor.note,/rented orbital floor sander/);assert.match(deck.note,/sharing the floor’s sander rental/);
+ assert.match(laborTasks({...design,floor:'none'}).find(t=>t.id==='platformFinish').note,/1 h for the sander rental/);
  for(const t of [floor,deck]){assert.match(t.note,/wood filler/);assert.doesNotMatch(t.note+t.label,/skim/i);}
  assert.ok(woodFillHours(plan.deckScrews,plan.deckSeamLength,plan.deckArea)>0);
 });
@@ -77,4 +80,11 @@ test('Building both, the floor and deck share filler tubs and one primer gallon'
  assert.equal(get('floorFiller').purchaseQuantity+get('platformDeckFiller').purchaseQuantity,Math.ceil(quarts));
  assert.equal(get('floorPrimer').purchaseQuantity+get('platformDeckPrimer').purchaseQuantity,Math.ceil((area+plan.deckArea)/300),'one gallon of bare-wood primer covers both');
  for(const id of ['floorFiller','platformDeckFiller','floorPrimer','platformDeckPrimer'])assert.match(get(id).availability,/Shared packs/);
+});
+
+test('The guide sands in full rounds with a floor sander, never a drum or belt, and scuffs the primer',async()=>{
+ const src=fs.readFileSync(new URL('../public/guide.js',import.meta.url),'utf8');
+ for(const stage of ['[25,','[36,']){const text=src.slice(src.indexOf(stage+"'Fill"),src.indexOf(stage+"'Fill")+2500);assert.match(text,/120 grit over everything/);assert.match(text,/then 150 grit over everything/);assert.match(text,/Never use a drum or belt sander/);assert.match(text,/respirator/);assert.match(text,/5″ random-orbit/);assert.doesNotMatch(text,/180/);}
+ assert.match(src,/never hangs over the vinyl bead/);
+ for(const stage of ["[26,'Prime the bare wood'","[37,'Prime the platform'"]){const text=src.slice(src.indexOf(stage),src.indexOf(stage)+700);assert.match(text,/scuff .*220 grit/);}
 });

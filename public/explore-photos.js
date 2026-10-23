@@ -62,23 +62,24 @@ export function installExplorePhotos(api){
  }
 
  function render(){
-  const stages=photoTimeline(data);flat=stages.flatMap(s=>s.photos);
-  const first=flat[0].taken,last=flat.at(-1).taken;
+  // Newest first: the latest stage leads and each stage lists its newest photo first. Stage numbers keep build order.
+  const stages=photoTimeline(data).map((s,i)=>({...s,num:i+1,photos:[...s.photos].reverse()})).reverse();flat=stages.flatMap(s=>s.photos);
+  const first=flat.at(-1).taken,last=flat[0].taken;
   panel.innerHTML=`<div class="ph-hero">
 <span class="ph-eyebrow">Build progress</span><h2>From one panel to a standing set.</h2>
-<p>${flat.length} photos from the shop floor, ${escape(span(first,last))}. Tap any photo to see it full screen.</p>
+<p>${flat.length} photos from the shop floor, ${escape(span(first,last))}. Newest first; tap any photo to see it full screen.</p>
 <button type="button" class="ph-latest">See the latest photo →</button>
 </div>
-<nav class="ph-stages" aria-label="Build stages"><ol>${stages.map((s,i)=>`<li><a href="#ph-stage-${s.id}" data-stage="${s.id}"><b>${i+1}</b><span>${escape(s.title)}</span></a></li>`).join('')}</ol></nav>
+<nav class="ph-stages" aria-label="Build stages"><ol>${stages.map((s,i)=>`<li><a href="#ph-stage-${s.id}" data-stage="${s.id}"><b>${s.num}</b><span>${escape(s.title)}</span></a></li>`).join('')}</ol></nav>
 <ol class="ph-timeline">${stages.map((s,i)=>`<li class="ph-stage" id="ph-stage-${s.id}">
-<div class="ph-stage-head"><span class="ph-dot" aria-hidden="true">${i+1}</span><div><time datetime="${s.first.slice(0,10)}">${escape(dateRange(s.first,s.last))}</time><h3>${escape(s.title)}</h3><p>${escape(s.summary)}</p></div></div>
+<div class="ph-stage-head"><span class="ph-dot" aria-hidden="true">${s.num}</span><div><time datetime="${s.first.slice(0,10)}">${escape(dateRange(s.first,s.last))}</time><h3>${escape(s.title)}</h3><p>${escape(s.summary)}</p></div></div>
 <div class="ph-grid">${s.photos.map(p=>{const n=flat.indexOf(p),wide=p.width>p.height;const lead=!wide&&p===s.photos[0]&&s.photos.length%2===1;return `<figure class="ph-item${wide?' wide':''}${lead?' lead':''}" style="--ar:${p.width}/${p.height}">
 <button type="button" data-photo="${n}" aria-label="Open photo ${n+1} of ${flat.length}: ${escape(p.title)}"><img src="${smallest(p)}" srcset="${srcset(p)}" sizes="${wide?'(max-width:600px) 100vw, (max-width:1100px) 66vw, 720px':'(max-width:600px) 50vw, (max-width:1100px) 33vw, 360px'}" width="${p.width}" height="${p.height}" alt="${escape(p.caption)}" loading="${n<4?'eager':'lazy'}" decoding="async" style="background-image:url(${p.placeholder})"></button>
 <figcaption><strong>${escape(p.title)}</strong><span>${escape(day(p.taken))} · ${escape(time(p.taken))}</span></figcaption></figure>`;}).join('')}</div>
 </li>`).join('')}</ol>
-<p class="ph-foot">The build is still going. New photos land here as each stage finishes.</p>`;
+<p class="ph-foot">That is where it started. New photos land at the top as the build goes on.</p>`;
   panel.querySelectorAll('.ph-grid img').forEach(img=>{const done=()=>img.classList.add('loaded');if(img.complete)done();else img.addEventListener('load',done,{once:true});});
-  panel.querySelector('.ph-latest').onclick=()=>open(flat.length-1);
+  panel.querySelector('.ph-latest').onclick=()=>open(0);
   // The chip for the stage being read lights up and stays in view in the chip row.
   const chips=panel.querySelector('.ph-stages ol');chipObserver?.disconnect();
   chipObserver=new IntersectionObserver(entries=>{for(const e of entries)if(e.isIntersecting){const id=e.target.id.slice(9);chips.querySelectorAll('a').forEach(a=>a.toggleAttribute('aria-current',a.dataset.stage===id));const a=chips.querySelector(`[data-stage="${id}"]`);chips.scrollTo({left:a.offsetLeft-chips.clientWidth/2+a.offsetWidth/2,behavior:'smooth'});}},{rootMargin:'-30% 0px -60% 0px'});

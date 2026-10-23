@@ -4,7 +4,7 @@ description: Add new set-build photos from Jeff's Apple Photos library to the Ex
 ---
 # Build photos: add new progress photos to the gallery
 
-The **Build photos** tab in Explore set (`public/explore-photos.js`, `.css`) shows a dated timeline of the real build, grouped by stage. The site is **public**, so nothing is published without Jeff approving the exact photos.
+The **Build photos** tab in Explore set (`public/explore-photos.js`, `.css`) shows a dated timeline of the real build, grouped by stage and displayed **newest first** (latest stage and photo at the top; stage numbers keep build order). The JSON stays in time order; the page reverses it. The site is **public**, so nothing is published without Jeff approving the exact photos.
 
 ## Where things live
 

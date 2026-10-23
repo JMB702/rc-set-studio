@@ -6,7 +6,7 @@
 // are its estimate scaled by how much of that work the Project tracker says is left.
 // Pure functions, no DOM: the Pricing breakdown, Cost projection and tests all use them directly.
 import {materialTax} from './pricing-calc.js';
-import {projectGuideStagePercent,projectGuideGroups,projectProgress,projectShiftCost,projectCycloramaMilestones,projectCycloramaComponents} from './project-model.js';
+import {projectGuideStagePercent,projectGuideGroups,projectCountUnits,projectGuideKey,projectProgress,projectShiftCost,projectCycloramaMilestones,projectCycloramaComponents} from './project-model.js';
 import {laborTasks} from './labor.js';
 
 // Shopping-list groups bought on the wall-panel trip; everything else is the "remaining supplies" shopping.
@@ -57,7 +57,9 @@ export function laborTaskProgress(task,{design,tracking,supplyProgress=0}){
  if(task.id==='shoppingRemaining')return supplyProgress;
  if(!tracking)return 0;
  if(task.stage==='All')return projectProgress(tracking,progressWeights(design)).percent;
- const stages=laborStageNumbers(task.stage);
+ // Stages this design does not build (the left corner's upper skin on a right-corner set) are not work left.
+ const groups=Object.values(projectGuideGroups(design)).flat(),units=projectCountUnits(design).flatMap(u=>u.stages);
+ const stages=laborStageNumbers(task.stage).filter(s=>groups.includes(s)||units.includes(s)||tracking?.guideChecks?.[projectGuideKey(s,design)]!==undefined);
  if(!stages.length)return 0;
  // Tasks that say where their hours fall (stageHours) weight each stage by them; others count stages equally.
  const w=s=>task.stageHours?.[s]??(task.stageHours?0:1),total=stages.reduce((n,s)=>n+w(s),0);

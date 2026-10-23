@@ -340,13 +340,19 @@ export function projectSyncCounts(input){
  if(!input.stages.some(s=>s.steps.some(t=>target[t.id]!=null&&t.percent!==target[t.id])))return input;
  const data=structuredClone(input);for(const s of data.stages)for(const t of s.steps)if(target[t.id]!=null)t.percent=target[t.id];return data;
 }
+// Guide-only prep milestones and the tracker steps they feed.
+const PROJECT_PREP_FEEDS={'cyc-backboards':/^cyc-backing$/,'cyc-rib-cutting':/^cyc-corner-\d-ribs$/,'cyc-skin-cutting':/^cyc-corner-\d-skin$/};
 export function projectGuideStagePercent(data,stage,design){
  const unit=projectCountUnits(design).find(u=>u.stages.includes(stage)),count=unit?projectAssembly(data?.assembly)[unit.key]:null;
  if(count!==null&&count!==undefined)return Math.round(count/unit.max*100);
  if(stage>=43&&stage<=62){const ids=Object.entries(projectGuideGroups(design)).filter(([,stages])=>stages.includes(stage)).map(([id])=>id);return ids.length?Math.round(ids.reduce((sum,id)=>sum+projectStepPercent(data,id),0)/ids.length):0;}
- const key=projectGuideKey(stage,design),saved=unit?undefined:data.guideChecks?.[key];
- if(saved!==undefined)return typeof saved==='boolean'?(saved?100:0):saved;
- const groups=Object.entries(projectGuideGroups(design)).filter(([,stages])=>stages.includes(stage));
+ const key=projectGuideKey(stage,design),saved=unit?undefined:data.guideChecks?.[key],all=projectGuideGroups(design);
+ const groups=Object.entries(all).filter(([,stages])=>stages.includes(stage));
+ // Cutting and fitting pieces is done once the step they go into is: an attached skin or backing was cut first.
+ const fed=groups.flatMap(([id])=>PROJECT_PREP_FEEDS[id]?Object.keys(all).filter(step=>PROJECT_PREP_FEEDS[id].test(step)):[]);
+ const prep=fed.length?Math.round(fed.reduce((n,id)=>n+projectStepPercent(data,id),0)/fed.length):0;
+ if(saved!==undefined)return Math.max(prep,typeof saved==='boolean'?(saved?100:0):saved);
+ if(fed.length)return prep;
  return groups.length?Math.round(groups.reduce((sum,[id])=>sum+projectStepPercent(data,id),0)/groups.length):0;
 }
 export function projectGuideStageDone(data,stage,design){if([21,22].includes(stage))return projectGuideStagePercent(data,stage,design)===100;const saved=data?.guideChecks?.[projectGuideKey(stage,design)];if(saved!==undefined&&projectCountUnits(design).some(u=>u.stages.includes(stage)))return saved===true||saved===100;return projectGuideStagePercent(data,stage,design)===100;}

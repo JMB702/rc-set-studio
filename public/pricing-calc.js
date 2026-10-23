@@ -6,8 +6,17 @@ import {cycloramaPlan,cycloramaCornerSides} from './cyclorama.js';
 export const money=c=>c===null?'Price pending':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(c/100);
 export function floorArea(angle){const c=Math.cos(angle*Math.PI/180),s=Math.sin(angle*Math.PI/180);return 128+128*c-64*c*s;}
 function extra(id,name,qty,price,url,note,group='floor'){return {id,name,purchaseQuantity:qty,unitPriceCents:price,subtotalCents:price===null||qty===null?null:price*qty,productUrl:url.startsWith('http')?url:'https://www.homedepot.com/p/'+url,availability:note,group,needed:qty,packSize:1};}
-// Rapid Set SKIM FLOOR: the data sheet gives about 134 sq ft at 1/16 inch per 20 lb; the 35 lb retail bag scales to ~234.
-const SKIM_SQFT_PER_BAG=234;
+// The painted floor's top and the platform deck are finished with wood filler, not a cement skim (Jeff, Oct 23, 2026):
+// fill the seams, screw holes and marks, sand flush, prime bare wood, two finish coats. DAP Plastic Wood-X comes in a
+// 1 qt tub (32 oz net, 907 g); planned at about 35 cu in of filler per tub. A countersunk screw hole takes about
+// 0.02 cu in, a filled and feathered seam about 0.6 cu in per foot, and marks and voids about 0.1 cu in per sq ft; +15%.
+export const FILLER={cubicInchesPerTub:35,perScrew:.02,perSeamFoot:.6,perSqFt:.1,allowance:1.15};
+export function fillerQuarts(screws,seamInches,area){return (screws*FILLER.perScrew+seamInches/12*FILLER.perSeamFoot+area*FILLER.perSqFt)*FILLER.allowance/FILLER.cubicInchesPerTub;}
+export function fillerTubs(screws,seamInches,area){return Math.max(1,Math.ceil(fillerQuarts(screws,seamInches,area)));}
+// Bare-wood primer listed by Behr for Porch & Patio: BEHR Multi-Surface Stain-Blocking Primer & Sealer (436), planned at 300 sq ft/gallon.
+const PRIMER_SQFT_PER_GALLON=300;
+const woodFiller=(id,tubs,note,group)=>({...extra(id,'DAP Plastic Wood-X with DryDex wood filler · natural · 1 qt (32 oz) tub',tubs,1898,'206667347',`Checked Oct 23 at #6319 · 7 in stock for pickup ($18.98 shown with Bradenton #244 selected) · ${note}; planned at about ${FILLER.cubicInchesPerTub} cu in per tub + 15%. Dries pink to natural so you know when to sand`,group),observedStock:7});
+const bareWoodPrimer=(id,area,where,group)=>({...extra(id,`BEHR Multi-Surface Stain-Blocking Primer & Sealer (436) · ${where}bare wood · gallon`,Math.ceil(area/PRIMER_SQFT_PER_GALLON),3098,'100205766',`Checked Oct 23 at #6319 · 8 in stock for pickup ($30.98 shown with Bradenton #244 selected) · one coat on the sanded plywood and filler, ${area.toFixed(0)} sq ft at a planned ${PRIMER_SQFT_PER_GALLON} sq ft/gallon. Behr lists it as a primer for Porch & Patio floor paint`,group),observedStock:8});
 // Prices observed for Home Depot #6319 (5475 University Pkwy) on Oct 10, 2026, with that store selected.
 function stocked(row,stock){return {...row,observedStock:stock};}
 // Retail checks are sourced snapshots; lack of a check must never become an in-stock claim.
@@ -27,14 +36,14 @@ export function floorRows(data,angle,type,cfg={}){const plan=type==='charcoal'?f
  // Loose-laid on the concrete: a felt underlayment with attached vapor barrier keeps moisture out and adds grip.
  rows.push(extra('vapor','QuietWalk 1.4 mm felt underlayment with attached vapor barrier · 100 sq ft roll',Math.ceil(baseWaste/100),5175,'306837487',`Checked Oct 10 · ship to store #6319 · ${plan.baseArea.toFixed(1)} sq ft including any joining lip + 10% for overlaps; dense felt under the plywood, built-in tape strip at seams`));
  const sheets=plan.sheetCount;rows.push(stocked(extra('floorPly','Plytanium 23/32 in BC sanded pine plywood · two layers · 4×8 sheet',sheets,5288,'100061386',`Checked Oct 10 at #6319 · 18 in stock · ${plan.upper.pieces.length} top pieces, ${plan.lower.pieces.length} lower pieces, packed into ${sheets} sheets with ⅛″ kerf; ${plan.cutCount} planned edge cuts. No crosswise top seams; lower joints offset 24″${plan.lip?`; lower layer extends ${plan.lip}″ forward`:""}. No blanket waste uplift; measure actual sheets and gaps before cutting`),18));
- rows.push(stocked(extra('floorPrimer','BEHR PREMIUM Concrete & Masonry Bonding Primer · gallon',Math.ceil(area/250),2998,'100129649','Checked Oct 10 at #6319 · 19 in stock · one coat over the cured skim at 250 sq ft/gallon; paint-only SKIM FLOOR finish is an unverified scenic compromise'),19));
+ rows.push(bareWoodPrimer('floorPrimer',area,''));
  rows.push(stocked(extra('floorPaint','BEHR PREMIUM Porch & Patio floor paint, low-lustre · tinted Carbon N520-7 · 1 gal',Math.ceil(area*2/300),3998,'206454767','Two coats at 300 sq ft/gallon. Same product and color as the platform paint and the same color code as the walls; buy floor and platform gallons together so they are tinted as one batch. No epoxy or polyurethane; touch-ups expected'),26));
- rows.push(extra('floorSeams','Rapid Set SKIM FLOOR · 35 lb bag · full-surface cement skim',Math.ceil(area*1.1/SKIM_SQFT_PER_BAG),3897,'313474246',`Checked Oct 10 · not stocked at #6319 (order online) · about ${SKIM_SQFT_PER_BAG} sq ft per 35 lb bag at 1/16 inch, scaled from the data sheet's 20 lb figure; 10% allowance`));
+ const screws=Math.ceil(area*2.25);rows.push(woodFiller('floorFiller',fillerTubs(screws,plan.topSeamLength,area),`fills the top layer's ${(plan.topSeamLength/12).toFixed(0)} ft of seams, about ${screws} screw holes and any marks over ${area.toFixed(0)} sq ft, then sand flush`));
  rows.push(stocked(extra('floorGlue','Loctite PL 400 Subfloor construction adhesive · 28 oz',Math.ceil(area*2*1.1/86),898,'300751977',`Checked Oct 10 at #6319 · 204 in stock · ¼″ serpentine beads 6″ apart across ${area.toFixed(1)} sq ft between layers (~86 ft of bead per tube) + 10%. Separate from wall glue`),204));
  const screw=data.products.find(p=>p.id==='lapScrews');rows.push(stocked(extra('floorLayerScrews','Everbilt #8×1¼ in flat-head wood screws · plywood layers · 100 pack',Math.ceil(area*2.25*1.05/screw.packSize),797,'204275496','Checked Oct 10 at #6319 · 4 packs in stock · 8″ grid through the top layer; 1¼″ stays inside the 1 13/32″ combined thickness'),4));
  }
  const layer=rows.find(r=>r.id==='floorLayerScrews');if(layer){layer.needed=Math.ceil(area*2.25*1.05);layer.packSize=data.products.find(p=>p.id==='lapScrews').packSize;}
- return rows.map(r=>['floorPrimer','floorPaint','floorSeams','trim'].includes(r.id)?{...r,group:'floorFinish'}:r);
+ return rows.map(r=>['floorPrimer','floorPaint','floorFiller','trim'].includes(r.id)?{...r,group:'floorFinish'}:r);
 }
 // 10″ platform: every quantity comes from the module plan for this angle and these wall gaps.
 export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,platformAngle=angle,configuration={}){
@@ -55,10 +64,10 @@ export function platformRows(data,angle,back=PLATFORM.gap,side=PLATFORM.gap,plat
  rows.push(row('platformBead',bead,bead.name,plan.bead.sticks+plan.bead.spare,plan.bead.sticks+plan.bead.spare,`${(plan.bead.topLength/12).toFixed(1)} ft of top edges + ${plan.bead.vertical.length} vertical corners · ${plan.bead.lengths.length} cut pieces packed into ${plan.bead.sticks} 8 ft lengths + ${plan.bead.spare} spare`));
  rows.push(row('platformCompound',own('platformCompound'),own('platformCompound').name+' · vertical fascia only',compound,compound,`Scenic fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft; planning 150 sq ft per 4.5-gal premixed pail; not for the walking surface`));
  rows.push(row('platformPrimer',own('platformPrimer'),own('platformPrimer').name,primer,primer,`Fascia only: ${(finish-plan.deckArea).toFixed(0)} sq ft, one coat at 300 sq ft/gallon`));
- rows.push(extra('platformDeckSkim','Rapid Set SKIM FLOOR · 35 lb bag · platform walking surface',Math.ceil(plan.deckArea*1.1/SKIM_SQFT_PER_BAG),3897,'313474246',`Checked Oct 10 · not stocked at #6319 (order online) · ${plan.deckArea.toFixed(0)} sq ft + 10% at about ${SKIM_SQFT_PER_BAG} sq ft per bag, 1/16 inch`,'platform'));
- rows.push(stocked(extra('platformDeckPrimer','BEHR PREMIUM Concrete & Masonry Bonding Primer · deck · gallon',Math.ceil(plan.deckArea/250),2998,'100129649','Checked Oct 10 at #6319 · 19 in stock (shared with the floor) · one coat over the cured skim at 250 sq ft/gallon; paint-only wear system unverified','platform'),19));
+ rows.push(woodFiller('platformDeckFiller',fillerTubs(plan.deckScrews,plan.deckSeamLength,plan.deckArea),`deck only: ${(plan.deckSeamLength/12).toFixed(0)} ft of deck joints, ${plan.deckScrews} screw holes and any marks over ${plan.deckArea.toFixed(0)} sq ft, then sand flush; the fascia keeps its joint compound`,'platform'));
+ rows.push(bareWoodPrimer('platformDeckPrimer',plan.deckArea,'deck · ','platform'));
  rows.push(row('platformPaint',own('platformPaint'),own('platformPaint').name,paint,paint,`Two coats over ${finish.toFixed(0)} sq ft, planned at 300 sq ft/gallon`));
- return rows.filter(r=>r.purchaseQuantity!==0).map(r=>['platformTape','platformBead','platformCompound','platformPrimer','platformDeckSkim','platformDeckPrimer','platformPaint'].includes(r.id)?{...r,group:'platformFinish'}:r);
+ return rows.filter(r=>r.purchaseQuantity!==0).map(r=>['platformTape','platformBead','platformCompound','platformPrimer','platformDeckFiller','platformDeckPrimer','platformPaint'].includes(r.id)?{...r,group:'platformFinish'}:r);
 }
 // Retrofit quantities come from the same plan as geometry and the Build guide. Prices here reuse
 // dated catalog observations; unknown sheet specifications and compatible adhesive remain pending.
@@ -124,7 +133,9 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  // Paint colors are not pooled across different product URLs or wall/floor product families;
  // floor and platform share one tinted Porch & Patio product, so their gallons pool.
  const wallArea=n*4*height/12,seamFt=(scope==='set'?5*height/12:0)+(height===120?n*4:0),pl=platformShape==='none'?null:platformPlan(angle,platformBack,platformSide,platformAngle,{platformFront,seamlessCorners,seamlessCornerSide,seamlessPerimeter}),cy=cycloramaPlan({height,angle,seamlessCorners,seamlessCornerSide,seamlessPerimeter});
- const use={wallPrimer:wallArea/250,wallPaint:wallArea*2/data.wallPaint.coverageSqFtPerGallon,wallSeams:seamFt*10/12/150,wallSeamTape:seamFt*1.1,platformPrimer:pl?(pl.finishArea-pl.deckArea)/300:0,platformCompound:pl?(pl.finishArea-pl.deckArea)/150:0,platformTape:pl?(pl.tapeLength-pl.deckSeamLength)*1.1/12:0,floorPrimer:floorArea(angle)/250,floorPaint:floorArea(angle)*2/300,platformPaint:pl?pl.finishArea*2/300:0,platformDeckPrimer:pl?pl.deckArea/250:0,cycPrimer:cy.skinArea/250,cycPaint:cy.skinArea*2/data.wallPaint.coverageSqFtPerGallon,cycCompound:cy.skinArea/150+(cy.perimeter?cy.corners:0),cycTape:cy.tapeFeet*1.1};
+ const use={wallPrimer:wallArea/250,wallPaint:wallArea*2/data.wallPaint.coverageSqFtPerGallon,wallSeams:seamFt*10/12/150,wallSeamTape:seamFt*1.1,platformPrimer:pl?(pl.finishArea-pl.deckArea)/300:0,platformCompound:pl?(pl.finishArea-pl.deckArea)/150:0,platformTape:pl?(pl.tapeLength-pl.deckSeamLength)*1.1/12:0,floorPrimer:floorArea(angle)/PRIMER_SQFT_PER_GALLON,floorPaint:floorArea(angle)*2/300,platformPaint:pl?pl.finishArea*2/300:0,platformDeckPrimer:pl?pl.deckArea/PRIMER_SQFT_PER_GALLON:0,cycPrimer:cy.skinArea/250,cycPaint:cy.skinArea*2/data.wallPaint.coverageSqFtPerGallon,cycCompound:cy.skinArea/150+(cy.perimeter?cy.corners:0),cycTape:cy.tapeFeet*1.1};
+ // The floor and deck share wood filler tubs and bare-wood primer gallons when both are built.
+ if(floor==='charcoal')use.floorFiller=fillerQuarts(Math.ceil(floorArea(angle)*2.25),floorPlan(angle,{floorLip}).topSeamLength,floorArea(angle));if(pl)use.platformDeckFiller=fillerQuarts(pl.deckScrews,pl.deckSeamLength,pl.deckArea);
  for(const row of rows)if(use[row.id]!==undefined){row.needed=use[row.id];row.packSize=['wallSeamTape','platformTape','cycTape'].includes(row.id)?250:1;row.sharedSupply=true;}
  return consolidatePacks(applyRetailChecks(data,rows));
 }

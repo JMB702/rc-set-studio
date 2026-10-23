@@ -18,7 +18,7 @@ test('Reject overlapping shifts, future times, duplicate records and removal of 
  const e={id:'a',vendor:'Lumber',amountCents:3200,date:'2026-10-09',note:'',receiptId:'receipt'};assert.throws(()=>projectValidate('finance',{...d,expenses:[e,{...e,id:'b'}]},now),/already recorded/);
 });
 test('Production starts walls, finishing, floor, platform; progress includes partial steps and survives reorder',()=>{
- const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:26,weight:26});d.stages[0].steps[0].percent=100;d.stages[1].steps=projectSetStepCount(d,'wall-finishing-1',{done:1}).stages[1].steps;assert.equal(d.stages[1].steps[0].percent,50,'one of two plaster coats');assert.deepEqual(projectProgress(d),{percent:6,done:1,total:26,weight:26});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,6);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
+ const d=projectDefaultTracking();assert.deepEqual(d.stages.map(s=>s.name),['Walls','Dress, prime and paint — Walls','Floor','Dress, prime and paint — Floor','Platform','Dress, prime and paint — Platform']);assert.deepEqual(projectProgress(d),{percent:0,done:0,total:28,weight:28});d.stages[0].steps[0].percent=100;d.stages[1].steps=projectSetStepCount(d,'wall-finishing-1',{done:1}).stages[1].steps;assert.equal(d.stages[1].steps[0].percent,50,'one of two plaster coats');assert.deepEqual(projectProgress(d),{percent:5,done:1,total:28,weight:28});d.stages.reverse();assert.equal(projectProgress(projectValidate('tracking',d)).percent,5);d.stages[0].steps[0].percent=101;assert.throws(()=>projectValidate('tracking',d),/0–100/);
 });
 test('Receipt extraction distinguishes total from subtotal, savings, tender and card numbers',()=>{
  const r=projectParseReceipt('LOCAL HARDWARE\n10/09/2026\nSUBTOTAL 100.00\nTAX 7.00\nTOTAL $107.00\nCASH 120.00\nCHANGE 13.00\nTOTAL SAVINGS 10.00');assert.equal(r.amountCents,10700);assert.equal(r.date,'2026-10-09');assert.equal(r.taxCents,700);assert.equal(r.warning,'');
@@ -156,7 +156,7 @@ test('Uncounted milestones still follow guide checks, and manual edits supersede
 });
 test('Guide completion distinguishes floor types and updates combined finishing instructions',()=>{
  const base=projectDefaultTracking(),wood={height:96,floor:'wood',platformShape:'square'},paint={...wood,floor:'charcoal'};
- const next=projectSetGuideStage(base,24,true,wood);assert.equal(next.stages.find(s=>s.id==='floor').steps.find(s=>s.id==='floor-1').percent,100);assert.equal(projectGuideStageDone(next,24,paint),false);
+ const next=projectSetGuideStage(base,24,true,wood);assert.equal(next.stages.flatMap(s=>s.steps).find(s=>s.id==='floor-1').percent,100);assert.equal(projectGuideStageDone(next,24,paint),false);
  const primed=projectSetGuideStage(base,37,true,paint),pct=(d,id)=>d.stages.flatMap(s=>s.steps).find(s=>s.id===id).percent;assert.deepEqual([pct(primed,'platform-prime'),pct(primed,'platform-paint')],[100,0]);
  const finished=projectSetGuideStage(primed,75,true,paint);assert.equal(pct(finished,'platform-paint'),100);
  const plastered=projectSetGuideStage(base,28,true,paint),rows=d=>d.stages.find(s=>s.id==='wall-finishing').steps;assert.deepEqual(rows(plastered).map(s=>s.percent),[100,100,0,0],'plaster completes plastering and sanding only');
@@ -224,7 +224,7 @@ test('Server upgrades combined finishing once and rejects writes from stale tabs
 test('Guide percentages preserve partial milestones and legacy boolean completion',()=>{
  const design={height:120,floor:'charcoal',platformShape:'square'},base=projectDefaultTracking(),floor3=d=>d.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-3').percent;base.stages.flatMap(s=>s.steps).find(t=>t.id==='floor-3').percent=50;
  assert.equal(projectGuideStagePercent(base,26,design),50);
- const partial=projectSetGuideStage(base,26,20,design);assert.equal(projectGuideStagePercent(partial,26,design),20);assert.equal(projectGuideStageDone(partial,26,design),false);assert.equal(projectGuideStagePercent(partial,27,design),50);assert.equal(floor3(partial),35);
+ const partial=projectSetGuideStage(base,26,20,design);assert.equal(projectGuideStagePercent(partial,26,design),20);assert.equal(projectGuideStageDone(partial,26,design),false);assert.equal(projectGuideStagePercent(partial,27,design),0,'the finish coats are their own step');assert.equal(floor3(partial),20);
  const full=projectSetGuideStage(partial,26,true,design);assert.equal(projectGuideStagePercent(full,26,design),100);assert.equal(projectGuideStageDone(full,26,design),true);
  const lowered=projectSetGuideStage(full,26,90,design);assert.equal(projectGuideStageDone(lowered,26,design),false);assert.equal(projectGuideStagePercent(lowered,26,design),90);
  for(const value of [-1,101,1.5,'50',null])assert.throws(()=>projectSetGuideStage(base,26,value,design));

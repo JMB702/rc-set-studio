@@ -3,7 +3,7 @@ import {platformSeamSegments} from './platform-finish.js';
 import {makeWallAtlas,sheetVariation} from './wall-appearance.js';
 import * as T from 'three';
 import {mergeGeometries} from './vendor/BufferGeometryUtils.js';
-import {footprint,platformPlan,PLATFORM,BEAD,legLength,rimBottom,bottomRimTop} from './platform.js';
+import {footprint,platformPlan,PLATFORM,BEAD,legLength,rimBottom,bottomRimTop,deckFillLayout} from './platform.js';
 import {floorPlan,FLOOR,floorSection,floorSurfaceHeight} from './floor-plan.js';
 import {jackLayout} from './jack-layout.js';
 import {jackAttachment} from './jack-attachment.js';
@@ -76,14 +76,16 @@ export function floorMesh(a,type,rows=99,cfg={}){const section=floorSection(type
 if(type==='charcoal')piece(poly,min,0,1);else{let row=0;for(let z=0;z<96&&row<rows;z+=7.6,row++){let c=0;for(let x=min-50.8+(row%3)*16.93;x<max;x+=50.8,c++){let pg=clip(clip(clip(clip(poly,0,x+.02,1),0,x+50.78,-1),1,z+.02,1),1,Math.min(z+7.58,96),-1);piece(pg,x,z,row*43+c);}}}
 let g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setAttribute('color',new T.Float32BufferAttribute(col,3));g.computeVertexNormals();let m=(type==='wood'?mats.floor:mats.floorGray).clone();if(type==='charcoal')m.userData.surface='floor';m.side=T.DoubleSide;m.vertexColors=type==='wood';let mesh=new T.Mesh(g,m);mesh.receiveShadow=false;root.add(mesh);mesh.name='Floor';mesh.userData.commentKey='floor';mesh.userData.progress={kind:'floor'};if(type==='charcoal'){
  const plan=floorPlan(a,cfg);
+ // Wood filler on the top: every screw on the 8″ grid and the top layer's seams.
+ mesh.userData.progress.fill={grid:8,seams:[...new Map(plan.upper.pieces.flatMap(p=>p.seamEdges).map(e=>[e.map(v=>Math.round(v*100)).join(),e])).values()]};
  const body=(name,outline,lo,hi,material,key)=>{const o=new T.Mesh(slab(outline,lo,hi),material);o.name=name;o.userData.commentKey=key;o.userData.floorPriceIds=key==='floor-underlay'?['vapor']:['floorPly'];o.userData.progress={kind:'floor',rawOnly:true};o.receiveShadow=true;o.castShadow=true;root.add(o);return o;};
  body('Felt underlayment',plan.lower.outline,0,section.underlay,new T.MeshStandardMaterial({color:0x706f66,roughness:1}),'floor-underlay');
  body(cfg.floorLip?'Front joining lip — exposed lower plywood':'Lower plywood layer',plan.lower.outline,section.underlay,section.lower,mats.platformWood.clone(),'floor-lower');
  body('Upper plywood layer',plan.upper.outline,section.lower,section.upper,mats.platformWood.clone(),'floor-upper');
- // Close the skim's vertical edges while the top uses the chosen painted material.
+ // Close the top finish allowance's vertical edges (plywood, filled and painted) while the top uses the chosen painted material.
  const skim=slab(plan.upper.outline,section.upper,section.top);const source=skim.index?skim.toNonIndexed():skim,values={position:[],normal:[],uv:[]};
  for(let i=0;i<source.attributes.position.count;i+=3)if(source.attributes.normal.getY(i)<.99)for(let k=i;k<i+3;k++)for(const key of Object.keys(values)){const a=source.attributes[key];for(let c=0;c<a.itemSize;c++)values[key].push(a.array[k*a.itemSize+c]);}
- const edge=new T.BufferGeometry();for(const key of Object.keys(values))edge.setAttribute(key,new T.Float32BufferAttribute(values[key],key==='uv'?2:3));skim.dispose();if(source!==skim)source.dispose();const edges=new T.Mesh(edge,mats.compound.clone());edges.name='Skim edge';edges.userData.floorPriceIds=['floorSeams'];edges.userData.progress={kind:'floor',rawOnly:true};root.add(edges);
+ const edge=new T.BufferGeometry();for(const key of Object.keys(values))edge.setAttribute(key,new T.Float32BufferAttribute(values[key],key==='uv'?2:3));skim.dispose();if(source!==skim)source.dispose();const edges=new T.Mesh(edge,mats.platformWood.clone());edges.name='Top finish edge';edges.userData.floorPriceIds=['floorPly'];edges.userData.progress={kind:'floor',rawOnly:true};root.add(edges);
  root.userData.lipArea=plan.lipArea;
 }else if(type==='wood'){const core=new T.Mesh(slab(poly,0,section.top-.001),mats.platformWood.clone());core.name='Laminate core';core.userData.floorPriceIds=['laminate'];core.userData.progress={kind:'floor',rawOnly:true};root.add(core);}
 root.userData.surfaceHeight=section.top;root.userData.area=Math.abs(poly.reduce((s,p,i)=>{let q=poly[(i+1)%poly.length];return s+p[0]*q[1]-q[0]*p[1]},0))/288;return root;}
@@ -141,7 +143,7 @@ export function platformParts(plan){const G=new T.Group();G.name='Platform const
  }
  for(const [fasciaIndex,f] of plan.fasciaPieces.entries()){const o=slabMesh(G,'Platform fascia',f.poly,0,PLATFORM.height,'ply',35,fasciaIndex,fasciaIndex%2);o.userData.cutLength=f.cutLength;o.userData.plasterSeams=platformSeamSegments([f],true);o.userData.progress={kind:'platform',stage:35,members:f.moduleIndices,deckIndices:f.moduleIndices.map(i=>plan.decks.findIndex(d=>d.moduleIndices.includes(i))),total:plan.modules.length,deckTotal:plan.decks.length,fasciaIndex,fasciaTotal:plan.fasciaPieces.length,seamEdges:[[...f.A,...f.B]]};}
  const deckRow=d=>plan.modules[d.moduleIndices[0]].row,deckShade=plan.decks.map((d,i)=>(deckRow(d)+plan.decks.slice(0,i).filter(e=>deckRow(e)===deckRow(d)).length)%2);
- for(const [deckIndex,d] of plan.decks.entries()){const o=slabMesh(G,'Platform deck',d.poly,legLength,PLATFORM.height,'platformWood',34,deckIndex,deckShade[deckIndex]);o.userData.plasterSeams=platformSeamSegments(d.edges);o.userData.deckId=d.id;o.userData.progress={kind:'platform',stage:34,module:d.moduleIndices[0],members:d.moduleIndices,fasciaIndices:plan.fasciaPieces.flatMap((f,i)=>f.moduleIndices.some(m=>d.moduleIndices.includes(m))?[i]:[]),fasciaTotal:plan.fasciaPieces.length,total:plan.modules.length,deckIndex,deckTotal:plan.decks.length,seamEdges:d.edges.map(e=>[...e.A,...e.B])};}
+ for(const [deckIndex,d] of plan.decks.entries()){const o=slabMesh(G,'Platform deck',d.poly,legLength,PLATFORM.height,'platformWood',34,deckIndex,deckShade[deckIndex]);o.userData.plasterSeams=platformSeamSegments(d.edges);o.userData.deckId=d.id;o.userData.progress={kind:'platform',stage:34,fill:deckFillLayout(plan,deckIndex),module:d.moduleIndices[0],members:d.moduleIndices,fasciaIndices:plan.fasciaPieces.flatMap((f,i)=>f.moduleIndices.some(m=>d.moduleIndices.includes(m))?[i]:[]),fasciaTotal:plan.fasciaPieces.length,total:plan.modules.length,deckIndex,deckTotal:plan.decks.length,seamEdges:d.edges.map(e=>[...e.A,...e.B])};}
  G.userData.plan=plan;return G;}
 
 // Retrofit cyclorama: the same inset wall path generates the cylindrical sweeps and compound corners.

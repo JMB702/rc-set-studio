@@ -12,7 +12,7 @@ const steps=d=>d.stages.find(s=>s.id==='wall-finishing').steps;
 test('Dressing and filling merge into one plaster step counted in coats; sanding is counted in rounds',()=>{
  const up=projectUpgradeTracking(before()),rows=steps(up);
  assert.deepEqual(rows.map(t=>t.id),['wall-finishing-1','wall-finishing-2','wall-finishing-3','wall-finishing-4']);
- assert.deepEqual(rows.map(t=>t.name),['Apply plaster to joints, corners and fasteners','Sand and clean surfaces','Prime the walls','Paint the walls']);
+ assert.deepEqual(rows.map(t=>t.name),['Apply plaster to joints, corners and fasteners','Sand and clean surfaces','Prime the walls twice, with a 220 sand and touch-ups between','Paint the walls']);
  assert.deepEqual(rows[0].notes.map(n=>n.text),['Started with the corner seams.'],'the merged step keeps the dressing notes');
  assert.equal(rows[0].completedAt,1792446600000,'and its own completion time');
  assert.deepEqual(rows[0].count,{done:2,planned:2});assert.deepEqual(rows[1].count,{done:0,planned:2});

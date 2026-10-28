@@ -5,7 +5,7 @@ import {projectDefaultTracking,projectUpgradeTracking,projectValidate,projectPar
 import {platformRows,floorRows,fillerTubs,fillerQuarts,floorArea,priceRows} from '../public/pricing-calc.js';
 import {platformPlan,deckFillLayout,onOutline} from '../public/platform.js';
 import {floorPlan} from '../public/floor-plan.js';
-import {laborTasks,woodFillHours,sandingHours,SANDER_RENTAL_HOURS} from '../public/labor.js';
+import {laborTasks,woodFillHours,fillSandHours,primerSandHours} from '../public/labor.js';
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url)));
 const design={floorLip:true,seamlessCorners:true,seamlessCornerSide:'right',seamlessPerimeter:false,height:120,angle:90,floor:'charcoal',platformShape:'square',platformAngle:90,platformBack:18,platformSide:18,wallColor:'#34383b',platformColor:'#34383b',floorColor:'#34383b'};
 const steps=(d,id)=>d.stages.find(s=>s.id===id).steps;
@@ -22,9 +22,9 @@ function live(){
 test('The floor and deck steps read fill, sand, prime, paint; ids, percents and notes carry over, once',()=>{
  const before=live(),up=projectUpgradeTracking(before);
  assert.deepEqual(steps(up,'floor').map(t=>t.id),['floor-0','floor-2','floor-upper'],'the fill step leaves the floor build');
- assert.deepEqual(steps(up,'floor-finishing').map(t=>[t.id,t.name,t.percent]),[['floor-1',WOOD_FILLER_STEPS['floor-1'],0],['floor-sand','Sand the floor smooth',0],['floor-3','Prime the floor',0],['floor-paint','Paint the floor (2 coats)',0]]);
+ assert.deepEqual(steps(up,'floor-finishing').map(t=>[t.id,t.name,t.percent]),[['floor-1',WOOD_FILLER_STEPS['floor-1'],0],['floor-sand','Sand filler flush, then a light 180 pass',0],['floor-3','Prime twice, sanding 220 between',0],['floor-paint','Paint the floor (2 coats)',0]]);
  assert.deepEqual(steps(up,'floor-finishing')[2].notes.map(n=>n.text),['Buy paint with the platform.']);
- assert.deepEqual(steps(up,'platform-finishing').map(t=>[t.id,t.name,t.percent]),[['platform-bead','Attach vinyl corner bead',100],['platform-seams','Fill the deck with wood filler; compound the bead and fascia joints',0],['platform-skim','Sand the deck and fascia smooth',0],['platform-prime','Prime the platform',0],['platform-paint','Paint the platform (2 coats)',0]]);
+ assert.deepEqual(steps(up,'platform-finishing').map(t=>[t.id,t.name,t.percent]),[['platform-bead','Attach vinyl corner bead',100],['platform-seams','Fill the deck with wood filler; compound the bead and fascia joints',0],['platform-skim','Sand filler flush, light 180 pass; sand the fascia',0],['platform-prime','Prime the platform twice, sanding 220 between',0],['platform-paint','Paint the platform (2 coats)',0]]);
  assert.deepEqual(before,live(),'the input is not modified');
  assert.equal(projectUpgradeTracking(up),up,'the upgrade runs once');
  assert.deepEqual(steps(projectValidate('tracking',up),'floor-finishing').map(t=>t.id),['floor-1','floor-sand','floor-3','floor-paint']);
@@ -56,10 +56,9 @@ test('Wood filler replaces the skim rows; the primer rows keep their ids and bec
 
 test('Floor labor follows the filler work and both labor notes describe it',()=>{
  const tasks=laborTasks(design),floor=tasks.find(t=>t.id==='floor'),deck=tasks.find(t=>t.id==='platformFinish'),plan=platformPlan(90,18,18,90,design),area=floorArea(90);
- assert.equal(floor.stageHours[25],woodFillHours(Math.ceil(area*2.25),floorPlan(90,design).topSeamLength,area)+sandingHours(area)+SANDER_RENTAL_HOURS);
- // Jeff's estimate for the full sanding rounds: about 3 h on the floor, 2 h on the platform top, 1 h for the rental, once.
- assert.equal(sandingHours(area),3);assert.ok(Math.abs(sandingHours(plan.deckArea)-2)<.1);assert.match(floor.note,/rented orbital floor sander/);assert.match(deck.note,/sharing the floor’s sander rental/);
- assert.match(laborTasks({...design,floor:'none'}).find(t=>t.id==='platformFinish').note,/1 h for the sander rental/);
+ assert.equal(floor.stageHours[25],woodFillHours(Math.ceil(area*2.25),floorPlan(90,design).topSeamLength,area)+fillSandHours(Math.ceil(area*2.25),floorPlan(90,design).topSeamLength,area));
+ assert.equal(floor.stageHours[26],area/200*2+primerSandHours(area),'two primer coats with a 220 sand between');assert.equal(floor.stageHours[27],area/200*2,'two paint coats');
+ assert.doesNotMatch(floor.note+deck.note,/rent|150 grit/);assert.match(floor.note,/light 180 pass/);assert.match(deck.note,/220 sand between/);
  for(const t of [floor,deck]){assert.match(t.note,/wood filler/);assert.doesNotMatch(t.note+t.label,/skim/i);}
  assert.ok(woodFillHours(plan.deckScrews,plan.deckSeamLength,plan.deckArea)>0);
 });
@@ -74,17 +73,26 @@ test('The 3D floor and deck read raw, filler spots, then primer and paint',()=>{
  assert.ok(plan.decks.some((_,i)=>deckFillLayout(plan,i).seams.length),'the deck joints are filled');
 });
 
-test('Building both, the floor and deck share filler tubs and one primer gallon',()=>{
+test('Building both, the floor and deck share filler tubs and primer gallons',()=>{
  const rows=priceRows(data,{scope:'set',...design}),get=id=>rows.find(r=>r.id===id),plan=platformPlan(90,18,18,90,design),area=floorArea(90);
  const quarts=fillerQuarts(Math.ceil(area*2.25),floorPlan(90,design).topSeamLength,area)+fillerQuarts(plan.deckScrews,plan.deckSeamLength,plan.deckArea);
  assert.equal(get('floorFiller').purchaseQuantity+get('platformDeckFiller').purchaseQuantity,Math.ceil(quarts));
- assert.equal(get('floorPrimer').purchaseQuantity+get('platformDeckPrimer').purchaseQuantity,Math.ceil((area+plan.deckArea)/300),'one gallon of bare-wood primer covers both');
+ assert.equal(get('floorPrimer').purchaseQuantity+get('platformDeckPrimer').purchaseQuantity,Math.ceil((area+plan.deckArea)*2/300),'two primer coats over both, pooled');
  for(const id of ['floorFiller','platformDeckFiller','floorPrimer','platformDeckPrimer'])assert.match(get(id).availability,/Shared packs/);
 });
 
-test('The guide sands in full rounds with a floor sander, never a drum or belt, and scuffs the primer',async()=>{
+test('The guide sands only the filler at 120, makes one light 180 pass, and smooths by sanding the primer',async()=>{
  const src=fs.readFileSync(new URL('../public/guide.js',import.meta.url),'utf8');
- for(const stage of ['[25,','[36,']){const text=src.slice(src.indexOf(stage+"'Fill"),src.indexOf(stage+"'Fill")+2500);assert.match(text,/120 grit over everything/);assert.match(text,/then 150 grit over everything/);assert.match(text,/Never use a drum or belt sander/);assert.match(text,/respirator/);assert.match(text,/5″ random-orbit/);assert.doesNotMatch(text,/180/);}
- assert.match(src,/never hangs over the vinyl bead/);
- for(const stage of ["[26,'Prime the bare wood'","[37,'Prime the platform'"]){const text=src.slice(src.indexOf(stage),src.indexOf(stage)+700);assert.match(text,/scuff .*220 grit/);}
+ for(const stage of ['[25,','[36,']){const text=src.slice(src.indexOf(stage+"'Fill"),src.indexOf(stage+"'Fill")+2500);assert.match(text,/sand only the filled spots with 120 grit/);assert.match(text,/do not sand the whole surface at 120/);assert.match(text,/one light 180-grit pass/);assert.match(text,/work light held low/);assert.match(text,/feather more filler over any seam lip/);assert.match(text,/respirator and knee pads/);assert.doesNotMatch(text,/rented|150 grit|floor sander/);}
+ assert.match(src,/Split the floor over more than one session/);assert.match(src,/never hangs over the vinyl bead/);
+ for(const stage of ["[26,'Prime the floor twice","[37,'Prime the platform twice"]){const text=src.slice(src.indexOf(stage),src.indexOf(stage)+900);assert.match(text,/first coat/);assert.match(text,/220 grit/);assert.match(text,/second coat/);assert.match(text,/dust nibs/);}
+});
+
+test('The walls get two KILZ 2 coats with a work-light check, a 220 sand and Easy Sand 45 touch-ups between',async()=>{
+ const src=fs.readFileSync(new URL('../public/guide.js',import.meta.url),'utf8'),text=src.slice(src.indexOf("[72,'Prime the walls twice"),src.indexOf("[73,'Paint the walls'"));
+ const order=['first coat of KILZ 2','rake a work light','mark every flaw in pencil','220 grit','Do not sand through the primer into the compound','Easy Sand 45','spot-prime them','second coat of KILZ 2','very lightly with 220','two coats of Carbon flat'];
+ let at=-1;for(const phrase of order){const i=text.indexOf(phrase);assert.ok(i>at,phrase);at=i;}
+ const rows=priceRows(data,{scope:'set',...design}),touch=rows.find(r=>r.id==='wallTouchup');assert.equal(touch.productUrl,'https://www.homedepot.com/p/100321610');assert.equal(touch.purchaseQuantity,1);assert.equal(touch.unitPriceCents,1298);
+ const up=projectUpgradeTracking({stages:[{id:'wall-finishing',name:'Dress, prime and paint — Walls',notes:[],steps:[{id:'wall-finishing-3',name:'Prime the walls',percent:40,notes:[]}]}]});assert.deepEqual(up.stages[0].steps.map(t=>[t.name,t.percent]),[['Prime the walls twice, with a 220 sand and touch-ups between',40]]);
+ const walls=laborTasks(design).find(t=>t.id==='wallFinish');assert.match(walls.note,/two primer coats with a work-light check, 220 sand and Easy Sand 45 touch-ups between/);
 });

@@ -113,9 +113,9 @@ are based on the unchanged top area. PL 400 adhesive in 1/4-inch serpentine bead
 about 6 inches apart and #8x1.25 screws on an 8-inch grid join the layers;
 never fasten into the concrete.
 Wood filler (DAP Plastic Wood-X) in the top-layer seams, screw holes and marks,
-sanded in full rounds (120 then 150 grit), one coat of BEHR Multi-Surface
-Stain-Blocking Primer & Sealer (436) on the bare wood, then two coats of floor
-paint. No epoxy or polyurethane wear finish. (Replaced the Rapid Set SKIM FLOOR
+sanded flush at 120 with one light 180 pass, two coats of BEHR Multi-Surface
+Stain-Blocking Primer & Sealer (436) with a 220 sand between, then two coats of
+floor paint. No epoxy or polyurethane wear finish. (Replaced the Rapid Set SKIM FLOOR
 cement skim on Oct 23, 2026; see WOOD FILLER FINISH below.)
 Floor and platform paint: BEHR PREMIUM Porch & Patio low-lustre tinted Carbon
 N520-7, the same color code as the flat wall paint, bought as one batch.
@@ -170,7 +170,8 @@ Frame seams retain #9x3 screws through adjoining rims, about every 12,
 both sides. Deck joints remain supported by rims or joists; no second deck layer.
 Fascia: 0.106 lauan, 10 tall, glued and stapled to the top and bottom rims.
 Finish: wood filler in the deck joints, screw holes and marks, sanded flush,
-BEHR 436 bare-wood primer and two coats of floor paint, like the floor. No epoxy
+two coats of BEHR 436 bare-wood primer with a 220 sand between and two coats of
+floor paint, like the floor. No epoxy
 or polyurethane. User accepts touch-up work. On vertical fascia only: paper tape,
 premixed all-purpose compound, corner bead, KILZ 2 and matching paint; on the
 deck, compound stays on the bead's 1-1/4 in flange. Stay assembled after
@@ -355,16 +356,27 @@ smooth, prime, then the finish coats. Product: DAP Plastic Wood-X with DryDex,
 1 qt tub (Home Depot 206667347, $18.98, in stock at E Bradenton #6319 on Oct 23).
 It goes on pink and dries natural, which shows when it is ready to sand. Planned
 volume: 0.02 cu in per countersunk screw hole, 0.6 cu in per foot of filled
-seam, 0.1 cu in per sq ft for marks, +15%, at about 35 cu in per tub. Sanding
-in full rounds over the whole floor and the whole platform top: 120 grit to
-bring the filler flush, then 150 grit, vacuuming and damp-wiping between grits;
-after the primer, a 220-grit scuff and vacuum before the two paint coats. Use a
-rented orbital floor sander (about 100 lb; weight plate off to lift it onto the
-10 in platform) and a 5 in random-orbit sander for the last ~3 in along the
-platform edges and the walls, so the pad never hangs over the vinyl bead. Never a
-drum or belt sander: the face veneer is about 1/32 in, so stop if a different
-colored layer shows. Wear a respirator. Labor: about 3 h floor and 2 h platform
-top for the sanding rounds, plus about 1 h to pick up and return the rental. Primer: BEHR Multi-Surface
+seam, 0.1 cu in per sq ft for marks, +15%, at about 35 cu in per tub. Sanding,
+revised Oct 27 with Jeff's 5 in random-orbit (DA) sander and no rental: 120 grit
+on the filled spots only, until flush; one light 180 pass over the whole surface
+for grain raised by the latex filler; vacuum and damp-wipe. The plywood face is
+factory-sanded and only about 1/32 in thick, so there are no whole-surface 120
+or 150 rounds and never a drum or belt sander; stop if a different colored layer
+shows. Before priming, check with a work light held low; feather more filler
+over any seam lip instead of sanding into the veneer. Smoothness comes from the
+primer: coat 1, a light 220 sand (the smoothing step), vacuum and wipe, coat 2,
+a very light 220 scuff for dust nibs, then two coats of Porch & Patio. On the
+platform keep the pad about 3 in back from the edges so it never hangs over the
+vinyl bead. Respirator and knee pads; split the floor over more than one
+session. Primer and paint are two coats each on the walls, floor and platform.
+Walls and the rounded corner (stage 72): KILZ 2 coat 1; rake a work light across
+each wall and mark flaws in pencil; a light 220 sand (sponge or DA) for raised
+lauan grain, nibs and small ridges, never through the primer into the compound;
+skim real dips, pits and seam lines with Easy Sand 45 (USG 18 lb, Home Depot
+100321610, $12.98, 167 in stock at #6319 on Oct 27), sand flush and spot-prime
+so the patches do not flash; KILZ 2 coat 2 and a very light 220 scuff; then two
+coats of the Carbon flat.
+Primer: BEHR Multi-Surface
 Stain-Blocking Primer & Sealer 436 (Home Depot 100205766, $30.98, in stock at
 #6319), which Behr lists for Porch & Patio; Behr says to prime bare wood and to
 apply two coats of Porch & Patio. The platform fascia keeps its finish. The

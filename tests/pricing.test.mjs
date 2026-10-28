@@ -104,7 +104,7 @@ test('Floor and platform are independent: either, both or neither are priced',()
 
 test('Platform walking surface uses wood filler while drywall products are fascia-only',()=>{
  const rows=platformRows(data,45),plan=platformPlan(45,12,12);
- assert.equal(rows.find(r=>r.id==='platformDeckFiller').productUrl,'https://www.homedepot.com/p/206667347');assert.equal(rows.some(r=>r.id==='platformDeckSkim'),false);
+ assert.equal(rows.find(r=>r.id==='platformDeckFiller').productUrl,'https://www.homedepot.com/p/205337025');assert.equal(rows.some(r=>r.id==='platformDeckSkim'),false);
  assert.match(rows.find(r=>r.id==='platformCompound').name,/fascia only/);
  assert.equal(rows.find(r=>r.id==='platformCompound').purchaseQuantity,Math.ceil((plan.finishArea-plan.deckArea)/150));
  assert.equal(rows.find(r=>r.id==='platformDeck').purchaseQuantity,plan.deckSheets);
@@ -142,7 +142,7 @@ test('Wall and fascia finishes use premixed tubs with paper tape while the floor
  const rows=priceRows(data,{scope:'set',height:120,angle:90,floor:'charcoal',platformShape:'square'});
  for(const id of ['wallSeams','platformCompound']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321605');assert.equal(r.purchaseQuantity,id==='wallSeams'?1:0);assert.equal(r.unitPriceCents,2368);}
  for(const id of ['wallSeamTape','platformTape']){const r=rows.find(r=>r.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100321613');assert.equal(r.purchaseQuantity,id==='wallSeamTape'?1:0);assert.equal(r.unitPriceCents,328);}
- for(const id of ['floorFiller','platformDeckFiller'])assert.equal(rows.find(r=>r.id===id).productUrl,'https://www.homedepot.com/p/206667347');
+ for(const id of ['floorFiller','platformDeckFiller'])assert.equal(rows.find(r=>r.id===id).productUrl,'https://www.homedepot.com/p/205337025');
  for(const id of ['floorPrimer','platformDeckPrimer'])assert.equal(rows.find(r=>r.id===id).productUrl,'https://www.homedepot.com/p/100205766');
 });
 

@@ -7,15 +7,17 @@ export const money=c=>c===null?'Price pending':new Intl.NumberFormat('en-US',{st
 export function floorArea(angle){const c=Math.cos(angle*Math.PI/180),s=Math.sin(angle*Math.PI/180);return 128+128*c-64*c*s;}
 function extra(id,name,qty,price,url,note,group='floor'){return {id,name,purchaseQuantity:qty,unitPriceCents:price,subtotalCents:price===null||qty===null?null:price*qty,productUrl:url.startsWith('http')?url:'https://www.homedepot.com/p/'+url,availability:note,group,needed:qty,packSize:1};}
 // The painted floor's top and the platform deck are finished with wood filler, not a cement skim (Jeff, Oct 23, 2026):
-// fill the seams, screw holes and marks, sand flush, prime bare wood, two finish coats. DAP Plastic Wood-X comes in a
-// 1 qt tub (32 oz net, 907 g); planned at about 35 cu in of filler per tub. A countersunk screw hole takes about
+// fill the seams, screw holes and marks, sand flush, prime bare wood, two finish coats. A countersunk screw hole takes about
 // 0.02 cu in, a filled and feathered seam about 0.6 cu in per foot, and marks and voids about 0.1 cu in per sq ft; +15%.
-export const FILLER={cubicInchesPerTub:35,perScrew:.02,perSeamFoot:.6,perSqFt:.1,allowance:1.15};
+// Oct 27: Jeff uses DAP Plastic Wood Latex, natural, 32 oz tub. Latex filler shrinks on deep fills (a second pass), and
+// knife and tub losses and feathering wider than the seam use more than the volume left in the wood, so a tub is planned
+// at 15 cu in of finished fill. That matches what Jeff is seeing on the floor: 5 tubs for this floor and deck.
+export const FILLER={cubicInchesPerTub:15,perScrew:.02,perSeamFoot:.6,perSqFt:.1,allowance:1.15};
 export function fillerQuarts(screws,seamInches,area){return (screws*FILLER.perScrew+seamInches/12*FILLER.perSeamFoot+area*FILLER.perSqFt)*FILLER.allowance/FILLER.cubicInchesPerTub;}
 export function fillerTubs(screws,seamInches,area){return Math.max(1,Math.ceil(fillerQuarts(screws,seamInches,area)));}
 // Bare-wood primer listed by Behr for Porch & Patio: BEHR Multi-Surface Stain-Blocking Primer & Sealer (436), planned at 300 sq ft/gallon.
 const PRIMER_SQFT_PER_GALLON=300;
-const woodFiller=(id,tubs,note,group)=>({...extra(id,'DAP Plastic Wood-X with DryDex wood filler · natural · 1 qt (32 oz) tub',tubs,1898,'206667347',`Checked Oct 23 at #6319 · 7 in stock for pickup ($18.98 shown with Bradenton #244 selected) · ${note}; planned at about ${FILLER.cubicInchesPerTub} cu in per tub + 15%. Dries pink to natural so you know when to sand`,group),observedStock:7});
+const woodFiller=(id,tubs,note,group)=>({...extra(id,'DAP Plastic Wood Latex wood filler · natural · 32 oz tub',tubs,1598,'205337025',`Checked Oct 27 at #6319 · 27 in stock for pickup (18 at Bradenton #244) · ${note}; planned at about ${FILLER.cubicInchesPerTub} cu in of finished fill per tub (latex shrinks, so deep fills take a second pass) + 15%. Jeff's filler`,group),observedStock:27});
 const bareWoodPrimer=(id,area,where,group)=>({...extra(id,`BEHR Multi-Surface Stain-Blocking Primer & Sealer (436) · ${where}bare wood · gallon`,Math.ceil(area*2/PRIMER_SQFT_PER_GALLON),3098,'100205766',`Checked Oct 23 at #6319 · 8 in stock for pickup ($30.98 shown with Bradenton #244 selected) · two coats on the sanded plywood and filler with a 220 sand between, ${area.toFixed(0)} sq ft at a planned ${PRIMER_SQFT_PER_GALLON} sq ft/gallon. Behr lists it as a primer for Porch & Patio floor paint`,group),observedStock:8});
 // Prices observed for Home Depot #6319 (5475 University Pkwy) on Oct 10, 2026, with that store selected.
 function stocked(row,stock){return {...row,observedStock:stock};}

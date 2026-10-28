@@ -132,11 +132,11 @@ export function installPricing(api){
   const shipping=document.createElement('div');shipping.className='price-fulfillment';for(const line of fulfillmentLines(r,purchase)){const item=document.createElement('small');item.textContent=line.text;if(line.checkedDate)item.title=`Availability checked ${line.checkedDate}`;shipping.append(item);}
   const more=document.createElement('div');more.className='price-item-more';more.append(note);
   if(r.productUrl){const a=document.createElement('a');a.textContent=r.custom?'View link ↗':new URL(r.productUrl).hostname.endsWith('lowes.com')?'Lowe’s ↗':'Home Depot ↗';a.href=r.productUrl;a.target='_blank';a.rel='noopener';more.append(a);}
-  if(r.custom){const remove=document.createElement('button');remove.type='button';remove.className='price-remove-custom';remove.textContent='Remove item';remove.onclick=()=>{customItems=customItems.filter(i=>i.id!==r.id);render(false);};more.append(remove);}
+  if(r.custom&&customItems.some(i=>i.id===r.id)){const remove=document.createElement('button');remove.type='button';remove.className='price-remove-custom';remove.textContent='Remove item';remove.onclick=()=>{customItems=customItems.filter(i=>i.id!==r.id);render(false);};more.append(remove);}
   content.append(button,meta);if(shipping.childElementCount)content.append(shipping);content.append(more);article.append(content);return article;}
  const openGroups=new Set();
  function render(rebuild=true){if(!data)return;
-  rows=customizeRows(priceRows(data,{scope,height:S.height,angle:S.angle,floor:S.floor,platformShape:S.platformShape,platformBack:S.platformBack,platformSide:S.platformSide,platformAngle:S.platformAngle,platformFront:S.platformFront??0,floorLip:S.floorLip===true,seamlessCorners:S.seamlessCorners,seamlessCornerSide:S.seamlessCornerSide??'both',seamlessPerimeter:S.seamlessPerimeter,supports:true,ballast:true,finishes:true}),{excluded,customItems});
+  rows=customizeRows(priceRows(data,{scope,height:S.height,angle:S.angle,floor:S.floor,platformShape:S.platformShape,platformBack:S.platformBack,platformSide:S.platformSide,platformAngle:S.platformAngle,platformFront:S.platformFront??0,floorLip:S.floorLip===true,seamlessCorners:S.seamlessCorners,seamlessCornerSide:S.seamlessCornerSide??'both',seamlessPerimeter:S.seamlessPerimeter,supports:true,ballast:true,finishes:true}),{excluded,customItems:[...customItems,...(finance?.extraItems||[])]});
   if(!rows.some(r=>r.id===selected))selected=null;
   q('#price-design-line').textContent=designText();
   const projection=api.projection(),purchases=new Map(projection?.materials.plan.map(p=>[p.row.id,p])||[]),groups=new Map(),toBuy=projection?rows.filter(r=>!['bought','notNeeded'].includes(purchases.get(r.id)?.status)):rows,notNeeded=projection?rows.filter(r=>purchases.get(r.id)?.status==='notNeeded'):[];
@@ -176,7 +176,10 @@ export function installPricing(api){
  api.projectBudget=()=>data?pricingBudget(data,snapshot(),laborFor(S)):null;
  // The full-set shopping list as priced here, with added costs.
  api.agentConfiguration=()=>snapshot();
- api.projectRows=()=>{if(!data)return [];const c=snapshot();return customizeRows(priceRows(data,{...c,scope:'set'}),c);};
+ // Extra items still to buy live on the shared finance record (Cost projection), so every viewer counts the same total.
+ api.projectRows=(f=finance)=>{if(!data)return [];const c=snapshot();return customizeRows(priceRows(data,{...c,scope:'set'}),{...c,customItems:[...c.customItems,...(f?.extraItems||[])]});};
+ // The projection for a finance record that is not saved yet (Cost projection freezes the agreed total from it).
+ api.projectionFor=f=>data&&f?projectCost({rows:api.projectRows(f),finance:f,tracking,design:S,labor:laborFor(S)}):null;
  api.projection=()=>data&&finance?projectCost({rows:api.projectRows(),finance,tracking,design:S,labor:laborFor(S)}):null;
  window.addEventListener('project-finance-changed',e=>{finance=e.detail;if(data)render(false);});
  for(const type of ['project-tracking-loaded','project-tracking-changed'])window.addEventListener(type,e=>{tracking=e.detail;if(data&&finance)showReview();});

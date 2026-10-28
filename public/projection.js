@@ -148,9 +148,35 @@ export function projectLabor(labor,{design,tracking,shifts=[],crew=null,supply=0
 export function projectCost({rows,finance,tracking,design,labor,now=Date.now()}){
  const materials=projectMaterials(rows,finance?.expenses||[],finance?.notNeeded||[]);
  const work=projectLabor(labor,{design,tracking,shifts:finance?.shifts||[],crew:finance?.crew||null,supply:supplyProgress(materials),now});
- const estimateCents=materials.estimateCents+(labor.costCents??0),spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents+work.remainingCents;
- const quoteCents=finance?.budgetCents??null,baselineCents=quoteCents??estimateCents;
- return {materials,labor:work,estimateCents,quoteCents,baselineCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-baselineCents,estimateVarianceCents:spentCents+toGoCents-estimateCents};
+ const estimateCents=materials.estimateCents+(labor.costCents??0),quoteCents=finance?.budgetCents??null;
+ if(finance?.fixedPrice){
+  const fixed=projectFixedPrice({fixed:finance.fixedPrice,materials,work,shifts:finance.shifts||[],expenses:finance.expenses||[],shoppingIds:new Set(labor.tasks.filter(t=>t.stage==='Shopping').map(t=>t.id)),now});
+  const baselineCents=finance.fixedPrice.agreedTotalCents??quoteCents??estimateCents;
+  return {materials,labor:work,fixed,estimateCents,quoteCents,agreedCents:finance.fixedPrice.agreedTotalCents??null,baselineCents,spentCents:fixed.spentCents,toGoCents:fixed.toGoCents,projectedCents:fixed.projectedCents,varianceCents:fixed.projectedCents-baselineCents,quoteVarianceCents:quoteCents===null?null:fixed.projectedCents-quoteCents,estimateVarianceCents:fixed.projectedCents-estimateCents};
+ }
+ const spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents+work.remainingCents;
+ const baselineCents=quoteCents??estimateCents;
+ return {materials,labor:work,fixed:null,estimateCents,quoteCents,agreedCents:null,baselineCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-baselineCents,quoteVarianceCents:quoteCents===null?null:spentCents+toGoCents-quoteCents,estimateVarianceCents:spentCents+toGoCents-estimateCents};
+}
+// The start of a YYYY-MM-DD day in local time: work logged from then on falls under the fixed price.
+export function dayStart(date){const [y,m,d]=date.split('-').map(Number);return new Date(y,m-1,d).getTime();}
+// Fixed price to finish (finance.fixedPrice). Everything before startDate stays time and materials: receipts dated
+// before it and time entries that start before it. From startDate the client pays laborCents flat, however many hours
+// it takes (time entries still count for Jeff's own check, and shopping trips are off the clock), plus materials at
+// cost: receipts on or after startDate and everything still to buy with its estimated tax.
+export function projectFixedPrice({fixed,materials,work,shifts=[],expenses=[],shoppingIds=new Set(),now=Date.now()}){
+ const start=dayStart(fixed.startDate),earlier=shifts.filter(s=>s.start<start),later=shifts.filter(s=>s.start>=start),cost=s=>projectShiftCost(s,now);
+ const priorLaborCents=earlier.reduce((n,s)=>n+cost(s).cents,0),priorLaborHours=earlier.reduce((n,s)=>n+cost(s).hours,0);
+ const priorMaterialsCents=expenses.filter(e=>e.date<fixed.startDate).reduce((n,e)=>n+e.amountCents,0),laterMaterialsCents=expenses.filter(e=>e.date>=fixed.startDate).reduce((n,e)=>n+e.amountCents,0);
+ const toBuyCents=materials.remainingCents+materials.remainingTaxCents,priorCents=priorLaborCents+priorMaterialsCents;
+ const shopping=later.filter(s=>shoppingIds.has(s.taskId)),build=later.filter(s=>!shoppingIds.has(s.taskId));
+ const loggedHours=build.reduce((n,s)=>n+cost(s).hours,0),shoppingHours=shopping.reduce((n,s)=>n+cost(s).hours,0);
+ const remainingHours=work.tasks.filter(t=>t.stage!=='Shopping').reduce((n,t)=>n+t.remainingExact,0),budgetHours=fixed.laborCents/fixed.rateCents,totalHours=loggedHours+remainingHours;
+ const r2=v=>Math.round(v*100)/100;
+ return {startDate:fixed.startDate,laborCents:fixed.laborCents,rateCents:fixed.rateCents,priorCents,priorLaborCents,priorLaborHours:r2(priorLaborHours),priorMaterialsCents,laterMaterialsCents,toBuyCents,
+  spentCents:priorCents+laterMaterialsCents,toGoCents:fixed.laborCents+toBuyCents,projectedCents:priorCents+fixed.laborCents+laterMaterialsCents+toBuyCents,
+  loggedHours:r2(loggedHours),shoppingHours:r2(shoppingHours),remainingHours:r2(remainingHours),budgetHours:r2(budgetHours),projectedHours:r2(totalHours),
+  effectiveRateCents:totalHours>0?Math.round(fixed.laborCents/totalHours):null,overBudget:totalHours>budgetHours,overHours:r2(Math.max(0,totalHours-budgetHours))};
 }
 
 // How long each tracker milestone takes, in person-hours: the hours actually logged for work already done, plus the

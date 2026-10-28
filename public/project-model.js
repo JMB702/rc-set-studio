@@ -397,8 +397,11 @@ export function projectReconcileGuideChecks(previous,next){
 // The floor gains a sanding step and a separate finish-coat step, and its fill step moves into the floor finishing
 // stage so the order reads fill, sand, prime, paint. The platform keeps its five steps under new names; its fascia
 // keeps the joint compound.
-export const WOOD_FILLER_STEPS={'floor-1':'Fill seams, screw holes and marks with wood filler','floor-sand':'Sand the floor smooth','floor-3':'Prime the floor','floor-paint':'Paint the floor (2 coats)','platform-seams':'Fill the deck with wood filler; compound the bead and fascia joints','platform-skim':'Sand the deck and fascia smooth','platform-paint':'Paint the platform (2 coats)'};
-const SKIM_STEP_NAMES={'floor-1':['Prepare the base','Prepare underlayment / cement skim'],'floor-3':['Finish and trim','Prime, paint and trim floor'],'platform-seams':['Patch seams and corners'],'platform-skim':['Tape, skim and sand','Skim and sand the full surface','Cement-skim deck and finish fascia'],'platform-paint':['Paint the platform']};
+// Oct 27: no whole-surface sanding of the thin face veneer. Filled spots are sanded flush at 120 with one light 180 pass, and
+// smoothness comes from two primer coats with a 220 sand between.
+export const WOOD_FILLER_STEPS={'floor-1':'Fill seams, screw holes and marks with wood filler','floor-sand':'Sand filler flush, then a light 180 pass','floor-3':'Prime twice, sanding 220 between','floor-paint':'Paint the floor (2 coats)','platform-seams':'Fill the deck with wood filler; compound the bead and fascia joints','platform-skim':'Sand filler flush, light 180 pass; sand the fascia','platform-prime':'Prime the platform twice, sanding 220 between','platform-paint':'Paint the platform (2 coats)'};
+// Earlier names of these steps, including the Oct 23 wood-filler names, so live trackers pick up the current wording.
+const SKIM_STEP_NAMES={'floor-1':['Prepare the base','Prepare underlayment / cement skim'],'floor-sand':['Sand the floor smooth'],'floor-3':['Finish and trim','Prime, paint and trim floor','Prime the floor'],'platform-seams':['Patch seams and corners'],'platform-skim':['Tape, skim and sand','Skim and sand the full surface','Cement-skim deck and finish fascia','Sand the deck and fascia smooth'],'platform-prime':['Prime the platform'],'platform-paint':['Paint the platform']};
 export function projectUpgradeWoodFiller(input){
  const rows=input.stages.flatMap(s=>s.steps),renames=rows.some(t=>SKIM_STEP_NAMES[t.id]?.includes(t.name)),floor=rows.some(t=>t.id==='floor-1')&&rows.some(t=>t.id==='floor-3')&&!rows.some(t=>t.id==='floor-sand');
  if(!renames&&!floor)return input;

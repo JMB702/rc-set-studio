@@ -111,7 +111,7 @@ test('Finishing runs walls, then floor, then platform; the platform moves in onl
  assert.deepEqual(fin('none',{...cfg,platformShape:'none'}),[28,72,73]);
  const all=Array.from(context.steps(120,'charcoal',cfg)),by=n=>all.find(s=>s.stage===n);
  assert.match(by(74).description,/never drag it across the paint/);assert.match(by(79).description,/drop cloth over the painted floor/);
- assert.equal(by(37).title,'Prime the platform');assert.equal(by(75).title,'Paint the platform');assert.match(by(22).description,/plywood floor/);
+ assert.equal(by(37).title,'Prime the platform twice, sanding between');assert.equal(by(75).title,'Paint the platform');assert.match(by(22).description,/plywood floor/);
  assert.ok(all.filter(s=>s.section==='floor').every(s=>[23,24,42].includes(s.stage)),'only the plywood layers are laid in the floor build');
 });
 

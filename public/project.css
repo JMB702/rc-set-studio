@@ -170,3 +170,14 @@ body.project-module .controls>:not(#project-tabs):not(#project-panel){display:no
 }
 .pj-summary-sheet header{display:block;position:static;height:auto;background:none}
 .pj-summary-sheet table{table-layout:auto}.pj-summary-sheet td:first-child{width:100%}.pj-summary-sheet td:last-child{width:1%}
+/* Time entries grouped by person: collapsed to each person's total, open to see and edit the entries. */
+.pj-person{border-bottom:1px solid var(--pj-line)}
+.pj-person>summary{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;column-gap:12px;align-items:center;padding:12px 4px;cursor:pointer;list-style:none}
+.pj-person>summary::-webkit-details-marker{display:none}
+.pj-person>summary span{display:flex;flex-direction:column;gap:2px;grid-row:span 2}
+.pj-person>summary span strong::before{content:'▸';display:inline-block;width:14px;color:#6e7e73;transition:transform .15s}
+.pj-person[open]>summary span strong::before{transform:rotate(90deg)}
+.pj-person>summary small{color:#6e7e73;font-size:12px;padding-left:14px}
+.pj-person>summary b{font-size:16px;font-variant-numeric:tabular-nums;text-align:right}
+.pj-person>summary em{font-style:normal;color:#6e7e73;font-size:12px;text-align:right;font-variant-numeric:tabular-nums}
+.pj-person>.pj-row{padding-left:18px;background:#f8faf7}

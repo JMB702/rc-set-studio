@@ -1,6 +1,6 @@
 import {createProgressIntro} from './progress-intro.js';
 import {mountProgressMotion} from './progress-motion.js';
-import {PROJECT_COUNTED_STEPS,projectSetStepCount,projectTotals,projectShiftCost,projectSplitShift,projectStagePercent,projectStageWeight,projectProgress,projectAssembly,projectSetAssemblyCounts,projectCountMilestones,projectGuideGroups,projectBuildDesign,projectVisibleTracking} from './project-model.js';
+import {PROJECT_COUNTED_STEPS,projectSetStepCount,projectTotals,projectShiftCost,projectHoursByPerson,projectSplitShift,projectStagePercent,projectStageWeight,projectProgress,projectAssembly,projectSetAssemblyCounts,projectCountMilestones,projectGuideGroups,projectBuildDesign,projectVisibleTracking} from './project-model.js';
 import {designLine,defaultDesign} from './design.js';
 import {cycloramaPlan,ribCutPlan} from './cyclorama.js';
 import {readProjectReceipt} from './project-receipts.js';
@@ -30,7 +30,7 @@ export function installProject(api){
  guideDialog.addEventListener('close',()=>{stopProgressMotion();tabs.after(host);layout();progressButton.focus({preventScroll:true});});
  const dialog=document.createElement('dialog');dialog.className='project-dialog';dialog.setAttribute('aria-labelledby','pj-dialog-title');document.body.append(dialog);
  let stopProgressMotion=()=>{};
- let selected='tracking',records={},access=null,busy=false,openStages=new Set(['walls']),clockTimer,dragged=null,loadSequence=0;
+ let selected='tracking',records={},access=null,busy=false,openStages=new Set(['walls']),openPeople=new Set(),clockTimer,dragged=null,loadSequence=0;
  const get=kind=>records[kind]?.data;
  // The page head starts the first tracking fetch while modules download; each consumer uses it once.
  // Saved progress is read through the project's build design, not whatever this browser last explored.
@@ -137,7 +137,11 @@ export function installProject(api){
  ${unlinked.length?`<p class="pj-rate-notice">${unlinked.length===1?'One purchase is':`${unlinked.length} purchases are`} not linked to the shopping list, so ${unlinked.length===1?'its':'their'} materials are still counted as to-buy. Tap ${unlinked.length===1?'it':'them'} to link the items bought.</p>`:''}
  <div class="pj-rows">${data.expenses.length?data.expenses.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(e=>button('edit-expense',`<span><strong>${escape(e.vendor)}</strong><small>${escape(e.date)}${e.receiptId?' · receipt':''} · ${linkSummary(e,p)}</small></span><b>${usd(e.amountCents)}</b>`,'pj-row',`data-id="${e.id}"`)).join('')+`<div class="pj-row-total"><span>Total · ${data.expenses.length} ${data.expenses.length===1?'purchase':'purchases'}</span><b>${usd(data.expenses.reduce((n,e)=>n+e.amountCents,0))}</b></div>`:'<p class="pj-empty-line">No purchases yet.</p>'}</div>
  <div class="pj-section-head"><h3>Time entries</h3>${button('add-shift','+ Time','pj-text')}</div>
- <div class="pj-rows">${data.shifts.length?data.shifts.slice().sort((a,b)=>b.start-a.start).map(s=>{const cost=projectShiftCost(s);return button('edit-shift',`<span><strong>${escape(data.crew.find(c=>c.id===s.personId)?.name||'Crew member')} · ${cost.hours.toFixed(2)} h</strong><small>${stamp(s.start)} → ${s.end===null?'on the clock':shortTime(s.end)} · ${stageLabel(s,p)}</small></span><b>${usd(cost.cents)}</b>`,'pj-row',`data-id="${s.id}"`);}).join('')+(()=>{const all=data.shifts.map(s=>projectShiftCost(s));return `<div class="pj-row-total"><span>Total · ${all.reduce((n,c)=>n+c.hours,0).toFixed(2)} h</span><b>${usd(all.reduce((n,c)=>n+c.cents,0))}</b></div>`;})():'<p class="pj-empty-line">Clock in or add a past shift.</p>'}</div>
+ <div class="pj-rows pj-people">${(()=>{if(!data.shifts.length)return '<p class="pj-empty-line">Clock in or add a past shift.</p>';
+  // Grouped by person, collapsed to each person's total; open a person to see, edit and split their entries.
+  const since=data.fixedPrice?.startDate||null,by=projectHoursByPerson(data,{since,offClock:Object.keys(shoppingNames)}),label=since?dayLabel(since):'';
+  const entry=s=>{const cost=projectShiftCost(s);return button('edit-shift',`<span><strong>${cost.hours.toFixed(2)} h${s.end===null?' · on the clock':''}</strong><small>${stamp(s.start)} → ${s.end===null?'now':shortTime(s.end)} · ${stageLabel(s,p)}</small></span><b>${usd(cost.cents)}</b>`,'pj-row',`data-id="${s.id}"`);};
+  return by.people.map(g=>`<details class="pj-person" data-person="${escape(g.name)}"${openPeople.has(g.name)?' open':''}><summary><span><strong>${escape(g.name)}</strong><small>${g.shifts.length} ${g.shifts.length===1?'entry':'entries'}${g.archived?' · removed':''}${since?` · ${g.sinceHours.toFixed(2)} h since ${label}`:''}</small></span><b data-person-hours>${g.hours.toFixed(2)} h</b><em>${usd(g.cents)}</em></summary>${g.shifts.map(entry).join('')}</details>`).join('')+`<div class="pj-row-total"><span>Total · ${by.people.length} ${by.people.length===1?'person':'people'}${since?` · ${by.sinceHours.toFixed(2)} h since ${label}`:''}</span><b data-hours-total>${by.hours.toFixed(2)} h · ${usd(by.cents)}</b></div>`;})()}</div>
  <div class="pj-section-head"><h3>Crew</h3>${button('add-person','+ Person','pj-text')}</div>
  <div class="pj-crew-list">${crew.map(c=>{const shift=active.find(s=>s.personId===c.id);return `<div class="pj-crew-row${shift?' on':''}">${button('edit-person',`<strong>${escape(c.name)}</strong><small>${shift?`<i class="pj-live-dot"></i>In since ${shortTime(shift.start)}${shift.taskId?` · ${escape(taskName(shift.taskId))}`:''}`:`${usd(c.rateCents)}/hr`}</small>`,'pj-crew-name',`data-id="${c.id}" aria-label="Edit ${escape(c.name)}"`)}${button(shift?'clock-out':'clock-in',svg('clock')+(shift?' Clock out':' Clock in'),shift?'pj-clock-out':'pj-clock-in',`data-id="${c.id}"`)}</div>`;}).join('')}</div>
  ${data.crew.some(c=>c.archived)?`<details class="pj-archived"><summary>Removed crew</summary>${data.crew.filter(c=>c.archived).map(c=>`<div class="pj-section-head"><span>${escape(c.name)}</span>${button('restore-person','Restore','pj-text',`data-id="${c.id}"`)}</div>`).join('')}</details>`:''}`;
@@ -318,6 +322,7 @@ export function installProject(api){
  if(a==='delete-note')return confirm('Remove note?','This note will be removed from the production tracker.',()=>mutate('tracking',x=>{const row=noteTarget(x,stageId,stepId);row.notes=row.notes.filter(n=>n.id!==id);}));
  if(a==='edit-note'){const n=noteTarget(t,stageId,stepId).notes.find(n=>n.id===id);return form('Edit note',noteField(n.text),v=>mutate('tracking',x=>{const note=noteTarget(x,stageId,stepId).notes.find(n=>n.id===id);if(!v.get('note').trim())throw Error('Enter a note.');note.text=v.get('note').trim();}));}
  }
+ host.addEventListener('toggle',e=>{const d=e.target;if(d.matches?.('details.pj-person')){d.open?openPeople.add(d.dataset.person):openPeople.delete(d.dataset.person);}},true);
  host.onclick=e=>run(()=>action(e));dialog.addEventListener('click',e=>run(()=>action(e)));
  host.ondragstart=e=>{if(e.target.closest('input,textarea,select')){e.preventDefault();return;}const step=e.target.closest('[data-step]'),stage=e.target.closest('[data-stage]');if(!stage)return;dragged=step?{id:step.dataset.step,stageId:step.dataset.stageId}:{id:stage.dataset.stage};e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragged.id);};
  host.ondragover=e=>{if(dragged){e.preventDefault();e.dataTransfer.dropEffect='move';}};

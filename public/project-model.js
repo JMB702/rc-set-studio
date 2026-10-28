@@ -99,6 +99,19 @@ export function projectSplitShift(shift,at,{before,after,id=crypto.randomUUID(),
  const keep=v=>v===undefined?shift.taskId??null:v||null;
  return [{...shift,end:at,taskId:keep(before)},{...shift,id,start:at,taskId:keep(after)}];
 }
+// Hours grouped by person for the Time entries list. A person re-added under the same name (a second crew record) is
+// one person. since: a YYYY-MM-DD day (the fixed price's start); sinceHours counts entries starting that day or later,
+// leaving out offClock task ids (shopping trips, which are not billed under the fixed price).
+export function projectHoursByPerson(finance,{now=Date.now(),since=null,offClock=[]}={}){
+ const key=name=>String(name||'').trim().toLowerCase()||'crew member',groups=new Map(),skip=new Set(offClock);
+ const start=since?(([y,m,d])=>new Date(y,m-1,d).getTime())(since.split('-').map(Number)):null;
+ for(const s of finance?.shifts||[]){const person=(finance.crew||[]).find(c=>c.id===s.personId),k=key(person?.name),cost=projectShiftCost(s,now);
+  if(!groups.has(k))groups.set(k,{name:person?.name?.trim()||'Crew member',personIds:[],archived:true,hours:0,cents:0,sinceHours:0,shifts:[]});
+  const g=groups.get(k);if(!g.personIds.includes(s.personId))g.personIds.push(s.personId);if(person&&!person.archived)g.archived=false;
+  g.hours+=cost.hours;g.cents+=cost.cents;if(start!==null&&s.start>=start&&!skip.has(s.taskId))g.sinceHours+=cost.hours;g.shifts.push(s);}
+ const people=[...groups.values()].map(g=>({...g,hours:Math.round(g.hours*100)/100,sinceHours:Math.round(g.sinceHours*100)/100,shifts:g.shifts.sort((a,b)=>b.start-a.start)})).sort((a,b)=>b.hours-a.hours);
+ return {people,hours:Math.round(people.reduce((n,g)=>n+g.hours,0)*100)/100,cents:people.reduce((n,g)=>n+g.cents,0),sinceHours:Math.round(people.reduce((n,g)=>n+g.sinceHours,0)*100)/100};
+}
 export function projectShiftCost(shift,now=Date.now()) {
  const elapsed=Math.max(0,(shift.end??now)-shift.start);
  const hours=shift.end===null?Math.floor(elapsed/3600000):elapsed/3600000;

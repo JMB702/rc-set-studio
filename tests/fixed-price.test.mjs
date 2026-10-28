@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {priceRows} from '../public/pricing-calc.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
 import {customizeRows} from '../public/pricing-config.js';
-import {projectDefaultTracking,projectDefaultFinance,projectValidate,projectPreserveFinance,projectShiftCost} from '../public/project-model.js';
+import {projectDefaultTracking,projectDefaultFinance,projectValidate,projectPreserveFinance,projectShiftCost,projectHoursByPerson} from '../public/project-model.js';
 import {projectCost,projectFixedPrice,dayStart} from '../public/projection.js';
 
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
@@ -75,4 +75,18 @@ test('Finance validation keeps the fixed price and extra items, rejects bad ones
  const merged=validate(projectPreserveFinance(previous,older));assert.deepEqual(merged.fixedPrice,previous.fixedPrice);assert.deepEqual(merged.extraItems,previous.extraItems);
  // Clearing it explicitly works.
  assert.equal(validate(projectPreserveFinance(previous,{...older,fixedPrice:null})).fixedPrice,null);
+});
+
+test('Time entries total by person, merging a person re-added under the same name, and add up to a grand total',()=>{
+ const people=[{id:'jeff',name:'Jeff',rateCents:5000,archived:false},{id:'b1',name:'Bryson',rateCents:0,archived:true},{id:'b2',name:'Bryson ',rateCents:0,archived:false},{id:'tom',name:'Tom',rateCents:0,archived:true}];
+ const f={...finance(),crew:people,shifts:[...finance().shifts,{...shift('b1a','2026-10-16',9,2.5),personId:'b1',rateCents:0},{...shift('b2a','2026-10-29',9,3),personId:'b2',rateCents:0},{...shift('t1','2026-10-16',14,.25),personId:'tom',rateCents:0}]};
+ const by=projectHoursByPerson(f,{now,since:'2026-10-28',offClock:['shoppingRemaining','shoppingDone']});
+ assert.deepEqual(by.people.map(g=>[g.name,g.hours,g.shifts.length]),[['Jeff',29.5,6],['Bryson',5.5,2],['Tom',.25,1]]);
+ assert.deepEqual(by.people.find(g=>g.name==='Bryson').personIds,['b1','b2']);assert.equal(by.people.find(g=>g.name==='Tom').archived,true);
+ // Since Oct 28, shopping off the clock: Jeff's 7 h + 5 h (not the 1.5 h trip), Bryson's 3 h.
+ assert.deepEqual(by.people.map(g=>g.sinceHours),[12,3,0]);assert.equal(by.sinceHours,15);
+ assert.equal(by.hours,Math.round(by.people.reduce((n,g)=>n+g.hours,0)*100)/100);assert.equal(by.hours,35.25);
+ assert.equal(by.cents,f.shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents,0));
+ assert.ok(by.people.every(g=>g.shifts.every((s,i,a)=>!i||a[i-1].start>=s.start)),'newest entry first inside each person');
+ assert.deepEqual(projectHoursByPerson({crew:people,shifts:[]}),{people:[],hours:0,cents:0,sinceHours:0});
 });

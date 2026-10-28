@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {priceRows} from '../public/pricing-calc.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
-import {projectDefaultTracking,projectDefaultFinance,projectValidate,projectPreserveFinance,projectShiftCost,projectHoursByPerson,projectEntryCost} from '../public/project-model.js';
+import {projectDefaultTracking,projectDefaultFinance,projectValidate,projectPreserveFinance,projectShiftCost,projectHoursByPerson,projectEntryCost,projectMarkPaidThrough} from '../public/project-model.js';
 import {projectCost,dayStart,RETURN_TAX,fixedLabor} from '../public/projection.js';
 
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
@@ -11,7 +11,7 @@ const design={height:120,angle:90,floor:'charcoal',platformShape:'square',platfo
 const rows=priceRows(data,{scope:'set',...design}),H=3600000,now=new Date(2026,10,3,18).getTime();
 function labor(d=design){const est=laborEstimate(d,1),base=laborCost(est.hours,[5000]);return {...est,defaultHours:est.hours,hours:est.hours,rates:[5000],...base,shoppingRateCents:5000,shoppingCents:Math.round(est.shoppingHours*5000),costCents:base.costCents};}
 const day=(d,h)=>dayStart(d)+h*H;
-const shift=(id,d,h,hours,taskId=null)=>({id,personId:'jeff',start:day(d,h),end:day(d,h)+hours*H,rateCents:5000,note:'',taskId});
+const shift=(id,d,h,hours,taskId=null,paid=true)=>({id,personId:'jeff',start:day(d,h),end:day(d,h)+hours*H,rateCents:5000,note:'',taskId,paid});
 const crew=[{id:'jeff',name:'Jeff',rateCents:5000,archived:false}];
 const fixedPrice={startDate:'2026-10-28',laborCents:175000,rateCents:4000,note:'Ross Creations, fixed labor to finish',agreedAt:dayStart('2026-10-27'),agreedTotalCents:null};
 const line=(id,extra={})=>({id,materialId:null,description:'BEHR 880 Concrete & Masonry Bonding Primer',quantity:2,amountCents:5996,complete:false,substitute:false,note:'',...extra});
@@ -65,7 +65,7 @@ test('Time entries total by person at the fixed rate, merging a person re-added 
  assert.deepEqual(by.people.find(g=>g.name==='Bryson').personIds,['b1','b2']);assert.equal(by.people.find(g=>g.name==='Tom').archived,true);
  assert.deepEqual(by.people.map(g=>g.sinceHours),[12,3,0]);assert.equal(by.sinceHours,15);assert.equal(by.hours,35.25);
  assert.equal(by.cents,f.shifts.reduce((n,s)=>n+projectShiftCost(s,now).cents,0),'without a fixed rate, the captured rates');
- assert.deepEqual(projectHoursByPerson({crew:people,shifts:[]}),{people:[],hours:0,cents:0,sinceHours:0});
+ assert.deepEqual(projectHoursByPerson({crew:people,shifts:[]}),{people:[],hours:0,cents:0,sinceHours:0,unpaidHours:0,unpaidCents:0});
 });
 
 test('Finance validation keeps the fixed price and return flags, rejects bad ones, and older saves cannot drop them',()=>{
@@ -116,4 +116,40 @@ test('Under a fixed price the labor still to come is the fixed budget, spread ov
  // Without a fixed price nothing changes.
  assert.ok(tm.labor.pace!==undefined&&tm.fixed===null);assert.notEqual(tm.labor.remainingHours,31.75);
  assert.equal(fixedLabor({tasks:[],actualHours:0},{budgetHours:43.75,loggedHours:0,rateCents:4000,priorLaborCents:0,laborDoneCents:0,laborCents:175000}).remainingHours,43.75,'the budget stands even with no step left to spread it over');
+});
+
+// Jeff, Oct 28: everything is paid except Mon Oct 26 and Tue Oct 27, which stay hourly at $50.
+function unpaidWeek(){const f=finance({fixedPrice});f.shifts=[...f.shifts.filter(s=>s.start<dayStart('2026-10-26')||s.start>=dayStart('2026-10-28')),shift('m1','2026-10-26',8,8.31,null,false),shift('t1','2026-10-27',8,4.43,'wallFinish',false),shift('t2','2026-10-27',13,.5,'platformFinish',false)];return f;}
+
+test('Unpaid hourly time before the fixed price is its own line in the cost to finish, and the projection stays the same',()=>{
+ const f=unpaidWeek(),p=cost(f),x=p.fixed;
+ assert.equal(x.unpaidHourlyHours,13.24);assert.equal(x.unpaidHourlyCents,Math.round(8.31*5000)+Math.round(4.43*5000)+2500);assert.equal(x.unpaidRateCents,5000);assert.deepEqual(x.unpaidDays,['2026-10-26','2026-10-27']);
+ assert.equal(x.costToFinishCents,x.unpaidHourlyCents+175000+x.toBuyCents-x.returnCreditCents);
+ // Paying them changes what is owed, not the projected total: those hours are already in spent so far.
+ const paid=projectMarkPaidThrough(f,'2026-10-27').finance,q=cost(paid);
+ assert.equal(q.fixed.unpaidHourlyCents,0);assert.equal(q.projectedCents,p.projectedCents);assert.equal(q.spentCents,p.spentCents);assert.equal(p.fixed.costToFinishCents-q.fixed.costToFinishCents,x.unpaidHourlyCents);
+ // Time from the start date is inside the fixed price, paid or not; a shopping trip before it was billed, so it counts.
+ const later=unpaidWeek();later.shifts.find(s=>s.id==='s4').paid=false;assert.equal(cost(later).fixed.unpaidHourlyCents,x.unpaidHourlyCents);
+ const trip=unpaidWeek();trip.shifts.push(shift('sh','2026-10-21',15,2,'shoppingRemaining',false));assert.equal(cost(trip).fixed.unpaidHourlyCents,x.unpaidHourlyCents+10000);
+ // Per person and in total, the Time entries list shows the same unpaid hours and amount.
+ const by=projectHoursByPerson(f,{now,since:'2026-10-28',offClock:['shoppingRemaining'],fixedRateCents:4000});
+ assert.equal(by.people[0].unpaidHours,13.24);assert.equal(by.unpaidCents,x.unpaidHourlyCents);
+});
+
+test('Mark paid through a day: finished entries on or before it, both ways, active shifts untouched',()=>{
+ const f=unpaidWeek();f.shifts.push({...shift('live','2026-10-27',16,1,null,false),end:null});
+ let r=projectMarkPaidThrough(f,'2026-10-26');assert.equal(r.changed,1);assert.deepEqual(r.finance.shifts.filter(s=>!s.paid).map(s=>s.id).sort(),['live','t1','t2']);
+ r=projectMarkPaidThrough(r.finance,'2026-10-27');assert.equal(r.changed,2);assert.equal(r.finance.shifts.find(s=>s.id==='live').paid,false,'still on the clock');
+ r=projectMarkPaidThrough(r.finance,'2026-10-27',false);assert.ok(r.finance.shifts.filter(s=>s.start<dayStart('2026-10-28')&&s.end!==null).every(s=>!s.paid));
+ assert.equal(projectMarkPaidThrough(f,'2026-10-25').changed,0,'earlier entries were already paid');
+ assert.throws(()=>projectMarkPaidThrough(f,'Oct 27'),/YYYY-MM-DD/);assert.equal(f.shifts.find(s=>s.id==='m1').paid,false,'the input is not changed');
+});
+
+test('The paid flag is validated, defaults to unpaid, and older saves cannot drop it',()=>{
+ const validate=input=>projectValidate('finance',input,now),f=finance();
+ assert.equal(validate(f).shifts[0].paid,true);
+ const fresh=finance();delete fresh.shifts[0].paid;assert.equal(validate(fresh).shifts[0].paid,false,'new entries start unpaid');
+ const bad=finance();bad.shifts[0].paid='yes';assert.throws(()=>validate(bad),/shift times/);
+ const older=finance();for(const s of older.shifts)delete s.paid;const merged=validate(projectPreserveFinance(validate(f),older));assert.ok(merged.shifts.every(s=>s.paid===true));
+ const unpay=finance();unpay.shifts[0].paid=false;assert.equal(validate(projectPreserveFinance(validate(f),unpay)).shifts[0].paid,false,'an explicit unpaid wins');
 });

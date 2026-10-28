@@ -191,9 +191,14 @@ export function projectFixedPrice({fixed,materials,shifts=[],expenses=[],shoppin
  const budgetHours=fixed.laborCents/fixed.rateCents,laborDoneCents=Math.min(fixed.laborCents,Math.round(loggedHours*fixed.rateCents));
  const toBuyCents=materials.remainingCents+materials.remainingTaxCents,returnCreditCents=materials.returnCreditCents??0,priorCents=priorLaborCents+priorMaterialsCents;
  const spentCents=priorCents+laterMaterialsCents+laborDoneCents,toGoCents=fixed.laborCents-laborDoneCents+toBuyCents-returnCreditCents;
- return {startDate:fixed.startDate,laborCents:fixed.laborCents,rateCents:fixed.rateCents,budgetHours:r2(budgetHours),loggedHours:r2(loggedHours),shoppingHours:r2(shoppingHours),hoursToFinish:r2(Math.max(0,budgetHours-loggedHours)),overHours:r2(Math.max(0,loggedHours-budgetHours)),laborDoneCents,
+ // Hourly time before the start that is not paid yet, at its captured rates (shopping included: it was billed then).
+ // It is already in spent so far; it is part of what is still owed to finish.
+ const unpaid=earlier.filter(s=>!s.paid),unpaidHourlyCents=unpaid.reduce((n,s)=>n+cost(s).cents,0),unpaidRates=[...new Set(unpaid.map(s=>s.rateCents))];
+ const localDay=t=>{const d=new Date(t);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+ return {unpaidHourlyCents,unpaidHourlyHours:r2(unpaid.reduce((n,s)=>n+cost(s).hours,0)),unpaidRateCents:unpaidRates.length===1?unpaidRates[0]:null,unpaidDays:[...new Set(unpaid.map(s=>localDay(s.start)))].sort(),
+  startDate:fixed.startDate,laborCents:fixed.laborCents,rateCents:fixed.rateCents,budgetHours:r2(budgetHours),loggedHours:r2(loggedHours),shoppingHours:r2(shoppingHours),hoursToFinish:r2(Math.max(0,budgetHours-loggedHours)),overHours:r2(Math.max(0,loggedHours-budgetHours)),laborDoneCents,
   priorCents,priorLaborCents,priorLaborHours:r2(priorLaborHours),priorMaterialsCents,laterMaterialsCents,toBuyCents,returnCreditCents,
-  costToFinishCents:fixed.laborCents+toBuyCents-returnCreditCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents};
+  costToFinishCents:unpaidHourlyCents+fixed.laborCents+toBuyCents-returnCreditCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents};
 }
 // How long each tracker milestone takes, in person-hours: the hours actually logged for work already done, plus the
 // estimate for what is left. Done work with no time logged against its stage takes its share of the unassigned

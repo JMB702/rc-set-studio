@@ -191,3 +191,12 @@ body.project-module .controls>:not(#project-tabs):not(#project-panel){display:no
 .pj-fixed-actions{display:flex;flex-wrap:wrap;gap:4px 16px;margin:8px 0 2px}.pj-fixed-actions button{background:transparent;padding:0;min-height:28px;font-size:12px;color:#1b2d29;text-decoration:underline;text-underline-offset:3px}
 .pj-return{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px}.pj-return.returned{opacity:.6}
 .pj-return>button{background:transparent;padding:0 2px;font-size:12px;text-decoration:underline}
+/* Paid / unpaid time entries. */
+.pj-paid{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-left:6px;padding:1px 6px;border-radius:999px;background:#e5efe0;color:#3c6b2f;vertical-align:1px}
+.pj-paid.unpaid{background:#f7e7cf;color:#8a5a12}.pj-paid.fixed{background:#e6ecef;color:#4b5f69}
+.pj-unpaid{color:#8a5a12;font-weight:600;font-style:normal}
+/* The site-wide summary span rules (21px, rotated 45 degrees when open) are for the + icons. Nothing in a person's header
+   is that icon, so keep every span in it upright and at the header's own sizes. */
+.pj-person>summary span,.pj-person[open]>summary span,.pj-person>summary span *,.pj-person[open]>summary span *{transform:none;font-size:inherit;font-weight:inherit}
+.pj-person>summary>span,.pj-person[open]>summary>span{font-size:14px}.pj-person>summary>span>strong,.pj-person[open]>summary>span>strong{font-size:16px;font-weight:650}.pj-person>summary>span>small,.pj-person[open]>summary>span>small{font-size:12px}
+.pj-person>summary .pj-unpaid{font-weight:600}

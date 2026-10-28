@@ -27,6 +27,8 @@ export function materialStatus(row,items,notNeeded=false){
 }
 
 // notNeeded: shopping-list row ids marked as not being bought (finance.notNeeded).
+// Florida 6% plus Manatee County 1%: the tax refunded with a returned item.
+export const RETURN_TAX=.07;
 export function projectMaterials(rows,expenses=[],notNeeded=[]){
  const items=expenses.flatMap(e=>(e.items||[]).map(i=>({...i,expenseId:e.id,vendor:e.vendor,date:e.date}))),skip=new Set(notNeeded.map(n=>n.materialId));
  const plan=rows.map(row=>({row,...materialStatus(row,items,skip.has(row.id))})),ids=new Set(rows.map(r=>r.id));
@@ -37,7 +39,12 @@ export function projectMaterials(rows,expenses=[],notNeeded=[]){
  const covered=plan.filter(p=>(p.status==='bought'||p.status==='partial')&&p.row.subtotalCents!==null&&p.remainingCents!==null).map(p=>({...p.row,purchaseQuantity:p.row.purchaseQuantity-p.remainingQuantity,subtotalCents:p.row.subtotalCents-p.remainingCents}));
  const coveredEstimateCents=covered.reduce((n,r)=>n+r.subtotalCents,0)+materialTax(covered);
  const estimateCents=rows.reduce((n,r)=>n+(r.subtotalCents??0),0)+materialTax(rows);
- return {plan,spentCents,remainingCents,remainingTaxCents,estimateCents,coveredEstimateCents,projectedCents:spentCents+remainingCents+remainingTaxCents,
+ // To return: receipt lines marked returnPlanned. The credit expected back is the line amount plus 7% sales tax. A refund
+ // line that names it (returnOf) means it is back: the refund is already counted in spent, so its credit stops here.
+ const back=new Set(items.filter(i=>i.returnOf).map(i=>i.returnOf));
+ const returns=items.filter(i=>i.returnPlanned).map(i=>({...i,returned:back.has(i.id),creditCents:i.amountCents==null?null:i.amountCents+Math.round(i.amountCents*RETURN_TAX)}));
+ const returnCreditCents=returns.filter(r=>!r.returned).reduce((n,r)=>n+(r.creditCents??0),0);
+ return {plan,spentCents,remainingCents,remainingTaxCents,estimateCents,coveredEstimateCents,returns,returnCreditCents,projectedCents:spentCents+remainingCents+remainingTaxCents-returnCreditCents,
   pending:remainingRows.filter(p=>p.remainingCents===null).length,
   counts:{bought:plan.filter(p=>p.status==='bought').length,partial:plan.filter(p=>p.status==='partial').length,remaining:plan.filter(p=>p.status==='remaining').length,notNeeded:plan.filter(p=>p.status==='notNeeded').length},
   unlinked:expenses.filter(e=>!(e.items||[]).length),
@@ -148,11 +155,35 @@ export function projectLabor(labor,{design,tracking,shifts=[],crew=null,supply=0
 export function projectCost({rows,finance,tracking,design,labor,now=Date.now()}){
  const materials=projectMaterials(rows,finance?.expenses||[],finance?.notNeeded||[]);
  const work=projectLabor(labor,{design,tracking,shifts:finance?.shifts||[],crew:finance?.crew||null,supply:supplyProgress(materials),now});
- const estimateCents=materials.estimateCents+(labor.costCents??0),spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents+work.remainingCents;
- const quoteCents=finance?.budgetCents??null,baselineCents=quoteCents??estimateCents;
- return {materials,labor:work,estimateCents,quoteCents,baselineCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-baselineCents,estimateVarianceCents:spentCents+toGoCents-estimateCents};
+ const estimateCents=materials.estimateCents+(labor.costCents??0),quoteCents=finance?.budgetCents??null;
+ if(finance?.fixedPrice){
+  const fixed=projectFixedPrice({fixed:finance.fixedPrice,materials,shifts:finance.shifts||[],expenses:finance.expenses||[],shoppingIds:new Set(labor.tasks.filter(t=>t.stage==='Shopping').map(t=>t.id)),now});
+  const baselineCents=finance.fixedPrice.agreedTotalCents??quoteCents??estimateCents;
+  return {materials,labor:work,fixed,estimateCents,quoteCents,agreedCents:finance.fixedPrice.agreedTotalCents??null,baselineCents,spentCents:fixed.spentCents,toGoCents:fixed.toGoCents,projectedCents:fixed.projectedCents,varianceCents:fixed.projectedCents-baselineCents,quoteVarianceCents:quoteCents===null?null:fixed.projectedCents-quoteCents,estimateVarianceCents:fixed.projectedCents-estimateCents};
+ }
+ const spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents-materials.returnCreditCents+work.remainingCents;
+ const baselineCents=quoteCents??estimateCents;
+ return {materials,labor:work,fixed:null,estimateCents,quoteCents,agreedCents:null,baselineCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-baselineCents,quoteVarianceCents:quoteCents===null?null:spentCents+toGoCents-quoteCents,estimateVarianceCents:spentCents+toGoCents-estimateCents};
 }
-
+// The start of a YYYY-MM-DD day in local time: work logged from then on falls under the fixed price.
+export function dayStart(date){const [y,m,d]=date.split('-').map(Number);return new Date(y,m-1,d).getTime();}
+// Fixed price to finish (finance.fixedPrice). Everything before startDate stays time and materials: receipts dated
+// before it and time entries that start before it, at their captured rates. From startDate the labor is laborCents flat,
+// worked at rateCents an hour (laborCents / rateCents hours): time logged since then is priced at that rate inside the
+// fixed labor, never on top of it, and shopping trips are off the clock. Materials stay at cost: receipts on or after
+// startDate, plus still to buy with its tax, less the credit for planned returns.
+export function projectFixedPrice({fixed,materials,shifts=[],expenses=[],shoppingIds=new Set(),now=Date.now()}){
+ const start=dayStart(fixed.startDate),earlier=shifts.filter(s=>s.start<start),later=shifts.filter(s=>s.start>=start),cost=s=>projectShiftCost(s,now),r2=v=>Math.round(v*100)/100;
+ const priorLaborCents=earlier.reduce((n,s)=>n+cost(s).cents,0),priorLaborHours=earlier.reduce((n,s)=>n+cost(s).hours,0);
+ const priorMaterialsCents=expenses.filter(e=>e.date<fixed.startDate).reduce((n,e)=>n+e.amountCents,0),laterMaterialsCents=expenses.filter(e=>e.date>=fixed.startDate).reduce((n,e)=>n+e.amountCents,0);
+ const loggedHours=later.filter(s=>!shoppingIds.has(s.taskId)).reduce((n,s)=>n+cost(s).hours,0),shoppingHours=later.filter(s=>shoppingIds.has(s.taskId)).reduce((n,s)=>n+cost(s).hours,0);
+ const budgetHours=fixed.laborCents/fixed.rateCents,laborDoneCents=Math.min(fixed.laborCents,Math.round(loggedHours*fixed.rateCents));
+ const toBuyCents=materials.remainingCents+materials.remainingTaxCents,returnCreditCents=materials.returnCreditCents??0,priorCents=priorLaborCents+priorMaterialsCents;
+ const spentCents=priorCents+laterMaterialsCents+laborDoneCents,toGoCents=fixed.laborCents-laborDoneCents+toBuyCents-returnCreditCents;
+ return {startDate:fixed.startDate,laborCents:fixed.laborCents,rateCents:fixed.rateCents,budgetHours:r2(budgetHours),loggedHours:r2(loggedHours),shoppingHours:r2(shoppingHours),hoursToFinish:r2(Math.max(0,budgetHours-loggedHours)),overHours:r2(Math.max(0,loggedHours-budgetHours)),laborDoneCents,
+  priorCents,priorLaborCents,priorLaborHours:r2(priorLaborHours),priorMaterialsCents,laterMaterialsCents,toBuyCents,returnCreditCents,
+  costToFinishCents:fixed.laborCents+toBuyCents-returnCreditCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents};
+}
 // How long each tracker milestone takes, in person-hours: the hours actually logged for work already done, plus the
 // estimate for what is left. Done work with no time logged against its stage takes its share of the unassigned
 // logged hours (or its estimate when nothing is logged). Each labor task's hours are spread over its Build guide

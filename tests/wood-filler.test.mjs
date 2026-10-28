@@ -47,9 +47,10 @@ test('Wood filler replaces the skim rows; the primer rows keep their ids and bec
  const plan=platformPlan(90,18,18,90,design),deck=platformRows(data,90,18,18,90,design),floor=floorRows(data,90,'charcoal',design),area=floorArea(90),fp=floorPlan(90,design);
  for(const rows of [deck,floor])assert.equal(rows.some(r=>['floorSeams','platformDeckSkim'].includes(r.id)),false);
  const f=floor.find(r=>r.id==='floorFiller'),d=deck.find(r=>r.id==='platformDeckFiller');
- for(const r of [f,d]){assert.equal(r.productUrl,'https://www.homedepot.com/p/206667347');assert.equal(r.unitPriceCents,1898);assert.equal(r.group,r===f?'floorFinish':'platformFinish');assert.match(r.availability,/#6319/);}
+ for(const r of [f,d]){assert.equal(r.productUrl,'https://www.homedepot.com/p/205337025');assert.equal(r.unitPriceCents,1598);assert.equal(r.group,r===f?'floorFinish':'platformFinish');assert.match(r.availability,/#6319/);}
  assert.equal(f.purchaseQuantity,fillerTubs(Math.ceil(area*2.25),fp.topSeamLength,area));assert.equal(d.purchaseQuantity,fillerTubs(plan.deckScrews,plan.deckSeamLength,plan.deckArea));
- assert.ok(f.purchaseQuantity>=1&&f.purchaseQuantity<=3&&d.purchaseQuantity>=1&&d.purchaseQuantity<=2,`${f.purchaseQuantity} + ${d.purchaseQuantity} quarts`);
+ // Each row alone (unpooled): the floor needs 3 tubs, the deck 2. Jeff's count is 5 tubs for both.
+ assert.deepEqual([f.purchaseQuantity,d.purchaseQuantity],[3,2],`${f.purchaseQuantity} + ${d.purchaseQuantity} tubs`);
  for(const [rows,id] of [[floor,'floorPrimer'],[deck,'platformDeckPrimer']]){const r=rows.find(x=>x.id===id);assert.equal(r.productUrl,'https://www.homedepot.com/p/100205766');assert.match(r.name,/Multi-Surface/);assert.equal(r.purchaseQuantity,1);}
  assert.equal(fillerTubs(0,0,0),1,'never less than one tub');
 });

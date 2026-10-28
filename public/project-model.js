@@ -1,6 +1,6 @@
 // Shared validation and accounting. All money is integer cents; rates are captured per shift.
 export function projectDefaultFinance() {
- return {budgetCents:null,expenses:[],notNeeded:[],crew:[{id:'person-1',name:'Person 1',rateCents:0,archived:false},{id:'person-2',name:'Person 2',rateCents:0,archived:false}],shifts:[]};
+ return {budgetCents:null,fixedPrice:null,expenses:[],notNeeded:[],crew:[{id:'person-1',name:'Person 1',rateCents:0,archived:false},{id:'person-2',name:'Person 2',rateCents:0,archived:false}],shifts:[]};
 }
 export function projectDefaultTracking(design) {
  const groups=[['walls','Walls',['Cut and label parts','Assemble the frames','Skin the panels','Build and attach jacks','Add shelves and ballast','Join walls and set angles','Dress, prime and paint']],['floor','Floor',['Mark the footprint','Prepare the base','Lay the flooring','Finish and trim']],['platform','Platform',['Cut and frame modules','Fit legs and join modules','Install decks and fascia','Skim, prime and paint']]];
@@ -99,6 +99,26 @@ export function projectSplitShift(shift,at,{before,after,id=crypto.randomUUID(),
  const keep=v=>v===undefined?shift.taskId??null:v||null;
  return [{...shift,end:at,taskId:keep(before)},{...shift,id,start:at,taskId:keep(after)}];
 }
+// Hours grouped by person for the Time entries list. A person re-added under the same name (a second crew record) is
+// one person. since: a YYYY-MM-DD day (the fixed price's start); sinceHours counts entries starting that day or later,
+// leaving out offClock task ids (shopping trips, which are not billed under the fixed price).
+// A time entry's cost to the client. Under a fixed price (since = its start date), entries from that day on are priced at
+// the fixed rate inside the fixed labor and off-clock entries (shopping) are $0; earlier entries keep their captured rate.
+export function projectEntryCost(shift,{now=Date.now(),since=null,offClock=[],fixedRateCents=null}={}){
+ const cost=projectShiftCost(shift,now);if(!since||fixedRateCents==null)return cost;
+ const start=(([y,m,d])=>new Date(y,m-1,d).getTime())(since.split('-').map(Number));if(shift.start<start)return cost;
+ return {hours:cost.hours,cents:new Set(offClock).has(shift.taskId)?0:Math.round(cost.hours*fixedRateCents)};
+}
+export function projectHoursByPerson(finance,{now=Date.now(),since=null,offClock=[],fixedRateCents=null}={}){
+ const key=name=>String(name||'').trim().toLowerCase()||'crew member',groups=new Map(),skip=new Set(offClock);
+ const start=since?(([y,m,d])=>new Date(y,m-1,d).getTime())(since.split('-').map(Number)):null;
+ for(const s of finance?.shifts||[]){const person=(finance.crew||[]).find(c=>c.id===s.personId),k=key(person?.name),cost=projectEntryCost(s,{now,since,offClock,fixedRateCents});
+  if(!groups.has(k))groups.set(k,{name:person?.name?.trim()||'Crew member',personIds:[],archived:true,hours:0,cents:0,sinceHours:0,shifts:[]});
+  const g=groups.get(k);if(!g.personIds.includes(s.personId))g.personIds.push(s.personId);if(person&&!person.archived)g.archived=false;
+  g.hours+=cost.hours;g.cents+=cost.cents;if(start!==null&&s.start>=start&&!skip.has(s.taskId))g.sinceHours+=cost.hours;g.shifts.push(s);}
+ const people=[...groups.values()].map(g=>({...g,hours:Math.round(g.hours*100)/100,sinceHours:Math.round(g.sinceHours*100)/100,shifts:g.shifts.sort((a,b)=>b.start-a.start)})).sort((a,b)=>b.hours-a.hours);
+ return {people,hours:Math.round(people.reduce((n,g)=>n+g.hours,0)*100)/100,cents:people.reduce((n,g)=>n+g.cents,0),sinceHours:Math.round(people.reduce((n,g)=>n+g.sinceHours,0)*100)/100};
+}
 export function projectShiftCost(shift,now=Date.now()) {
  const elapsed=Math.max(0,(shift.end??now)-shift.start);
  const hours=shift.end===null?Math.floor(elapsed/3600000):elapsed/3600000;
@@ -136,14 +156,18 @@ export function projectValidate(kind,input,now=Date.now()) {
  if(!unique(input.expenses)||!unique(input.crew)||!unique(input.shifts))fail('Duplicate entry IDs.');
  for(const e of input.expenses)if(!id(e.id)||!str(e.vendor)||!e.vendor.trim()||!money(e.amountCents,true)||!str(e.note,2000)||!/^\d{4}-\d{2}-\d{2}$/.test(e.date)||Number.isNaN(Date.parse(e.date))||(e.receiptId!==null&&!id(e.receiptId)))fail('Check the material entry, date and amount.');
  // Receipt line items link a purchase to shopping-list rows by materialId; null means not on the list.
- const item=i=>i&&typeof i==='object'&&id(i.id)&&(i.materialId===null||id(i.materialId))&&str(i.description)&&(i.materialId!==null||i.description.trim())&&(i.quantity===null||Number.isFinite(i.quantity)&&i.quantity>0&&i.quantity<=100000)&&(i.amountCents===null||money(i.amountCents,true))&&typeof i.complete==='boolean'&&typeof i.substitute==='boolean'&&str(i.note,500);
+ const item=i=>i&&typeof i==='object'&&id(i.id)&&(i.materialId===null||id(i.materialId))&&str(i.description)&&(i.materialId!==null||i.description.trim())&&(i.quantity===null||Number.isFinite(i.quantity)&&i.quantity>0&&i.quantity<=100000)&&(i.amountCents===null||money(i.amountCents,true))&&typeof i.complete==='boolean'&&typeof i.substitute==='boolean'&&str(i.note,500)&&(i.returnPlanned===undefined||typeof i.returnPlanned==='boolean')&&(i.returnOf==null||id(i.returnOf));
  for(const e of input.expenses)if(e.items!==undefined&&(!list(e.items,200)||!unique(e.items)||!e.items.every(item)))fail('Check the receipt line items: each needs a shopping-list item or a description.');
  // Shopping-list rows marked as not being bought. They stay on the list but drop out of still to buy.
  const notNeeded=input.notNeeded??[];if(!list(notNeeded,500)||new Set(notNeeded.map(n=>n?.materialId)).size!==notNeeded.length||!notNeeded.every(n=>n&&typeof n==='object'&&id(n.materialId)&&str(n.note??'',500)))fail('Check the items marked as not needed.');
  for(const c of input.crew)if(!id(c.id)||!str(c.name,80)||!c.name.trim()||!money(c.rateCents)||typeof c.archived!=='boolean')fail('Check the crew name and hourly rate.');
+ // Fixed-price labor from startDate on (Oct 28, 2026 deal with Ross Creations): work before it stays time and materials,
+ // labor after it is laborCents flat, materials stay at cost. agreedTotalCents freezes the projected total when it was agreed.
+ const fixed=input.fixedPrice??null,day=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&!Number.isNaN(Date.parse(v));
+ if(fixed!==null&&(typeof fixed!=='object'||Array.isArray(fixed)||!day(fixed.startDate)||!money(fixed.laborCents)||fixed.laborCents<1||!money(fixed.rateCents)||fixed.rateCents<1||!str(fixed.note??'',1000)||!Number.isSafeInteger(fixed.agreedAt)||fixed.agreedAt<0||fixed.agreedAt>now+60000||fixed.agreedTotalCents!=null&&!money(fixed.agreedTotalCents)))fail('Check the fixed price: a start date, a labor amount and an hourly rate.');
  for(const s of input.shifts){const c=input.crew.find(c=>c.id===s.personId);if(!id(s.id)||!c||(s.taskId!=null&&!id(s.taskId))||!money(s.rateCents)||!str(s.note,2000)||!Number.isSafeInteger(s.start)||s.start<0||s.start>now+60000||s.end!==null&&(!Number.isSafeInteger(s.end)||s.end<s.start||s.end>now+60000)||s.end===null&&c.archived)fail('Check the shift times. Clock out before removing a person.');}
  for(const c of input.crew){const shifts=input.shifts.filter(s=>s.personId===c.id).sort((a,b)=>a.start-b.start);for(let i=1;i<shifts.length;i++)if(shifts[i-1].end===null||shifts[i].start<shifts[i-1].end)fail(`${c.name} has overlapping shifts. Correct the times first.`);}
- return {budgetCents:input.budgetCents,expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId,items:(e.items||[]).map(i=>({id:i.id,materialId:i.materialId,description:i.description.trim(),quantity:i.quantity===null?null:Math.round(i.quantity*100)/100,amountCents:i.amountCents,complete:i.materialId!==null&&i.complete,substitute:i.materialId!==null&&i.substitute,note:i.note.trim()}))})),notNeeded:notNeeded.map(n=>({materialId:n.materialId,note:(n.note??'').trim()})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note,taskId:s.taskId??null}))};
+ return {budgetCents:input.budgetCents,fixedPrice:fixed===null?null:{startDate:fixed.startDate,laborCents:fixed.laborCents,rateCents:fixed.rateCents,note:(fixed.note??'').trim(),agreedAt:fixed.agreedAt,agreedTotalCents:fixed.agreedTotalCents??null},expenses:input.expenses.map(e=>({id:e.id,vendor:e.vendor.trim(),date:e.date,amountCents:e.amountCents,note:e.note,receiptId:e.receiptId,items:(e.items||[]).map(i=>({id:i.id,materialId:i.materialId,description:i.description.trim(),quantity:i.quantity===null?null:Math.round(i.quantity*100)/100,amountCents:i.amountCents,complete:i.materialId!==null&&i.complete,substitute:i.materialId!==null&&i.substitute,note:i.note.trim(),...(i.returnPlanned?{returnPlanned:true}:{}),...(i.returnOf?{returnOf:i.returnOf}:{})}))})),notNeeded:notNeeded.map(n=>({materialId:n.materialId,note:(n.note??'').trim()})),crew:input.crew.map(c=>({id:c.id,name:c.name.trim(),rateCents:c.rateCents,archived:c.archived})),shifts:input.shifts.map(s=>({id:s.id,personId:s.personId,start:s.start,end:s.end,rateCents:s.rateCents,note:s.note,taskId:s.taskId??null}))};
 }
 // Work history. When a tracker step's progress goes up, the server records when and by how much (progressLog), and a
 // step that reaches 100% is stamped completedAt unless it already has a time. Hours are matched to the work completed
@@ -161,7 +185,7 @@ export function projectStampProgress(previous,next,now){
 export function projectPreserveFinance(previous,next){
  if(!next||!Array.isArray(next.expenses)||!Array.isArray(next.shifts))return next;
  const expenses=new Map((previous?.expenses||[]).map(e=>[e.id,e])),shifts=new Map((previous?.shifts||[]).map(s=>[s.id,s]));
- return {...next,...(Object.hasOwn(next,'notNeeded')?{}:{notNeeded:previous?.notNeeded||[]}),expenses:next.expenses.map(e=>e&&typeof e==='object'&&!Object.hasOwn(e,'items')?{...e,items:expenses.get(e.id)?.items||[]}:e),shifts:next.shifts.map(s=>s&&typeof s==='object'&&!Object.hasOwn(s,'taskId')?{...s,taskId:shifts.get(s.id)?.taskId??null}:s)};
+ return {...next,...(Object.hasOwn(next,'notNeeded')?{}:{notNeeded:previous?.notNeeded||[]}),...(Object.hasOwn(next,'fixedPrice')?{}:{fixedPrice:previous?.fixedPrice??null}),expenses:next.expenses.map(e=>e&&typeof e==='object'&&!Object.hasOwn(e,'items')?{...e,items:expenses.get(e.id)?.items||[]}:e&&Array.isArray(e.items)?{...e,items:e.items.map(i=>{const before=expenses.get(e.id)?.items?.find(x=>x.id===i?.id);return i&&typeof i==='object'&&before&&!Object.hasOwn(i,'returnPlanned')&&!Object.hasOwn(i,'returnOf')?{...i,...(before.returnPlanned?{returnPlanned:true}:{}),...(before.returnOf?{returnOf:before.returnOf}:{})}:i;})}:e),shifts:next.shifts.map(s=>s&&typeof s==='object'&&!Object.hasOwn(s,'taskId')?{...s,taskId:shifts.get(s.id)?.taskId??null}:s)};
 }
 // Prefer a labelled total, never a card number, tendered cash, savings or subtotal.
 export function projectParseReceipt(text) {

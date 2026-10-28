@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {priceRows} from '../public/pricing-calc.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
-import {projectDefaultTracking,projectDefaultFinance,projectValidate,projectPreserveFinance,projectShiftCost,projectHoursByPerson,projectEntryCost,projectMarkPaidThrough} from '../public/project-model.js';
+import {projectDefaultTracking,projectDefaultFinance,projectValidate,projectPreserveFinance,projectShiftCost,projectHoursByPerson,projectEntryCost,projectMarkPaidThrough,projectParseReceipt} from '../public/project-model.js';
 import {projectCost,dayStart,RETURN_TAX,fixedLabor} from '../public/projection.js';
 
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
@@ -27,9 +27,9 @@ test('Fixed price: time and materials before the start date, then fixed labor at
  const p=cost(),f=p.fixed;
  // Before Oct 28: receipts dated before it and every time entry that started before it, at the rates captured then.
  assert.equal(f.priorMaterialsCents,312345);assert.equal(f.priorLaborCents,(8+6+2)*5000);assert.equal(f.priorLaborHours,16);
- // The widget: labor, plus still to buy with its tax, less the expected return credit.
+ // The widget: labor, plus materials bought since the start ($47.94), still to buy with its tax, less the expected return credit.
  assert.equal(f.budgetHours,43.75);assert.equal(f.rateCents,4000);assert.equal(f.toBuyCents,p.materials.remainingCents+p.materials.remainingTaxCents);
- assert.equal(f.returnCreditCents,credit);assert.equal(f.costToFinishCents,175000+f.toBuyCents-credit);
+ assert.equal(f.returnCreditCents,credit);assert.equal(f.laterBoughtCents,4794);assert.equal(f.laterRefundCents,0);assert.equal(f.costToFinishCents,175000+4794+f.toBuyCents-credit);
  // Hours since the start are worked at $40/h inside the $1,750, never on top: 12 h logged = $480 spent of it.
  assert.equal(f.loggedHours,12);assert.equal(f.hoursToFinish,31.75);assert.equal(f.laborDoneCents,48000);
  assert.equal(p.spentCents,312345+80000+4794+48000);assert.equal(p.toGoCents,175000-48000+f.toBuyCents-credit);
@@ -124,7 +124,7 @@ function unpaidWeek(){const f=finance({fixedPrice});f.shifts=[...f.shifts.filter
 test('Unpaid hourly time before the fixed price is its own line in the cost to finish, and the projection stays the same',()=>{
  const f=unpaidWeek(),p=cost(f),x=p.fixed;
  assert.equal(x.unpaidHourlyHours,13.24);assert.equal(x.unpaidHourlyCents,Math.round(8.31*5000)+Math.round(4.43*5000)+2500);assert.equal(x.unpaidRateCents,5000);assert.deepEqual(x.unpaidDays,['2026-10-26','2026-10-27']);
- assert.equal(x.costToFinishCents,x.unpaidHourlyCents+175000+x.toBuyCents-x.returnCreditCents);
+ assert.equal(x.costToFinishCents,x.unpaidHourlyCents+175000+x.laterMaterialsCents+x.toBuyCents-x.returnCreditCents);
  // Paying them changes what is owed, not the projected total: those hours are already in spent so far.
  const paid=projectMarkPaidThrough(f,'2026-10-27').finance,q=cost(paid);
  assert.equal(q.fixed.unpaidHourlyCents,0);assert.equal(q.projectedCents,p.projectedCents);assert.equal(q.spentCents,p.spentCents);assert.equal(p.fixed.costToFinishCents-q.fixed.costToFinishCents,x.unpaidHourlyCents);
@@ -171,9 +171,13 @@ test('To return lives in Pricing breakdown under the shopping list, with Keep, a
  const dropped=structuredClone(before);delete dropped.expenses[0].items[0].returnPlanned;assert.equal(projectPreserveFinance(before,dropped).expenses[0].items[0].returnPlanned,true);
 });
 test('The fixed panel materials rows are buttons that open Pricing breakdown at the matching list',()=>{
- assert.match(projectSource,/button\('goto-to-buy','<span>Materials still to buy/);
- assert.match(projectSource,/button\('goto-returns','<span>Less materials to return/);
- assert.match(projectSource,/a==='goto-returns'\?'price-to-return':'price-still-to-buy'/);
+ assert.match(projectSource,/link=\(target,label,note,title\)=>button\('goto-pricing'/);
+ for(const [target,label] of [["'price-bought'",'`Materials bought since'],["'price-still-to-buy'","'Materials still to buy'"],["'price-to-return'","'Less materials to return'"]])assert.ok(projectSource.includes(`link(${target},${label}`),label);
+ assert.match(projectSource,/link\(p\.materials\.returns\.some\(r=>r\.returned\)\?'price-to-return':'price-bought','Returns refunded'/);
+ assert.match(projectSource,/if\(a==='goto-pricing'\)return showPricingSection\(b\.dataset\.target\);/);
+ assert.match(pricingSource,/boughtBox\.id='price-bought'/);
+ // Each row shows only when it has an amount; the planned-return credit hides at $0.
+ assert.match(projectSource,/\$\{f\.laterBoughtCents\?row\(link/);assert.match(projectSource,/\$\{f\.laterRefundCents\?row\(link/);assert.match(projectSource,/\$\{f\.returnCreditCents\?row\(link\('price-to-return'/);
  assert.match(projectSource,/async function showPricingSection\(id\)\{api\.showProjectPricing\?\.\(\);await select\('pricing'\)/);
 });
 test('A refunded return stays listed as returned and stops counting toward the credit',()=>{
@@ -181,4 +185,50 @@ test('A refunded return stays listed as returned and stops counting toward the c
  const m=projectCost({rows,finance:f,labor:labor(),tracking:projectDefaultTracking(),design,now}).materials;
  assert.deepEqual(m.returns.map(i=>[i.id,i.returned]),[['l1',true],['l2',false]]);
  assert.equal(m.returnCreditCents,1000+Math.round(1000*RETURN_TAX));
+});
+
+// Return receipts: a negative total, negative pre-tax lines, returnOf pointing at the purchased line.
+const refundReceipt=(amountCents,items=[],date='2026-10-29')=>({id:'r1',vendor:'Home Depot',date,amountCents,note:'Return',receiptId:null,items});
+const refundLine=(id,returnOf,amountCents=-5996)=>({id,materialId:null,description:'BEHR 880 Concrete & Masonry Bonding Primer',quantity:2,amountCents,complete:false,substitute:false,note:'',returnOf});
+test('Purchases and refunds since the fixed-price start are in the cost to finish; the projected total does not move',()=>{
+ const before=cost(),f=finance({fixedPrice});f.expenses.push(refundReceipt(-credit,[refundLine('rl1','l880')]));const after=cost(f);
+ assert.equal(after.fixed.laterBoughtCents,4794);assert.equal(after.fixed.laterRefundCents,-credit);assert.equal(after.fixed.returnCreditCents,0);
+ assert.equal(after.fixed.costToFinishCents,175000+4794-credit+after.fixed.toBuyCents);
+ // The planned credit becomes the actual refund: same cost to finish and projected total, spent drops by the refund.
+ assert.equal(after.fixed.costToFinishCents,before.fixed.costToFinishCents);assert.equal(after.projectedCents,before.projectedCents);assert.equal(after.spentCents,before.spentCents-credit);
+ assert.deepEqual(after.materials.returns.map(r=>[r.id,r.returned]),[['l880',true]]);
+ // A refund before the start is billed time and materials, not part of the cost to finish.
+ const early=finance({fixedPrice});early.expenses.push(refundReceipt(-1000,[],'2026-10-20'));const e=cost(early);assert.equal(e.fixed.laterRefundCents,0);assert.equal(e.fixed.priorMaterialsCents,312345-1000);
+});
+test('A return receipt validates with a negative total and no lines, or with negative lines that name what they return',()=>{
+ const validate=input=>projectValidate('finance',input,now);
+ const bare=finance({fixedPrice});bare.expenses.push(refundReceipt(-14327));const v=validate(bare);assert.equal(v.expenses.at(-1).amountCents,-14327);assert.deepEqual(v.expenses.at(-1).items,[]);
+ assert.equal(cost(bare).spentCents,cost().spentCents-14327);
+ const lined=finance({fixedPrice});lined.expenses.push(refundReceipt(-credit,[refundLine('rl1','l880')]));const w=validate(lined).expenses.at(-1).items[0];assert.equal(w.amountCents,-5996);assert.equal(w.returnOf,'l880');assert.equal(w.returnPlanned,undefined);
+});
+test('Receipt scanning reads a Home Depot return as a negative total and the vendor from the slogan or store address',()=>{
+ const r=projectParseReceipt('TI ER et VEGA\n5475 UNIVERSITY PARKWAY\nSARASOTA, FL 34243\n10/28/26\nBEHR C&M BOND PRMR880 GAL\nORIG REC 10/12/26\n2@29.98 59.96-\nSUBTOTAL 133.90-\nSALES TAX 9.37-\nTOTAL 143.27-\nREFUND TO VISA');
+ assert.equal(r.vendor,'Home Depot');assert.equal(r.isReturn,true);assert.equal(r.amountCents,-14327);assert.equal(r.subtotalCents,-13390);assert.equal(r.taxCents,-937);assert.equal(r.date,'2026-10-28');assert.equal(r.warning,'');
+ assert.equal(projectParseReceipt('STORE NAME\nTOTAL -$12.00').amountCents,-1200);
+ // ORIG REC alone marks a return even when the total prints without a sign.
+ const unsigned=projectParseReceipt('HOME DEPOT\nORIG REC 10/14\nTOTAL 79.12');assert.equal(unsigned.isReturn,true);assert.equal(unsigned.amountCents,-7912);
+ const sale=projectParseReceipt('MXN :\nXE How doers\nget more done.\n10/28/2026\nSUBTOTAL 60.92\nSALES TAX 4.26\nTOTAL $65.18');assert.equal(sale.vendor,'Home Depot');assert.equal(sale.isReturn,false);assert.equal(sale.amountCents,6518);
+ // OCR noise is not a vendor; a readable store name still is.
+ assert.equal(projectParseReceipt('TI ER et VEGA\nMXN :\n10/28/2026\nTOTAL 5.00').vendor,'');
+ assert.equal(projectParseReceipt('Local Lumber Yard\nTOTAL 5.00').vendor,'Local Lumber Yard');
+ assert.equal(projectParseReceipt("LOWE'S HOME CENTERS\nTOTAL 5.00").vendor,'Lowe’s');
+});
+test('The receipt editor handles return receipts: refund toggle, unsigned amounts saved negative, Return of picker',()=>{
+ assert.match(projectSource,/name="refund" data-refund/);
+ assert.match(projectSource,/signed=c=>c==null\?null:refund\?-Math\.abs\(c\):c/);
+ assert.match(projectSource,/amountCents:signed\(Math\.round\(Number\(values\.get\('amount'\)\)\*100\)\)/);
+ assert.match(projectSource,/items:lines\.map\(i=>\(\{\.\.\.i,amountCents:signed\(i\.amountCents\)/);
+ assert.match(projectSource,/<span>Return of<\/span><select data-f="returnOf">/);
+ assert.match(projectSource,/optgroup label="Marked to return"/);
+ assert.match(projectSource,/else if\(f==='returnOf'\)matchReturn\(i,el\.value\)/);
+ // Typing a minus sign switches to a return receipt.
+ assert.match(projectSource,/if\(Number\(total\.value\)<0\)\{total\.value=String\(Math\.abs\(Number\(total\.value\)\)\);setRefund\(true\);\}/);
+ // Purchases: a Return badge, and a return never counts as an unlinked purchase.
+ assert.match(projectSource,/e\.amountCents<0\?' <i class="pj-return-badge">Return<\/i>':''/);
+ assert.match(projectSource,/unlinked=data\.expenses\.filter\(e=>e\.amountCents>=0&&!\(e\.items\|\|\[\]\)\.length\)/);
 });

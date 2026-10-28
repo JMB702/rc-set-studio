@@ -198,15 +198,24 @@ export function projectPreserveFinance(previous,next){
  return {...next,...(Object.hasOwn(next,'notNeeded')?{}:{notNeeded:previous?.notNeeded||[]}),...(Object.hasOwn(next,'fixedPrice')?{}:{fixedPrice:previous?.fixedPrice??null}),expenses:next.expenses.map(e=>e&&typeof e==='object'&&!Object.hasOwn(e,'items')?{...e,items:expenses.get(e.id)?.items||[]}:e&&Array.isArray(e.items)?{...e,items:e.items.map(i=>{const before=expenses.get(e.id)?.items?.find(x=>x.id===i?.id);return i&&typeof i==='object'&&before&&!Object.hasOwn(i,'returnPlanned')&&!Object.hasOwn(i,'returnOf')?{...i,...(before.returnPlanned?{returnPlanned:true}:{}),...(before.returnOf?{returnOf:before.returnOf}:{})}:i;})}:e),shifts:next.shifts.map(s=>{if(!s||typeof s!=='object')return s;const before=shifts.get(s.id);let out=s;if(!Object.hasOwn(s,'taskId'))out={...out,taskId:before?.taskId??null};if(!Object.hasOwn(s,'paid')&&before?.paid)out={...out,paid:true};return out;})};
 }
 // Prefer a labelled total, never a card number, tendered cash, savings or subtotal.
+// Stores whose receipts the header OCR garbles: matched anywhere in the text (Home Depot's slogan and the Sarasota store
+// address included). Otherwise the first header line that reads as words, or nothing rather than OCR noise.
+const KNOWN_VENDORS=[['Home Depot',/home\s*depot|\bhow\s+doers\b|doers\s+get\s+more\s+done|5475\s+UNIVERSITY\s+P(?:ARK)?WA?Y/i],['Lowe\u2019s',/\blowe['\u2019]?s\b/i],['Ace Hardware',/\bace\s+hardware\b/i],['Sherwin-Williams',/sherwin[\s-]*williams/i],['Walmart',/\bwal[\s-]*mart\b/i],['Amazon',/\bamazon\b/i]];
+function receiptVendor(text,lines){const known=KNOWN_VENDORS.find(([,re])=>re.test(text));if(known)return known[0];
+ const words=s=>s.split(/\s+/).filter(Boolean),readable=s=>{if(/receipt|welcome|invoice|thank|\b(?:tel|www)\b/i.test(s)||!/^[A-Za-z0-9&'\u2019.,\- ]+$/.test(s))return false;const w=words(s),letters=s.replace(/[^A-Za-z]/g,'').length;return w.some(x=>/[A-Za-z]{4,}/.test(x))&&letters>=s.replace(/\s/g,'').length*.7&&w.filter(x=>x.replace(/[^A-Za-z]/g,'').length<=2).length*2<w.length;};
+ return lines.slice(0,5).find(readable)||'';}
 export function projectParseReceipt(text) {
- const lines=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean),amount=s=>{const m=[...s.matchAll(/(?:\$\s*)?(-?\d[\d,]*[.,]\d{2})(?!\d)/g)].at(-1);return m?Math.round(Number(m[1].replace(/,(?=\d{3})/g,'').replace(',','.'))*100):null;};
+ const lines=text.split(/\r?\n/).map(s=>s.trim()).filter(Boolean),amount=s=>{const m=[...s.matchAll(/(-\s*)?(?:\$\s*)?(-?\d[\d,]*[.,]\d{2})(-)?(?!\d)/g)].at(-1);if(!m)return null;const v=Math.round(Number(m[2].replace(/,(?=\d{3})/g,'').replace(',','.'))*100);return m[1]||m[3]?-Math.abs(v):v;};
  const totals=lines.flatMap((s,i)=>/\b(?:grand\s+total|amount\s+(?:due|paid)|total(?:\s+due)?)\b/i.test(s)&&!/sub\s*total|savings|discount|items|tax|cash|change|tender/i.test(s)?[{value:amount(s)??amount(lines[i+1]||''),score:/grand|amount|due/i.test(s)?2:1}]:[]).filter(x=>x.value!==null).sort((a,b)=>b.score-a.score);
  const values=[...new Set(totals.filter(t=>t.score===totals[0]?.score).map(t=>t.value))];
  const subtotal=lines.find(s=>/sub\s*total/i.test(s)),tax=lines.find(s=>/^(?:sales\s+)?tax\b/i.test(s));
  const match=text.match(/\b(\d{1,2})[/-](\d{1,2})[/-](\d{4}|\d{2})\b/),iso=text.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
  let date=iso?.[0]||null;if(!date&&match){const y=match[3].length===2?'20'+match[3]:match[3];date=`${y}-${match[1].padStart(2,'0')}-${match[2].padStart(2,'0')}`;if(Number.isNaN(Date.parse(date)))date=null;}
- const amountCents=values.length===1?values[0]:null,subtotalCents=amount(subtotal||''),taxCents=amount(tax||'');
- return {vendor:lines.slice(0,5).find(s=>/[a-z]{3}/i.test(s)&&!/receipt|welcome|invoice|thank|\b(?:tel|www)\b/i.test(s))||'',date,amountCents,subtotalCents,taxCents,warning:values.length>1?'More than one total was found. Enter the correct receipt total.':amountCents===null?'Could not confidently find the total. Enter it from the receipt.':subtotalCents!==null&&taxCents!==null&&Math.abs(subtotalCents+taxCents-amountCents)>1?'Subtotal and tax do not match the total. Check discounts or fees.':''};
+ // A return receipt prints its total negative (often as 143.27-) and lists the original receipts (ORIG REC). Store it
+ // negative, with subtotal and tax carrying the same sign.
+ const isReturn=values.some(v=>v<0)||/\bORIG(?:INAL)?\.?\s*REC(?:EIPT)?\b|\bREFUND\s+TOTAL\b/i.test(text),sign=v=>v===null?null:isReturn?-Math.abs(v):v;
+ const amountCents=sign(values.length===1?values[0]:[...new Set(values.map(Math.abs))].length===1?values[0]:null),subtotalCents=sign(amount(subtotal||'')),taxCents=sign(amount(tax||''));
+ return {vendor:receiptVendor(text,lines),isReturn,date,amountCents,subtotalCents,taxCents,warning:values.length>1?'More than one total was found. Enter the correct receipt total.':amountCents===null?'Could not confidently find the total. Enter it from the receipt.':subtotalCents!==null&&taxCents!==null&&Math.abs(subtotalCents+taxCents-amountCents)>1?'Subtotal and tax do not match the total. Check discounts or fees.':''};
 }
 
 export function projectAssembly(input={}) {

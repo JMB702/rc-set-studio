@@ -22,7 +22,9 @@ Everything this skill does, Jeff can do by hand in **Cost & Tracking → Cost pr
    amountCents,  // line total before tax, after any line discount; null if not itemized; negative for a return
    complete,     // true = this row needs nothing more (bought the full amount, or Jeff says that's all)
    substitute,   // true = a different product standing in for the planned one
-   note}         // short reason: what was substituted, short count, return…
+   note,         // short reason: what was substituted, short count, return…
+   returnPlanned,// optional, on a purchase line: true = Jeff means to take it back (credit expected)
+   returnOf}     // optional, on a return line: the id of the purchased line it returns
 ]}
 ```
 
@@ -58,7 +60,7 @@ Offline drafting only (no browser): `node -e` with `priceRows()` from `public/pr
 | Bought more than the plan | link, `complete: true`, `note: 'N extra'` |
 | One planned row split over two receipts | a line on each; the second one completes it |
 | Not on the list (tools, blades, pencils, a cart fee) | `materialId: null`, `description` from the receipt |
-| Return or refund | negative `amountCents`; if it undoes a planned row, link it and set `complete` to match what is left |
+| Return or refund | a separate return receipt: see **Return receipts** below |
 | Tax, subtotal, payment, change | not line items. Tax is inside the expense total |
 
 Unit traps: screws, staples and sandbags are bought in **packs** (`packSize` > 1, `purchaseQuantity` is packs). Sand is planned by the pound but bought in 50 lb bags; lumber by the stick; paint by the gallon. When a match is uncertain (two 1×4 rows, 8 ft vs 10 ft), say so and ask rather than pick.
@@ -93,6 +95,26 @@ Rows Jeff says he will not buy (already on hand, dropped on purpose) can be mark
 ## Linking a purchase that has no receipt
 
 Same as above, but every line is `{materialId, quantity:null, amountCents:null, complete:true}`, one per row the purchase covered. The expense total stays the amount Jeff paid. Example: the Oct 9 Home Depot purchase ($1,462.00, "Materials for 8 wall panels") covers every row in the **Wall panels** (`group: 'panel'`) and **Jacks and shelf** (`group: 'supports'`) groups. When the receipt turns up, add quantities and amounts to those same lines.
+
+## Return receipts
+
+A return is its own expense, never an edit of the original purchase.
+
+- **Total:** `amountCents` is the refund total, **negative**, tax included (Home Depot prints it as `143.27-`). It counts against spent so far. A negative total with no line items is valid; itemize when the receipt allows.
+- **Lines:** one per returned item, `amountCents` **negative** and before tax (`-1604` for a $16.04 line), `materialId: null`, `description` as printed, `quantity` as returned, `complete:false`, `substitute:false`. Tax is not a line: it sits inside the negative total, so lines plus tax equal the total.
+- **returnOf:** set it to the `id` of the purchased line being returned. Home Depot lists the original receipt under each line (`ORIG REC 10/12`): find that store and date in `finance()`, then the line with the same product. Two units returned from one line still point at that one line.
+- **Planned returns become returned:** a purchase line marked to return (`returnPlanned: true`) is credited in the projection at its amount plus 7% until a line with `returnOf` names it. Once one does, it shows as returned in **Pricing breakdown → To return**, its expected credit drops out, and the real refund is in spent. Do not clear `returnPlanned` yourself; the `returnOf` link is what settles it.
+- **Not planned:** returning something that was never marked still works the same way (point `returnOf` at the line). If no purchase line matches, leave `returnOf` out and say so.
+- **Fixed price:** a refund dated on or after the fixed-price start shows in the **Fixed labor cost to finish** widget as *Returns refunded* and lowers the cost to finish.
+
+```js
+await __studio.project.saveExpense({
+  vendor:'Home Depot', date:'2026-10-28', amountCents:-14327, note:'Return',
+  items:[{materialId:null, description:'BEHR C&M BOND PRMR880 GAL', quantity:1, amountCents:-2998, complete:false, substitute:false, note:'', returnOf:'<line id from the 10/12 purchase>'}]
+});
+```
+
+In the app, Jeff does the same with **Return receipt** in the receipt editor: amounts are typed without a minus sign and saved negative, and each line has a **Return of** picker (*Add items marked to return…* adds a line for each open planned return). The receipt scanner marks a receipt as a return when its total is negative or it lists `ORIG REC` lines.
 
 ## Hours (for context)
 

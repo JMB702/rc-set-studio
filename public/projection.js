@@ -182,11 +182,12 @@ export function dayStart(date){const [y,m,d]=date.split('-').map(Number);return 
 // before it and time entries that start before it, at their captured rates. From startDate the labor is laborCents flat,
 // worked at rateCents an hour (laborCents / rateCents hours): time logged since then is priced at that rate inside the
 // fixed labor, never on top of it, and shopping trips are off the clock. Materials stay at cost: receipts on or after
-// startDate, plus still to buy with its tax, less the credit for planned returns.
+// startDate (purchases, and return receipts as negative totals), plus still to buy with its tax, less the credit for
+// planned returns not refunded yet.
 export function projectFixedPrice({fixed,materials,shifts=[],expenses=[],shoppingIds=new Set(),now=Date.now()}){
  const start=dayStart(fixed.startDate),earlier=shifts.filter(s=>s.start<start),later=shifts.filter(s=>s.start>=start),cost=s=>projectShiftCost(s,now),r2=v=>Math.round(v*100)/100;
  const priorLaborCents=earlier.reduce((n,s)=>n+cost(s).cents,0),priorLaborHours=earlier.reduce((n,s)=>n+cost(s).hours,0);
- const priorMaterialsCents=expenses.filter(e=>e.date<fixed.startDate).reduce((n,e)=>n+e.amountCents,0),laterMaterialsCents=expenses.filter(e=>e.date>=fixed.startDate).reduce((n,e)=>n+e.amountCents,0);
+ const priorMaterialsCents=expenses.filter(e=>e.date<fixed.startDate).reduce((n,e)=>n+e.amountCents,0),laterExpenses=expenses.filter(e=>e.date>=fixed.startDate),laterBoughtCents=laterExpenses.filter(e=>e.amountCents>0).reduce((n,e)=>n+e.amountCents,0),laterRefundCents=laterExpenses.filter(e=>e.amountCents<0).reduce((n,e)=>n+e.amountCents,0),laterMaterialsCents=laterBoughtCents+laterRefundCents;
  const loggedHours=later.filter(s=>!shoppingIds.has(s.taskId)).reduce((n,s)=>n+cost(s).hours,0),shoppingHours=later.filter(s=>shoppingIds.has(s.taskId)).reduce((n,s)=>n+cost(s).hours,0);
  const budgetHours=fixed.laborCents/fixed.rateCents,laborDoneCents=Math.min(fixed.laborCents,Math.round(loggedHours*fixed.rateCents));
  const toBuyCents=materials.remainingCents+materials.remainingTaxCents,returnCreditCents=materials.returnCreditCents??0,priorCents=priorLaborCents+priorMaterialsCents;
@@ -197,8 +198,8 @@ export function projectFixedPrice({fixed,materials,shifts=[],expenses=[],shoppin
  const localDay=t=>{const d=new Date(t);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
  return {unpaidHourlyCents,unpaidHourlyHours:r2(unpaid.reduce((n,s)=>n+cost(s).hours,0)),unpaidRateCents:unpaidRates.length===1?unpaidRates[0]:null,unpaidDays:[...new Set(unpaid.map(s=>localDay(s.start)))].sort(),
   startDate:fixed.startDate,laborCents:fixed.laborCents,rateCents:fixed.rateCents,budgetHours:r2(budgetHours),loggedHours:r2(loggedHours),shoppingHours:r2(shoppingHours),hoursToFinish:r2(Math.max(0,budgetHours-loggedHours)),overHours:r2(Math.max(0,loggedHours-budgetHours)),laborDoneCents,
-  priorCents,priorLaborCents,priorLaborHours:r2(priorLaborHours),priorMaterialsCents,laterMaterialsCents,toBuyCents,returnCreditCents,
-  costToFinishCents:unpaidHourlyCents+fixed.laborCents+toBuyCents-returnCreditCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents};
+  priorCents,priorLaborCents,priorLaborHours:r2(priorLaborHours),priorMaterialsCents,laterMaterialsCents,laterBoughtCents,laterRefundCents,toBuyCents,returnCreditCents,
+  costToFinishCents:unpaidHourlyCents+fixed.laborCents+laterMaterialsCents+toBuyCents-returnCreditCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents};
 }
 // How long each tracker milestone takes, in person-hours: the hours actually logged for work already done, plus the
 // estimate for what is left. Done work with no time logged against its stage takes its share of the unassigned

@@ -82,3 +82,17 @@ test('Finance validation keeps the fixed price and return flags, rejects bad one
  assert.equal(validate(projectPreserveFinance(ok,{...older,fixedPrice:null})).fixedPrice,null);
  const kept=finance();kept.expenses[0].items[0].returnPlanned=false;assert.equal(validate(projectPreserveFinance(ok,kept)).expenses[0].items[0].returnPlanned,undefined);
 });
+
+test('One more bag of Easy Sand 45 for the platform fascia and bead edges is on the list to buy and in the cost to finish',()=>{
+ const row=rows.find(r=>r.id==='platformEdgeCompound');
+ assert.deepEqual([row.purchaseQuantity,row.unitPriceCents,row.productUrl,row.group],[1,1298,'https://www.homedepot.com/p/100321610','platformFinish']);
+ assert.equal(rows.find(r=>r.id==='wallTouchup').purchaseQuantity,1,'the wall touch-up bag is separate');
+ // Without the row the fixed cost to finish is $12.98 plus 7% tax lower.
+ const p=cost(),without=projectCost({rows:rows.filter(r=>r.id!=='platformEdgeCompound'),finance:finance({fixedPrice}),tracking:projectDefaultTracking(design),design,labor:labor(),now});
+ assert.equal(p.materials.plan.find(x=>x.row.id==='platformEdgeCompound').status,'remaining');
+ // Tax is rounded over the whole list, so the bag adds $13.88 or $13.89.
+ const delta=p.fixed.toBuyCents-without.fixed.toBuyCents;assert.ok(Math.abs(delta-1389)<=1,String(delta));assert.equal(p.fixed.costToFinishCents-without.fixed.costToFinishCents,delta);assert.equal(p.projectedCents-without.projectedCents,delta);
+ // A different row from the platformCompound pail: receipts linked there do not mark this bag bought.
+ const linked=finance({fixedPrice});linked.expenses.push({id:'e9',vendor:'Home Depot',date:'2026-10-20',amountCents:5192,note:'',receiptId:null,items:[{id:'i9',materialId:'platformCompound',description:'Easy Sand 45',quantity:4,amountCents:5192,complete:true,substitute:true,note:''}]});
+ assert.equal(projectCost({rows,finance:linked,tracking:projectDefaultTracking(design),design,labor:labor(),now}).materials.plan.find(x=>x.row.id==='platformEdgeCompound').status,'remaining');
+});

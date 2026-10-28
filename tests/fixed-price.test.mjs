@@ -153,3 +153,32 @@ test('The paid flag is validated, defaults to unpaid, and older saves cannot dro
  const older=finance();for(const s of older.shifts)delete s.paid;const merged=validate(projectPreserveFinance(validate(f),older));assert.ok(merged.shifts.every(s=>s.paid===true));
  const unpay=finance();unpay.shifts[0].paid=false;assert.equal(validate(projectPreserveFinance(validate(f),unpay)).shifts[0].paid,false,'an explicit unpaid wins');
 });
+
+const projectSource=fs.readFileSync(new URL('../public/project.js',import.meta.url),'utf8'),pricingSource=fs.readFileSync(new URL('../public/pricing.js',import.meta.url),'utf8');
+test('To return lives in Pricing breakdown under the shopping list, with Keep, and only with Cost projection unlocked',()=>{
+ assert.doesNotMatch(projectSource,/<h3>To return<\/h3>|returnsSection/);
+ assert.match(pricingSource,/const returns=projection\?\.materials\.returns\|\|\[\]/);
+ assert.match(pricingSource,/group\('toReturn','To return'/);
+ assert.match(pricingSource,/box\.id='price-to-return'/);
+ assert.match(pricingSource,/label\.id='price-still-to-buy'/);
+ assert.ok(pricingSource.indexOf("label.id='price-still-to-buy'")<pricingSource.indexOf("group('toReturn'")&&pricingSource.indexOf("group('toReturn'")<pricingSource.indexOf("group('notNeeded'"));
+ assert.match(pricingSource,/api\.keepReturn\(i\.expenseId,i\.id\)/);
+ assert.match(projectSource,/api\.keepReturn=\(expenseId,lineId\)=>run\(\(\)=>api\.project\.setReturnPlanned\(expenseId,lineId,false\)\)/);
+ // Keep must save returnPlanned:false. Dropping the key reads as an older client and the stored true comes back.
+ assert.match(projectSource,/line\.returnPlanned=planned===true;/);assert.doesNotMatch(projectSource,/delete line\.returnPlanned/);
+ const before=projectDefaultFinance();before.expenses=[{id:'e1',vendor:'Home Depot',amountCents:1000,date:'2026-10-20',note:'',receiptId:null,items:[{id:'l1',materialId:null,description:'Spare',quantity:1,amountCents:1000,complete:false,substitute:false,note:'',returnPlanned:true}]}];
+ const keep=structuredClone(before);keep.expenses[0].items[0].returnPlanned=false;assert.notEqual(projectPreserveFinance(before,keep).expenses[0].items[0].returnPlanned,true);
+ const dropped=structuredClone(before);delete dropped.expenses[0].items[0].returnPlanned;assert.equal(projectPreserveFinance(before,dropped).expenses[0].items[0].returnPlanned,true);
+});
+test('The fixed panel materials rows are buttons that open Pricing breakdown at the matching list',()=>{
+ assert.match(projectSource,/button\('goto-to-buy','<span>Materials still to buy/);
+ assert.match(projectSource,/button\('goto-returns','<span>Less materials to return/);
+ assert.match(projectSource,/a==='goto-returns'\?'price-to-return':'price-still-to-buy'/);
+ assert.match(projectSource,/async function showPricingSection\(id\)\{api\.showProjectPricing\?\.\(\);await select\('pricing'\)/);
+});
+test('A refunded return stays listed as returned and stops counting toward the credit',()=>{
+ const f=projectDefaultFinance();f.expenses=[{id:'e1',vendor:'Home Depot',amountCents:20000,date:'2026-10-20',note:'',items:[{id:'l1',description:'Extra drywall',amountCents:10000,returnPlanned:true},{id:'l2',description:'Spare screws',amountCents:1000,returnPlanned:true}]},{id:'e2',vendor:'Home Depot',amountCents:-10000,date:'2026-10-22',note:'',items:[{id:'r1',description:'Refund',amountCents:-10000,returnOf:'l1'}]}];
+ const m=projectCost({rows,finance:f,labor:labor(),tracking:projectDefaultTracking(),design,now}).materials;
+ assert.deepEqual(m.returns.map(i=>[i.id,i.returned]),[['l1',true],['l2',false]]);
+ assert.equal(m.returnCreditCents,1000+Math.round(1000*RETURN_TAX));
+});

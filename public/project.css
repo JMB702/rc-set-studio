@@ -186,11 +186,13 @@ body.project-module .controls>:not(#project-tabs):not(#project-panel){display:no
 .pj-fixed-table td{padding:6px 0;border-bottom:1px solid var(--pj-line);vertical-align:baseline}
 .pj-fixed-table td:first-child{width:100%}.pj-fixed-table td:last-child{width:1%;text-align:right;white-space:nowrap;padding-left:12px;font-variant-numeric:tabular-nums}
 .pj-fixed-table small{color:#6e7e73;font-size:11px;margin-left:4px}
+.pj-fixed-table .pj-link-row{display:block;min-height:0;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.pj-fixed-table .pj-link-row>span{text-decoration:underline;text-decoration-color:#c3ccc5;text-underline-offset:3px}
+.pj-fixed-table .pj-link-row:hover>span,.pj-fixed-table .pj-link-row:focus-visible>span{text-decoration-color:currentColor}
+.pj-fixed-table .pj-link-row i{display:inline-block;font-style:normal;color:#6e7e73;margin-left:6px;text-decoration:none}
 .pj-fixed-table .pj-sum td{font-weight:700;font-size:15px;border-bottom:0;border-top:2px solid #1b2d29}
 .pj-fixed-hours{margin:8px 0 2px;font-size:12px;color:#4d5e54;font-variant-numeric:tabular-nums}
 .pj-fixed-actions{display:flex;flex-wrap:wrap;gap:4px 16px;margin:8px 0 2px}.pj-fixed-actions button{background:transparent;padding:0;min-height:28px;font-size:12px;color:#1b2d29;text-decoration:underline;text-underline-offset:3px}
-.pj-return{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px}.pj-return.returned{opacity:.6}
-.pj-return>button{background:transparent;padding:0 2px;font-size:12px;text-decoration:underline}
 /* Paid / unpaid time entries. */
 .pj-paid{font-style:normal;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin-left:6px;padding:1px 6px;border-radius:999px;background:#e5efe0;color:#3c6b2f;vertical-align:1px}
 .pj-paid.unpaid{background:#f7e7cf;color:#8a5a12}.pj-paid.fixed{background:#e6ecef;color:#4b5f69}

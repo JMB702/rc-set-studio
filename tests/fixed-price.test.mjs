@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {priceRows} from '../public/pricing-calc.js';
 import {laborEstimate,laborCost} from '../public/labor.js';
 import {projectDefaultTracking,projectDefaultFinance,projectValidate,projectPreserveFinance,projectShiftCost,projectHoursByPerson,projectEntryCost} from '../public/project-model.js';
-import {projectCost,dayStart,RETURN_TAX} from '../public/projection.js';
+import {projectCost,dayStart,RETURN_TAX,fixedLabor} from '../public/projection.js';
 
 const data=JSON.parse(fs.readFileSync(new URL('../public/data/flat-shopping-list.json',import.meta.url),'utf8'));
 const design={height:120,angle:90,floor:'charcoal',platformShape:'square',platformBack:18,platformSide:18,platformAngle:90,floorLip:true,seamlessCorners:true,seamlessCornerSide:'right'};
@@ -81,4 +81,39 @@ test('Finance validation keeps the fixed price and return flags, rejects bad one
  // Explicit choices win: clearing the fixed price, or unchecking a return.
  assert.equal(validate(projectPreserveFinance(ok,{...older,fixedPrice:null})).fixedPrice,null);
  const kept=finance();kept.expenses[0].items[0].returnPlanned=false;assert.equal(validate(projectPreserveFinance(ok,kept)).expenses[0].items[0].returnPlanned,undefined);
+});
+
+test('One more bag of Easy Sand 45 for the platform fascia and bead edges is on the list to buy and in the cost to finish',()=>{
+ const row=rows.find(r=>r.id==='platformEdgeCompound');
+ assert.deepEqual([row.purchaseQuantity,row.unitPriceCents,row.productUrl,row.group],[1,1298,'https://www.homedepot.com/p/100321610','platformFinish']);
+ assert.equal(rows.find(r=>r.id==='wallTouchup').purchaseQuantity,1,'the wall touch-up bag is separate');
+ // Without the row the fixed cost to finish is $12.98 plus 7% tax lower.
+ const p=cost(),without=projectCost({rows:rows.filter(r=>r.id!=='platformEdgeCompound'),finance:finance({fixedPrice}),tracking:projectDefaultTracking(design),design,labor:labor(),now});
+ assert.equal(p.materials.plan.find(x=>x.row.id==='platformEdgeCompound').status,'remaining');
+ // Tax is rounded over the whole list, so the bag adds $13.88 or $13.89.
+ const delta=p.fixed.toBuyCents-without.fixed.toBuyCents;assert.ok(Math.abs(delta-1389)<=1,String(delta));assert.equal(p.fixed.costToFinishCents-without.fixed.costToFinishCents,delta);assert.equal(p.projectedCents-without.projectedCents,delta);
+ // A different row from the platformCompound pail: receipts linked there do not mark this bag bought.
+ const linked=finance({fixedPrice});linked.expenses.push({id:'e9',vendor:'Home Depot',date:'2026-10-20',amountCents:5192,note:'',receiptId:null,items:[{id:'i9',materialId:'platformCompound',description:'Easy Sand 45',quantity:4,amountCents:5192,complete:true,substitute:true,note:''}]});
+ assert.equal(projectCost({rows,finance:linked,tracking:projectDefaultTracking(design),design,labor:labor(),now}).materials.plan.find(x=>x.row.id==='platformEdgeCompound').status,'remaining');
+});
+
+test('Under a fixed price the labor still to come is the fixed budget, spread over the steps in their own proportions',()=>{
+ const tm=cost(finance()),p=cost(),w=p.labor,f=p.fixed,build=t=>t.stage!=='Shopping';
+ // The hours to go equal the widget's: 43.75 h less the 12 build hours logged since Oct 28, at $40/h.
+ assert.equal(w.remainingHours,31.75);assert.equal(f.hoursToFinish,31.75);assert.ok(Math.abs(w.tasks.filter(build).reduce((n,t)=>n+t.remainingExact,0)-31.75)<1e-9);
+ assert.equal(w.remainingCents,175000-48000);assert.equal(w.remainingCents,Math.round(f.hoursToFinish*4000));
+ // One factor for every step: the shares of what is left are the pace model's shares.
+ const share=(work,id)=>work.tasks.find(t=>t.id===id).remainingExact/work.tasks.filter(build).reduce((n,t)=>n+t.remainingExact,0);
+ for(const t of tm.labor.tasks.filter(t=>build(t)&&t.remainingExact>0))assert.ok(Math.abs(share(w,t.id)-share(tm.labor,t.id))<1e-9,t.id);
+ assert.ok(w.tasks.filter(t=>t.stage==='Shopping').every(t=>t.remainingExact===0&&t.remainingCents===0),'shopping is off the clock');
+ // Logged labor is what the client pays for it, so the card's labor and total match the widget and the projection.
+ assert.equal(w.actualCents,f.priorLaborCents+f.laborDoneCents);assert.equal(w.projectedCents,f.priorLaborCents+175000);
+ const m=p.materials;assert.equal(m.spentCents+m.remainingCents+m.remainingTaxCents-m.returnCreditCents+w.projectedCents,p.projectedCents);
+ assert.equal(w.pace,null);assert.equal(w.actualHours,tm.labor.actualHours,'hours logged are the same hours');
+ // Past the budget: nothing to go, and labor stays at the fixed amount.
+ const over=cost(finance({fixedPrice,shifts:[...finance().shifts,shift('o1','2026-10-31',7,12),shift('o2','2026-11-01',7,12),shift('o3','2026-11-02',7,12)]})).labor;
+ assert.equal(over.remainingHours,0);assert.equal(over.remainingCents,0);assert.ok(over.tasks.every(t=>t.remainingExact===0));assert.equal(over.projectedCents,f.priorLaborCents+175000);
+ // Without a fixed price nothing changes.
+ assert.ok(tm.labor.pace!==undefined&&tm.fixed===null);assert.notEqual(tm.labor.remainingHours,31.75);
+ assert.equal(fixedLabor({tasks:[],actualHours:0},{budgetHours:43.75,loggedHours:0,rateCents:4000,priorLaborCents:0,laborDoneCents:0,laborCents:175000}).remainingHours,43.75,'the budget stands even with no step left to spread it over');
 });

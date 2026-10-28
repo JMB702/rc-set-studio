@@ -159,11 +159,22 @@ export function projectCost({rows,finance,tracking,design,labor,now=Date.now()})
  if(finance?.fixedPrice){
   const fixed=projectFixedPrice({fixed:finance.fixedPrice,materials,shifts:finance.shifts||[],expenses:finance.expenses||[],shoppingIds:new Set(labor.tasks.filter(t=>t.stage==='Shopping').map(t=>t.id)),now});
   const baselineCents=finance.fixedPrice.agreedTotalCents??quoteCents??estimateCents;
-  return {materials,labor:work,fixed,estimateCents,quoteCents,agreedCents:finance.fixedPrice.agreedTotalCents??null,baselineCents,spentCents:fixed.spentCents,toGoCents:fixed.toGoCents,projectedCents:fixed.projectedCents,varianceCents:fixed.projectedCents-baselineCents,quoteVarianceCents:quoteCents===null?null:fixed.projectedCents-quoteCents,estimateVarianceCents:fixed.projectedCents-estimateCents};
+  return {materials,labor:fixedLabor(work,fixed),fixed,estimateCents,quoteCents,agreedCents:finance.fixedPrice.agreedTotalCents??null,baselineCents,spentCents:fixed.spentCents,toGoCents:fixed.toGoCents,projectedCents:fixed.projectedCents,varianceCents:fixed.projectedCents-baselineCents,quoteVarianceCents:quoteCents===null?null:fixed.projectedCents-quoteCents,estimateVarianceCents:fixed.projectedCents-estimateCents};
  }
  const spentCents=materials.spentCents+work.actualCents,toGoCents=materials.remainingCents+materials.remainingTaxCents-materials.returnCreditCents+work.remainingCents;
  const baselineCents=quoteCents??estimateCents;
  return {materials,labor:work,fixed:null,estimateCents,quoteCents,agreedCents:null,baselineCents,spentCents,toGoCents,projectedCents:spentCents+toGoCents,varianceCents:spentCents+toGoCents-baselineCents,quoteVarianceCents:quoteCents===null?null:spentCents+toGoCents-quoteCents,estimateVarianceCents:spentCents+toGoCents-estimateCents};
+}
+// The labor projection under a fixed price, so every hours-to-go figure matches the fixed-cost widget. The step estimates
+// are unchanged; what is left of each is scaled by one factor so the build work still to come adds up to the hours the
+// fixed labor has left (budget hours less build hours logged since the start, never below 0), priced at the fixed rate.
+// Shopping has nothing to come after the start. Logged labor is what the client pays for it: entries before the start at
+// their captured rates, then the fixed-rate value of the hours since, which never goes past the fixed labor.
+export function fixedLabor(work,fixed){
+ const build=work.tasks.filter(t=>t.stage!=='Shopping'),left=build.reduce((n,t)=>n+t.remainingExact,0),target=Math.max(0,fixed.budgetHours-fixed.loggedHours),factor=left>0?target/left:0,r2=v=>Math.round(v*100)/100;
+ const tasks=work.tasks.map(t=>{const remaining=t.stage==='Shopping'?0:t.remainingExact*factor;return {...t,remainingExact:remaining,remaining:r2(remaining),projected:r2(t.actual+remaining),remainingCents:Math.round(remaining*fixed.rateCents)};});
+ const actualCents=fixed.priorLaborCents+fixed.laborDoneCents,remainingCents=fixed.laborCents-fixed.laborDoneCents,remainingHours=r2(target);
+ return {...work,tasks,pace:null,remainingOnSiteHours:null,ratePerPersonHourCents:fixed.rateCents,observedRateCents:fixed.rateCents,actualCents,remainingCents,remainingHours,projectedHours:r2(work.actualHours+remainingHours),projectedCents:actualCents+remainingCents,unpricedTasks:0,fixedScale:factor};
 }
 // The start of a YYYY-MM-DD day in local time: work logged from then on falls under the fixed price.
 export function dayStart(date){const [y,m,d]=date.split('-').map(Number);return new Date(y,m-1,d).getTime();}

@@ -58,5 +58,5 @@ test('Floor progress follows where its hours are, so a laid floor leaves only th
 test('Wall finishing counts every taped joint',()=>{
  const t=laborTasks(design).find(x=>x.id==='wallFinish'),joints=5*10+8*4;
  assert.match(t.note,new RegExp(`^${joints} ft of taped joints`));
- assert.equal(t.personHours,Math.round((1+joints*JOINT_HOURS_PER_FT+640/150+640/200)*10)/10,'two primer coats and two finish coats');
+ assert.equal(t.personHours,Math.round((1+joints*JOINT_HOURS_PER_FT+640/150+320*.0155+640/200)*10)/10,'two primer coats with the touch-up pass between, two finish coats');
 });

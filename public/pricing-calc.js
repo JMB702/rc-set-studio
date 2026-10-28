@@ -111,6 +111,8 @@ export function priceRows(data,{scope,height,angle,floor,platformShape='none',su
  const key=height===120?'10x4':'8x4',n=scope==='panel'?1:8;let rows=scope==='floor'?[]:calculate(data,key,n,supports,ballast);
  if(scope!=='floor'&&finishes){const area=n*4*height/12;
  rows.push(stocked(extra('wallPrimer','KILZ 2 All Purpose primer · walls · gallon',Math.ceil(area*2/250),2398,'100096395','Checked Oct 10 at #6319 · 152 in stock · two coats at 250 sq ft/gallon','finish'),152));
+ // Between the two primer coats: Easy Sand 45 setting compound for real dips, pits and seam lines found with a work light. One 18 lb bag is plenty.
+ rows.push({...extra('wallTouchup','USG Sheetrock Easy Sand 45 setting-type compound · primer touch-ups · 18 lb bag',1,1298,'100321610','Checked Oct 27 at #6319 · 167 in stock for pickup ($12.98 shown with Bradenton #244 selected) · spot-skims dips, pits and seam lines between the two KILZ 2 coats; mix small batches, it sets in about 45 minutes','finish'),observedStock:167});
  const paint=data.wallPaint;rows.push(extra('wallPaint',paint.name,Math.ceil(area*2/paint.coverageSqFtPerGallon),paint.unitPriceCents,paint.productUrl,paint.availability,'finish'));
  // Walls stay assembled: paper tape and premixed compound on every flat seam and the 8′ sheet joint on 10′ flats;
  // the two wing corners can move, so they get paintable caulk instead.

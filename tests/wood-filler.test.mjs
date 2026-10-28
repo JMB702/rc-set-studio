@@ -86,5 +86,13 @@ test('The guide sands only the filler at 120, makes one light 180 pass, and smoo
  for(const stage of ['[25,','[36,']){const text=src.slice(src.indexOf(stage+"'Fill"),src.indexOf(stage+"'Fill")+2500);assert.match(text,/sand only the filled spots with 120 grit/);assert.match(text,/do not sand the whole surface at 120/);assert.match(text,/one light 180-grit pass/);assert.match(text,/work light held low/);assert.match(text,/feather more filler over any seam lip/);assert.match(text,/respirator and knee pads/);assert.doesNotMatch(text,/rented|150 grit|floor sander/);}
  assert.match(src,/Split the floor over more than one session/);assert.match(src,/never hangs over the vinyl bead/);
  for(const stage of ["[26,'Prime the floor twice","[37,'Prime the platform twice"]){const text=src.slice(src.indexOf(stage),src.indexOf(stage)+900);assert.match(text,/first coat/);assert.match(text,/220 grit/);assert.match(text,/second coat/);assert.match(text,/dust nibs/);}
- assert.match(src,/two coats of KILZ 2, plastered seams/,'the walls get two primer coats too');
+});
+
+test('The walls get two KILZ 2 coats with a work-light check, a 220 sand and Easy Sand 45 touch-ups between',async()=>{
+ const src=fs.readFileSync(new URL('../public/guide.js',import.meta.url),'utf8'),text=src.slice(src.indexOf("[72,'Prime the walls twice"),src.indexOf("[73,'Paint the walls'"));
+ const order=['first coat of KILZ 2','rake a work light','mark every flaw in pencil','220 grit','Do not sand through the primer into the compound','Easy Sand 45','spot-prime them','second coat of KILZ 2','very lightly with 220','two coats of Carbon flat'];
+ let at=-1;for(const phrase of order){const i=text.indexOf(phrase);assert.ok(i>at,phrase);at=i;}
+ const rows=priceRows(data,{scope:'set',...design}),touch=rows.find(r=>r.id==='wallTouchup');assert.equal(touch.productUrl,'https://www.homedepot.com/p/100321610');assert.equal(touch.purchaseQuantity,1);assert.equal(touch.unitPriceCents,1298);
+ const up=projectUpgradeTracking({stages:[{id:'wall-finishing',name:'Dress, prime and paint — Walls',notes:[],steps:[{id:'wall-finishing-3',name:'Prime the walls',percent:40,notes:[]}]}]});assert.deepEqual(up.stages[0].steps.map(t=>[t.name,t.percent]),[['Prime the walls twice, with a 220 sand and touch-ups between',40]]);
+ const walls=laborTasks(design).find(t=>t.id==='wallFinish');assert.match(walls.note,/two primer coats with a work-light check, 220 sand and Easy Sand 45 touch-ups between/);
 });
